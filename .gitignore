@@ -1,0 +1,28 @@
+# Build outputs
+bin/
+obj/
+*.user
+.vs/
+
+# NuGet
+packages/
+*.nupkg
+project.lock.json
+project.fragment.lock.json
+
+# Rider / JetBrains
+.idea/
+*.sln.iml
+
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# BHB runtime data (in AppData, not repo)
+*.log
+
+# Test output
+TestResults/
