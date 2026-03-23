@@ -26,3 +26,10 @@ Thumbs.db
 
 # Test output
 TestResults/
+
+# AI planning / Claude Code internals
+.claude/
+.planning/
+
+# Reference bots (not part of this project's source)
+Other Bots/
