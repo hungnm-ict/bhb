@@ -48,7 +48,7 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-None yet.
+1. Implement DebugCaptureTool for replay testing — `.planning/todos/pending/2026-03-23-implement-debugcapturetool-for-replay-testing.md`
 
 ### Blockers/Concerns
 
