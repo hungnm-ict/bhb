@@ -8,6 +8,7 @@
     <RootNamespace>BHB</RootNamespace>
     <AssemblyName>BHB</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ApplicationIcon>Assets\BHB.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="OpenCvSharp4" Version="4.11.0.20250506" />
