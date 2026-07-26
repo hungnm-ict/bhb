@@ -27,4 +27,9 @@
     <ProjectReference Include="..\BHB.Common\BHB.Common.csproj" />
     <ProjectReference Include="..\BHB.Theme\BHB.Theme.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="Templates\**\*.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 </Project>
