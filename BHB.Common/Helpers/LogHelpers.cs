@@ -1,12 +1,13 @@
 using System;
 using System.IO;
+using BHB.Common.Shared;
 using Serilog;
 
 namespace BHB.Common.Helpers;
 
 public static class LogHelpers
 {
-    public static void Initialize(string appName = "BHB")
+    public static void Initialize(string appName = AppConstants.APP_NAME)
     {
         var logDir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),

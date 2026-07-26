@@ -4,6 +4,8 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <!-- BaseWindow uses System.Windows.Forms.Screen for multi-monitor enumeration. -->
+    <UseWindowsForms>true</UseWindowsForms>
     <RootNamespace>BHB.Common</RootNamespace>
     <AssemblyName>BHB.Common</AssemblyName>
   </PropertyGroup>
