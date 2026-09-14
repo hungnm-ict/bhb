@@ -72,6 +72,19 @@ export function createEngine(deps) {
     [TaskId.SCRIPT]: { interval: INTERVAL_SCRIPT, getRules: deps.getScriptRules },
   };
 
+  /**
+   * A discrete thing that happened, for the activity log.
+   *
+   * `lastMessage` is overwritten on every tick, so a log cannot be recovered
+   * from it; these events are what the log tab is built from.
+   *
+   * @param {'click'|'busy'|'task'|'idle'} kind
+   * @param {object} [detail]
+   */
+  function report(kind, detail = {}) {
+    emitter.emit('action', { at: realNow(), kind, task: state.activeTask, ...detail });
+  }
+
   function setMessage(message) {
     state.lastMessage = message;
     emitter.emit('change', getState());
@@ -113,7 +126,7 @@ export function createEngine(deps) {
           continue;
         }
 
-        return { rule, clicked: clickBufferPoint(canvas, resolved) };
+        return { rule, point: resolved, clicked: clickBufferPoint(canvas, resolved) };
       }
     }
 
@@ -151,6 +164,11 @@ export function createEngine(deps) {
       }
     }
 
+    report(hit.clicked ? 'click' : 'busy', {
+      ruleId: hit.rule.id,
+      label: hit.rule.label || hit.rule.id,
+      point: hit.point,
+    });
     setMessage(`${hit.rule.label || hit.rule.id} → ${hit.clicked ? 'click' : 'busy'}`);
   }
 
@@ -208,6 +226,7 @@ export function createEngine(deps) {
     pollTimer = realSetInterval(tick, TASKS[taskId].interval);
     autoStopTimer = realSetInterval(checkAutoStop, INTERVAL_AUTO_STOP_CHECK);
 
+    report('task', { started: true, label: taskId });
     setMessage(`${taskId} started`);
     tick();
   }
@@ -226,6 +245,7 @@ export function createEngine(deps) {
     clearTimeout_(restTimer);
     pollTimer = autoStopTimer = restTimer = null;
 
+    report('task', { started: false, label: stopped });
     setMessage(`${stopped} stopped`);
   }
 

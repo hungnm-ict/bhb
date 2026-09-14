@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      2.3.0
+// @version      2.4.0
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -111,7 +111,7 @@
   var realRequestAnimationFrame = window.requestAnimationFrame.bind(window);
 
   // src/core/constants.js
-  var VERSION = true ? "2.3.0" : "dev";
+  var VERSION = true ? "2.4.0" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_LEGACY_RULES = "bh_script_rules_v1";
@@ -356,8 +356,11 @@
     ["mouseleave", "mouse", 0]
   ];
   function dispatchClickAt(canvas, clientX, clientY) {
+    dispatchSequence(canvas, CLICK_SEQUENCE, clientX, clientY);
+  }
+  function dispatchSequence(canvas, sequence, clientX, clientY) {
     const targets = [canvas, document, window];
-    for (const [type, family, buttons] of CLICK_SEQUENCE) {
+    for (const [type, family, buttons] of sequence) {
       const Ctor = family === "pointer" ? PointerEvent : MouseEvent;
       const init = family === "pointer" ? pointerInit(clientX, clientY, buttons) : mouseInit(clientX, clientY, buttons);
       for (const target of targets) {
@@ -368,9 +371,19 @@
       }
     }
   }
+  var MOVE_SEQUENCE = [
+    ["pointerover", "pointer", 0],
+    ["pointerenter", "pointer", 0],
+    ["pointermove", "pointer", 0],
+    ["mouseover", "mouse", 0],
+    ["mousemove", "mouse", 0]
+  ];
+  function dispatchMoveTo(canvas, clientX, clientY) {
+    dispatchSequence(canvas, MOVE_SEQUENCE, clientX, clientY);
+  }
   function resetHover(canvas) {
     const pos = bufferToClient(canvas, HOVER_RESET_POINT.x, HOVER_RESET_POINT.y);
-    dispatchClickAt(canvas, pos.clientX, pos.clientY);
+    dispatchMoveTo(canvas, pos.clientX, pos.clientY);
   }
   function clickBufferPoint(canvas, point2) {
     if (locked) {
@@ -462,11 +475,14 @@
     let pollTimer = null;
     let autoStopTimer = null;
     let restTimer = null;
-    const TASKS = {
+    const TASKS2 = {
       [TaskId.RERUN]: { interval: INTERVAL_RERUN_HUNT, getRules: deps.getRerunRules },
       [TaskId.WORLD_BOSS]: { interval: INTERVAL_WORLD_BOSS, getRules: deps.getWorldBossRules },
       [TaskId.SCRIPT]: { interval: INTERVAL_SCRIPT, getRules: deps.getScriptRules }
     };
+    function report(kind, detail = {}) {
+      emitter.emit("action", { at: realNow(), kind, task: state.activeTask, ...detail });
+    }
     function setMessage(message) {
       state.lastMessage = message;
       emitter.emit("change", getState());
@@ -496,7 +512,7 @@
           if (!colorMatches(pixel, expected, rule.tolerance)) {
             continue;
           }
-          return { rule, clicked: clickBufferPoint(canvas, resolved) };
+          return { rule, point: resolved, clicked: clickBufferPoint(canvas, resolved) };
         }
       }
       return null;
@@ -513,7 +529,7 @@
         setMessage("waiting for game canvas");
         return;
       }
-      const task = TASKS[state.activeTask];
+      const task = TASKS2[state.activeTask];
       const hit = evaluateRules(task.getRules(), target.canvas, target.gl);
       if (!hit) {
         setMessage(`${state.activeTask}: no match`);
@@ -525,6 +541,11 @@
           enterRestPhase();
         }
       }
+      report(hit.clicked ? "click" : "busy", {
+        ruleId: hit.rule.id,
+        label: hit.rule.label || hit.rule.id,
+        point: hit.point
+      });
       setMessage(`${hit.rule.label || hit.rule.id} → ${hit.clicked ? "click" : "busy"}`);
     }
     function enterRestPhase() {
@@ -560,7 +581,7 @@
       }
     }
     function start2(taskId) {
-      if (!TASKS[taskId]) {
+      if (!TASKS2[taskId]) {
         throw new Error(`unknown task: ${taskId}`);
       }
       if (state.activeTask) {
@@ -569,8 +590,9 @@
       state.activeTask = taskId;
       state.phase = Phase.HUNTING;
       state.lastActionAt = realNow();
-      pollTimer = realSetInterval(tick, TASKS[taskId].interval);
+      pollTimer = realSetInterval(tick, TASKS2[taskId].interval);
       autoStopTimer = realSetInterval(checkAutoStop, INTERVAL_AUTO_STOP_CHECK);
+      report("task", { started: true, label: taskId });
       setMessage(`${taskId} started`);
       tick();
     }
@@ -585,6 +607,7 @@
       clearInterval_(autoStopTimer);
       clearTimeout_(restTimer);
       pollTimer = autoStopTimer = restTimer = null;
+      report("task", { started: false, label: stopped });
       setMessage(`${stopped} stopped`);
     }
     function toggle(taskId) {
@@ -732,119 +755,115 @@
   // src/i18n/vi.js
   var vi_default = {
     "app.name": "BHB",
-    "app.tagline": "Bot tự động hoá",
     "task.rerun": "RERUN",
     "task.wb": "WB SOLO",
     "task.script": "SCRIPT",
-    "task.on": "BẬT",
-    "task.off": "TẮT",
     "phase.hunting": "đang tìm",
     "phase.resting": "nghỉ",
-    "overlay.speed": "TỐC ĐỘ",
-    "overlay.canvas": "CANVAS",
-    "overlay.autoStop": "TỰ TẮT",
-    "overlay.remaining": "còn",
-    "overlay.rules": "RULE",
-    "overlay.noRules": "(chưa có rule — bấm 6)",
-    "overlay.awaitingColor": "(chờ màu)",
-    "overlay.needsRecapture": "cần chụp lại",
-    "overlay.profile": "PROFILE",
-    "overlay.help": "trợ giúp",
-    "overlay.collapse": "thu nhỏ",
+    "hud.idle": "đang dừng",
+    "tab.tasks": "Hoạt động",
+    "tab.rules": "Rule",
+    "tab.log": "Nhật ký",
+    "panel.close": "Đóng",
+    "overlay.speed": "Tốc độ",
+    "overlay.canvas": "Canvas",
+    "overlay.autoStop": "Tự tắt sau",
+    "overlay.rules": "Rule",
+    "overlay.noRules": "Chưa có rule nào. Rê chuột lên nút trong game rồi bấm Bắt rule.",
+    "overlay.needsRecapture": "Rule cũ, chưa có cỡ canvas — nên bắt lại",
+    "rule.defaultLabel": "Rule {n}",
+    "rules.capture": "Bắt rule tại con trỏ",
+    "rules.captureHint": "Rê chuột lên nút trong game rồi bấm. Bot tự đọc màu lúc nút không sáng — không cần di chuột đi đâu cả.",
+    "rules.unnamed": "(chưa đặt tên)",
+    "rules.enable": "Bật rule",
+    "rules.disable": "Tắt rule",
+    "rules.moveUp": "Lên (ưu tiên cao hơn)",
+    "rules.moveDown": "Xuống",
+    "rules.delete": "Xoá rule",
+    "log.title": "Nhật ký",
+    "log.empty": "Chưa có gì. Bật một hoạt động để bắt đầu.",
+    "log.clear": "Xoá",
+    "log.clicked": "Click {label}",
+    "log.busy": "Khớp {label}, đang bận",
+    "log.taskStarted": "Bật {task}",
+    "log.taskStopped": "Tắt {task}",
     "help.title": "PHÍM TẮT",
     "help.close": "Bấm 1 để đóng",
-    "help.sectionAuto": "TỰ ĐỘNG",
-    "help.sectionRules": "RULE (chỉ dùng trong mode 6)",
-    "help.sectionUi": "GIAO DIỆN",
-    "help.sectionSpeed": "TỐC ĐỘ",
+    "help.sectionAuto": "Tự động",
+    "help.sectionRules": "Rule",
+    "help.sectionUi": "Giao diện",
+    "help.sectionSpeed": "Tốc độ",
     "help.rerun": "Auto Rerun (tìm 3s, nghỉ 20s)",
     "help.wb": "Auto WB Solo (2s/lần)",
     "help.script": "Auto Script (3s/lần)",
-    "help.savePosition": "Lưu vị trí tại con trỏ",
-    "help.saveColor": "Lưu màu rule cuối (di chuột ra xa trước)",
-    "help.deleteRule": "Xoá rule cuối",
+    "help.capture": "Bắt rule tại con trỏ",
     "help.toggleHelp": "Hiện/ẩn bảng này",
-    "help.cycleOverlay": "Overlay: mở → thu nhỏ → ẩn",
-    "help.addMode": "Vào/ra chế độ thêm rule",
+    "help.togglePanel": "Mở/đóng bảng điều khiển",
     "help.speedUp": "Tăng tốc độ (+1)",
     "help.speedDown": "Giảm tốc độ (-1)",
     "help.footer": "Tự tắt sau 3 phút không click",
-    "addMode.title": "CHẾ ĐỘ THÊM RULE",
-    "addMode.savePosition": "lưu vị trí (ngay trên nút)",
-    "addMode.saveColor": "lưu màu (đã di chuột ra xa)",
-    "addMode.deleteRule": "xoá rule cuối",
-    "addMode.exit": "thoát",
     "msg.noCanvas": "không thấy canvas",
     "msg.noWebgl": "không có WebGL",
     "msg.noMousePosition": "chưa có vị trí chuột",
     "msg.outsideCanvas": "con trỏ ngoài canvas",
-    "msg.positionSaved": "đã lưu vị trí rule #{n} ({x}, {y}) — di chuột ra xa rồi bấm 9",
-    "msg.colorSaved": "đã lưu màu rule #{n}: {hex}",
-    "msg.colorAlreadySet": "rule #{n} đã có màu ({hex})",
-    "msg.noRuleToColor": "chưa có rule nào",
-    "msg.ruleDeleted": "đã xoá rule cuối",
-    "msg.noRuleToDelete": "không có rule để xoá",
-    "msg.addModeOn": "THÊM RULE: 0 lưu vị trí, 9 lưu màu",
-    "msg.addModeOff": "thoát chế độ thêm rule ({n} rule)"
+    "msg.ruleCaptured": "đã bắt rule tại ({x}, {y}) — {hex}"
   };
 
   // src/i18n/en.js
   var en_default = {
     "app.name": "BHB",
-    "app.tagline": "Automation bot",
     "task.rerun": "RERUN",
     "task.wb": "WB SOLO",
     "task.script": "SCRIPT",
-    "task.on": "ON",
-    "task.off": "OFF",
     "phase.hunting": "hunting",
     "phase.resting": "resting",
-    "overlay.speed": "SPEED",
-    "overlay.canvas": "CANVAS",
-    "overlay.autoStop": "AUTO-STOP",
-    "overlay.remaining": "in",
-    "overlay.rules": "RULES",
-    "overlay.noRules": "(no rules yet — press 6)",
-    "overlay.awaitingColor": "(awaiting colour)",
-    "overlay.needsRecapture": "needs re-capture",
-    "overlay.profile": "PROFILE",
-    "overlay.help": "help",
-    "overlay.collapse": "collapse",
-    "help.title": "KEYBOARD SHORTCUTS",
+    "hud.idle": "idle",
+    "tab.tasks": "Tasks",
+    "tab.rules": "Rules",
+    "tab.log": "Log",
+    "panel.close": "Close",
+    "overlay.speed": "Speed",
+    "overlay.canvas": "Canvas",
+    "overlay.autoStop": "Auto-stop in",
+    "overlay.rules": "Rules",
+    "overlay.noRules": "No rules yet. Hover a button in the game, then hit Capture.",
+    "overlay.needsRecapture": "Captured before sizes were recorded — recapture it",
+    "rule.defaultLabel": "Rule {n}",
+    "rules.capture": "Capture at cursor",
+    "rules.captureHint": "Hover a button in the game and press. The resting colour is read for you — no need to move the mouse away.",
+    "rules.unnamed": "(unnamed)",
+    "rules.enable": "Enable",
+    "rules.disable": "Disable",
+    "rules.moveUp": "Move up (higher priority)",
+    "rules.moveDown": "Move down",
+    "rules.delete": "Delete",
+    "log.title": "Activity",
+    "log.empty": "Nothing yet. Start a task to see what the bot does.",
+    "log.clear": "Clear",
+    "log.clicked": "Clicked {label}",
+    "log.busy": "Matched {label}, busy",
+    "log.taskStarted": "Started {task}",
+    "log.taskStopped": "Stopped {task}",
+    "help.title": "KEYBOARD",
     "help.close": "Press 1 to close",
-    "help.sectionAuto": "AUTOMATION",
-    "help.sectionRules": "RULES (only inside mode 6)",
-    "help.sectionUi": "INTERFACE",
-    "help.sectionSpeed": "SPEED",
+    "help.sectionAuto": "Automation",
+    "help.sectionRules": "Rules",
+    "help.sectionUi": "Interface",
+    "help.sectionSpeed": "Speed",
     "help.rerun": "Auto Rerun (hunt 3s, rest 20s)",
     "help.wb": "Auto WB Solo (every 2s)",
     "help.script": "Auto Script (every 3s)",
-    "help.savePosition": "Save position at cursor",
-    "help.saveColor": "Save last rule colour (move cursor away first)",
-    "help.deleteRule": "Delete last rule",
+    "help.capture": "Capture a rule at the cursor",
     "help.toggleHelp": "Show/hide this panel",
-    "help.cycleOverlay": "Overlay: expanded → compact → hidden",
-    "help.addMode": "Enter/leave add-rule mode",
-    "help.speedUp": "Increase speed (+1)",
-    "help.speedDown": "Decrease speed (-1)",
-    "help.footer": "Auto-stops after 3 minutes without a click",
-    "addMode.title": "ADD RULE MODE",
-    "addMode.savePosition": "save position (on the button)",
-    "addMode.saveColor": "save colour (cursor moved away)",
-    "addMode.deleteRule": "delete last rule",
-    "addMode.exit": "exit",
+    "help.togglePanel": "Open/close the control panel",
+    "help.speedUp": "Speed up (+1)",
+    "help.speedDown": "Slow down (-1)",
+    "help.footer": "Stops itself after 3 minutes without a click",
     "msg.noCanvas": "no canvas found",
     "msg.noWebgl": "no WebGL context",
     "msg.noMousePosition": "no cursor position yet",
     "msg.outsideCanvas": "cursor is outside the canvas",
-    "msg.positionSaved": "saved position for rule #{n} ({x}, {y}) — move away and press 9",
-    "msg.colorSaved": "saved colour for rule #{n}: {hex}",
-    "msg.colorAlreadySet": "rule #{n} already has a colour ({hex})",
-    "msg.noRuleToColor": "no rule to colour yet",
-    "msg.ruleDeleted": "deleted last rule",
-    "msg.noRuleToDelete": "no rule to delete",
-    "msg.addModeOn": "ADD RULE: 0 saves position, 9 saves colour",
-    "msg.addModeOff": "left add-rule mode ({n} rules)"
+    "msg.ruleCaptured": "captured a rule at ({x}, {y}) — {hex}"
   };
 
   // src/i18n/index.js
@@ -866,11 +885,15 @@
     );
   }
 
-  // src/rules/capture.js
-  function createRuleCapture(deps) {
-    let active2 = false;
+  // src/rules/editor.js
+  var REPAINT_FRAMES = 2;
+  function nextFrame() {
+    return new Promise((resolve) => realRequestAnimationFrame(() => resolve()));
+  }
+  function createRuleEditor(deps) {
     let cursorX = null;
     let cursorY = null;
+    let capturing = false;
     window.addEventListener(
       "mousemove",
       (event) => {
@@ -879,211 +902,419 @@
       },
       true
     );
-    function toggle() {
-      active2 = !active2;
-      deps.report(
-        active2 ? t("msg.addModeOn") : t("msg.addModeOff", { n: deps.getRules().length })
-      );
-      return active2;
-    }
-    function savePosition() {
+    async function captureAtCursor() {
+      if (capturing) {
+        return null;
+      }
       const target = getRenderTarget();
       if (!target) {
         deps.report(t("msg.noCanvas"));
-        return;
+        return null;
       }
       if (cursorX === null || cursorY === null) {
         deps.report(t("msg.noMousePosition"));
-        return;
+        return null;
       }
       if (!isInsideCanvas(target.canvas, cursorX, cursorY)) {
         deps.report(t("msg.outsideCanvas"));
-        return;
+        return null;
       }
-      const point2 = clientToBuffer(target.canvas, cursorX, cursorY);
-      const buffer = getBufferSize(target.canvas);
-      const rules = deps.getRules();
-      rules.push(
-        createRule({ points: [{ ...point2, bw: buffer.width, bh: buffer.height }] })
-      );
-      deps.persist();
-      deps.markers.showPendingMarker(point2.x, point2.y);
-      deps.report(
-        t("msg.positionSaved", { n: rules.length, x: point2.x, y: point2.y })
-      );
+      capturing = true;
+      try {
+        const { canvas, gl } = target;
+        const point2 = clientToBuffer(canvas, cursorX, cursorY);
+        const buffer = getBufferSize(canvas);
+        const hovered = readPixel(gl, point2.x, point2.y);
+        const corner = bufferToClient(canvas, HOVER_RESET_POINT.x, HOVER_RESET_POINT.y);
+        dispatchMoveTo(canvas, corner.clientX, corner.clientY);
+        for (let i = 0; i < REPAINT_FRAMES; i += 1) {
+          await nextFrame();
+        }
+        const resting = readPixel(gl, point2.x, point2.y);
+        dispatchMoveTo(canvas, cursorX, cursorY);
+        if (!resting) {
+          deps.report(t("msg.noWebgl"));
+          return null;
+        }
+        const size = { bw: buffer.width, bh: buffer.height };
+        const restingHex = rgbToHex(resting);
+        const hoveredHex = hovered ? rgbToHex(hovered) : null;
+        const points = [{ ...point2, ...size }];
+        if (hoveredHex && hoveredHex !== restingHex) {
+          points.push({ ...point2, ...size, hex: hoveredHex });
+        }
+        const rules = deps.getRules();
+        const rule = createRule({
+          label: t("rule.defaultLabel", { n: rules.length + 1 }),
+          points,
+          hex: restingHex
+        });
+        rules.push(rule);
+        deps.persist();
+        deps.report(t("msg.ruleCaptured", { x: point2.x, y: point2.y, hex: restingHex }));
+        return rule;
+      } finally {
+        capturing = false;
+      }
     }
-    function saveColor() {
-      const target = getRenderTarget();
-      if (!target) {
-        deps.report(t("msg.noCanvas"));
-        return;
-      }
-      const rules = deps.getRules();
-      if (rules.length === 0) {
-        deps.report(t("msg.noRuleToColor"));
-        return;
-      }
-      const rule = rules[rules.length - 1];
-      if (rule.hex) {
-        deps.report(t("msg.colorAlreadySet", { n: rules.length, hex: rule.hex }));
-        return;
-      }
-      const stored = rule.points[0];
-      const pixel = readPixel(target.gl, stored.x, stored.y);
-      if (!pixel) {
-        deps.report(t("msg.noWebgl"));
-        return;
-      }
-      rule.hex = rgbToHex(pixel);
-      deps.persist();
-      deps.markers.removePendingMarker();
-      deps.report(t("msg.colorSaved", { n: rules.length, hex: rule.hex }));
+    function find(ruleId) {
+      return deps.getRules().find((rule) => rule.id === ruleId) || null;
     }
-    function deleteLast() {
-      const rules = deps.getRules();
-      if (rules.length === 0) {
-        deps.report(t("msg.noRuleToDelete"));
+    function rename(ruleId, label) {
+      const rule = find(ruleId);
+      if (!rule) {
         return;
       }
-      const removed = rules.pop();
+      rule.label = label;
       deps.persist();
-      if (!removed.hex) {
-        deps.markers.removePendingMarker();
-      }
-      deps.report(t("msg.ruleDeleted"));
     }
-    return { toggle, savePosition, saveColor, deleteLast, isActive: () => active2 };
+    function setEnabled(ruleId, enabled) {
+      const rule = find(ruleId);
+      if (!rule) {
+        return;
+      }
+      rule.enabled = enabled;
+      deps.persist();
+    }
+    function remove(ruleId) {
+      const rules = deps.getRules();
+      const index = rules.findIndex((rule) => rule.id === ruleId);
+      if (index === -1) {
+        return;
+      }
+      rules.splice(index, 1);
+      deps.persist();
+    }
+    function move(ruleId, delta) {
+      const rules = deps.getRules();
+      const from = rules.findIndex((rule2) => rule2.id === ruleId);
+      const to = from + delta;
+      if (from === -1 || to < 0 || to >= rules.length) {
+        return;
+      }
+      const [rule] = rules.splice(from, 1);
+      rules.splice(to, 0, rule);
+      deps.persist();
+    }
+    return {
+      captureAtCursor,
+      rename,
+      setEnabled,
+      remove,
+      move
+    };
   }
 
   // src/ui/styles.js
   var CSS = `
-.bhb-panel {
+.bhb-hud, .bhb-panel, .bhb-markers, .bhb-help, .bhb-flash {
+  --bhb-bg: #12141c;
+  --bhb-bg-soft: #1a1d29;
+  --bhb-line: rgba(255, 255, 255, .09);
+  --bhb-text: #e6e8f0;
+  --bhb-dim: #7a8196;
+  --bhb-accent: #7c5cff;
+  --bhb-cyan: #22d3ee;
+  --bhb-live: #3ddc97;
+  --bhb-warn: #ffb457;
+  --bhb-danger: #ff6b81;
+  --bhb-font: ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+  --bhb-mono: ui-monospace, "SF Mono", Consolas, monospace;
+
   position: fixed;
   z-index: ${Z_TOP};
   box-sizing: border-box;
-  background: rgba(12, 14, 18, 0.92);
-  color: #ddd;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 9px;
-  font: 11px/1.5 Consolas, Monaco, monospace;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
-  pointer-events: none;
+  color: var(--bhb-text);
+  font-family: var(--bhb-font);
   user-select: none;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
 }
+.bhb-hud *, .bhb-panel *, .bhb-markers *, .bhb-help * { box-sizing: border-box; }
+.bhb-mono { font-family: var(--bhb-mono); font-variant-numeric: tabular-nums; }
 
-.bhb-overlay { top: 12px; right: 12px; padding: 8px 12px; }
-.bhb-overlay--expanded { width: 250px; padding: 10px 12px; }
-.bhb-overlay--party { width: 250px; padding: 10px 12px; border: 2px solid #a6d339; }
+/* --- HUD ---------------------------------------------------------------- */
 
-.bhb-row { display: flex; align-items: center; gap: 6px; }
-.bhb-row--between { justify-content: space-between; }
-.bhb-row--compact { gap: 10px; white-space: nowrap; }
-
-.bhb-version { color: #6b7688; font-size: 10px; margin-left: 5px; }
-.bhb-title { color: #fff; font-size: 12px; font-weight: 700; letter-spacing: .3px; }
-.bhb-muted { color: #777; font-size: 10px; }
-.bhb-hint { color: #8ec8ff; font-size: 10px; }
-.bhb-key { color: #666; font-size: 9px; }
-
-.bhb-dot {
-  width: 7px; height: 7px; border-radius: 50%; flex: none;
-  background: currentColor; box-shadow: 0 0 6px currentColor;
+.bhb-hud {
+  top: 14px; right: 14px;
+  display: flex; align-items: center; gap: 9px;
+  padding: 7px 13px;
+  background: linear-gradient(180deg, rgba(26, 29, 41, .96), rgba(18, 20, 28, .96));
+  border: 1px solid var(--bhb-line);
+  border-radius: 999px;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, .5);
+  font-size: 12px; line-height: 1;
+  cursor: pointer;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  transition: opacity .45s ease, box-shadow .2s ease;
 }
-.bhb-dot--sm { width: 6px; height: 6px; box-shadow: 0 0 5px currentColor; }
+.bhb-hud--dim { opacity: .25; }
+.bhb-hud:hover { opacity: 1; box-shadow: 0 6px 26px rgba(124, 92, 255, .35); }
 
-.bhb-task { font-weight: 700; font-size: 11.5px; flex: 1; }
-.bhb-task--on { color: #70e0a8; }
-.bhb-task--off { color: #ff9966; }
-
-.bhb-speed { font-weight: 700; font-size: 12.5px; }
-.bhb-speed--boosted { color: #66ff66; }
-.bhb-speed--normal { color: #ddd; }
-
-.bhb-section {
-  margin-top: 6px; padding-top: 6px;
-  border-top: 1px solid rgba(255, 255, 255, .10);
+.bhb-hud__dot {
+  width: 8px; height: 8px; border-radius: 50%; flex: none;
+  background: var(--bhb-dim);
 }
-.bhb-section__label { color: #aaa; font-size: 10px; margin-bottom: 3px; }
-
-.bhb-rule { display: flex; justify-content: space-between; gap: 6px; font-size: 10px; }
-.bhb-rule--ready { color: #70e0a8; }
-.bhb-rule--pending { color: #ffaa33; }
-.bhb-rule--disabled { color: #666; }
-.bhb-rule--legacy { color: #ff9966; }
-.bhb-rule__coord { color: #8ec8ff; }
-
-.bhb-message {
-  color: #9aa; font-size: 10px;
+.bhb-hud--live .bhb-hud__dot {
+  background: var(--bhb-live);
+  box-shadow: 0 0 0 0 rgba(61, 220, 151, .7);
+  animation: bhb-pulse 1.8s ease-out infinite;
+}
+.bhb-hud__name { font-weight: 700; letter-spacing: .06em; }
+.bhb-hud__ver { color: var(--bhb-dim); font-size: 10px; }
+.bhb-hud__sep { width: 1px; height: 13px; background: var(--bhb-line); }
+.bhb-hud__task { font-weight: 600; font-size: 11px; letter-spacing: .04em; }
+.bhb-hud--live .bhb-hud__task { color: var(--bhb-live); }
+.bhb-hud__speed {
+  font-family: var(--bhb-mono); font-size: 11px; color: var(--bhb-dim);
+}
+.bhb-hud__speed.is-boosted { color: var(--bhb-cyan); font-weight: 700; }
+.bhb-hud__msg {
+  max-width: 190px; color: var(--bhb-dim); font-size: 10.5px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
+/* --- Panel -------------------------------------------------------------- */
+
+.bhb-panel {
+  top: 58px; right: 14px;
+  display: flex; flex-direction: column;
+  width: 340px; max-height: calc(100vh - 80px);
+  background: var(--bhb-bg);
+  border: 1px solid var(--bhb-line);
+  border-radius: 14px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, .6);
+  font-size: 12px;
+  overflow: hidden;
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+}
+
+.bhb-panel__head {
+  display: flex; align-items: center; gap: 8px;
+  padding: 11px 13px;
+  background: linear-gradient(90deg, rgba(124, 92, 255, .16), transparent 70%);
+  border-bottom: 1px solid var(--bhb-line);
+}
+.bhb-panel__brand { display: flex; align-items: baseline; gap: 6px; flex: 1; }
+.bhb-panel__name { font-weight: 800; letter-spacing: .08em; font-size: 13px; }
+.bhb-panel__ver { color: var(--bhb-dim); font-size: 10px; }
+.bhb-panel__profile { color: var(--bhb-dim); font-size: 10.5px; }
+
+.bhb-tabs { display: flex; gap: 2px; padding: 8px 10px 0; }
+.bhb-tabbtn {
+  flex: 1; padding: 7px 0 9px;
+  background: none; border: 0; border-bottom: 2px solid transparent;
+  color: var(--bhb-dim); font: inherit; font-size: 11.5px; font-weight: 600;
+  cursor: pointer;
+}
+.bhb-tabbtn:hover { color: var(--bhb-text); }
+.bhb-tabbtn.is-active { color: var(--bhb-text); border-bottom-color: var(--bhb-accent); }
+
+.bhb-panel__body { padding: 12px 13px 14px; overflow-y: auto; }
+.bhb-tab { display: flex; flex-direction: column; gap: 13px; }
+.bhb-stack { display: flex; flex-direction: column; gap: 6px; }
+
+.bhb-label {
+  color: var(--bhb-dim); font-size: 10px;
+  font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+}
+.bhb-note { margin: 0; color: var(--bhb-dim); font-size: 10.5px; line-height: 1.5; }
+.bhb-empty { margin: 0; padding: 18px 0; color: var(--bhb-dim); font-size: 11px; text-align: center; }
+.bhb-field { display: flex; flex-direction: column; gap: 7px; }
+.bhb-field__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+/* --- Task switches ------------------------------------------------------ */
+
+.bhb-task {
+  display: flex; align-items: center; gap: 9px;
+  padding: 9px 11px;
+  background: var(--bhb-bg-soft);
+  border: 1px solid var(--bhb-line); border-radius: 10px;
+  color: var(--bhb-text); font: inherit; text-align: left;
+  cursor: pointer;
+  transition: border-color .15s ease, background .15s ease;
+}
+.bhb-task:hover { border-color: rgba(124, 92, 255, .5); }
+.bhb-task.is-on { background: rgba(61, 220, 151, .1); border-color: rgba(61, 220, 151, .45); }
+
+.bhb-task__switch {
+  width: 28px; height: 16px; flex: none;
+  background: #2b3040; border-radius: 999px; position: relative;
+  transition: background .15s ease;
+}
+.bhb-task__switch::after {
+  content: ''; position: absolute; top: 3px; left: 3px;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--bhb-dim);
+  transition: transform .15s ease, background .15s ease;
+}
+.bhb-task.is-on .bhb-task__switch { background: rgba(61, 220, 151, .3); }
+.bhb-task.is-on .bhb-task__switch::after { transform: translateX(12px); background: var(--bhb-live); }
+
+.bhb-task__name { flex: 1; font-weight: 700; font-size: 11.5px; letter-spacing: .05em; }
+.bhb-task__phase { color: var(--bhb-warn); font-size: 10px; }
+
+.bhb-kbd {
+  min-width: 17px; padding: 2px 4px;
+  background: rgba(255, 255, 255, .06);
+  border: 1px solid var(--bhb-line); border-radius: 4px;
+  color: var(--bhb-dim); font-family: var(--bhb-mono); font-size: 9.5px; text-align: center;
+}
+
+.bhb-slider { width: 100%; accent-color: var(--bhb-accent); cursor: pointer; }
+.bhb-speed { font-family: var(--bhb-mono); font-size: 13px; font-weight: 700; }
+.bhb-speed.is-boosted { color: var(--bhb-cyan); }
+
+.bhb-facts {
+  display: grid; grid-template-columns: auto 1fr; gap: 5px 12px;
+  margin: 0; padding-top: 11px; border-top: 1px solid var(--bhb-line);
+}
+.bhb-facts dt { color: var(--bhb-dim); font-size: 10px; letter-spacing: .06em; text-transform: uppercase; }
+.bhb-facts dd { margin: 0; color: var(--bhb-cyan); font-size: 10.5px; text-align: right; }
+
+/* --- Buttons ------------------------------------------------------------ */
+
+.bhb-btn {
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 8px 12px;
+  background: var(--bhb-bg-soft);
+  border: 1px solid var(--bhb-line); border-radius: 9px;
+  color: var(--bhb-text); font: inherit; font-size: 11.5px; font-weight: 600;
+  cursor: pointer;
+}
+.bhb-btn:hover { border-color: rgba(124, 92, 255, .55); }
+.bhb-btn--primary {
+  background: linear-gradient(180deg, rgba(124, 92, 255, .9), rgba(98, 70, 230, .9));
+  border-color: transparent;
+}
+.bhb-btn__dot {
+  width: 7px; height: 7px; border-radius: 50%; background: #fff;
+  animation: bhb-pulse 1.8s ease-out infinite;
+}
+
+.bhb-icon {
+  width: 22px; height: 22px; flex: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 0; background: none; border: 0; border-radius: 6px;
+  color: var(--bhb-dim); font: inherit; font-size: 11px; line-height: 1;
+  cursor: pointer;
+}
+.bhb-icon:hover { background: rgba(255, 255, 255, .08); color: var(--bhb-text); }
+.bhb-icon.is-on { color: var(--bhb-live); }
+.bhb-icon--danger:hover { background: rgba(255, 107, 129, .18); color: var(--bhb-danger); }
+
+/* --- Rules table -------------------------------------------------------- */
+
+.bhb-rules { display: flex; flex-direction: column; gap: 3px; }
+.bhb-rule {
+  display: flex; align-items: center; gap: 7px;
+  padding: 6px 7px;
+  border: 1px solid transparent; border-radius: 8px;
+  cursor: pointer;
+}
+.bhb-rule:hover, .bhb-rule.is-hovered { background: var(--bhb-bg-soft); }
+.bhb-rule.is-selected { border-color: rgba(124, 92, 255, .6); background: rgba(124, 92, 255, .1); }
+.bhb-rule.is-off { opacity: .45; }
+
+.bhb-rule__n { width: 14px; color: var(--bhb-dim); font-family: var(--bhb-mono); font-size: 10px; }
+.bhb-rule__swatch {
+  width: 13px; height: 13px; flex: none;
+  border: 1px solid rgba(255, 255, 255, .25); border-radius: 4px;
+}
+.bhb-rule__name {
+  flex: 1; min-width: 0; padding: 3px 5px;
+  background: none; border: 1px solid transparent; border-radius: 5px;
+  color: var(--bhb-text); font: inherit; font-size: 11.5px;
+}
+.bhb-rule__name:hover { border-color: var(--bhb-line); }
+.bhb-rule__name:focus { outline: none; border-color: var(--bhb-accent); background: #0d0f16; }
+.bhb-rule__coord { color: var(--bhb-cyan); font-size: 10px; }
+.bhb-rule__actions { display: flex; gap: 1px; }
+
+/* --- Log ---------------------------------------------------------------- */
+
+.bhb-log { display: flex; flex-direction: column; gap: 1px; max-height: 300px; overflow-y: auto; }
+.bhb-log__row {
+  display: flex; align-items: center; gap: 7px;
+  padding: 4px 6px; border-radius: 6px; font-size: 11px;
+}
+.bhb-log__row:nth-child(odd) { background: rgba(255, 255, 255, .025); }
+.bhb-log__time { color: var(--bhb-dim); font-size: 10px; }
+.bhb-log__icon { width: 12px; text-align: center; color: var(--bhb-dim); }
+.bhb-log__row--click .bhb-log__icon { color: var(--bhb-live); }
+.bhb-log__row--task .bhb-log__icon { color: var(--bhb-accent); }
+.bhb-log__text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bhb-log__coord { color: var(--bhb-dim); font-size: 10px; }
+
+/* --- Marker layer ------------------------------------------------------- */
+
+.bhb-markers { inset: 0; pointer-events: none; }
+
+.bhb-mark {
+  position: fixed;
+  display: flex; align-items: center; gap: 3px;
+  padding: 2px 5px 2px 3px;
+  transform: translate(-50%, -50%);
+  background: rgba(18, 20, 28, .9);
+  border: 1px solid var(--bhb-accent); border-radius: 999px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .5), 0 0 12px rgba(124, 92, 255, .45);
+  pointer-events: auto; cursor: pointer;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.bhb-mark:hover, .bhb-mark--hovered {
+  transform: translate(-50%, -50%) scale(1.25);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .5), 0 0 18px rgba(124, 92, 255, .8);
+}
+.bhb-mark--selected { border-color: var(--bhb-cyan); box-shadow: 0 0 16px rgba(34, 211, 238, .8); }
+.bhb-mark--off { opacity: .4; border-color: var(--bhb-dim); }
+.bhb-mark--legacy { border-color: var(--bhb-warn); }
+.bhb-mark__n { color: var(--bhb-text); font-family: var(--bhb-mono); font-size: 9px; font-weight: 700; }
+.bhb-mark__swatch {
+  width: 9px; height: 9px; border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, .5);
+}
+
+/* --- Help & flash ------------------------------------------------------- */
+
 .bhb-help {
   top: 50%; left: 50%; transform: translate(-50%, -50%);
-  width: 340px; padding: 16px 18px;
-  font-size: 11.5px; line-height: 1.7;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 10px;
-  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  width: 330px; padding: 16px 18px;
+  background: var(--bhb-bg);
+  border: 1px solid var(--bhb-line); border-radius: 14px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, .7);
+  font-size: 11.5px; line-height: 1.75;
+  pointer-events: none;
 }
 .bhb-help__header {
   display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 10px; padding-bottom: 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, .15);
+  margin-bottom: 9px; padding-bottom: 8px; border-bottom: 1px solid var(--bhb-line);
 }
-.bhb-help__title { color: #fff; font-size: 14px; font-weight: 700; letter-spacing: .4px; }
+.bhb-help__title { font-size: 13px; font-weight: 800; letter-spacing: .08em; }
 .bhb-help__section {
-  color: #8ec8ff; font-size: 10.5px; font-weight: 700;
-  margin: 10px 0 4px;
+  margin: 11px 0 3px;
+  color: var(--bhb-accent); font-size: 10px;
+  font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
 }
 .bhb-help__entry { display: flex; justify-content: space-between; gap: 10px; }
-.bhb-help__entry b { font-weight: 700; }
-.bhb-help__label { flex: 1; text-align: right; color: #ccc; }
+.bhb-help__entry b { font-family: var(--bhb-mono); font-weight: 700; color: var(--bhb-cyan); }
+.bhb-help__label { flex: 1; text-align: right; color: var(--bhb-dim); }
 .bhb-help__footer {
-  margin-top: 12px; padding-top: 8px;
-  border-top: 1px solid rgba(255, 255, 255, .12);
-  color: #888; font-size: 10px; text-align: center;
-}
-
-.bhb-addmode {
-  top: 12px; left: 12px; padding: 10px 14px;
-  background: rgba(255, 100, 50, 0.92);
-  color: #fff; border: 2px solid #fff; border-radius: 8px;
-  font-weight: 700; line-height: 1.5;
-  box-shadow: 0 0 16px rgba(255, 100, 50, 0.8);
-}
-.bhb-addmode__title { font-size: 13px; }
-.bhb-addmode__keys { font-size: 10px; margin-top: 4px; color: #ffe; font-weight: 400; }
-
-.bhb-marker {
-  position: fixed; width: 24px; height: 24px;
-  transform: translate(-50%, -50%);
-  border: 2px dashed #ffaa33; border-radius: 50%;
-  box-shadow: 0 0 10px rgba(255, 170, 51, .8);
-  pointer-events: none; z-index: ${Z_TOP};
-  animation: bhb-pulse 1s ease-in-out infinite;
+  margin-top: 11px; padding-top: 8px; border-top: 1px solid var(--bhb-line);
+  color: var(--bhb-dim); font-size: 10px; text-align: center;
 }
 
 .bhb-flash {
-  position: fixed; border-radius: 50%;
-  pointer-events: none; z-index: ${Z_TOP};
-}
-.bhb-flash--ring {
-  width: 22px; height: 22px;
-  transform: translate(-50%, -50%) scale(0.4);
-  border: 2px solid #00d4ff;
-  box-shadow: 0 0 10px #00d4ff, 0 0 20px rgba(0, 212, 255, .6);
+  width: 22px; height: 22px; border-radius: 50%;
+  transform: translate(-50%, -50%) scale(.4);
+  border: 2px solid var(--bhb-cyan);
+  box-shadow: 0 0 10px var(--bhb-cyan), 0 0 22px rgba(34, 211, 238, .55);
+  pointer-events: none;
   transition: transform .35s cubic-bezier(.2, .8, .3, 1), opacity .35s ease-out;
 }
-.bhb-flash--ring.bhb-flash--out {
-  transform: translate(-50%, -50%) scale(1.8); opacity: 0;
-}
+.bhb-flash--out { transform: translate(-50%, -50%) scale(1.9); opacity: 0; }
 
 @keyframes bhb-pulse {
-  0%, 100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-  50% { opacity: .5; transform: translate(-50%, -50%) scale(1.3); }
+  0% { box-shadow: 0 0 0 0 rgba(61, 220, 151, .55); }
+  70% { box-shadow: 0 0 0 7px rgba(61, 220, 151, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(61, 220, 151, 0); }
 }
 `;
   var installed = false;
@@ -1098,6 +1329,79 @@
     installed = true;
   }
 
+  // src/ui/store.js
+  var Tab = Object.freeze({
+    TASKS: "tasks",
+    RULES: "rules",
+    LOG: "log"
+  });
+  var LOG_LIMIT = 200;
+  function createUiStore() {
+    const emitter = createEmitter();
+    const state = {
+      panelOpen: false,
+      tab: Tab.TASKS,
+      /** @type {string | null} */
+      selectedRuleId: null,
+      /** @type {string | null} rule under the cursor, in the table or on canvas */
+      hoveredRuleId: null,
+      /** @type {object[]} newest first */
+      log: []
+    };
+    function emit() {
+      emitter.emit("change", state);
+    }
+    function patch(changes) {
+      let changed = false;
+      for (const [key, value] of Object.entries(changes)) {
+        if (state[key] !== value) {
+          state[key] = value;
+          changed = true;
+        }
+      }
+      if (changed) {
+        emit();
+      }
+      return changed;
+    }
+    return {
+      get: () => state,
+      subscribe: (handler) => emitter.on("change", handler),
+      openPanel: () => patch({ panelOpen: true }),
+      closePanel: () => patch({ panelOpen: false, hoveredRuleId: null }),
+      togglePanel: () => patch({ panelOpen: !state.panelOpen }),
+      setTab: (tab) => patch({ tab, panelOpen: true }),
+      selectRule: (id) => patch({ selectedRuleId: id }),
+      hoverRule: (id) => patch({ hoveredRuleId: id }),
+      /** Drop any reference to a rule that no longer exists. */
+      forgetRule(id) {
+        patch({
+          selectedRuleId: state.selectedRuleId === id ? null : state.selectedRuleId,
+          hoveredRuleId: state.hoveredRuleId === id ? null : state.hoveredRuleId
+        });
+      },
+      /** @param {object} entry an engine action event */
+      log(entry) {
+        state.log.unshift(entry);
+        if (state.log.length > LOG_LIMIT) {
+          state.log.length = LOG_LIMIT;
+        }
+        emit();
+      },
+      clearLog() {
+        if (state.log.length === 0) {
+          return;
+        }
+        state.log = [];
+        emit();
+      },
+      /** Markers would swallow the game's clicks if they outlived the tab. */
+      markersVisible() {
+        return state.panelOpen && state.tab === Tab.RULES;
+      }
+    };
+  }
+
   // src/ui/dom.js
   function el(tag, props = {}, children = []) {
     const node = document.createElement(tag);
@@ -1106,6 +1410,9 @@
     }
     if (props.text !== void 0) {
       node.textContent = props.text;
+    }
+    if (props.title) {
+      node.title = props.title;
     }
     if (props.style) {
       Object.assign(node.style, props.style);
@@ -1123,192 +1430,397 @@
     return node;
   }
 
-  // src/ui/overlay.js
-  var OverlayState = Object.freeze({
-    EXPANDED: "expanded",
-    COMPACT: "compact",
-    HIDDEN: "hidden"
-  });
-  var CYCLE = [OverlayState.EXPANDED, OverlayState.COMPACT, OverlayState.HIDDEN];
-  var TASK_LABELS = {
-    [TaskId.RERUN]: "task.rerun",
-    [TaskId.WORLD_BOSS]: "task.wb",
-    [TaskId.SCRIPT]: "task.script"
-  };
-  var TASK_KEYS = {
-    [TaskId.RERUN]: "3",
-    [TaskId.WORLD_BOSS]: "4",
-    [TaskId.SCRIPT]: "5"
-  };
-  function createOverlay(deps) {
-    let state = OverlayState.COMPACT;
-    let panel = null;
-    let customRenderer = null;
-    function ensurePanel() {
-      if (!panel) {
-        panel = mount(el("div", { class: "bhb-panel bhb-overlay" }));
+  // src/ui/hud.js
+  var DIM_AFTER_MS = 4e3;
+  function createHud(deps) {
+    let node = null;
+    let dimTimer = null;
+    function ensureNode() {
+      if (node) {
+        return node;
       }
-      return panel;
+      node = mount(el("div", { class: "bhb-hud" }));
+      node.addEventListener("click", () => deps.store.togglePanel());
+      node.addEventListener("mouseenter", wake);
+      node.addEventListener("mousemove", wake);
+      return node;
     }
-    function formatRemaining(ms) {
-      const total = Math.floor(ms / 1e3);
-      const minutes = Math.floor(total / 60);
-      const seconds = String(total % 60).padStart(2, "0");
-      return `${minutes}m${seconds}s`;
-    }
-    function describeFramebuffer() {
-      const canvas = getCanvas();
-      if (!canvas) {
-        return "—";
+    function wake() {
+      const target = ensureNode();
+      target.classList.remove("bhb-hud--dim");
+      if (dimTimer !== null) {
+        realClearTimeout(dimTimer);
       }
-      const css = `${Math.round(canvas.clientWidth)}×${Math.round(canvas.clientHeight)}`;
-      return `${canvas.width}×${canvas.height} → ${css}`;
-    }
-    function taskClass(engine, taskId) {
-      return engine.activeTask === taskId ? "bhb-task--on" : "bhb-task--off";
-    }
-    function renderCompact(engine) {
-      const node = ensurePanel();
-      node.className = "bhb-panel bhb-overlay";
-      const speed2 = getSpeed();
-      const chips = Object.keys(TASK_LABELS).map(
-        (taskId) => el("span", { class: `bhb-row ${taskClass(engine, taskId)}`, style: { gap: "5px", fontWeight: "700" } }, [
-          el("span", { class: "bhb-dot bhb-dot--sm" }),
-          t(TASK_LABELS[taskId])
-        ])
-      );
-      node.replaceChildren(
-        el("div", { class: "bhb-row bhb-row--compact" }, [
-          ...chips,
-          el("span", {
-            class: `bhb-speed ${speed2 > 1 ? "bhb-speed--boosted" : "bhb-speed--normal"}`,
-            text: `${speed2}×`
-          }),
-          el("span", { class: "bhb-hint", text: `1 ${t("overlay.help")} · 2 ⬜` })
-        ])
-      );
-    }
-    function renderRuleList(rules) {
-      if (rules.length === 0) {
-        return [el("div", { class: "bhb-rule bhb-rule--pending", text: t("overlay.noRules") })];
-      }
-      return rules.map((rule, index) => {
-        const first = rule.points[0];
-        const legacy = first && isLegacyPoint(first);
-        let modifier = "bhb-rule--ready";
-        let label = rule.hex ?? "";
-        if (!rule.hex) {
-          modifier = "bhb-rule--pending";
-          label = t("overlay.awaitingColor");
-        } else if (!rule.enabled) {
-          modifier = "bhb-rule--disabled";
-        } else if (legacy) {
-          modifier = "bhb-rule--legacy";
-          label = `${rule.hex} ⚠`;
-        }
-        return el("div", { class: `bhb-rule ${modifier}` }, [
-          el("span", { text: `${index + 1}. ${rule.label || label}` }),
-          el("span", {
-            class: "bhb-rule__coord",
-            text: first ? `${first.x} ${first.y}` : "—"
-          })
-        ]);
-      });
-    }
-    function renderTaskRow(engine, taskId) {
-      const active2 = engine.activeTask === taskId;
-      const phase = active2 && taskId === TaskId.RERUN ? ` [${t(engine.phase === Phase.RESTING ? "phase.resting" : "phase.hunting")}]` : "";
-      return el("div", { class: `bhb-row ${taskClass(engine, taskId)}`, style: { marginBottom: "3px" } }, [
-        el("span", { class: "bhb-dot" }),
-        el("span", {
-          class: "bhb-task",
-          text: `${t(TASK_LABELS[taskId])} ${t(active2 ? "task.on" : "task.off")}${phase}`
-        }),
-        el("span", { class: "bhb-key", text: TASK_KEYS[taskId] })
-      ]);
-    }
-    function renderExpanded(engine) {
-      const node = ensurePanel();
-      node.className = "bhb-panel bhb-overlay bhb-overlay--expanded";
-      const rules = deps.getRules();
-      const speed2 = getSpeed();
-      node.replaceChildren(
-        el("div", { class: "bhb-row bhb-row--between", style: { marginBottom: "7px" } }, [
-          el("span", { class: "bhb-row" }, [
-            el("span", { class: "bhb-title", text: `${t("app.name")} ${t("app.tagline")}` }),
-            el("span", { class: "bhb-version", text: `v${VERSION}` })
-          ]),
-          el("span", { class: "bhb-muted", text: deps.getProfileName() })
-        ]),
-        ...Object.keys(TASK_LABELS).map((taskId) => renderTaskRow(engine, taskId)),
-        el("div", { class: "bhb-row bhb-row--between bhb-section" }, [
-          el("span", { class: "bhb-muted", text: t("overlay.speed") }),
-          el("span", {
-            class: `bhb-speed ${speed2 > 1 ? "bhb-speed--boosted" : "bhb-speed--normal"}`,
-            text: `${speed2}×`
-          })
-        ]),
-        el("div", { class: "bhb-row bhb-row--between" }, [
-          el("span", { class: "bhb-muted", text: t("overlay.canvas") }),
-          el("span", { class: "bhb-rule__coord", text: describeFramebuffer() })
-        ]),
-        el("div", { class: "bhb-row bhb-row--between" }, [
-          el("span", { class: "bhb-muted", text: t("overlay.autoStop") }),
-          el("span", {
-            class: "bhb-muted",
-            style: { color: engine.activeTask ? "#ffaa33" : "#666" },
-            text: engine.activeTask ? `${t("overlay.remaining")} ${formatRemaining(engine.remainingMs)}` : "---"
-          })
-        ]),
-        el("div", { class: "bhb-section" }, [
-          el("div", { class: "bhb-section__label", text: `${t("overlay.rules")} (${rules.length})` }),
-          ...renderRuleList(rules)
-        ]),
-        el("div", { class: "bhb-row bhb-row--between bhb-section bhb-hint" }, [
-          el("span", { text: `1 · ${t("overlay.help")}` }),
-          el("span", { text: `2 · ${t("overlay.collapse")}` })
-        ]),
-        el("div", { class: "bhb-section" }, [
-          el("div", { class: "bhb-message", text: engine.lastMessage || " " })
-        ])
-      );
+      dimTimer = realSetTimeout(() => {
+        target.classList.add("bhb-hud--dim");
+      }, DIM_AFTER_MS);
     }
     function render() {
-      if (customRenderer) {
-        const handled = customRenderer(ensurePanel());
-        if (handled !== false) {
-          return;
-        }
+      const target = ensureNode();
+      const engine = deps.getEngineState();
+      const speed2 = getSpeed();
+      const running = Boolean(engine.activeTask);
+      target.className = `bhb-hud ${running ? "bhb-hud--live" : ""} ${target.classList.contains("bhb-hud--dim") ? "bhb-hud--dim" : ""}`;
+      target.replaceChildren(
+        el("span", { class: "bhb-hud__dot" }),
+        el("span", { class: "bhb-hud__name", text: t("app.name") }),
+        el("span", { class: "bhb-hud__ver", text: `v${VERSION}` }),
+        el("span", { class: "bhb-hud__sep" }),
+        el("span", {
+          class: "bhb-hud__task",
+          text: running ? t(`task.${engine.activeTask}`) : t("hud.idle")
+        }),
+        el("span", {
+          class: `bhb-hud__speed ${speed2 > 1 ? "is-boosted" : ""}`,
+          text: `${speed2}×`
+        }),
+        el("span", { class: "bhb-hud__msg", text: engine.lastMessage || "" })
+      );
+    }
+    return { render, wake };
+  }
+
+  // src/ui/panel/tasks.js
+  var TASKS = [
+    [TaskId.RERUN, "task.rerun", "3"],
+    [TaskId.WORLD_BOSS, "task.wb", "4"],
+    [TaskId.SCRIPT, "task.script", "5"]
+  ];
+  function formatRemaining(ms) {
+    const total = Math.floor(ms / 1e3);
+    return `${Math.floor(total / 60)}m${String(total % 60).padStart(2, "0")}s`;
+  }
+  function describeCanvas() {
+    const canvas = getCanvas();
+    if (!canvas) {
+      return "—";
+    }
+    return `${canvas.width}×${canvas.height} → ${Math.round(canvas.clientWidth)}×${Math.round(
+      canvas.clientHeight
+    )}`;
+  }
+  function renderTasksTab(deps) {
+    const engine = deps.getEngineState();
+    const speed2 = getSpeed();
+    const rows = TASKS.map(([taskId, labelKey, key]) => {
+      const on = engine.activeTask === taskId;
+      const phase = on && taskId === TaskId.RERUN ? t(engine.phase === Phase.RESTING ? "phase.resting" : "phase.hunting") : "";
+      const button = el("button", { class: `bhb-task ${on ? "is-on" : ""}` }, [
+        el("span", { class: "bhb-task__switch" }),
+        el("span", { class: "bhb-task__name", text: t(labelKey) }),
+        el("span", { class: "bhb-task__phase", text: phase }),
+        el("span", { class: "bhb-kbd", text: key })
+      ]);
+      button.addEventListener("click", () => {
+        deps.toggleTask(taskId);
+        deps.refresh();
+      });
+      return button;
+    });
+    const slider = el("input", { class: "bhb-slider" });
+    slider.type = "range";
+    slider.min = String(SPEED_MIN);
+    slider.max = String(SPEED_MAX);
+    slider.value = String(speed2);
+    slider.addEventListener("input", () => {
+      setSpeed(Number(slider.value));
+      deps.refresh();
+    });
+    return el("div", { class: "bhb-tab" }, [
+      el("div", { class: "bhb-stack" }, rows),
+      el("div", { class: "bhb-field" }, [
+        el("div", { class: "bhb-field__head" }, [
+          el("span", { class: "bhb-label", text: t("overlay.speed") }),
+          el("span", { class: `bhb-speed ${speed2 > 1 ? "is-boosted" : ""}`, text: `${speed2}×` })
+        ]),
+        slider
+      ]),
+      el("dl", { class: "bhb-facts" }, [
+        el("dt", { text: t("overlay.canvas") }),
+        el("dd", { class: "bhb-mono", text: describeCanvas() }),
+        el("dt", { text: t("overlay.autoStop") }),
+        el("dd", {
+          class: "bhb-mono",
+          text: engine.activeTask ? formatRemaining(engine.remainingMs) : "—"
+        })
+      ])
+    ]);
+  }
+
+  // src/ui/panel/rules.js
+  function renderRulesTab(deps) {
+    const rules = deps.getRules();
+    const state = deps.store.get();
+    const capture = el("button", { class: "bhb-btn bhb-btn--primary" }, [
+      el("span", { class: "bhb-btn__dot" }),
+      el("span", { text: t("rules.capture") }),
+      el("span", { class: "bhb-kbd", text: "0" })
+    ]);
+    capture.addEventListener("click", async () => {
+      await deps.editor.captureAtCursor();
+      deps.refresh();
+    });
+    const head = el("div", { class: "bhb-field" }, [
+      el("div", { class: "bhb-field__head" }, [
+        el("span", { class: "bhb-label", text: `${t("overlay.rules")} · ${rules.length}` })
+      ]),
+      capture,
+      el("p", { class: "bhb-note", text: t("rules.captureHint") })
+    ]);
+    if (rules.length === 0) {
+      return el("div", { class: "bhb-tab" }, [head, el("p", { class: "bhb-empty", text: t("overlay.noRules") })]);
+    }
+    const rows = rules.map((rule, index) => {
+      const point2 = rule.points[0];
+      const legacy = point2 && isLegacyPoint(point2);
+      const name = el("input", { class: "bhb-rule__name" });
+      name.value = rule.label || "";
+      name.placeholder = t("rules.unnamed");
+      name.addEventListener("change", () => {
+        deps.editor.rename(rule.id, name.value.trim());
+        deps.refresh();
+      });
+      const toggle = el("button", {
+        class: `bhb-icon ${rule.enabled ? "is-on" : ""}`,
+        title: t(rule.enabled ? "rules.disable" : "rules.enable"),
+        text: rule.enabled ? "◉" : "○"
+      });
+      toggle.addEventListener("click", () => {
+        deps.editor.setEnabled(rule.id, !rule.enabled);
+        deps.refresh();
+      });
+      const up = el("button", { class: "bhb-icon", title: t("rules.moveUp"), text: "▲" });
+      up.addEventListener("click", () => {
+        deps.editor.move(rule.id, -1);
+        deps.refresh();
+      });
+      const down = el("button", { class: "bhb-icon", title: t("rules.moveDown"), text: "▼" });
+      down.addEventListener("click", () => {
+        deps.editor.move(rule.id, 1);
+        deps.refresh();
+      });
+      const remove = el("button", { class: "bhb-icon bhb-icon--danger", title: t("rules.delete"), text: "✕" });
+      remove.addEventListener("click", () => {
+        deps.editor.remove(rule.id);
+        deps.store.forgetRule(rule.id);
+        deps.refresh();
+      });
+      const classes = ["bhb-rule"];
+      if (!rule.enabled) {
+        classes.push("is-off");
       }
-      const node = ensurePanel();
-      if (state === OverlayState.HIDDEN) {
+      if (state.selectedRuleId === rule.id) {
+        classes.push("is-selected");
+      }
+      if (state.hoveredRuleId === rule.id) {
+        classes.push("is-hovered");
+      }
+      const row = el("div", { class: classes.join(" ") }, [
+        el("span", { class: "bhb-rule__n", text: String(index + 1) }),
+        el("span", { class: "bhb-rule__swatch", style: { background: rule.hex || "transparent" } }),
+        name,
+        el("span", {
+          class: "bhb-rule__coord bhb-mono",
+          title: legacy ? t("overlay.needsRecapture") : "",
+          text: point2 ? `${point2.x},${point2.y}${legacy ? " ⚠" : ""}` : "—"
+        }),
+        el("span", { class: "bhb-rule__actions" }, [toggle, up, down, remove])
+      ]);
+      row.addEventListener("mouseenter", () => deps.store.hoverRule(rule.id));
+      row.addEventListener("mouseleave", () => deps.store.hoverRule(null));
+      row.addEventListener("click", () => deps.store.selectRule(rule.id));
+      return row;
+    });
+    return el("div", { class: "bhb-tab" }, [head, el("div", { class: "bhb-rules" }, rows)]);
+  }
+
+  // src/ui/panel/log.js
+  var KIND_ICON = {
+    click: "⊙",
+    busy: "⋯",
+    task: "⏻"
+  };
+  function clock(at) {
+    const date = new Date(at);
+    return [date.getHours(), date.getMinutes(), date.getSeconds()].map((part) => String(part).padStart(2, "0")).join(":");
+  }
+  function describe(entry) {
+    if (entry.kind === "task") {
+      return t(entry.started ? "log.taskStarted" : "log.taskStopped", { task: entry.label });
+    }
+    if (entry.kind === "busy") {
+      return t("log.busy", { label: entry.label });
+    }
+    return t("log.clicked", { label: entry.label });
+  }
+  function renderLogTab(deps) {
+    const entries = deps.store.get().log;
+    const clear = el("button", { class: "bhb-btn", text: t("log.clear") });
+    clear.addEventListener("click", () => {
+      deps.store.clearLog();
+      deps.refresh();
+    });
+    if (entries.length === 0) {
+      return el("div", { class: "bhb-tab" }, [el("p", { class: "bhb-empty", text: t("log.empty") })]);
+    }
+    const rows = entries.map(
+      (entry) => el("div", { class: `bhb-log__row bhb-log__row--${entry.kind}` }, [
+        el("span", { class: "bhb-log__time bhb-mono", text: clock(entry.at) }),
+        el("span", { class: "bhb-log__icon", text: KIND_ICON[entry.kind] || "·" }),
+        el("span", { class: "bhb-log__text", text: describe(entry) }),
+        el("span", {
+          class: "bhb-log__coord bhb-mono",
+          text: entry.point ? `${entry.point.x},${entry.point.y}` : ""
+        })
+      ])
+    );
+    return el("div", { class: "bhb-tab" }, [
+      el("div", { class: "bhb-field__head" }, [
+        el("span", { class: "bhb-label", text: `${t("log.title")} · ${entries.length}` }),
+        clear
+      ]),
+      el("div", { class: "bhb-log" }, rows)
+    ]);
+  }
+
+  // src/ui/panel/index.js
+  var TABS = [
+    [Tab.TASKS, "tab.tasks"],
+    [Tab.RULES, "tab.rules"],
+    [Tab.LOG, "tab.log"]
+  ];
+  function createPanel(deps) {
+    let node = null;
+    function ensureNode() {
+      if (!node) {
+        node = mount(el("div", { class: "bhb-panel" }));
+      }
+      return node;
+    }
+    function renderBody(tab) {
+      if (tab === Tab.RULES) {
+        return renderRulesTab(deps);
+      }
+      if (tab === Tab.LOG) {
+        return renderLogTab(deps);
+      }
+      return renderTasksTab(deps);
+    }
+    function render() {
+      const target = ensureNode();
+      const state = deps.store.get();
+      if (!state.panelOpen) {
+        target.style.display = "none";
+        target.replaceChildren();
+        return;
+      }
+      target.style.display = "flex";
+      const close = el("button", { class: "bhb-icon", title: t("panel.close"), text: "✕" });
+      close.addEventListener("click", () => {
+        deps.store.closePanel();
+        deps.refresh();
+      });
+      const tabs = TABS.map(([id, labelKey]) => {
+        const button = el("button", {
+          class: `bhb-tabbtn ${state.tab === id ? "is-active" : ""}`,
+          text: t(labelKey)
+        });
+        button.addEventListener("click", () => {
+          deps.store.setTab(id);
+          deps.refresh();
+        });
+        return button;
+      });
+      target.replaceChildren(
+        el("header", { class: "bhb-panel__head" }, [
+          el("span", { class: "bhb-panel__brand" }, [
+            el("span", { class: "bhb-panel__name", text: t("app.name") }),
+            el("span", { class: "bhb-panel__ver", text: `v${VERSION}` })
+          ]),
+          el("span", { class: "bhb-panel__profile", text: deps.getProfileName() }),
+          close
+        ]),
+        el("nav", { class: "bhb-tabs" }, tabs),
+        el("div", { class: "bhb-panel__body" }, [renderBody(state.tab)])
+      );
+    }
+    return { render };
+  }
+
+  // src/ui/markers.js
+  function createMarkerLayer(deps) {
+    let layer = null;
+    function ensureLayer() {
+      if (!layer) {
+        layer = mount(el("div", { class: "bhb-markers" }));
+      }
+      return layer;
+    }
+    function markerFor(rule, index, canvas, buffer) {
+      const stored = rule.points[0];
+      if (!stored) {
+        return null;
+      }
+      const resolved = resolvePoint(stored, buffer, deps.getScaleMode());
+      const pos = bufferToClient(canvas, resolved.x, resolved.y);
+      const state = deps.store.get();
+      const classes = ["bhb-mark"];
+      if (!rule.enabled) {
+        classes.push("bhb-mark--off");
+      }
+      if (isLegacyPoint(stored)) {
+        classes.push("bhb-mark--legacy");
+      }
+      if (state.selectedRuleId === rule.id) {
+        classes.push("bhb-mark--selected");
+      }
+      if (state.hoveredRuleId === rule.id) {
+        classes.push("bhb-mark--hovered");
+      }
+      const node = el(
+        "div",
+        {
+          class: classes.join(" "),
+          style: { left: `${pos.clientX}px`, top: `${pos.clientY}px` },
+          title: rule.label || rule.hex || ""
+        },
+        [
+          el("span", { class: "bhb-mark__n", text: String(index + 1) }),
+          el("span", { class: "bhb-mark__swatch", style: { background: rule.hex || "transparent" } })
+        ]
+      );
+      node.addEventListener("click", (event) => {
+        event.stopPropagation();
+        deps.store.selectRule(rule.id);
+      });
+      node.addEventListener("mouseenter", () => deps.store.hoverRule(rule.id));
+      node.addEventListener("mouseleave", () => deps.store.hoverRule(null));
+      return node;
+    }
+    function render() {
+      const node = ensureLayer();
+      if (!deps.store.markersVisible()) {
+        node.style.display = "none";
+        node.replaceChildren();
+        return;
+      }
+      const canvas = getCanvas();
+      if (!canvas) {
         node.style.display = "none";
         return;
       }
       node.style.display = "block";
-      const engine = deps.getEngineState();
-      if (state === OverlayState.EXPANDED) {
-        renderExpanded(engine);
-      } else {
-        renderCompact(engine);
-      }
+      const buffer = getBufferSize(canvas);
+      const marks = deps.getRules().map((rule, index) => markerFor(rule, index, canvas, buffer)).filter(Boolean);
+      node.replaceChildren(...marks);
     }
-    function cycle() {
-      state = CYCLE[(CYCLE.indexOf(state) + 1) % CYCLE.length];
-      render();
-    }
-    function setCustomRenderer(renderer) {
-      customRenderer = renderer;
-      render();
-    }
-    return { render, cycle, setCustomRenderer, getState: () => state };
+    return { render };
   }
 
   // src/ui/help.js
   var SECTIONS = [
     {
       title: "help.sectionAuto",
-      color: "#70e0a8",
       entries: [
         ["3", "help.rerun"],
         ["4", "help.wb"],
@@ -1317,25 +1829,19 @@
     },
     {
       title: "help.sectionRules",
-      color: "#ffaa33",
       entries: [
-        ["0", "help.savePosition"],
-        ["9", "help.saveColor"],
-        ["8", "help.deleteRule"]
+        ["0", "help.capture"]
       ]
     },
     {
       title: "help.sectionUi",
-      color: "#8ec8ff",
       entries: [
         ["1", "help.toggleHelp"],
-        ["2", "help.cycleOverlay"],
-        ["6", "help.addMode"]
+        ["2", "help.togglePanel"]
       ]
     },
     {
       title: "help.sectionSpeed",
-      color: "#66ff66",
       entries: [
         ["= / +", "help.speedUp"],
         ["-", "help.speedDown"]
@@ -1350,15 +1856,15 @@
         el("div", { class: "bhb-help__section", text: `▸ ${t(section.title)}` }),
         ...section.entries.map(
           ([key, labelKey]) => el("div", { class: "bhb-help__entry" }, [
-            el("b", { text: key, style: { color: section.color } }),
+            el("b", { text: key }),
             el("span", { class: "bhb-help__label", text: t(labelKey) })
           ])
         )
       ]);
-      return el("div", { class: "bhb-panel bhb-help" }, [
+      return el("div", { class: "bhb-help" }, [
         el("div", { class: "bhb-help__header" }, [
           el("span", { class: "bhb-help__title", text: `📖 ${t("help.title")}` }),
-          el("span", { class: "bhb-muted", text: t("help.close") })
+          el("span", { class: "bhb-help__label", text: t("help.close") })
         ]),
         ...sections,
         el("div", { class: "bhb-help__footer", text: t("help.footer") })
@@ -1375,32 +1881,6 @@
       }
     }
     return { toggle, isVisible: () => visible };
-  }
-
-  // src/ui/addmode.js
-  function createAddModeBadge() {
-    let badge = null;
-    function build() {
-      return el("div", { class: "bhb-panel bhb-addmode" }, [
-        el("div", { class: "bhb-addmode__title", text: `🔴 ${t("addMode.title")}` }),
-        el("div", { class: "bhb-addmode__keys" }, [
-          el("div", { text: `0 · ${t("addMode.savePosition")}` }),
-          el("div", { text: `9 · ${t("addMode.saveColor")}` }),
-          el("div", { text: `8 · ${t("addMode.deleteRule")}` }),
-          el("div", { text: `6 · ${t("addMode.exit")}` })
-        ])
-      ]);
-    }
-    function setVisible(visible) {
-      if (badge) {
-        badge.remove();
-        badge = null;
-      }
-      if (visible) {
-        badge = mount(build());
-      }
-    }
-    return { setVisible };
   }
 
   // src/ui/hotkeys.js
@@ -1428,36 +1908,14 @@
     return () => document.removeEventListener("keydown", onKeyDown, true);
   }
 
-  // src/ui/marker.js
-  var FLASH_LIFETIME_MS = 400;
-  var pendingMarker = null;
-  function showPendingMarker(bufferX, bufferY) {
-    removePendingMarker();
-    const canvas = getCanvas();
-    if (!canvas) {
-      return;
-    }
-    const pos = bufferToClient(canvas, bufferX, bufferY);
-    pendingMarker = mount(
-      el("div", {
-        class: "bhb-marker",
-        style: { left: `${pos.clientX}px`, top: `${pos.clientY}px` }
-      })
-    );
-  }
-  function removePendingMarker() {
-    pendingMarker?.remove();
-    pendingMarker = null;
-  }
+  // src/ui/flash.js
+  var LIFETIME_MS = 400;
   function showClickFlash(clientX, clientY) {
     const ring = mount(
-      el("div", {
-        class: "bhb-flash bhb-flash--ring",
-        style: { left: `${clientX}px`, top: `${clientY}px` }
-      })
+      el("div", { class: "bhb-flash", style: { left: `${clientX}px`, top: `${clientY}px` } })
     );
     realRequestAnimationFrame(() => ring.classList.add("bhb-flash--out"));
-    realSetTimeout(() => ring.remove(), FLASH_LIFETIME_MS);
+    realSetTimeout(() => ring.remove(), LIFETIME_MS);
   }
 
   // src/main.js
@@ -1469,47 +1927,62 @@
     installStyles();
     const settings = loadSettings();
     setLanguage(settings.language);
-    let profileState = loadProfiles();
+    const profileState = loadProfiles();
     const getRules = () => getActiveProfile(profileState).rules;
     const persist = () => saveProfiles(profileState);
+    const store = createUiStore();
     const engine = createEngine({
       getScriptRules: getRules,
       getRerunRules: () => RERUN_RULES,
       getWorldBossRules: () => WORLD_BOSS_RULES,
       getScaleMode: () => settings.scaleMode
     });
-    const overlay = createOverlay({
-      getEngineState: engine.getState,
-      getRules,
-      getProfileName: () => getActiveProfile(profileState).name
-    });
-    const help = createHelpPanel();
-    const addModeBadge = createAddModeBadge();
-    const capture = createRuleCapture({
+    const editor = createRuleEditor({
       getRules,
       persist,
-      report: engine.setMessage,
-      markers: { showPendingMarker, removePendingMarker }
+      report: engine.setMessage
     });
+    const refresh = () => {
+      hud.render();
+      panel.render();
+      markers.render();
+    };
+    const hud = createHud({ getEngineState: engine.getState, store });
+    const panel = createPanel({
+      store,
+      editor,
+      getRules,
+      getEngineState: engine.getState,
+      toggleTask: engine.toggle,
+      getProfileName: () => getActiveProfile(profileState).name,
+      refresh: () => refresh()
+    });
+    const markers = createMarkerLayer({
+      getRules,
+      getScaleMode: () => settings.scaleMode,
+      store
+    });
+    const help = createHelpPanel();
     setClickObserver(showClickFlash);
-    engine.on("change", overlay.render);
-    onSpeedChange(overlay.render);
+    engine.on("change", () => refresh());
+    engine.on("action", (entry) => store.log(entry));
+    store.subscribe(() => refresh());
+    onSpeedChange(() => refresh());
     installHotkeys({
       "1": () => help.toggle(),
-      "2": () => overlay.cycle(),
+      "2": () => store.togglePanel(),
       "3": () => engine.toggle(TaskId.RERUN),
       "4": () => engine.toggle(TaskId.WORLD_BOSS),
       "5": () => engine.toggle(TaskId.SCRIPT),
-      "6": () => addModeBadge.setVisible(capture.toggle()),
-      "0": () => capture.isActive() && capture.savePosition(),
-      "9": () => capture.isActive() && capture.saveColor(),
-      "8": () => capture.isActive() && capture.deleteLast(),
+      "0": () => editor.captureAtCursor().then(refresh),
       "=": () => setSpeed(getSpeed() + 1),
       "+": () => setSpeed(getSpeed() + 1),
       "-": () => setSpeed(getSpeed() - 1)
     });
-    overlay.render();
-    realSetInterval(overlay.render, UI_REFRESH_MS);
+    refresh();
+    hud.wake();
+    realSetInterval(refresh, UI_REFRESH_MS);
+    window.addEventListener("resize", () => markers.render());
     console.info("[BHB] ready — press 1 for the keyboard reference");
   }
   function whenCanvasAppears(onReady) {

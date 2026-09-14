@@ -22,14 +22,16 @@ import {
   loadSettings,
 } from './core/storage.js';
 import { RERUN_RULES, WORLD_BOSS_RULES } from './rules/builtin.js';
-import { createRuleCapture } from './rules/capture.js';
+import { createRuleEditor } from './rules/editor.js';
 import { setLanguage } from './i18n/index.js';
 import { installStyles } from './ui/styles.js';
-import { createOverlay } from './ui/overlay.js';
+import { createUiStore } from './ui/store.js';
+import { createHud } from './ui/hud.js';
+import { createPanel } from './ui/panel/index.js';
+import { createMarkerLayer } from './ui/markers.js';
 import { createHelpPanel } from './ui/help.js';
-import { createAddModeBadge } from './ui/addmode.js';
 import { installHotkeys } from './ui/hotkeys.js';
-import { showPendingMarker, removePendingMarker, showClickFlash } from './ui/marker.js';
+import { showClickFlash } from './ui/flash.js';
 import { realSetInterval, realClearInterval, realNow } from './core/timers.js';
 import { getCanvas } from './core/canvas.js';
 
@@ -47,9 +49,11 @@ function bootstrap() {
   const settings = loadSettings();
   setLanguage(settings.language);
 
-  let profileState = loadProfiles();
+  const profileState = loadProfiles();
   const getRules = () => getActiveProfile(profileState).rules;
   const persist = () => saveProfiles(profileState);
+
+  const store = createUiStore();
 
   const engine = createEngine({
     getScriptRules: getRules,
@@ -58,43 +62,63 @@ function bootstrap() {
     getScaleMode: () => settings.scaleMode,
   });
 
-  const overlay = createOverlay({
-    getEngineState: engine.getState,
-    getRules,
-    getProfileName: () => getActiveProfile(profileState).name,
-  });
-
-  const help = createHelpPanel();
-  const addModeBadge = createAddModeBadge();
-
-  const capture = createRuleCapture({
+  const editor = createRuleEditor({
     getRules,
     persist,
     report: engine.setMessage,
-    markers: { showPendingMarker, removePendingMarker },
   });
 
+  // One renderer for all three views: any change redraws whatever is showing.
+  const refresh = () => {
+    hud.render();
+    panel.render();
+    markers.render();
+  };
+
+  const hud = createHud({ getEngineState: engine.getState, store });
+
+  const panel = createPanel({
+    store,
+    editor,
+    getRules,
+    getEngineState: engine.getState,
+    toggleTask: engine.toggle,
+    getProfileName: () => getActiveProfile(profileState).name,
+    refresh: () => refresh(),
+  });
+
+  const markers = createMarkerLayer({
+    getRules,
+    getScaleMode: () => settings.scaleMode,
+    store,
+  });
+
+  const help = createHelpPanel();
+
   setClickObserver(showClickFlash);
-  engine.on('change', overlay.render);
-  onSpeedChange(overlay.render);
+  engine.on('change', () => refresh());
+  engine.on('action', (entry) => store.log(entry));
+  store.subscribe(() => refresh());
+  onSpeedChange(() => refresh());
 
   installHotkeys({
     '1': () => help.toggle(),
-    '2': () => overlay.cycle(),
+    '2': () => store.togglePanel(),
     '3': () => engine.toggle(TaskId.RERUN),
     '4': () => engine.toggle(TaskId.WORLD_BOSS),
     '5': () => engine.toggle(TaskId.SCRIPT),
-    '6': () => addModeBadge.setVisible(capture.toggle()),
-    '0': () => capture.isActive() && capture.savePosition(),
-    '9': () => capture.isActive() && capture.saveColor(),
-    '8': () => capture.isActive() && capture.deleteLast(),
+    '0': () => editor.captureAtCursor().then(refresh),
     '=': () => setSpeed(getSpeed() + 1),
     '+': () => setSpeed(getSpeed() + 1),
     '-': () => setSpeed(getSpeed() - 1),
   });
 
-  overlay.render();
-  realSetInterval(overlay.render, UI_REFRESH_MS);
+  refresh();
+  hud.wake();
+  // The countdown and the canvas readout are time-based, not event-based.
+  realSetInterval(refresh, UI_REFRESH_MS);
+  // Markers are positioned from the live canvas box, so a resize moves them.
+  window.addEventListener('resize', () => markers.render());
 
   console.info('[BHB] ready — press 1 for the keyboard reference');
 }

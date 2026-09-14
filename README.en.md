@@ -40,28 +40,38 @@ After that the script **updates itself** — no reinstalling. Tampermonkey check
 
 ---
 
-## Keyboard shortcuts
+## Interface
+
+A small **HUD** sits in the top-right corner of the game: a status dot, the speed, and a line saying what the bot is doing. It fades after 4 seconds so it stops covering the game; hovering brings it back.
+
+Click it (or press `2`) to open the **control panel**, which has three tabs:
+
+| Tab | Contents |
+|---|---|
+| **Tasks** | A switch per mode, the speed slider, canvas size, auto-stop countdown |
+| **Rules** | The rule table: rename, enable, reorder by priority, delete, and capture |
+| **Log** | What the bot has actually done, newest first |
+
+With the **Rules** tab open, every rule is drawn as a **marker on the canvas** at the position it watches. Hovering a row lights its marker and the other way round, so you can see which button a rule points at.
+
+### Capturing a rule
+
+Hover a button in the game and press **Capture at cursor** (or the `0` key). That is the whole flow.
+
+The bot handles the hover problem for you: it parks the **synthetic** pointer in a corner of the canvas, waits for the game to repaint, reads the resting colour, and puts the synthetic pointer back. Your real cursor never moves. Both shades — lit and resting — are stored, so the rule matches either way.
+
+### Keyboard shortcuts
 
 | Key | Action |
 |:---:|---|
-| `1` | Show/hide the help panel |
-| `2` | Overlay: expanded → compact → hidden |
+| `1` | Show/hide the keyboard reference |
+| `2` | Open/close the control panel |
 | `3` | Auto Rerun — polls every 3s, rests 20s after a click |
 | `4` | Auto World Boss Solo — polls every 2s |
 | `5` | Auto Script — runs your own rules, every 3s |
-| `6` | Enter/leave add-rule mode |
+| `0` | Capture a rule at the cursor |
 | `= / +` | Increase game speed (up to 10×) |
 | `-` | Decrease game speed |
-
-Inside add-rule mode (`6`):
-
-| Key | Action |
-|:---:|---|
-| `0` | Save **position** — put the cursor on the button, then press |
-| `9` | Save **colour** — **move the cursor away first**, then press |
-| `8` | Delete the rule you just created |
-
-> ⚠️ The order matters: save the position, **move the cursor away**, then save the colour. A cursor resting on a button lights it up, so the rule would store the hover shade and never match at rest.
 
 ---
 
@@ -112,8 +122,8 @@ src/
 │   ├── speed.js     game speed hack
 │   ├── engine.js    the automation loop
 │   └── storage.js   profiles and settings
-├── rules/           rule model, built-in rules, capture flow
-├── ui/              overlay, help, markers, hotkeys
+├── rules/           rule model, built-in rules, capture and editing
+├── ui/              HUD, control panel, canvas markers, hotkeys
 └── i18n/            Vietnamese and English
 ```
 

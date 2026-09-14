@@ -6,7 +6,6 @@ import { t } from '../i18n/index.js';
 const SECTIONS = [
   {
     title: 'help.sectionAuto',
-    color: '#70e0a8',
     entries: [
       ['3', 'help.rerun'],
       ['4', 'help.wb'],
@@ -15,25 +14,19 @@ const SECTIONS = [
   },
   {
     title: 'help.sectionRules',
-    color: '#ffaa33',
     entries: [
-      ['0', 'help.savePosition'],
-      ['9', 'help.saveColor'],
-      ['8', 'help.deleteRule'],
+      ['0', 'help.capture'],
     ],
   },
   {
     title: 'help.sectionUi',
-    color: '#8ec8ff',
     entries: [
       ['1', 'help.toggleHelp'],
-      ['2', 'help.cycleOverlay'],
-      ['6', 'help.addMode'],
+      ['2', 'help.togglePanel'],
     ],
   },
   {
     title: 'help.sectionSpeed',
-    color: '#66ff66',
     entries: [
       ['= / +', 'help.speedUp'],
       ['-', 'help.speedDown'],
@@ -51,16 +44,16 @@ export function createHelpPanel() {
       el('div', { class: 'bhb-help__section', text: `▸ ${t(section.title)}` }),
       ...section.entries.map(([key, labelKey]) =>
         el('div', { class: 'bhb-help__entry' }, [
-          el('b', { text: key, style: { color: section.color } }),
+          el('b', { text: key }),
           el('span', { class: 'bhb-help__label', text: t(labelKey) }),
         ])
       ),
     ]);
 
-    return el('div', { class: 'bhb-panel bhb-help' }, [
+    return el('div', { class: 'bhb-help' }, [
       el('div', { class: 'bhb-help__header' }, [
         el('span', { class: 'bhb-help__title', text: `📖 ${t('help.title')}` }),
-        el('span', { class: 'bhb-muted', text: t('help.close') }),
+        el('span', { class: 'bhb-help__label', text: t('help.close') }),
       ]),
       ...sections,
       el('div', { class: 'bhb-help__footer', text: t('help.footer') }),

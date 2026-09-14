@@ -88,9 +88,13 @@ const CLICK_SEQUENCE = [
  * @param {number} clientY
  */
 export function dispatchClickAt(canvas, clientX, clientY) {
+  dispatchSequence(canvas, CLICK_SEQUENCE, clientX, clientY);
+}
+
+function dispatchSequence(canvas, sequence, clientX, clientY) {
   const targets = [canvas, document, window];
 
-  for (const [type, family, buttons] of CLICK_SEQUENCE) {
+  for (const [type, family, buttons] of sequence) {
     const Ctor = family === 'pointer' ? PointerEvent : MouseEvent;
     const init =
       family === 'pointer'
@@ -107,6 +111,29 @@ export function dispatchClickAt(canvas, clientX, clientY) {
   }
 }
 
+/** Just the approach half of the sequence: hover without pressing anything. */
+const MOVE_SEQUENCE = [
+  ['pointerover', 'pointer', 0],
+  ['pointerenter', 'pointer', 0],
+  ['pointermove', 'pointer', 0],
+  ['mouseover', 'mouse', 0],
+  ['mousemove', 'mouse', 0],
+];
+
+/**
+ * Move the synthetic pointer somewhere without clicking.
+ *
+ * The real cursor stays where the user left it — this only changes what the
+ * game believes is hovered.
+ *
+ * @param {HTMLCanvasElement} canvas
+ * @param {number} clientX
+ * @param {number} clientY
+ */
+export function dispatchMoveTo(canvas, clientX, clientY) {
+  dispatchSequence(canvas, MOVE_SEQUENCE, clientX, clientY);
+}
+
 /**
  * Park the pointer in the canvas corner so no button keeps a hover highlight —
  * a highlighted button reads as a different colour and would break the next
@@ -116,7 +143,7 @@ export function dispatchClickAt(canvas, clientX, clientY) {
  */
 export function resetHover(canvas) {
   const pos = bufferToClient(canvas, HOVER_RESET_POINT.x, HOVER_RESET_POINT.y);
-  dispatchClickAt(canvas, pos.clientX, pos.clientY);
+  dispatchMoveTo(canvas, pos.clientX, pos.clientY);
 }
 
 /**
