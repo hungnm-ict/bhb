@@ -31,6 +31,7 @@ const CSS = `
 .bhb-row--between { justify-content: space-between; }
 .bhb-row--compact { gap: 10px; white-space: nowrap; }
 
+.bhb-version { color: #6b7688; font-size: 10px; margin-left: 5px; }
 .bhb-title { color: #fff; font-size: 12px; font-weight: 700; letter-spacing: .3px; }
 .bhb-muted { color: #777; font-size: 10px; }
 .bhb-hint { color: #8ec8ff; font-size: 10px; }

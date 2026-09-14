@@ -4,6 +4,7 @@ import { getSpeed } from '../core/speed.js';
 import { TaskId, Phase } from '../core/engine.js';
 import { isLegacyPoint } from '../core/coords.js';
 import { getCanvas } from '../core/canvas.js';
+import { VERSION } from '../core/constants.js';
 
 /**
  * Status overlay: the top-right panel.
@@ -162,7 +163,10 @@ export function createOverlay(deps) {
 
     node.replaceChildren(
       el('div', { class: 'bhb-row bhb-row--between', style: { marginBottom: '7px' } }, [
-        el('span', { class: 'bhb-title', text: `${t('app.name')} ${t('app.tagline')}` }),
+        el('span', { class: 'bhb-row' }, [
+          el('span', { class: 'bhb-title', text: `${t('app.name')} ${t('app.tagline')}` }),
+          el('span', { class: 'bhb-version', text: `v${VERSION}` }),
+        ]),
         el('span', { class: 'bhb-muted', text: deps.getProfileName() }),
       ]),
 

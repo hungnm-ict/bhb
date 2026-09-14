@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      2.2.0
+// @version      2.3.0
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -111,6 +111,7 @@
   var realRequestAnimationFrame = window.requestAnimationFrame.bind(window);
 
   // src/core/constants.js
+  var VERSION = true ? "2.3.0" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_LEGACY_RULES = "bh_script_rules_v1";
@@ -173,44 +174,54 @@
   }
   function installFrameMultiplier() {
     const FRAME_BUDGET_MS = 15;
-    const credit = /* @__PURE__ */ new Map();
-    let reentrant = false;
+    let pending = null;
+    let bursting = false;
+    let owed = 0;
     window.requestAnimationFrame = function(callback) {
-      if (reentrant) {
+      if (bursting) {
+        pending = callback;
         return 1;
       }
-      return realRequestAnimationFrame(() => {
-        if (!credit.has(callback)) {
-          credit.set(callback, 0);
-          callback(performance.now());
-          return;
-        }
-        if (speed <= 1) {
-          callback(performance.now());
-          return;
-        }
-        let owed = credit.get(callback) + speed;
-        const startedAt = realPerformanceNow();
-        reentrant = true;
-        try {
-          while (owed >= 1) {
-            try {
-              callback(performance.now());
-            } catch (error) {
-              console.error("[BHB] frame callback threw", error);
-            }
-            owed -= 1;
-            if (realPerformanceNow() - startedAt > FRAME_BUDGET_MS) {
-              owed = 0;
-              break;
-            }
-          }
-        } finally {
-          reentrant = false;
-        }
-        credit.set(callback, owed);
-      });
+      return realRequestAnimationFrame(() => runBurst(callback));
     };
+    function runBurst(callback) {
+      if (speed <= 1) {
+        owed = 0;
+        callback(performance.now());
+        return;
+      }
+      owed += speed;
+      const startedAt = realPerformanceNow();
+      pending = null;
+      bursting = true;
+      try {
+        while (owed >= 1) {
+          const next = pending;
+          pending = null;
+          const current = next || callback;
+          try {
+            current(performance.now());
+          } catch (error) {
+            console.error("[BHB] frame callback threw", error);
+          }
+          owed -= 1;
+          if (!pending) {
+            break;
+          }
+          if (realPerformanceNow() - startedAt > FRAME_BUDGET_MS) {
+            owed = 0;
+            break;
+          }
+        }
+      } finally {
+        bursting = false;
+      }
+      if (pending) {
+        const next = pending;
+        pending = null;
+        realRequestAnimationFrame(() => runBurst(next));
+      }
+    }
   }
 
   // src/core/color.js
@@ -970,6 +981,7 @@
 .bhb-row--between { justify-content: space-between; }
 .bhb-row--compact { gap: 10px; white-space: nowrap; }
 
+.bhb-version { color: #6b7688; font-size: 10px; margin-left: 5px; }
 .bhb-title { color: #fff; font-size: 12px; font-weight: 700; letter-spacing: .3px; }
 .bhb-muted { color: #777; font-size: 10px; }
 .bhb-hint { color: #8ec8ff; font-size: 10px; }
@@ -1222,7 +1234,10 @@
       const speed2 = getSpeed();
       node.replaceChildren(
         el("div", { class: "bhb-row bhb-row--between", style: { marginBottom: "7px" } }, [
-          el("span", { class: "bhb-title", text: `${t("app.name")} ${t("app.tagline")}` }),
+          el("span", { class: "bhb-row" }, [
+            el("span", { class: "bhb-title", text: `${t("app.name")} ${t("app.tagline")}` }),
+            el("span", { class: "bhb-version", text: `v${VERSION}` })
+          ]),
           el("span", { class: "bhb-muted", text: deps.getProfileName() })
         ]),
         ...Object.keys(TASK_LABELS).map((taskId) => renderTaskRow(engine, taskId)),

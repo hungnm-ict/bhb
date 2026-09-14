@@ -1,3 +1,7 @@
+/** Replaced by esbuild at build time; `dev` when running from source (tests). */
+export const VERSION =
+  typeof __BHB_VERSION__ === 'string' ? __BHB_VERSION__ : 'dev';
+
 /** Storage keys. Bump the suffix only on a breaking schema change. */
 export const STORAGE_KEY_PROFILES = 'bhb.profiles.v2';
 export const STORAGE_KEY_SETTINGS = 'bhb.settings.v2';
