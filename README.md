@@ -86,6 +86,8 @@ Rule nhập từ bản cũ không có thông tin này, nên overlay đánh dấu
 
 ---
 
+> 📋 Kế hoạch các tính năng tiếp theo: [docs/ROADMAP.md](docs/ROADMAP.md)
+
 ## Phát triển
 
 ```bash

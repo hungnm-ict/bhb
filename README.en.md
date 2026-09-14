@@ -86,6 +86,8 @@ Rules imported from the original carry no such size, so the overlay marks them w
 
 ---
 
+> 📋 What is planned next: [docs/ROADMAP.md](docs/ROADMAP.md)
+
 ## Development
 
 ```bash
