@@ -82,57 +82,74 @@ export function installSpeedHack() {
 /**
  * Run the game's frame callback several times per real frame.
  *
- * `reentrant` stops a callback that re-registers itself mid-catch-up from
- * scheduling a second real frame; `FRAME_BUDGET_MS` caps the catch-up so a
- * slow frame cannot stall the browser for a whole second.
+ * A game loop re-registers itself from inside its own callback, and Unity
+ * hands `requestAnimationFrame` a fresh closure every frame. So the burst
+ * cannot key anything on callback identity, and it must not swallow the
+ * re-registration outright: the last callback registered during a burst is
+ * what gets the single real frame scheduled at the end of it. Drop that and
+ * the loop simply stops.
+ *
+ * `FRAME_BUDGET_MS` caps the catch-up so a slow frame cannot stall the
+ * browser; `owed` carries the remainder into the next frame.
  */
 function installFrameMultiplier() {
   const FRAME_BUDGET_MS = 15;
 
-  /** @type {Map<Function, number>} */
-  const credit = new Map();
-  let reentrant = false;
+  /** Callback registered from inside the current burst. */
+  let pending = null;
+  let bursting = false;
+  let owed = 0;
 
   window.requestAnimationFrame = function (callback) {
-    if (reentrant) {
+    if (bursting) {
+      pending = callback;
       return 1;
     }
-
-    return realRequestAnimationFrame(() => {
-      if (!credit.has(callback)) {
-        credit.set(callback, 0);
-        callback(performance.now());
-        return;
-      }
-
-      if (speed <= 1) {
-        callback(performance.now());
-        return;
-      }
-
-      let owed = credit.get(callback) + speed;
-      const startedAt = realPerformanceNow();
-
-      reentrant = true;
-      try {
-        while (owed >= 1) {
-          try {
-            callback(performance.now());
-          } catch (error) {
-            console.error('[BHB] frame callback threw', error);
-          }
-          owed -= 1;
-
-          if (realPerformanceNow() - startedAt > FRAME_BUDGET_MS) {
-            owed = 0;
-            break;
-          }
-        }
-      } finally {
-        reentrant = false;
-      }
-
-      credit.set(callback, owed);
-    });
+    return realRequestAnimationFrame(() => runBurst(callback));
   };
+
+  function runBurst(callback) {
+    if (speed <= 1) {
+      owed = 0;
+      callback(performance.now());
+      return;
+    }
+
+    owed += speed;
+    const startedAt = realPerformanceNow();
+
+    pending = null;
+    bursting = true;
+    try {
+      while (owed >= 1) {
+        const next = pending;
+        pending = null;
+        const current = next || callback;
+
+        try {
+          current(performance.now());
+        } catch (error) {
+          console.error('[BHB] frame callback threw', error);
+        }
+        owed -= 1;
+
+        // A loop that stopped re-registering has ended; do not keep calling it.
+        if (!pending) {
+          break;
+        }
+        if (realPerformanceNow() - startedAt > FRAME_BUDGET_MS) {
+          owed = 0;
+          break;
+        }
+      }
+    } finally {
+      bursting = false;
+    }
+
+    if (pending) {
+      const next = pending;
+      pending = null;
+      realRequestAnimationFrame(() => runBurst(next));
+    }
+  }
 }

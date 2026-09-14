@@ -33,6 +33,7 @@ const options = {
   legalComments: 'none',
   // Never minify: Tampermonkey users must be able to audit what they install.
   minify: false,
+  define: { __BHB_VERSION__: JSON.stringify(pkg.version) },
   banner: { js: banner },
 };
 
