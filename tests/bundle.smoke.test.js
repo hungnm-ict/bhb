@@ -51,8 +51,13 @@ describe('built bundle', () => {
     expect(document.getElementById('bhb-styles')).not.toBeNull();
   });
 
-  it('renders the status overlay', () => {
-    expect(document.querySelector('.bhb-overlay')).not.toBeNull();
+  it('renders the HUD', () => {
+    expect(document.querySelector('.bhb-hud')).not.toBeNull();
+  });
+
+  it('leaves the panel closed and the marker layer click-through', () => {
+    expect(document.querySelector('.bhb-panel').style.display).toBe('none');
+    expect(document.querySelector('.bhb-markers').style.display).toBe('none');
   });
 
   it('forces preserveDrawingBuffer on WebGL contexts', () => {

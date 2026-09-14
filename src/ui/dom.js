@@ -8,7 +8,7 @@
 
 /**
  * @param {string} tag
- * @param {{ class?: string, text?: string, style?: Record<string,string> }} [props]
+ * @param {{ class?: string, text?: string, title?: string, style?: Record<string,string> }} [props]
  * @param {Array<Node | string | null | undefined>} [children]
  * @returns {HTMLElement}
  */
@@ -20,6 +20,9 @@ export function el(tag, props = {}, children = []) {
   }
   if (props.text !== undefined) {
     node.textContent = props.text;
+  }
+  if (props.title) {
+    node.title = props.title;
   }
   if (props.style) {
     Object.assign(node.style, props.style);

@@ -40,28 +40,38 @@ Từ lần sau **script tự cập nhật** — không phải cài lại. Tamper
 
 ---
 
-## Phím tắt
+## Giao diện
+
+Bot hiện một **thanh nhỏ** ở góc phải trên mặt game: chấm trạng thái, tốc độ, và dòng mô tả bot đang làm gì. Không đụng vào 4 giây thì nó tự mờ đi để khỏi che game; rê chuột vào là rõ lại.
+
+Bấm vào thanh đó (hoặc phím `2`) để mở **bảng điều khiển**, gồm 3 tab:
+
+| Tab | Nội dung |
+|---|---|
+| **Hoạt động** | Công tắc bật/tắt từng chế độ, thanh trượt tốc độ, cỡ canvas, đếm ngược tự tắt |
+| **Rule** | Bảng rule: đổi tên, bật/tắt, sắp xếp thứ tự ưu tiên, xoá, và nút bắt rule mới |
+| **Nhật ký** | Từng việc bot đã làm, mới nhất trên cùng |
+
+Khi mở tab **Rule**, mỗi rule được vẽ thành một **dấu ngay trên canvas** tại đúng chỗ nó nhìn vào. Rê chuột lên dòng nào thì dấu tương ứng sáng lên và ngược lại — nhìn là biết rule trỏ vào nút nào.
+
+### Tạo rule
+
+Rê chuột lên nút trong game, rồi bấm **Bắt rule tại con trỏ** (hoặc phím `0`). Xong.
+
+Bot tự xử lý chuyện nút bị sáng lên do con trỏ đang nằm trên đó: nó gạt **con trỏ ảo** ra góc canvas, đợi game vẽ lại, đọc màu lúc nút không sáng, rồi trả con trỏ ảo về chỗ cũ. Con trỏ thật của bạn không hề nhúc nhích. Cả hai màu — lúc sáng và lúc thường — đều được lưu, nên rule khớp được ở cả hai trạng thái.
+
+### Phím tắt
 
 | Phím | Chức năng |
 |:---:|---|
-| `1` | Hiện/ẩn bảng trợ giúp |
-| `2` | Overlay: mở rộng → thu nhỏ → ẩn |
+| `1` | Hiện/ẩn bảng phím tắt |
+| `2` | Mở/đóng bảng điều khiển |
 | `3` | Auto Rerun — tìm 3 giây/lần, click xong nghỉ 20 giây |
 | `4` | Auto World Boss Solo — 2 giây/lần |
 | `5` | Auto Script — chạy rule bạn tự tạo, 3 giây/lần |
-| `6` | Vào/ra chế độ thêm rule |
+| `0` | Bắt rule tại con trỏ |
 | `= / +` | Tăng tốc độ game (tối đa 10×) |
 | `-` | Giảm tốc độ game |
-
-Trong chế độ thêm rule (`6`):
-
-| Phím | Chức năng |
-|:---:|---|
-| `0` | Lưu **vị trí** — đặt chuột ngay trên nút rồi bấm |
-| `9` | Lưu **màu** — **di chuột ra xa trước**, rồi bấm |
-| `8` | Xoá rule vừa tạo |
-
-> ⚠️ Phải làm đúng thứ tự: lưu vị trí trước, **di chuột ra xa**, rồi mới lưu màu. Để chuột trên nút sẽ làm nút sáng lên, rule lưu nhầm màu hover và sẽ không bao giờ khớp lúc bình thường.
 
 ---
 
@@ -112,8 +122,8 @@ src/
 │   ├── speed.js     tăng tốc game
 │   ├── engine.js    vòng lặp tự động
 │   └── storage.js   profile + cài đặt
-├── rules/           model rule, rule có sẵn, chụp rule
-├── ui/              overlay, help, marker, phím tắt
+├── rules/           model rule, rule có sẵn, bắt/sửa rule
+├── ui/              HUD, bảng điều khiển, dấu trên canvas, phím tắt
 └── i18n/            tiếng Việt + tiếng Anh
 ```
 
