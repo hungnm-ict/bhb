@@ -3,7 +3,7 @@ import { DEFAULT_COLOR_TOLERANCE } from '../core/constants.js';
 /**
  * Rules carried over from bh-scripts, where they were proven in play.
  *
- * The Kongregate embed pins `#unity-canvas` to a 800x520 framebuffer and
+ * The host embed pins `#unity-canvas` to a 800x520 framebuffer and
  * stretches it with CSS, which is the space these coordinates were captured
  * in — every one of them falls inside it. Recording that here makes the
  * built-ins rescale like any captured rule, so they survive a build that

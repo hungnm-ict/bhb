@@ -1,6 +1,6 @@
 export default {
   'app.name': 'BHB',
-  'app.tagline': 'Bit Heroes Bot',
+  'app.tagline': 'Bot tự động hoá',
 
   'task.rerun': 'RERUN',
   'task.wb': 'WB SOLO',

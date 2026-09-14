@@ -7,7 +7,7 @@ const RAW = `https://raw.githubusercontent.com/${REPO}/master/dist/bhb.user.js`;
 
 /** Tampermonkey reads this block verbatim; @version drives auto-update. */
 const banner = `// ==UserScript==
-// @name         BHB — Bit Heroes Bot
+// @name         BHB
 // @namespace    https://github.com/${REPO}
 // @version      ${pkg.version}
 // @description  ${pkg.description}

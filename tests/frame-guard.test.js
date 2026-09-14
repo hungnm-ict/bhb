@@ -1,6 +1,6 @@
 /**
  * A frame with no game canvas must stay completely silent — no overlay, no
- * hotkeys. Kongregate loads the game in an iframe, so the script runs twice:
+ * hotkeys. The host page loads the game in an iframe, so the script runs twice:
  * once in the outer page and once in the frame.
  *
  * @vitest-environment jsdom
