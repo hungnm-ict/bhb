@@ -10,10 +10,31 @@ The bot reads the game's WebGL framebuffer directly to recognise buttons by colo
 
 ## Install
 
-1. Install [Tampermonkey](https://www.tampermonkey.net/) (Chrome, Edge, Firefox, Brave)
-2. Open **[dist/bhb.user.js](https://raw.githubusercontent.com/hungnm-ict/bhb/master/dist/bhb.user.js)**
-3. Tampermonkey shows its install page — click **Install**
-4. Open the game on Kongregate and press **`1`** for the keyboard reference
+### Step 1 — Install Tampermonkey
+
+Install [Tampermonkey](https://www.tampermonkey.net/) for Chrome, Edge, Firefox or Brave.
+
+### Step 2 — Allow user scripts ⚠️ (Chrome/Edge)
+
+**Skip this and the script silently never runs.** From Chrome/Edge 138 onward the userscript API sits behind a per-extension switch.
+
+1. Go to `chrome://extensions` (or `edge://extensions`)
+2. Find **Tampermonkey** and click **Details**
+3. Scroll down and turn **"Allow User Scripts"** **ON**
+
+> The switch lives on **Tampermonkey's own** details page, not the extensions list.
+
+On Chrome/Edge **older than 138**, where that switch does not exist, turn on **Developer mode** at the top right of `chrome://extensions` instead.
+
+**Firefox does not need this step.**
+
+### Step 3 — Install the script
+
+1. Open **[dist/bhb.user.js](https://raw.githubusercontent.com/hungnm-ict/bhb/master/dist/bhb.user.js)**
+2. Tampermonkey shows its install page — click **Install**
+3. Open the game on Kongregate and press **`1`** for the keyboard reference
+
+> If pressing `1` does nothing, step 2 is almost certainly incomplete. Open the console (F12) and look for `[BHB] ready` — no line means the script never ran.
 
 After that the script **updates itself** — no reinstalling. Tampermonkey checks periodically; to update immediately, go to Tampermonkey → Dashboard → **Installed userscripts** → **Check for userscript updates**.
 
