@@ -33,3 +33,7 @@ TestResults/
 
 # Reference bots (not part of this project's source)
 Other Bots/
+
+# Verification snapshots (tooling artifacts)
+.idxverify/
+.verifybuild/

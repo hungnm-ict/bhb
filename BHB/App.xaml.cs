@@ -5,6 +5,7 @@ using BHB.Common.Helpers;
 using BHB.Common.Shared;
 using BHB.Config;
 using BHB.Core.Bot;
+using BHB.Core.Input;
 using BHB.Core.Vision;
 using BHB.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,9 +30,9 @@ public partial class App : Application
         Directory.CreateDirectory(templatesDir);
 
         var services = new ServiceCollection();
+        services.AddSingleton<ClickCoordinator>();
         services.AddSingleton<BotManager>();
         services.AddSingleton(_ => new TemplateLibrary(templatesDir));
-        services.AddSingleton<TemplateMatcher>();
         services.AddSingleton<MainViewModel>();
         Services = services.BuildServiceProvider();
 

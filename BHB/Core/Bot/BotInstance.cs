@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using BHB.Core.Input;
 using BHB.Core.Vision;
 using BHB.Features;
 using BHB.Features.Base;
@@ -16,10 +17,12 @@ public class BotInstance
 
     private CancellationTokenSource? _cts;
     private readonly ILogger _log;
+    private readonly ClickCoordinator _clickCoordinator;
 
-    public BotInstance(string accountName)
+    public BotInstance(string accountName, ClickCoordinator clickCoordinator)
     {
         AccountName = accountName;
+        _clickCoordinator = clickCoordinator;
         _log = Log.ForContext("Account", accountName);
     }
 
@@ -71,7 +74,7 @@ public class BotInstance
         var cancellation = ResetCancellation();
 
         var frames = new WindowFrameSource(Hwnd);
-        var input = new WindowInputSink(Hwnd);
+        var input = new WindowInputSink(Hwnd, _clickCoordinator);
         var runner = new ActivityRunner(frames, input, matcher, templates);
         if (progress != null)
         {
