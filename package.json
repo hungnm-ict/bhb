@@ -1,7 +1,7 @@
 {
   "name": "bhb",
   "version": "2.2.0",
-  "description": "Bit Heroes automation userscript for the Kongregate web client",
+  "description": "Automation userscript for a casual Gacha + Pokemon-catching + Fashion game",
   "type": "module",
   "private": true,
   "scripts": {

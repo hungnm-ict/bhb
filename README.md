@@ -1,8 +1,8 @@
-# BHB — Bit Heroes Bot
+# BHB
 
 > 🇬🇧 [English version](README.en.md)
 
-Userscript tự động hoá [Bit Heroes](https://www.kongregate.com/games/juppiomenz/bit-heroes) bản web trên Kongregate.
+Userscript tự động hoá game giải trí Gacha + bắt Pokemon + Thời trang.
 
 Bot đọc thẳng framebuffer WebGL của game để nhận biết nút bấm theo màu, rồi gửi sự kiện chuột giả vào canvas. **Con trỏ chuột thật không hề di chuyển** — bạn vẫn dùng máy bình thường trong lúc bot chạy.
 
@@ -32,7 +32,7 @@ Nếu dùng Chrome/Edge **cũ hơn 138** và không thấy công tắc đó: b�
 
 1. Mở link: **[dist/bhb.user.js](https://raw.githubusercontent.com/hungnm-ict/bhb/master/dist/bhb.user.js)**
 2. Tampermonkey hiện trang cài đặt → bấm **Install**
-3. Mở game trên Kongregate, bấm phím **`1`** để xem bảng phím tắt
+3. Mở game, bấm phím **`1`** để xem bảng phím tắt
 
 > Nếu bấm `1` không hiện gì: gần như chắc chắn là Bước 2 chưa xong. Mở Console (F12) tìm dòng `[BHB] ready` — không có nghĩa là script chưa chạy.
 
@@ -127,4 +127,4 @@ Code đã được viết lại hoàn toàn. Chi tiết xem [NOTICE.md](NOTICE.m
 
 ## Lưu ý
 
-Công cụ này dành cho mục đích học tập và dùng cá nhân. Tự động hoá game có thể vi phạm điều khoản dịch vụ của Kongregate hoặc của nhà phát hành — bạn tự chịu trách nhiệm khi sử dụng.
+Công cụ này dành cho mục đích học tập và dùng cá nhân. Tự động hoá game có thể vi phạm điều khoản dịch vụ của nền tảng hoặc của nhà phát hành — bạn tự chịu trách nhiệm khi sử dụng.

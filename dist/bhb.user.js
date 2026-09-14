@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         BHB — Bit Heroes Bot
+// @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
 // @version      2.2.0
-// @description  Bit Heroes automation userscript for the Kongregate web client
+// @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
 // @match        *://*.bitheroesgame.com/*
@@ -721,7 +721,7 @@
   // src/i18n/vi.js
   var vi_default = {
     "app.name": "BHB",
-    "app.tagline": "Bit Heroes Bot",
+    "app.tagline": "Bot tự động hoá",
     "task.rerun": "RERUN",
     "task.wb": "WB SOLO",
     "task.script": "SCRIPT",
@@ -780,7 +780,7 @@
   // src/i18n/en.js
   var en_default = {
     "app.name": "BHB",
-    "app.tagline": "Bit Heroes Bot",
+    "app.tagline": "Automation bot",
     "task.rerun": "RERUN",
     "task.wb": "WB SOLO",
     "task.script": "SCRIPT",

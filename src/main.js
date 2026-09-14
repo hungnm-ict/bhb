@@ -1,5 +1,5 @@
 /**
- * BHB — Bit Heroes Bot
+ * BHB
  *
  * Entry point. Load order matters and is enforced here:
  *
@@ -102,7 +102,7 @@ function bootstrap() {
 /**
  * Wait for this frame to contain the game canvas.
  *
- * Kongregate hosts the game in an iframe, so the script runs in both the outer
+ * The host page embeds the game in an iframe, so the script runs in both the outer
  * page and the frame. Only one of them has a canvas, and building the UI in
  * both would stack two overlays and two sets of hotkeys on top of each other.
  * A frame that never gets a canvas simply does nothing.
