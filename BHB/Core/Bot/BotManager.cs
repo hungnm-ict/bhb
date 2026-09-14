@@ -1,29 +1,48 @@
 using System.Collections.ObjectModel;
+using BHB.Core.Input;
 
 namespace BHB.Core.Bot;
 
 public class BotManager
 {
+    private readonly ClickCoordinator _clickCoordinator;
+
+    public BotManager(ClickCoordinator clickCoordinator)
+    {
+        _clickCoordinator = clickCoordinator;
+    }
+
     public ObservableCollection<BotInstance> Instances { get; } = new();
 
     public BotInstance CreateInstance(string accountName)
     {
-        var inst = new BotInstance(accountName);
-        Instances.Add(inst);
-        return inst;
+        var instance = new BotInstance(accountName, _clickCoordinator);
+        Instances.Add(instance);
+
+        return instance;
     }
 
     public void RemoveInstance(string accountName)
     {
-        for (int i = Instances.Count - 1; i >= 0; i--)
-            if (Instances[i].AccountName == accountName)
-                Instances.RemoveAt(i);
+        for (int index = Instances.Count - 1; index >= 0; index--)
+        {
+            if (Instances[index].AccountName == accountName)
+            {
+                Instances.RemoveAt(index);
+            }
+        }
     }
 
-    public BotInstance? GetByAccount(string name)
+    public BotInstance? GetByAccount(string accountName)
     {
-        foreach (var inst in Instances)
-            if (inst.AccountName == name) return inst;
+        foreach (var instance in Instances)
+        {
+            if (instance.AccountName == accountName)
+            {
+                return instance;
+            }
+        }
+
         return null;
     }
 }

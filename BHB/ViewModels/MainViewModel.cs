@@ -1,11 +1,9 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using BHB.Common.Shared;
@@ -21,139 +19,221 @@ using Serilog;
 
 namespace BHB.ViewModels;
 
+/// <summary>Which page the nav rail is showing.</summary>
+public enum ShellPage
+{
+    Accounts,
+    Tools
+}
+
+/// <summary>
+/// Application shell: the account list, the shared window list, nav state, and the engine-test
+/// tools. Per-account configuration and running lives on <see cref="AccountViewModel" />.
+/// </summary>
 public class MainViewModel : BaseViewModel
 {
+    private const int MaxToolLogEntries = 500;
+
+    // Quest button on the left sidebar, in client coordinates. Only used by the engine-test
+    // tools to compare click methods against a known target.
+    private const int QuestButtonX = 27;
+    private const int QuestButtonY = 88;
+
     private readonly BotManager _botManager;
     private readonly TemplateLibrary _templates;
-    private readonly TemplateMatcher _matcher;
-    private BotInstance? _testInstance;
-    private BotInstance? _runInstance;
-    private bool _activityRunning;
+    private readonly TemplateMatcher _toolMatcher = new();
+    private readonly ClickCoordinator _clickCoordinator;
+
+    private bool _isDemoRunning;
+    private int _accountSequence;
+
+    public MainViewModel(
+        BotManager botManager,
+        TemplateLibrary templates,
+        ClickCoordinator clickCoordinator)
+    {
+        _botManager = botManager;
+        _templates = templates;
+        _clickCoordinator = clickCoordinator;
+
+        RefreshWindowsCommand = new RelayCommand(_ => RefreshWindows());
+        AddAccountCommand = new RelayCommand(_ => AddAccount());
+        RemoveAccountCommand = new RelayCommand(_ => RemoveSelectedAccount(), _ => CanRemoveSelectedAccount);
+
+        ShowAccountsCommand = new RelayCommand(_ => CurrentPage = ShellPage.Accounts);
+        ShowToolsCommand = new RelayCommand(_ => CurrentPage = ShellPage.Tools);
+
+        CaptureTestCommand = new RelayCommand(_ => CaptureTest(), _ => HasToolWindow);
+        SaveCaptureCommand = new RelayCommand(_ => SaveCapture(), _ => LastCapture != null);
+        ClickTestCommand = new RelayCommand(_ => ClickTest(), _ => HasToolWindow);
+        DemoQuestCommand = new RelayCommand(_ => _ = DemoQuestAsync(), _ => HasToolWindow && !_isDemoRunning);
+        DemoTouchCommand = new RelayCommand(_ => _ = DemoTouchAsync(), _ => HasToolWindow && !_isDemoRunning);
+        DiagnoseCommand = new RelayCommand(_ => Diagnose(), _ => HasToolWindow);
+
+        var isTouchAvailable = WindowInput.InitTouch();
+        AppendToolLog(isTouchAvailable ? "Touch injection initialised." : "Touch injection unavailable.");
+
+        RefreshWindows();
+        AddAccount();
+    }
 
     public ObservableCollection<GameWindowInfo> AvailableWindows { get; } = new();
 
-    private GameWindowInfo? _selectedWindow;
-    public GameWindowInfo? SelectedWindow
+    public ObservableCollection<AccountViewModel> Accounts { get; } = new();
+
+    /// <summary>Engine-test output. Separate from account logs so tool noise stays out of runs.</summary>
+    public ObservableCollection<string> ToolLog { get; } = new();
+
+    public ICommand RefreshWindowsCommand { get; }
+    public ICommand AddAccountCommand { get; }
+    public ICommand RemoveAccountCommand { get; }
+    public ICommand ShowAccountsCommand { get; }
+    public ICommand ShowToolsCommand { get; }
+    public ICommand CaptureTestCommand { get; }
+    public ICommand SaveCaptureCommand { get; }
+    public ICommand ClickTestCommand { get; }
+    public ICommand DemoQuestCommand { get; }
+    public ICommand DemoTouchCommand { get; }
+    public ICommand DiagnoseCommand { get; }
+
+    private AccountViewModel? _selectedAccount;
+    public AccountViewModel? SelectedAccount
     {
-        get => _selectedWindow;
-        set => SetProperty(ref _selectedWindow, value);
+        get
+        {
+            return _selectedAccount;
+        }
+        set
+        {
+            if (SetProperty(ref _selectedAccount, value))
+            {
+                OnPropertyChanged(nameof(HasSelectedAccount));
+                OnPropertyChanged(nameof(HasToolWindow));
+                CommandManager.InvalidateRequerySuggested();
+            }
+        }
+    }
+
+    public bool HasSelectedAccount
+    {
+        get
+        {
+            return SelectedAccount != null;
+        }
+    }
+
+    private ShellPage _currentPage = ShellPage.Accounts;
+    public ShellPage CurrentPage
+    {
+        get
+        {
+            return _currentPage;
+        }
+        set
+        {
+            if (SetProperty(ref _currentPage, value))
+            {
+                OnPropertyChanged(nameof(IsAccountsPage));
+                OnPropertyChanged(nameof(IsToolsPage));
+            }
+        }
+    }
+
+    public bool IsAccountsPage
+    {
+        get
+        {
+            return CurrentPage == ShellPage.Accounts;
+        }
+    }
+
+    public bool IsToolsPage
+    {
+        get
+        {
+            return CurrentPage == ShellPage.Tools;
+        }
     }
 
     private BitmapSource? _lastCapture;
     public BitmapSource? LastCapture
     {
-        get => _lastCapture;
-        set => SetProperty(ref _lastCapture, value);
+        get
+        {
+            return _lastCapture;
+        }
+        set
+        {
+            SetProperty(ref _lastCapture, value);
+        }
     }
 
-    private string _currentState = "Idle";
-    public string CurrentState
+    /// <summary>The tools act on whichever window the selected account is bound to.</summary>
+    private bool HasToolWindow
     {
-        get => _currentState;
-        set => SetProperty(ref _currentState, value);
+        get
+        {
+            return SelectedAccount?.SelectedWindow != null;
+        }
     }
 
-    private string _logOutput = string.Empty;
-    public string LogOutput
+    private bool CanRemoveSelectedAccount
     {
-        get => _logOutput;
-        set => SetProperty(ref _logOutput, value);
-    }
-
-    private bool _demoRunning;
-
-    // ── Activity Runner ──
-    public ObservableCollection<string> Activities { get; } = new() { "World Boss" };
-
-    private string _selectedActivity = "World Boss";
-    public string SelectedActivity
-    {
-        get => _selectedActivity;
-        set => SetProperty(ref _selectedActivity, value);
-    }
-
-    private bool _isCountMode = true;
-    public bool IsCountMode
-    {
-        get => _isCountMode;
-        set => SetProperty(ref _isCountMode, value);
-    }
-
-    private int _runCount = 10;
-    public int RunCount
-    {
-        get => _runCount;
-        set => SetProperty(ref _runCount, value);
-    }
-
-    private string _runStatus = "Idle";
-    public string RunStatus
-    {
-        get => _runStatus;
-        set => SetProperty(ref _runStatus, value);
-    }
-
-    public ICommand RefreshWindowsCommand { get; }
-    public ICommand CaptureTestCommand    { get; }
-    public ICommand SaveCaptureCommand     { get; }
-    public ICommand ClickTestCommand      { get; }
-    public ICommand DemoQuestCommand      { get; }
-    public ICommand DemoTouchCommand      { get; }
-    public ICommand StartCommand          { get; }
-    public ICommand StopCommand           { get; }
-    public ICommand StartRunCommand       { get; }
-    public ICommand StopRunCommand        { get; }
-    public ICommand DiagnoseCommand       { get; }
-
-    public MainViewModel(BotManager botManager, TemplateLibrary templates, TemplateMatcher matcher)
-    {
-        _botManager = botManager;
-        _templates  = templates;
-        _matcher    = matcher;
-
-        RefreshWindowsCommand = new RelayCommand(_ => RefreshWindows());
-        CaptureTestCommand    = new RelayCommand(_ => CaptureTest(),        _ => SelectedWindow != null);
-        SaveCaptureCommand    = new RelayCommand(_ => SaveCapture(),        _ => LastCapture != null);
-        ClickTestCommand      = new RelayCommand(_ => ClickTest(),          _ => SelectedWindow != null);
-        DemoQuestCommand      = new RelayCommand(_ => _ = DemoQuestAsync(), _ => SelectedWindow != null && !_demoRunning);
-        DemoTouchCommand      = new RelayCommand(_ => _ = DemoTouchAsync(), _ => SelectedWindow != null && !_demoRunning);
-        StartCommand          = new RelayCommand(_ => Start(),              _ => SelectedWindow != null);
-        StopCommand           = new RelayCommand(_ => Stop(),               _ => _testInstance  != null);
-        StartRunCommand       = new RelayCommand(_ => _ = StartRunAsync(),  _ => SelectedWindow != null && !_activityRunning);
-        StopRunCommand        = new RelayCommand(_ => StopRun(),            _ => _activityRunning);
-        DiagnoseCommand       = new RelayCommand(_ => Diagnose(),           _ => SelectedWindow != null);
-
-        var isTouchAvailable = WindowInput.InitTouch();
-        AppendLog(isTouchAvailable ? "Touch injection initialised." : "Touch injection unavailable.");
-
-        RefreshWindows();
+        get
+        {
+            return SelectedAccount != null && !SelectedAccount.IsRunning;
+        }
     }
 
     private void RefreshWindows()
     {
         AvailableWindows.Clear();
-        foreach (var w in WindowFinder.FindAll())
-            AvailableWindows.Add(w);
-        AppendLog($"Found {AvailableWindows.Count} game window(s).");
+        foreach (var window in WindowFinder.FindAll())
+        {
+            AvailableWindows.Add(window);
+        }
+
+        AppendToolLog($"Found {AvailableWindows.Count} game window(s).");
     }
 
-    private void CaptureTest()
+    private void AddAccount()
     {
-        if (SelectedWindow == null)
+        _accountSequence++;
+        var account = new AccountViewModel($"Account {_accountSequence}", _botManager, _templates, AvailableWindows);
+        Accounts.Add(account);
+        SelectedAccount = account;
+    }
+
+    private void RemoveSelectedAccount()
+    {
+        if (!CanRemoveSelectedAccount)
         {
             return;
         }
 
-        var bitmap = WindowCapture.Capture(SelectedWindow.Hwnd);
+        var removed = SelectedAccount!;
+        Accounts.Remove(removed);
+        SelectedAccount = Accounts.Count > 0 ? Accounts[0] : null;
+    }
+
+    private void CaptureTest()
+    {
+        var window = SelectedAccount?.SelectedWindow;
+        if (window == null)
+        {
+            return;
+        }
+
+        var bitmap = WindowCapture.Capture(window.Hwnd);
         if (bitmap == null)
         {
-            AppendLog("Capture returned null.");
+            AppendToolLog("Capture returned null.");
             return;
         }
 
         LastCapture = ToBitmapSource(bitmap);
         bitmap.Dispose();
-        AppendLog($"Captured: {SelectedWindow.Title} — {(int)SelectedWindow.ClientRect.Width}x{(int)SelectedWindow.ClientRect.Height}");
+        AppendToolLog($"Captured: {window.Title} — {(int)window.ClientRect.Width}x{(int)window.ClientRect.Height}");
         CommandManager.InvalidateRequerySuggested();
     }
 
@@ -161,16 +241,16 @@ public class MainViewModel : BaseViewModel
     {
         if (LastCapture == null)
         {
-            AppendLog("Nothing to save — run Capture Test first.");
+            AppendToolLog("Nothing to save — run Capture first.");
             return;
         }
 
-        var dir = Path.Combine(
+        var directory = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             AppConstants.APP_NAME, "captures");
-        Directory.CreateDirectory(dir);
+        Directory.CreateDirectory(directory);
 
-        var path = Path.Combine(dir, $"capture_{DateTime.Now:yyyyMMdd_HHmmss}.png");
+        var path = Path.Combine(directory, $"capture_{DateTime.Now:yyyyMMdd_HHmmss}.png");
         var encoder = new PngBitmapEncoder();
         encoder.Frames.Add(BitmapFrame.Create(LastCapture));
         using (var stream = File.Create(path))
@@ -178,307 +258,208 @@ public class MainViewModel : BaseViewModel
             encoder.Save(stream);
         }
 
-        AppendLog($"Saved capture → {path}");
+        AppendToolLog($"Saved capture → {path}");
     }
 
     private void ClickTest()
     {
-        if (SelectedWindow == null)
+        var window = SelectedAccount?.SelectedWindow;
+        if (window == null)
         {
             return;
         }
 
-        // Same target as Demo (Quest button) so PostMessage vs ClickFocused are directly comparable
-        WindowInput.Click(SelectedWindow.Hwnd, QuestBtnX, QuestBtnY);
-        AppendLog($"PostMessage+WM_MOUSEMOVE click → ({QuestBtnX},{QuestBtnY}) client coords");
+        // Same target as the demos so PostMessage and ClickFocused are directly comparable.
+        WindowInput.Click(window.Hwnd, QuestButtonX, QuestButtonY);
+        AppendToolLog($"PostMessage+WM_MOUSEMOVE click → ({QuestButtonX},{QuestButtonY}) client coords");
     }
-
-    // Quest button is on the left sidebar: icon roughly at (27, 88) in client coords.
-    // Adjust these if your game window is a different size.
-    private const int QuestBtnX = 27;
-    private const int QuestBtnY = 88;
 
     private async Task DemoQuestAsync()
     {
-        if (SelectedWindow == null || _demoRunning)
+        var window = SelectedAccount?.SelectedWindow;
+        if (window == null || _isDemoRunning)
         {
             return;
         }
 
-        _demoRunning = true;
+        _isDemoRunning = true;
         CommandManager.InvalidateRequerySuggested();
 
-        var hwnd = SelectedWindow.Hwnd;
+        var hwnd = window.Hwnd;
         try
         {
-            AppendLog($"Demo: clicking Quest btn ({QuestBtnX},{QuestBtnY}) via ClickFocused…");
-            await Task.Run(() => WindowInput.ClickFocused(hwnd, QuestBtnX, QuestBtnY));
+            AppendToolLog($"Demo: clicking Quest btn ({QuestButtonX},{QuestButtonY}) via ClickFocused…");
+            await Task.Run(() => _clickCoordinator.RunExclusive(
+                () => WindowInput.ClickFocused(hwnd, QuestButtonX, QuestButtonY)));
 
-            AppendLog("Demo: waiting 1.5 s then capturing result…");
+            AppendToolLog("Demo: waiting 1.5 s then capturing result…");
             await Task.Delay(1500);
-
-            // Capture and show — if Quest map opened you'll see it in the preview
-            var bitmap = WindowCapture.Capture(hwnd);
-            if (bitmap != null)
-            {
-                LastCapture = ToBitmapSource(bitmap);
-                bitmap.Dispose();
-                AppendLog("Demo: captured — check preview to see if Quest map opened.");
-            }
+            CaptureAfterDemo(hwnd, "Demo");
 
             await Task.Delay(500);
-            AppendLog("Demo: pressing Escape to close…");
+            AppendToolLog("Demo: pressing Escape to close…");
             await Task.Run(() => WindowInput.SendEscape(hwnd));
         }
         finally
         {
-            _demoRunning = false;
+            _isDemoRunning = false;
             CommandManager.InvalidateRequerySuggested();
         }
     }
 
     private async Task DemoTouchAsync()
     {
-        if (SelectedWindow == null || _demoRunning)
+        var window = SelectedAccount?.SelectedWindow;
+        if (window == null || _isDemoRunning)
         {
             return;
         }
 
-        _demoRunning = true;
+        _isDemoRunning = true;
         CommandManager.InvalidateRequerySuggested();
 
-        var hwnd = SelectedWindow.Hwnd;
+        var hwnd = window.Hwnd;
         try
         {
-            AppendLog($"Demo Touch: injecting touch tap at ({QuestBtnX},{QuestBtnY}) — no cursor movement…");
-            await Task.Run(() => WindowInput.ClickTouch(hwnd, QuestBtnX, QuestBtnY));
+            AppendToolLog($"Demo Touch: injecting touch tap at ({QuestButtonX},{QuestButtonY}) — no cursor movement…");
+            await Task.Run(() => WindowInput.ClickTouch(hwnd, QuestButtonX, QuestButtonY));
 
-            AppendLog("Demo Touch: waiting 1.5 s then capturing result…");
+            AppendToolLog("Demo Touch: waiting 1.5 s then capturing result…");
             await Task.Delay(1500);
-
-            var bitmap = WindowCapture.Capture(hwnd);
-            if (bitmap != null)
-            {
-                LastCapture = ToBitmapSource(bitmap);
-                bitmap.Dispose();
-                AppendLog("Demo Touch: captured — check preview to see if Quest map opened.");
-            }
+            CaptureAfterDemo(hwnd, "Demo Touch");
 
             await Task.Delay(500);
-            AppendLog("Demo Touch: pressing Escape to close…");
+            AppendToolLog("Demo Touch: pressing Escape to close…");
             await Task.Run(() => WindowInput.SendEscape(hwnd));
         }
         finally
         {
-            _demoRunning = false;
+            _isDemoRunning = false;
             CommandManager.InvalidateRequerySuggested();
         }
     }
 
-    private void Start()
+    private void CaptureAfterDemo(IntPtr hwnd, string label)
     {
-        if (SelectedWindow == null)
+        var bitmap = WindowCapture.Capture(hwnd);
+        if (bitmap == null)
         {
             return;
         }
 
-        _testInstance = _botManager.CreateInstance("Test");
-        _testInstance.Hwnd = SelectedWindow.Hwnd;
-        _testInstance.State.StateChanged += (_, to) =>
-            Application.Current.Dispatcher.Invoke(() => CurrentState = to.ToString());
-        _testInstance.State.Transition(BotState.Starting);
-        _testInstance.State.Transition(BotState.Running);
-        AppendLog("Bot instance created — state machine demo active.");
-    }
-
-    private void Stop()
-    {
-        _testInstance?.Stop();
-        _testInstance = null;
-    }
-
-    private async Task StartRunAsync()
-    {
-        if (SelectedWindow == null || _activityRunning)
-        {
-            return;
-        }
-
-        var activity = WorldBossActivity.Create();
-
-        var missing = FindMissingTemplates(activity);
-        if (missing.Count > 0)
-        {
-            AppendLog($"Cannot start — missing templates: {string.Join(", ", missing)}");
-            RunStatus = "Missing templates";
-            return;
-        }
-
-        _activityRunning = true;
-        CommandManager.InvalidateRequerySuggested();
-
-        _runInstance = _botManager.CreateInstance("WB");
-        _runInstance.Hwnd = SelectedWindow.Hwnd;
-        _runInstance.State.StateChanged += (_, to) =>
-            Application.Current.Dispatcher.Invoke(() => CurrentState = to.ToString());
-
-        var mode   = IsCountMode ? RunMode.Count : RunMode.UntilOutOfResources;
-        var target = IsCountMode ? Math.Max(1, RunCount) : 0;
-
-        var progress = new Progress<ActivityProgress>(p =>
-        {
-            var goal = p.TargetRuns.HasValue ? p.TargetRuns.Value.ToString() : "∞";
-            RunStatus = $"Runs {p.RunsCompleted}/{goal} — {p.CurrentStep}";
-        });
-        var runLog = new Progress<string>(message => AppendLog($"[run] {message}"));
-
-        AppendLog($"Starting {activity.Name} — {(IsCountMode ? $"{target} runs" : "until out of resources")}");
-        RunStatus = "Running…";
-
-        try
-        {
-            var reason = await Task.Run(() =>
-                _runInstance.RunActivityAsync(activity, mode, target, _templates, _matcher, progress, runLog));
-            AppendLog($"{activity.Name} finished: {reason}");
-            RunStatus = $"Stopped: {reason}";
-        }
-        catch (Exception ex)
-        {
-            AppendLog($"Activity error: {ex.Message}");
-            RunStatus = "Error";
-        }
-        finally
-        {
-            _botManager.RemoveInstance("WB");
-            _runInstance = null;
-            _activityRunning = false;
-            CommandManager.InvalidateRequerySuggested();
-        }
-    }
-
-    private void StopRun()
-    {
-        _runInstance?.Stop();
-        AppendLog("Stop requested.");
+        LastCapture = ToBitmapSource(bitmap);
+        bitmap.Dispose();
+        AppendToolLog($"{label}: captured — check preview to see if Quest map opened.");
     }
 
     /// <summary>
-    /// One-shot diagnostic: capture the current frame and report, to the on-screen log,
-    /// whether capture worked plus the best match score for every World Boss template.
-    /// Run it while a World Boss screen with a visible button is showing.
+    /// One-shot diagnostic: capture the current frame and report capture health plus the best
+    /// match score for every template of the selected account's activity.
     /// </summary>
     private void Diagnose()
     {
-        if (SelectedWindow == null)
+        var window = SelectedAccount?.SelectedWindow;
+        if (window == null)
         {
             return;
         }
 
-        var frames = new WindowFrameSource(SelectedWindow.Hwnd);
+        var frames = new WindowFrameSource(window.Hwnd);
         using var frame = frames.Capture();
         if (frame == null)
         {
-            AppendLog("DIAG: capture returned NULL — WindowCapture failed for this hwnd.");
+            AppendToolLog("DIAG: capture returned NULL — WindowCapture failed for this hwnd.");
             return;
         }
 
-        AppendLog($"DIAG: frame {frame.Width}x{frame.Height}, channels={frame.Channels()}, type={frame.Type()}");
+        AppendToolLog($"DIAG: frame {frame.Width}x{frame.Height}, channels={frame.Channels()}, type={frame.Type()}");
 
-        if (NativeMethods.GetWindowRect(SelectedWindow.Hwnd, out var winRect) &&
-            NativeMethods.GetClientRect(SelectedWindow.Hwnd, out var cliRect))
+        if (NativeMethods.GetWindowRect(window.Hwnd, out var windowRect) &&
+            NativeMethods.GetClientRect(window.Hwnd, out var clientRect))
         {
             var origin = new POINT { X = 0, Y = 0 };
-            NativeMethods.ClientToScreen(SelectedWindow.Hwnd, ref origin);
-            int offsetX = origin.X - winRect.Left;
-            int offsetY = origin.Y - winRect.Top;
-            AppendLog($"DIAG: window {winRect.Right - winRect.Left}x{winRect.Bottom - winRect.Top}, " +
-                      $"client {cliRect.Right - cliRect.Left}x{cliRect.Bottom - cliRect.Top}, " +
-                      $"chrome offset ({offsetX},{offsetY})");
+            NativeMethods.ClientToScreen(window.Hwnd, ref origin);
+            int offsetX = origin.X - windowRect.Left;
+            int offsetY = origin.Y - windowRect.Top;
+            AppendToolLog($"DIAG: window {windowRect.Right - windowRect.Left}x{windowRect.Bottom - windowRect.Top}, " +
+                          $"client {clientRect.Right - clientRect.Left}x{clientRect.Bottom - clientRect.Top}, " +
+                          $"chrome offset ({offsetX},{offsetY})");
         }
 
-        var activity = WorldBossActivity.Create();
-        var templatesDir = Path.Combine(AppContext.BaseDirectory, "Templates");
+        var activity = ActivityCatalog.Create(SelectedAccount?.SelectedActivity);
+        if (activity == null)
+        {
+            AppendToolLog("DIAG: selected account has no runnable activity.");
+            return;
+        }
 
+        var templatesDirectory = Path.Combine(AppContext.BaseDirectory, "Templates");
         foreach (var action in activity.Actions)
         {
-            ReportTemplateScore(frame, templatesDir, action.TemplatePath);
+            ReportTemplateScore(frame, templatesDirectory, action.TemplatePath);
         }
 
         if (activity.EntryIcon != null)
         {
-            ReportTemplateScore(frame, templatesDir, activity.EntryIcon);
+            ReportTemplateScore(frame, templatesDirectory, activity.EntryIcon);
         }
 
-        AppendLog($"DIAG: threshold is 0.85 — any score >= 0.85 would match.");
+        AppendToolLog("DIAG: threshold is 0.85 — any score >= 0.85 would match.");
     }
 
-    private void ReportTemplateScore(OpenCvSharp.Mat frame, string templatesDir, string relativePath)
+    private void ReportTemplateScore(OpenCvSharp.Mat frame, string templatesDirectory, string relativePath)
     {
         try
         {
-            var full = Path.Combine(templatesDir, relativePath);
-            if (!File.Exists(full))
+            var fullPath = Path.Combine(templatesDirectory, relativePath);
+            if (!File.Exists(fullPath))
             {
-                AppendLog($"DIAG: {relativePath} — FILE MISSING at {full}");
+                AppendToolLog($"DIAG: {relativePath} — FILE MISSING at {fullPath}");
                 return;
             }
 
             var template = _templates.Get(relativePath);
-            var best = _matcher.FindBest(frame, template);
+            var best = _toolMatcher.FindBest(frame, template);
             var name = Path.GetFileNameWithoutExtension(relativePath);
             if (best == null)
             {
-                AppendLog($"DIAG best=n/a  {name} (template larger than frame)");
+                AppendToolLog($"DIAG best=n/a  {name} (template larger than frame)");
                 return;
             }
 
-            AppendLog($"DIAG best={best.Value.Score:F3} @scale={best.Value.Scale:0.00}  {name} (tpl {template.Width}x{template.Height})");
+            AppendToolLog($"DIAG best={best.Value.Score:F3} @scale={best.Value.Scale:0.00}  {name} (tpl {template.Width}x{template.Height})");
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            AppendLog($"DIAG: {relativePath} — ERROR: {ex.Message}");
+            AppendToolLog($"DIAG: {relativePath} — ERROR: {exception.Message}");
         }
     }
 
-    private List<string> FindMissingTemplates(ActivityDefinition activity)
+    private void AppendToolLog(string message)
     {
-        var templatesDir = Path.Combine(AppContext.BaseDirectory, "Templates");
-        var missing = new List<string>();
+        ToolLog.Insert(0, $"[{DateTime.Now:HH:mm:ss}] {message}");
 
-        foreach (var action in activity.Actions)
+        while (ToolLog.Count > MaxToolLogEntries)
         {
-            if (!File.Exists(Path.Combine(templatesDir, action.TemplatePath)))
-            {
-                missing.Add(action.TemplatePath);
-            }
+            ToolLog.RemoveAt(ToolLog.Count - 1);
         }
 
-        if (activity.EntryIcon != null && !File.Exists(Path.Combine(templatesDir, activity.EntryIcon)))
-        {
-            missing.Add(activity.EntryIcon);
-        }
-
-        return missing;
-    }
-
-    private void AppendLog(string msg)
-    {
-        var line = $"[{DateTime.Now:HH:mm:ss}] {msg}";
-        LogOutput = line + Environment.NewLine + LogOutput;
-        Log.Information(msg);
+        Log.Information(message);
     }
 
     private static BitmapSource ToBitmapSource(Bitmap bitmap)
     {
-        using var ms = new MemoryStream();
-        bitmap.Save(ms, ImageFormat.Png);
-        ms.Position = 0;
-        var img = new BitmapImage();
-        img.BeginInit();
-        img.StreamSource = ms;
-        img.CacheOption  = BitmapCacheOption.OnLoad;
-        img.EndInit();
-        img.Freeze();
-        return img;
+        using var stream = new MemoryStream();
+        bitmap.Save(stream, ImageFormat.Png);
+        stream.Position = 0;
+
+        var image = new BitmapImage();
+        image.BeginInit();
+        image.StreamSource = stream;
+        image.CacheOption = BitmapCacheOption.OnLoad;
+        image.EndInit();
+        image.Freeze();
+
+        return image;
     }
 }

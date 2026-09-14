@@ -3,462 +3,96 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:controls="clr-namespace:BHB.Common.Controls;assembly=BHB.Common"
+        xmlns:views="clr-namespace:BHB.Views"
         Title="BHB — Bit Heroes Bot"
-        Height="780" Width="1100"
+        Height="780" Width="1180"
+        MinHeight="600" MinWidth="900"
         Style="{StaticResource MaterialDesignWindow}"
         Background="#F4F6FA"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         TextElement.FontSize="13"
         FontFamily="{materialDesign:MaterialDesignFont}">
 
-    <Window.Resources>
-        <!-- Card shadow effect -->
-        <Style x:Key="FeatureCard" TargetType="Border">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="CornerRadius" Value="12"/>
-            <Setter Property="Padding" Value="16"/>
-            <Setter Property="Margin" Value="6"/>
-            <Setter Property="Width" Value="200"/>
-            <Setter Property="Effect">
-                <Setter.Value>
-                    <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.08" Color="#000000" Direction="270"/>
-                </Setter.Value>
-            </Setter>
+    <controls:BaseWindow.Resources>
+        <!-- Nav rail button: icon over label, highlighted when its page is active -->
+        <Style x:Key="NavRailButton" TargetType="Button" BasedOn="{StaticResource MaterialDesignFlatButton}">
+            <Setter Property="Height" Value="60" />
+            <Setter Property="Width" Value="72" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Foreground" Value="#B9C0D4" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
         </Style>
-
-        <!-- Icon container (colored rounded square) -->
-        <Style x:Key="IconBox" TargetType="Border">
-            <Setter Property="Width" Value="44"/>
-            <Setter Property="Height" Value="44"/>
-            <Setter Property="CornerRadius" Value="10"/>
-            <Setter Property="HorizontalAlignment" Value="Left"/>
-            <Setter Property="Margin" Value="0,0,0,10"/>
-        </Style>
-
-        <!-- Card title -->
-        <Style x:Key="CardTitle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="#1A1A2E"/>
-            <Setter Property="Margin" Value="0,0,0,3"/>
-        </Style>
-
-        <!-- Card subtitle -->
-        <Style x:Key="CardSub" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Foreground" Value="#888"/>
-            <Setter Property="TextWrapping" Value="Wrap"/>
-        </Style>
-
-        <!-- Pill button style -->
-        <Style x:Key="PillButton" TargetType="Button" BasedOn="{StaticResource MaterialDesignOutlinedButton}">
-            <Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="20"/>
-            <Setter Property="Padding" Value="16,6"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Height" Value="34"/>
-            <Setter Property="BorderThickness" Value="1.5"/>
-        </Style>
-
-        <!-- Pill button active -->
-        <Style x:Key="PillButtonActive" TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
-            <Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="20"/>
-            <Setter Property="Padding" Value="16,6"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Height" Value="34"/>
-        </Style>
-    </Window.Resources>
+    </controls:BaseWindow.Resources>
 
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>  <!-- Top bar -->
-            <RowDefinition Height="Auto"/>  <!-- Activity Runner -->
-            <RowDefinition Height="Auto"/>  <!-- Section label -->
-            <RowDefinition Height="*"/>     <!-- Cards -->
-            <RowDefinition Height="Auto"/>  <!-- Capture + log -->
-        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
 
-        <!-- ── Top bar ── -->
-        <Border Grid.Row="0" Background="White" Padding="20,12">
-            <Border.Effect>
-                <DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.06" Color="#000" Direction="270"/>
-            </Border.Effect>
+        <!-- ── Nav rail ── -->
+        <Border Grid.Column="0" Width="72" Background="#1E2233">
             <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
 
-                <!-- Logo + title -->
-                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <materialDesign:PackIcon Kind="Robot" Width="28" Height="28"
-                                            Foreground="{DynamicResource PrimaryHueMidBrush}"
-                                            VerticalAlignment="Center"/>
-                    <TextBlock Text="BHB" FontSize="20" FontWeight="Bold"
-                               Foreground="#1A1A2E" Margin="8,0,0,0" VerticalAlignment="Center"/>
-                    <TextBlock Text="Bit Heroes Bot" FontSize="13" Foreground="#888"
-                               Margin="8,0,0,0" VerticalAlignment="Center"/>
+                <StackPanel Grid.Row="0" Margin="0,18,0,20" HorizontalAlignment="Center">
+                    <materialDesign:PackIcon Kind="Robot" Width="26" Height="26"
+                                             Foreground="#7C8CF8" HorizontalAlignment="Center" />
+                    <TextBlock Text="BHB" FontSize="12" FontWeight="Bold" Foreground="White"
+                               HorizontalAlignment="Center" Margin="0,4,0,0" />
                 </StackPanel>
 
-                <!-- Window selector (center) -->
-                <StackPanel Grid.Column="1" Orientation="Horizontal"
-                            HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <ComboBox ItemsSource="{Binding AvailableWindows}"
-                              SelectedItem="{Binding SelectedWindow}"
-                              DisplayMemberPath="Title"
-                              Width="260"
-                              materialDesign:HintAssist.Hint="Select game window"
-                              Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                              materialDesign:TextFieldAssist.HasClearButton="True"/>
-                    <Button Command="{Binding RefreshWindowsCommand}"
-                            Style="{StaticResource MaterialDesignIconButton}"
-                            ToolTip="Refresh windows"
-                            Margin="4,0,0,0">
-                        <materialDesign:PackIcon Kind="Refresh"/>
+                <StackPanel Grid.Row="1">
+                    <Button Command="{Binding Path=ShowAccountsCommand}">
+                        <StackPanel>
+                            <materialDesign:PackIcon Kind="AccountMultiple" Width="22" Height="22"
+                                                     HorizontalAlignment="Center" />
+                            <TextBlock Text="Accounts" FontSize="10" HorizontalAlignment="Center"
+                                       Margin="0,3,0,0" />
+                        </StackPanel>
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource NavRailButton}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Path=IsAccountsPage}" Value="True">
+                                        <Setter Property="Foreground" Value="White" />
+                                        <Setter Property="Background" Value="#2C3149" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
                     </Button>
-                </StackPanel>
 
-                <!-- State + actions (right) -->
-                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                    <!-- State pill -->
-                    <Border CornerRadius="12" Background="#EEF2FF" Padding="12,4" Margin="0,0,12,0">
-                        <StackPanel Orientation="Horizontal">
-                            <Ellipse Width="8" Height="8" VerticalAlignment="Center" Margin="0,0,6,0">
-                                <Ellipse.Style>
-                                    <Style TargetType="Ellipse">
-                                        <Setter Property="Fill" Value="#9CA3AF"/>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding CurrentState}" Value="Running">
-                                                <Setter Property="Fill" Value="#22C55E"/>
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding CurrentState}" Value="Starting">
-                                                <Setter Property="Fill" Value="#F59E0B"/>
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding CurrentState}" Value="Stopped">
-                                                <Setter Property="Fill" Value="#EF4444"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Ellipse.Style>
-                            </Ellipse>
-                            <TextBlock Text="{Binding CurrentState}" FontSize="12"
-                                       Foreground="#4B5563" VerticalAlignment="Center"/>
+                    <Button Command="{Binding Path=ShowToolsCommand}">
+                        <StackPanel>
+                            <materialDesign:PackIcon Kind="Tools" Width="22" Height="22"
+                                                     HorizontalAlignment="Center" />
+                            <TextBlock Text="Tools" FontSize="10" HorizontalAlignment="Center"
+                                       Margin="0,3,0,0" />
                         </StackPanel>
-                    </Border>
-
-                    <Button Command="{Binding StartCommand}" Style="{StaticResource PillButtonActive}"
-                            Margin="0,0,6,0">
-                        <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="Play" Width="14" Height="14" VerticalAlignment="Center"/>
-                            <TextBlock Text="Start" Margin="4,0,0,0"/>
-                        </StackPanel>
-                    </Button>
-                    <Button Command="{Binding StopCommand}" Style="{StaticResource PillButton}">
-                        <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="Stop" Width="14" Height="14" VerticalAlignment="Center"/>
-                            <TextBlock Text="Stop" Margin="4,0,0,0"/>
-                        </StackPanel>
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource NavRailButton}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Path=IsToolsPage}" Value="True">
+                                        <Setter Property="Foreground" Value="White" />
+                                        <Setter Property="Background" Value="#2C3149" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
                     </Button>
                 </StackPanel>
             </Grid>
         </Border>
 
-        <!-- ── Activity Runner ── -->
-        <Border Grid.Row="1" Background="White" CornerRadius="12" Margin="20,14,20,0" Padding="16,12">
-            <Border.Effect>
-                <DropShadowEffect BlurRadius="10" ShadowDepth="1" Opacity="0.07" Color="#000" Direction="270"/>
-            </Border.Effect>
-            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                <materialDesign:PackIcon Kind="PlayCircleOutline" Width="22" Height="22"
-                                         Foreground="{DynamicResource PrimaryHueMidBrush}" VerticalAlignment="Center"/>
-                <TextBlock Text="Activity Runner" FontSize="14" FontWeight="SemiBold"
-                           Foreground="#1A1A2E" VerticalAlignment="Center" Margin="8,0,20,0"/>
-
-                <ComboBox ItemsSource="{Binding Path=Activities}"
-                          SelectedItem="{Binding Path=SelectedActivity}"
-                          Width="150" VerticalAlignment="Center"
-                          materialDesign:HintAssist.Hint="Activity"
-                          Style="{StaticResource MaterialDesignOutlinedComboBox}"/>
-
-                <RadioButton Content="Run" GroupName="RunMode" VerticalAlignment="Center" Margin="20,0,6,0"
-                             IsChecked="{Binding Path=IsCountMode, Mode=TwoWay}"/>
-                <TextBox Text="{Binding Path=RunCount}" Width="52" VerticalAlignment="Center"
-                         IsEnabled="{Binding Path=IsCountMode}"
-                         materialDesign:HintAssist.Hint="N"
-                         Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
-                <TextBlock Text="times" VerticalAlignment="Center" Margin="6,0,0,0" Foreground="#666"/>
-
-                <RadioButton Content="Until out of resources" GroupName="RunMode"
-                             VerticalAlignment="Center" Margin="24,0,0,0"/>
-
-                <Button Command="{Binding Path=StartRunCommand}" Style="{StaticResource PillButtonActive}"
-                        Margin="24,0,6,0">
-                    <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Kind="Play" Width="14" Height="14" VerticalAlignment="Center"/>
-                        <TextBlock Text="Run" Margin="4,0,0,0"/>
-                    </StackPanel>
-                </Button>
-                <Button Command="{Binding Path=StopRunCommand}" Style="{StaticResource PillButton}">
-                    <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Kind="Stop" Width="14" Height="14" VerticalAlignment="Center"/>
-                        <TextBlock Text="Stop" Margin="4,0,0,0"/>
-                    </StackPanel>
-                </Button>
-
-                <Button Command="{Binding Path=DiagnoseCommand}" Style="{StaticResource PillButton}"
-                        Margin="6,0,0,0" ToolTip="Capture one frame and log each template's match score">
-                    <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Kind="Magnify" Width="14" Height="14" VerticalAlignment="Center"/>
-                        <TextBlock Text="Diagnose" Margin="4,0,0,0"/>
-                    </StackPanel>
-                </Button>
-
-                <TextBlock Text="{Binding Path=RunStatus}" VerticalAlignment="Center"
-                           Margin="20,0,0,0" Foreground="#4B5563" FontSize="12"/>
-            </StackPanel>
-        </Border>
-
-        <!-- ── Section label + test pills ── -->
-        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="20,16,20,8">
-            <TextBlock Text="Bot Features" FontSize="15" FontWeight="SemiBold"
-                       Foreground="#1A1A2E" VerticalAlignment="Center"/>
-            <TextBlock Text="Phase 1 — Engine Test" FontSize="11" Foreground="#888"
-                       VerticalAlignment="Center" Margin="10,0,0,0"/>
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
-                        Margin="20,0,0,0">
-                <Button Command="{Binding CaptureTestCommand}" Style="{StaticResource PillButton}"
-                        Margin="0,0,6,0" ToolTip="Capture game window via PrintWindow">
-                    <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Kind="Camera" Width="13" Height="13" VerticalAlignment="Center"/>
-                        <TextBlock Text="Capture" Margin="4,0,0,0"/>
-                    </StackPanel>
-                </Button>
-                <Button Command="{Binding SaveCaptureCommand}" Style="{StaticResource PillButton}"
-                        Margin="0,0,6,0" ToolTip="Save last capture to %AppData%\BHB\captures for template work">
-                    <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Kind="ContentSave" Width="13" Height="13" VerticalAlignment="Center"/>
-                        <TextBlock Text="Save" Margin="4,0,0,0"/>
-                    </StackPanel>
-                </Button>
-                <Button Command="{Binding DemoQuestCommand}" Style="{StaticResource PillButton}"
-                        Margin="0,0,6,0"
-                        ToolTip="ClickFocused (cursor moves): click Quest, capture result, Escape">
-                    <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Kind="CursorDefault" Width="13" Height="13" VerticalAlignment="Center"/>
-                        <TextBlock Text="Click (cursor)" Margin="4,0,0,0"/>
-                    </StackPanel>
-                </Button>
-                <Button Command="{Binding DemoTouchCommand}" Style="{StaticResource PillButtonActive}"
-                        ToolTip="Touch injection: no cursor movement, no focus change — click Quest, capture result, Escape">
-                    <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Kind="GestureTap" Width="13" Height="13" VerticalAlignment="Center"/>
-                        <TextBlock Text="Click (touch)" Margin="4,0,0,0"/>
-                    </StackPanel>
-                </Button>
-            </StackPanel>
-        </StackPanel>
-
-        <!-- ── Feature cards grid ── -->
-        <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" Padding="14,0,14,0">
-            <WrapPanel>
-
-                <!-- Dungeons -->
-                <Border Style="{StaticResource FeatureCard}">
-                    <StackPanel>
-                        <Border Style="{StaticResource IconBox}" Background="#FFF3E0">
-                            <materialDesign:PackIcon Kind="Sword" Width="22" Height="22"
-                                                     Foreground="#F57C00" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <TextBlock Text="Dungeons" Style="{StaticResource CardTitle}"/>
-                        <TextBlock Text="Auto-farm zones with configurable difficulty and re-run count" Style="{StaticResource CardSub}"/>
-                    </StackPanel>
-                </Border>
-
-                <!-- Raids -->
-                <Border Style="{StaticResource FeatureCard}">
-                    <StackPanel>
-                        <Border Style="{StaticResource IconBox}" Background="#EDE7F6">
-                            <materialDesign:PackIcon Kind="Castle" Width="22" Height="22"
-                                                     Foreground="#7B1FA2" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <TextBlock Text="Raids" Style="{StaticResource CardTitle}"/>
-                        <TextBlock Text="Configurable raid level and normal / hard mode" Style="{StaticResource CardSub}"/>
-                    </StackPanel>
-                </Border>
-
-                <!-- PVP -->
-                <Border Style="{StaticResource FeatureCard}">
-                    <StackPanel>
-                        <Border Style="{StaticResource IconBox}" Background="#E3F2FD">
-                            <materialDesign:PackIcon Kind="AccountGroup" Width="22" Height="22"
-                                                     Foreground="#1976D2" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <TextBlock Text="PVP" Style="{StaticResource CardTitle}"/>
-                        <TextBlock Text="Auto-battle with configurable opponent slot 1–4" Style="{StaticResource CardSub}"/>
-                    </StackPanel>
-                </Border>
-
-                <!-- World Boss -->
-                <Border Style="{StaticResource FeatureCard}">
-                    <StackPanel>
-                        <Border Style="{StaticResource IconBox}" Background="#FCE4EC">
-                            <materialDesign:PackIcon Kind="Users" Width="22" Height="22"
-                                                     Foreground="#C62828" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <TextBlock Text="World Boss" Style="{StaticResource CardTitle}"/>
-                        <TextBlock Text="Solo and team modes with tier and difficulty config" Style="{StaticResource CardSub}"/>
-                    </StackPanel>
-                </Border>
-
-                <!-- GVG -->
-                <Border Style="{StaticResource FeatureCard}">
-                    <StackPanel>
-                        <Border Style="{StaticResource IconBox}" Background="#E8F5E9">
-                            <materialDesign:PackIcon Kind="ShieldAccount" Width="22" Height="22"
-                                                     Foreground="#2E7D32" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <TextBlock Text="GVG" Style="{StaticResource CardTitle}"/>
-                        <TextBlock Text="Guild vs Guild with opponent placement" Style="{StaticResource CardSub}"/>
-                    </StackPanel>
-                </Border>
-
-                <!-- Invasion -->
-                <Border Style="{StaticResource FeatureCard}">
-                    <StackPanel>
-                        <Border Style="{StaticResource IconBox}" Background="#FFF8E1">
-                            <materialDesign:PackIcon Kind="Alien" Width="22" Height="22"
-                                                     Foreground="#F9A825" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <TextBlock Text="Invasion" Style="{StaticResource CardTitle}"/>
-                        <TextBlock Text="Wave farming with auto wave-increase and max cap" Style="{StaticResource CardSub}"/>
-                    </StackPanel>
-                </Border>
-
-                <!-- Expedition -->
-                <Border Style="{StaticResource FeatureCard}">
-                    <StackPanel>
-                        <Border Style="{StaticResource IconBox}" Background="#E0F7FA">
-                            <materialDesign:PackIcon Kind="MapMarkerPath" Width="22" Height="22"
-                                                     Foreground="#00838F" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <TextBlock Text="Expedition" Style="{StaticResource CardTitle}"/>
-                        <TextBlock Text="Multi-difficulty with portal selection" Style="{StaticResource CardSub}"/>
-                    </StackPanel>
-                </Border>
-
-                <!-- Trials -->
-                <Border Style="{StaticResource FeatureCard}">
-                    <StackPanel>
-                        <Border Style="{StaticResource IconBox}" Background="#F3E5F5">
-                            <materialDesign:PackIcon Kind="Trophy" Width="22" Height="22"
-                                                     Foreground="#6A1B9A" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <TextBlock Text="Trials" Style="{StaticResource CardTitle}"/>
-                        <TextBlock Text="Challenge automation with configurable difficulty" Style="{StaticResource CardSub}"/>
-                    </StackPanel>
-                </Border>
-
-                <!-- Gauntlet -->
-                <Border Style="{StaticResource FeatureCard}">
-                    <StackPanel>
-                        <Border Style="{StaticResource IconBox}" Background="#FBE9E7">
-                            <materialDesign:PackIcon Kind="Fencing" Width="22" Height="22"
-                                                     Foreground="#BF360C" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <TextBlock Text="Gauntlet" Style="{StaticResource CardTitle}"/>
-                        <TextBlock Text="Extends Trials with gauntlet-specific logic" Style="{StaticResource CardSub}"/>
-                    </StackPanel>
-                </Border>
-
-                <!-- Fishing -->
-                <Border Style="{StaticResource FeatureCard}">
-                    <StackPanel>
-                        <Border Style="{StaticResource IconBox}" Background="#E1F5FE">
-                            <materialDesign:PackIcon Kind="Fish" Width="22" Height="22"
-                                                     Foreground="#0277BD" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <TextBlock Text="Fishing" Style="{StaticResource CardTitle}"/>
-                        <TextBlock Text="Auto-fish with hook detection" Style="{StaticResource CardSub}"/>
-                    </StackPanel>
-                </Border>
-
-                <!-- Run All -->
-                <Border Style="{StaticResource FeatureCard}">
-                    <Border.BorderBrush>
-                        <SolidColorBrush Color="#3F51B5"/>
-                    </Border.BorderBrush>
-                    <Border.BorderThickness>2</Border.BorderThickness>
-                    <StackPanel>
-                        <Border Style="{StaticResource IconBox}" Background="#E8EAF6">
-                            <materialDesign:PackIcon Kind="PlaylistPlay" Width="22" Height="22"
-                                                     Foreground="#3F51B5" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <TextBlock Text="Run All" Style="{StaticResource CardTitle}"/>
-                        <TextBlock Text="Chain all activities in priority order, loop until out of resources" Style="{StaticResource CardSub}"/>
-                    </StackPanel>
-                </Border>
-
-                <!-- Familiars -->
-                <Border Style="{StaticResource FeatureCard}">
-                    <StackPanel>
-                        <Border Style="{StaticResource IconBox}" Background="#F1F8E9">
-                            <materialDesign:PackIcon Kind="Pets" Width="22" Height="22"
-                                                     Foreground="#558B2F" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <TextBlock Text="Familiars" Style="{StaticResource CardTitle}"/>
-                        <TextBlock Text="Auto persuade or decline with configurable catch list" Style="{StaticResource CardSub}"/>
-                    </StackPanel>
-                </Border>
-
-            </WrapPanel>
-        </ScrollViewer>
-
-        <!-- ── Bottom: capture preview + log ── -->
-        <Grid Grid.Row="4" Margin="20,8,20,16">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="320"/>
-            </Grid.ColumnDefinitions>
-
-            <!-- Capture preview card -->
-            <Border Grid.Column="0" Background="White" CornerRadius="12" Margin="0,0,8,0"
-                    MinHeight="120" MaxHeight="200">
-                <Border.Effect>
-                    <DropShadowEffect BlurRadius="10" ShadowDepth="1" Opacity="0.07" Color="#000" Direction="270"/>
-                </Border.Effect>
-                <Grid>
-                    <TextBlock Text="Capture preview" Foreground="#CCC" FontSize="12"
-                               HorizontalAlignment="Center" VerticalAlignment="Center"
-                               Visibility="{Binding LastCapture, Converter={StaticResource NullToVisibilityConverter}, ConverterParameter=Inverse}"/>
-                    <Image Source="{Binding LastCapture}" Stretch="Uniform"
-                           Margin="8"/>
-                </Grid>
-            </Border>
-
-            <!-- Activity log card -->
-            <Border Grid.Column="1" Background="White" CornerRadius="12" Padding="12">
-                <Border.Effect>
-                    <DropShadowEffect BlurRadius="10" ShadowDepth="1" Opacity="0.07" Color="#000" Direction="270"/>
-                </Border.Effect>
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0" Text="Activity Log" FontSize="12" FontWeight="SemiBold"
-                               Foreground="#555" Margin="0,0,0,6"/>
-                    <TextBox Grid.Row="1"
-                             Text="{Binding LogOutput}"
-                             IsReadOnly="True"
-                             MaxHeight="160"
-                             VerticalScrollBarVisibility="Auto"
-                             BorderThickness="0"
-                             Background="Transparent"
-                             FontFamily="Consolas"
-                             FontSize="10.5"
-                             Foreground="#444"/>
-                </Grid>
-            </Border>
+        <!-- ── Page host ── -->
+        <Grid Grid.Column="1">
+            <views:AccountsPage Visibility="{Binding Path=IsAccountsPage,
+                                             Converter={StaticResource BooleanToVisibilityConverter}}" />
+            <views:ToolsPage Visibility="{Binding Path=IsToolsPage,
+                                          Converter={StaticResource BooleanToVisibilityConverter}}" />
         </Grid>
     </Grid>
 </controls:BaseWindow>

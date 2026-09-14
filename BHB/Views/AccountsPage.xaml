@@ -1,0 +1,299 @@
+<UserControl x:Class="BHB.Views.AccountsPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes">
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="250" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- ── Account list (master) ── -->
+        <Border Grid.Column="0" Background="White" BorderBrush="#E4E7EF" BorderThickness="0,0,1,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Text="ACCOUNTS" FontSize="11" FontWeight="SemiBold"
+                           Foreground="#8A90A6" Margin="16,16,16,8" />
+
+                <ListBox Grid.Row="1"
+                         ItemsSource="{Binding Path=Accounts}"
+                         SelectedItem="{Binding Path=SelectedAccount}"
+                         BorderThickness="0"
+                         HorizontalContentAlignment="Stretch"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="4,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <Ellipse Grid.Column="0" Width="9" Height="9"
+                                         VerticalAlignment="Top" Margin="0,5,9,0">
+                                    <Ellipse.Style>
+                                        <Style TargetType="Ellipse">
+                                            <Setter Property="Fill" Value="#9CA3AF" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Path=State}" Value="Running">
+                                                    <Setter Property="Fill" Value="#22C55E" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Path=State}" Value="Starting">
+                                                    <Setter Property="Fill" Value="#F59E0B" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Path=State}" Value="Rerunning">
+                                                    <Setter Property="Fill" Value="#22C55E" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Path=State}" Value="OutOfResources">
+                                                    <Setter Property="Fill" Value="#F59E0B" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Path=State}" Value="Dead">
+                                                    <Setter Property="Fill" Value="#EF4444" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Path=State}" Value="Disconnected">
+                                                    <Setter Property="Fill" Value="#EF4444" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Ellipse.Style>
+                                </Ellipse>
+
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Text="{Binding Path=Name}" FontSize="13"
+                                               FontWeight="SemiBold" Foreground="#1A1A2E" />
+                                    <TextBlock Text="{Binding Path=ListSummary}" FontSize="11"
+                                               Foreground="#8A90A6" TextTrimming="CharacterEllipsis" />
+                                </StackPanel>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="12,8,12,14">
+                    <Button Command="{Binding Path=AddAccountCommand}"
+                            Style="{StaticResource MaterialDesignOutlinedButton}"
+                            Height="32" Padding="12,0" FontSize="12">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="Plus" VerticalAlignment="Center" />
+                            <TextBlock Text="Account" Margin="4,0,0,0" />
+                        </StackPanel>
+                    </Button>
+                    <Button Command="{Binding Path=RemoveAccountCommand}"
+                            Style="{StaticResource MaterialDesignIconButton}"
+                            ToolTip="Remove selected account" Margin="6,0,0,0"
+                            Height="32" Width="32">
+                        <materialDesign:PackIcon Kind="DeleteOutline" />
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ── Selected account (detail) ── -->
+        <Grid Grid.Column="1">
+            <TextBlock Text="No account selected — add one to get started."
+                       Foreground="#8A90A6" FontSize="13"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                       Visibility="{Binding Path=HasSelectedAccount,
+                                    Converter={StaticResource InverseBooleanToVisibilityConverter}}" />
+
+            <Grid DataContext="{Binding Path=SelectedAccount}"
+                  Visibility="{Binding Path=DataContext.HasSelectedAccount,
+                               RelativeSource={RelativeSource AncestorType=UserControl},
+                               Converter={StaticResource BooleanToVisibilityConverter}}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!-- Header -->
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="24,20,24,0">
+                    <TextBlock Text="{Binding Path=Name}" FontSize="18" FontWeight="Bold"
+                               Foreground="#1A1A2E" VerticalAlignment="Center" />
+                    <Border CornerRadius="10" Background="#EEF2FF" Padding="10,3" Margin="12,0,0,0"
+                            VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Path=RunStatus}" FontSize="11" Foreground="#4B5563" />
+                    </Border>
+                </StackPanel>
+
+                <!-- Configuration -->
+                <Border Grid.Row="1" Background="White" CornerRadius="12" Margin="24,16,24,0" Padding="18,16">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.07"
+                                          Color="#000000" Direction="270" />
+                    </Border.Effect>
+                    <StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <ComboBox Grid.Column="0"
+                                      ItemsSource="{Binding Path=AvailableWindows}"
+                                      SelectedItem="{Binding Path=SelectedWindow}"
+                                      DisplayMemberPath="Title"
+                                      materialDesign:HintAssist.Hint="Game window"
+                                      Style="{StaticResource MaterialDesignOutlinedComboBox}" />
+
+                            <Button Grid.Column="1"
+                                    Command="{Binding Path=DataContext.RefreshWindowsCommand,
+                                              RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    Style="{StaticResource MaterialDesignIconButton}"
+                                    ToolTip="Refresh window list" Margin="6,0,0,0" Height="34" Width="34">
+                                <materialDesign:PackIcon Kind="Refresh" />
+                            </Button>
+                        </Grid>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,18,0,0">
+                            <RadioButton Content="Count" IsChecked="{Binding Path=IsCountMode}"
+                                         GroupName="RunMode" VerticalAlignment="Center" FontSize="12" />
+                            <TextBox Text="{Binding Path=RunCount, UpdateSourceTrigger=PropertyChanged}"
+                                     Width="60" Margin="10,0,0,0" FontSize="12"
+                                     IsEnabled="{Binding Path=IsCountMode}"
+                                     VerticalAlignment="Center"
+                                     Style="{StaticResource MaterialDesignOutlinedTextBox}" />
+                            <TextBlock Text="runs" FontSize="12" Foreground="#8A90A6"
+                                       VerticalAlignment="Center" Margin="8,0,0,0" />
+
+                            <RadioButton Content="Until out of resources" GroupName="RunMode"
+                                         VerticalAlignment="Center" FontSize="12" Margin="24,0,0,0">
+                                <RadioButton.IsChecked>
+                                    <Binding Path="IsCountMode"
+                                             Converter="{StaticResource InverseBooleanConverter}" />
+                                </RadioButton.IsChecked>
+                            </RadioButton>
+
+                            <Button Command="{Binding Path=StartCommand}"
+                                    Style="{StaticResource MaterialDesignRaisedButton}"
+                                    Height="34" Padding="18,0" FontSize="12" Margin="32,0,0,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <materialDesign:PackIcon Kind="Play" VerticalAlignment="Center" />
+                                    <TextBlock Text="Start" Margin="4,0,0,0" />
+                                </StackPanel>
+                            </Button>
+                            <Button Command="{Binding Path=StopCommand}"
+                                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                                    Height="34" Padding="18,0" FontSize="12" Margin="8,0,0,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <materialDesign:PackIcon Kind="Stop" VerticalAlignment="Center" />
+                                    <TextBlock Text="Stop" Margin="4,0,0,0" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Activity picker: which game mode THIS account runs -->
+                <Border Grid.Row="2" Background="White" CornerRadius="12" Margin="24,16,24,0" Padding="18,14">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.07"
+                                          Color="#000000" Direction="270" />
+                    </Border.Effect>
+                    <StackPanel>
+                        <TextBlock Text="ACTIVITY" FontSize="11" FontWeight="SemiBold"
+                                   Foreground="#8A90A6" Margin="0,0,0,10" />
+
+                        <ItemsControl ItemsSource="{Binding Path=Features}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel Orientation="Horizontal" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Command="{Binding Path=SelectCommand}"
+                                            ToolTip="{Binding Path=Description}"
+                                            Width="152" Height="52" Margin="0,0,8,8" Padding="8,0"
+                                            HorizontalContentAlignment="Left">
+                                        <Button.Resources>
+                                            <Style TargetType="Border">
+                                                <Setter Property="CornerRadius" Value="8" />
+                                            </Style>
+                                        </Button.Resources>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <Border Grid.Column="0" Width="28" Height="28" CornerRadius="7"
+                                                    Background="{Binding Path=IconBackground}">
+                                                <materialDesign:PackIcon Kind="{Binding Path=Icon}"
+                                                                         Width="17" Height="17"
+                                                                         Foreground="#4B5563"
+                                                                         HorizontalAlignment="Center"
+                                                                         VerticalAlignment="Center" />
+                                            </Border>
+
+                                            <StackPanel Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Path=Name}" FontSize="12"
+                                                           FontWeight="SemiBold"
+                                                           TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Text="Planned" FontSize="9" Foreground="#A9AFC2"
+                                                           Visibility="{Binding Path=IsAvailable,
+                                                                        Converter={StaticResource InverseBooleanToVisibilityConverter}}" />
+                                            </StackPanel>
+
+                                            <materialDesign:PackIcon Grid.Column="2" Kind="CheckCircle"
+                                                                     Width="16" Height="16"
+                                                                     Foreground="#22C55E"
+                                                                     VerticalAlignment="Center"
+                                                                     Visibility="{Binding Path=IsSelected,
+                                                                                  Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                        </Grid>
+
+                                        <Button.Style>
+                                            <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignOutlinedButton}">
+                                                <Setter Property="BorderBrush" Value="#E1E5EF" />
+                                                <Setter Property="Foreground" Value="#1A1A2E" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Path=IsSelected}" Value="True">
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryHueMidBrush}" />
+                                                        <Setter Property="BorderThickness" Value="2" />
+                                                        <Setter Property="Background" Value="#F5F7FF" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Path=IsAvailable}" Value="False">
+                                                        <Setter Property="Opacity" Value="0.45" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <!-- Per-account log -->
+                <Border Grid.Row="3" Background="White" CornerRadius="12" Margin="24,16,24,20" Padding="0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Text="ACTIVITY LOG" FontSize="11" FontWeight="SemiBold"
+                                   Foreground="#8A90A6" Margin="18,14,18,6" />
+
+                        <ListBox Grid.Row="1"
+                                 ItemsSource="{Binding Path=Log}"
+                                 BorderThickness="0" Margin="8,0,8,10"
+                                 FontFamily="Consolas" FontSize="11"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Auto" />
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

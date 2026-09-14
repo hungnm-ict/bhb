@@ -26,8 +26,10 @@ public enum ClickMethod
 
     /// <summary>
     /// SetForegroundWindow + SetCursorPos + SendInput. Intrusive: moves the real cursor and
-    /// takes focus (both are restored afterwards). Rules out simultaneous multi-account use,
-    /// so this is a stepping stone, not the destination.
+    /// takes focus (both are restored afterwards). Safe to run on several accounts at once only
+    /// because <see cref="Core.Input.ClickCoordinator" /> serializes the sequence — but the
+    /// cursor still moves, so the machine remains unusable while bots run. A stepping stone,
+    /// not the destination.
     /// </summary>
     Focused
 }
@@ -37,15 +39,17 @@ public sealed class WindowInputSink : IInputSink
 {
     private readonly IntPtr _hwnd;
     private readonly ClickMethod _clickMethod;
+    private readonly ClickCoordinator _clickCoordinator;
 
     /// <summary>
     /// Defaults to <see cref="ClickMethod.Focused" /> because it is the only method confirmed to
     /// register with the game. CLAUDE.md's non-intrusive goal needs PostMessage or Touch to work
-    /// first — until then multi-account running is blocked by this choice.
+    /// first — until then the cursor moves while bots run.
     /// </summary>
-    public WindowInputSink(IntPtr hwnd, ClickMethod clickMethod = ClickMethod.Focused)
+    public WindowInputSink(IntPtr hwnd, ClickCoordinator clickCoordinator, ClickMethod clickMethod = ClickMethod.Focused)
     {
         _hwnd = hwnd;
+        _clickCoordinator = clickCoordinator;
         _clickMethod = clickMethod;
     }
 
@@ -59,13 +63,16 @@ public sealed class WindowInputSink : IInputSink
         switch (_clickMethod)
         {
             case ClickMethod.PostMessage:
+                // Targets the window handle directly; no shared state, so no gate needed.
                 WindowInput.Click(_hwnd, clientX, clientY);
                 break;
             case ClickMethod.Touch:
                 WindowInput.ClickTouch(_hwnd, clientX, clientY);
                 break;
             default:
-                WindowInput.ClickFocused(_hwnd, clientX, clientY);
+                // Owns the cursor and foreground window for the duration — must not interleave
+                // with another account's click or it lands in the wrong game.
+                _clickCoordinator.RunExclusive(() => WindowInput.ClickFocused(_hwnd, clientX, clientY));
                 break;
         }
     }
