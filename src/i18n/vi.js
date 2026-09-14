@@ -12,6 +12,7 @@ export default {
   'phase.resting': 'nghỉ',
 
   'overlay.speed': 'TỐC ĐỘ',
+  'overlay.canvas': 'CANVAS',
   'overlay.autoStop': 'TỰ TẮT',
   'overlay.remaining': 'còn',
   'overlay.rules': 'RULE',

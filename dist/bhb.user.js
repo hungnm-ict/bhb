@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB — Bit Heroes Bot
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      2.1.0
+// @version      2.2.0
 // @description  Bit Heroes automation userscript for the Kongregate web client
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -730,6 +730,7 @@
     "phase.hunting": "đang tìm",
     "phase.resting": "nghỉ",
     "overlay.speed": "TỐC ĐỘ",
+    "overlay.canvas": "CANVAS",
     "overlay.autoStop": "TỰ TẮT",
     "overlay.remaining": "còn",
     "overlay.rules": "RULE",
@@ -788,6 +789,7 @@
     "phase.hunting": "hunting",
     "phase.resting": "resting",
     "overlay.speed": "SPEED",
+    "overlay.canvas": "CANVAS",
     "overlay.autoStop": "AUTO-STOP",
     "overlay.remaining": "in",
     "overlay.rules": "RULES",
@@ -1142,6 +1144,14 @@
       const seconds = String(total % 60).padStart(2, "0");
       return `${minutes}m${seconds}s`;
     }
+    function describeFramebuffer() {
+      const canvas = getCanvas();
+      if (!canvas) {
+        return "—";
+      }
+      const css = `${Math.round(canvas.clientWidth)}×${Math.round(canvas.clientHeight)}`;
+      return `${canvas.width}×${canvas.height} → ${css}`;
+    }
     function taskClass(engine, taskId) {
       return engine.activeTask === taskId ? "bhb-task--on" : "bhb-task--off";
     }
@@ -1222,6 +1232,10 @@
             class: `bhb-speed ${speed2 > 1 ? "bhb-speed--boosted" : "bhb-speed--normal"}`,
             text: `${speed2}×`
           })
+        ]),
+        el("div", { class: "bhb-row bhb-row--between" }, [
+          el("span", { class: "bhb-muted", text: t("overlay.canvas") }),
+          el("span", { class: "bhb-rule__coord", text: describeFramebuffer() })
         ]),
         el("div", { class: "bhb-row bhb-row--between" }, [
           el("span", { class: "bhb-muted", text: t("overlay.autoStop") }),

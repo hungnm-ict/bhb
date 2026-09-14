@@ -12,6 +12,7 @@ export default {
   'phase.resting': 'resting',
 
   'overlay.speed': 'SPEED',
+  'overlay.canvas': 'CANVAS',
   'overlay.autoStop': 'AUTO-STOP',
   'overlay.remaining': 'in',
   'overlay.rules': 'RULES',
