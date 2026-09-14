@@ -10,10 +10,31 @@ Bot đọc thẳng framebuffer WebGL của game để nhận biết nút bấm t
 
 ## Cài đặt
 
-1. Cài [Tampermonkey](https://www.tampermonkey.net/) (Chrome, Edge, Firefox, Brave)
-2. Mở link này: **[dist/bhb.user.js](https://raw.githubusercontent.com/hungnm-ict/bhb/master/dist/bhb.user.js)**
-3. Tampermonkey hiện trang cài đặt → bấm **Install**
-4. Mở game trên Kongregate, bấm phím **`1`** để xem bảng phím tắt
+### Bước 1 — Cài Tampermonkey
+
+Cài [Tampermonkey](https://www.tampermonkey.net/) cho Chrome, Edge, Firefox hoặc Brave.
+
+### Bước 2 — Bật quyền chạy User Scripts ⚠️ (Chrome/Edge)
+
+**Bỏ qua bước này là script sẽ không chạy, không báo lỗi gì cả.** Từ Chrome/Edge 138 trở đi, API dành cho userscript bị khoá sau một công tắc riêng.
+
+1. Gõ `chrome://extensions` (hoặc `edge://extensions`) vào thanh địa chỉ
+2. Tìm **Tampermonkey**, bấm **Details** / **Chi tiết**
+3. Kéo xuống, gạt **"Allow User Scripts"** sang **ON**
+
+> Công tắc này nằm trong trang chi tiết **của riêng Tampermonkey**, không phải trang quản lý extension chung.
+
+Nếu dùng Chrome/Edge **cũ hơn 138** và không thấy công tắc đó: bật **Developer mode** ở góc phải trên trang `chrome://extensions`.
+
+**Firefox không cần bước này.**
+
+### Bước 3 — Cài script
+
+1. Mở link: **[dist/bhb.user.js](https://raw.githubusercontent.com/hungnm-ict/bhb/master/dist/bhb.user.js)**
+2. Tampermonkey hiện trang cài đặt → bấm **Install**
+3. Mở game trên Kongregate, bấm phím **`1`** để xem bảng phím tắt
+
+> Nếu bấm `1` không hiện gì: gần như chắc chắn là Bước 2 chưa xong. Mở Console (F12) tìm dòng `[BHB] ready` — không có nghĩa là script chưa chạy.
 
 Từ lần sau **script tự cập nhật** — không phải cài lại. Tampermonkey tự kiểm tra bản mới; muốn cập nhật ngay thì vào Tampermonkey → Dashboard → tab **Installed userscripts** → bấm **Check for userscript updates**.
 
