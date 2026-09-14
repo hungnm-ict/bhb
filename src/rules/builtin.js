@@ -3,15 +3,15 @@ import { DEFAULT_COLOR_TOLERANCE } from '../core/constants.js';
 /**
  * Rules carried over from bh-scripts, where they were proven in play.
  *
- * Their coordinates were captured on the author's macOS canvas, whose
- * framebuffer is pinned to a fixed minimum size. That size is not recorded
- * anywhere, so these points cannot be scaled yet and are treated as absolute.
- * Set `BUILTIN_CAPTURE_BUFFER` once measured on a known-good session and they
- * become portable like any captured rule.
+ * The Kongregate embed pins `#unity-canvas` to a 800x520 framebuffer and
+ * stretches it with CSS, which is the space these coordinates were captured
+ * in — every one of them falls inside it. Recording that here makes the
+ * built-ins rescale like any captured rule, so they survive a build that
+ * stops pinning the framebuffer.
  *
  * @type {{ width: number, height: number } | null}
  */
-export const BUILTIN_CAPTURE_BUFFER = null;
+export const BUILTIN_CAPTURE_BUFFER = { width: 800, height: 520 };
 
 /** @param {{x: number, y: number, hex?: string}} point */
 function point(p) {
