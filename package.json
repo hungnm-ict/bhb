@@ -1,0 +1,17 @@
+{
+  "name": "bhb",
+  "version": "2.0.0",
+  "description": "Bit Heroes automation userscript for the Kongregate web client",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "node build.js",
+    "watch": "node build.js --watch",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0",
+    "vitest": "^2.1.0"
+  }
+}

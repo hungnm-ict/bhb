@@ -1,0 +1,31 @@
+/** Storage keys. Bump the suffix only on a breaking schema change. */
+export const STORAGE_KEY_PROFILES = 'bhb.profiles.v2';
+export const STORAGE_KEY_SETTINGS = 'bhb.settings.v2';
+/** Upstream's key, read once to migrate a user coming from bh-scripts. */
+export const STORAGE_KEY_LEGACY_RULES = 'bh_script_rules_v1';
+
+/** Default per-channel RGB distance allowed when matching a colour. */
+export const DEFAULT_COLOR_TOLERANCE = 15;
+
+/** Poll intervals, in real milliseconds (never scaled by the speed hack). */
+export const INTERVAL_RERUN_HUNT = 3000;
+export const INTERVAL_RERUN_REST = 20000;
+export const INTERVAL_WORLD_BOSS = 2000;
+export const INTERVAL_SCRIPT = 3000;
+export const INTERVAL_AUTO_STOP_CHECK = 5000;
+
+/** Stop automation after this long with no successful click. */
+export const AUTO_STOP_TIMEOUT = 3 * 60 * 1000;
+
+/** Debounce between synthetic clicks, so the game sees them as distinct. */
+export const CLICK_LOCKOUT_MS = 200;
+export const CLICK_HOVER_RESET_MS = 100;
+
+/** Where the cursor is parked after a click, to clear any hover highlight. */
+export const HOVER_RESET_POINT = { x: 5, y: 5 };
+
+export const SPEED_MIN = 1;
+export const SPEED_MAX = 10;
+
+/** Highest z-index, so overlays sit above the game canvas. */
+export const Z_TOP = '2147483647';
