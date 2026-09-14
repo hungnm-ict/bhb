@@ -29,6 +29,13 @@ describe('built bundle', () => {
       window.PointerEvent = window.MouseEvent;
     }
 
+    // The UI only builds in a frame that holds the game canvas.
+    const canvas = document.createElement('canvas');
+    canvas.id = 'unity-canvas';
+    canvas.width = 800;
+    canvas.height = 520;
+    document.body.append(canvas);
+
     const bundle = readFileSync('dist/bhb.user.js', 'utf8');
     const run = new Function(bundle);
     run.call(window);
@@ -59,6 +66,24 @@ describe('built bundle', () => {
   it('leaves non-WebGL contexts alone', () => {
     document.createElement('canvas').getContext('2d', { alpha: false });
     expect(forwardedAttrs).toEqual({ alpha: false });
+  });
+
+  it('scales the built-in rules off an 800x520 capture', async () => {
+    const { RERUN_RULES } = await import('../src/rules/builtin.js');
+    const { resolvePoint } = await import('../src/core/coords.js');
+    const point = RERUN_RULES[0].points[0];
+
+    expect(point).toMatchObject({ bw: 800, bh: 520 });
+    // Identity at the size they were captured at...
+    expect(resolvePoint(point, { width: 800, height: 520 })).toEqual({
+      x: point.x,
+      y: point.y,
+    });
+    // ...and rescaled if the embed ever stops pinning the framebuffer.
+    expect(resolvePoint(point, { width: 1600, height: 1040 })).toEqual({
+      x: point.x * 2,
+      y: point.y * 2,
+    });
   });
 
   it('reports the page as visible so the game does not throttle', () => {

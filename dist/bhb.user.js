@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB — Bit Heroes Bot
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      2.0.0
+// @version      2.1.0
 // @description  Bit Heroes automation userscript for the Kongregate web client
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -548,7 +548,7 @@
         setMessage(`${stopped} auto-stopped (idle ${AUTO_STOP_TIMEOUT / 6e4}m)`);
       }
     }
-    function start(taskId) {
+    function start2(taskId) {
       if (!TASKS[taskId]) {
         throw new Error(`unknown task: ${taskId}`);
       }
@@ -580,10 +580,10 @@
       if (state.activeTask === taskId) {
         stop();
       } else {
-        start(taskId);
+        start2(taskId);
       }
     }
-    return { start, stop, toggle, tick, getState, on: emitter.on, setMessage };
+    return { start: start2, stop, toggle, tick, getState, on: emitter.on, setMessage };
   }
 
   // src/core/storage.js
@@ -672,7 +672,7 @@
   }
 
   // src/rules/builtin.js
-  var BUILTIN_CAPTURE_BUFFER = null;
+  var BUILTIN_CAPTURE_BUFFER = { width: 800, height: 520 };
   function point(p) {
     return BUILTIN_CAPTURE_BUFFER ? { ...p, bw: BUILTIN_CAPTURE_BUFFER.width, bh: BUILTIN_CAPTURE_BUFFER.height } : { ...p };
   }
@@ -1483,9 +1483,29 @@
     realSetInterval(overlay.render, UI_REFRESH_MS);
     console.info("[BHB] ready — press 1 for the keyboard reference");
   }
+  function whenCanvasAppears(onReady) {
+    const POLL_MS = 300;
+    const GIVE_UP_MS = 5 * 60 * 1e3;
+    if (getCanvas()) {
+      onReady();
+      return;
+    }
+    const startedAt = realNow();
+    const timer = realSetInterval(() => {
+      if (getCanvas()) {
+        realClearInterval(timer);
+        onReady();
+      } else if (realNow() - startedAt > GIVE_UP_MS) {
+        realClearInterval(timer);
+      }
+    }, POLL_MS);
+  }
+  function start() {
+    whenCanvasAppears(bootstrap);
+  }
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", bootstrap, { once: true });
+    document.addEventListener("DOMContentLoaded", start, { once: true });
   } else {
-    bootstrap();
+    start();
   }
 })();

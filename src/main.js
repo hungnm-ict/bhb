@@ -30,7 +30,8 @@ import { createHelpPanel } from './ui/help.js';
 import { createAddModeBadge } from './ui/addmode.js';
 import { installHotkeys } from './ui/hotkeys.js';
 import { showPendingMarker, removePendingMarker, showClickFlash } from './ui/marker.js';
-import { realSetInterval } from './core/timers.js';
+import { realSetInterval, realClearInterval, realNow } from './core/timers.js';
+import { getCanvas } from './core/canvas.js';
 
 // --- Phase 1: patches that must beat the game to the punch -----------------
 installCanvasPatch();
@@ -98,9 +99,47 @@ function bootstrap() {
   console.info('[BHB] ready — press 1 for the keyboard reference');
 }
 
-// --- Phase 2: wire up the UI once there is a DOM to attach it to -----------
+/**
+ * Wait for this frame to contain the game canvas.
+ *
+ * Kongregate hosts the game in an iframe, so the script runs in both the outer
+ * page and the frame. Only one of them has a canvas, and building the UI in
+ * both would stack two overlays and two sets of hotkeys on top of each other.
+ * A frame that never gets a canvas simply does nothing.
+ *
+ * The patches above still run everywhere: at document-start there is no way to
+ * tell which frame Unity will load into, and the canvas patch has to be in
+ * place before it does.
+ *
+ * @param {() => void} onReady
+ */
+function whenCanvasAppears(onReady) {
+  const POLL_MS = 300;
+  const GIVE_UP_MS = 5 * 60 * 1000;
+
+  if (getCanvas()) {
+    onReady();
+    return;
+  }
+
+  const startedAt = realNow();
+  const timer = realSetInterval(() => {
+    if (getCanvas()) {
+      realClearInterval(timer);
+      onReady();
+    } else if (realNow() - startedAt > GIVE_UP_MS) {
+      realClearInterval(timer);
+    }
+  }, POLL_MS);
+}
+
+// --- Phase 2: wire up the UI, but only in the frame holding the game -------
+function start() {
+  whenCanvasAppears(bootstrap);
+}
+
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', bootstrap, { once: true });
+  document.addEventListener('DOMContentLoaded', start, { once: true });
 } else {
-  bootstrap();
+  start();
 }
