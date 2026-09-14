@@ -3,6 +3,7 @@ import { t } from '../i18n/index.js';
 import { getSpeed } from '../core/speed.js';
 import { TaskId, Phase } from '../core/engine.js';
 import { isLegacyPoint } from '../core/coords.js';
+import { getCanvas } from '../core/canvas.js';
 
 /**
  * Status overlay: the top-right panel.
@@ -57,6 +58,22 @@ export function createOverlay(deps) {
     const minutes = Math.floor(total / 60);
     const seconds = String(total % 60).padStart(2, '0');
     return `${minutes}m${seconds}s`;
+  }
+
+  /**
+   * Live framebuffer size next to the displayed size.
+   *
+   * Rule coordinates live in the framebuffer, so when rules start missing
+   * their targets this line says whether the framebuffer moved under them —
+   * without opening devtools and hunting for the game's iframe context.
+   */
+  function describeFramebuffer() {
+    const canvas = getCanvas();
+    if (!canvas) {
+      return '—';
+    }
+    const css = `${Math.round(canvas.clientWidth)}×${Math.round(canvas.clientHeight)}`;
+    return `${canvas.width}×${canvas.height} → ${css}`;
   }
 
   function taskClass(engine, taskId) {
@@ -157,6 +174,11 @@ export function createOverlay(deps) {
           class: `bhb-speed ${speed > 1 ? 'bhb-speed--boosted' : 'bhb-speed--normal'}`,
           text: `${speed}×`,
         }),
+      ]),
+
+      el('div', { class: 'bhb-row bhb-row--between' }, [
+        el('span', { class: 'bhb-muted', text: t('overlay.canvas') }),
+        el('span', { class: 'bhb-rule__coord', text: describeFramebuffer() }),
       ]),
 
       el('div', { class: 'bhb-row bhb-row--between' }, [
