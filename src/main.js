@@ -41,7 +41,6 @@ import { createUiStore, Tab } from './ui/store.js';
 import { createHud } from './ui/hud.js';
 import { createPanel } from './ui/panel/index.js';
 import { createMarkerLayer } from './ui/markers.js';
-import { createHelpPanel } from './ui/help.js';
 import { installHotkeys } from './ui/hotkeys.js';
 import { showClickFlash } from './ui/flash.js';
 import { realSetInterval, realClearInterval, realSetTimeout, realNow } from './core/timers.js';
@@ -178,7 +177,6 @@ function bootstrap() {
     getEngineState: engine.getState,
     toggleTask: engine.toggle,
     getProfileName: () => getActiveProfile(profileState).name,
-    toggleHelp: () => help.toggle(),
     refresh: () => refresh(),
   });
 
@@ -187,8 +185,6 @@ function bootstrap() {
     getScaleMode: () => settings.scaleMode,
     store,
   });
-
-  const help = createHelpPanel();
 
   setClickObserver(showClickFlash);
   engine.on('change', () => refresh());

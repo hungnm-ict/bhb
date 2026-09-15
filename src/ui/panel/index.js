@@ -8,6 +8,7 @@ import { renderScreensTab } from './screens.js';
 import { renderQueueTab } from './queue.js';
 import { renderSettingsTab } from './settings.js';
 import { renderLogTab } from './log.js';
+import { renderHelpTab } from './help.js';
 
 /**
  * The control panel.
@@ -23,6 +24,7 @@ const TABS = [
   [Tab.QUEUE, 'tab.queue'],
   [Tab.SETTINGS, 'tab.settings'],
   [Tab.LOG, 'tab.log'],
+  [Tab.HELP, 'tab.help'],
 ];
 
 /**
@@ -35,7 +37,6 @@ const TABS = [
  * @param {object} deps.screenEditor
  * @param {() => import('../../rules/screen.js').Screen[]} deps.getScreens
  * @param {() => string} deps.getProfileName
- * @param {() => void} deps.toggleHelp
  * @param {() => void} deps.refresh
  */
 export function createPanel(deps) {
@@ -62,6 +63,9 @@ export function createPanel(deps) {
     if (tab === Tab.SETTINGS) {
       return renderSettingsTab(deps);
     }
+    if (tab === Tab.HELP) {
+      return renderHelpTab();
+    }
     if (tab === Tab.LOG) {
       return renderLogTab(deps);
     }
@@ -79,14 +83,14 @@ export function createPanel(deps) {
     }
     target.style.display = 'flex';
 
-    const help = el('button', { class: 'bhb-icon', title: t('help.title'), text: '?' });
-    help.addEventListener('click', () => deps.toggleHelp());
-
     const close = el('button', { class: 'bhb-icon', title: t('panel.close'), text: '✕' });
     close.addEventListener('click', () => {
       deps.store.closePanel();
       deps.refresh();
     });
+
+    /** @type {HTMLElement | null} */
+    let activeTab = null;
 
     const tabs = TABS.map(([id, labelKey]) => {
       const button = el('button', {
@@ -97,6 +101,9 @@ export function createPanel(deps) {
         deps.store.setTab(id);
         deps.refresh();
       });
+      if (state.tab === id) {
+        activeTab = button;
+      }
       return button;
     });
 
@@ -107,12 +114,17 @@ export function createPanel(deps) {
           el('span', { class: 'bhb-panel__ver', text: `v${VERSION}` }),
         ]),
         el('span', { class: 'bhb-panel__profile', text: deps.getProfileName() }),
-        help,
         close,
       ]),
       el('nav', { class: 'bhb-tabs' }, tabs),
       el('div', { class: 'bhb-panel__body' }, [renderBody(state.tab)])
     );
+
+    // The strip scrolls, so the tab the user just picked has to be brought
+    // into view or it stays off the right edge.
+    if (activeTab && typeof activeTab.scrollIntoView === 'function') {
+      activeTab.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    }
   }
 
   function highlight() {

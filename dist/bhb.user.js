@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.4.2
+// @version      0.4.3
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -14,7 +14,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.4.2" : "dev";
+  var VERSION = true ? "0.4.3" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -1229,6 +1229,7 @@
     "tab.queue": "Hàng đợi",
     "tab.settings": "Cài đặt",
     "tab.log": "Nhật ký",
+    "tab.help": "Phím tắt",
     "panel.close": "Đóng",
     "overlay.speed": "Tốc độ",
     "overlay.canvas": "Canvas",
@@ -1300,8 +1301,6 @@
     "log.hang": "{label} không phản hồi — đang tải lại",
     "log.taskStarted": "Bật {task}",
     "log.taskStopped": "Tắt {task}",
-    "help.title": "PHÍM TẮT",
-    "help.close": "Bấm lại dấu ? để đóng",
     "help.sectionAuto": "Tự động",
     "help.sectionRules": "Rule",
     "help.sectionUi": "Giao diện",
@@ -1339,6 +1338,7 @@
     "tab.queue": "Run All",
     "tab.settings": "Settings",
     "tab.log": "Log",
+    "tab.help": "Keys",
     "panel.close": "Close",
     "overlay.speed": "Speed",
     "overlay.canvas": "Canvas",
@@ -1410,8 +1410,6 @@
     "log.hang": "{label} stopped responding — reloading",
     "log.taskStarted": "Started {task}",
     "log.taskStopped": "Stopped {task}",
-    "help.title": "KEYBOARD",
-    "help.close": "Click the ? again to close",
     "help.sectionAuto": "Automation",
     "help.sectionRules": "Rules",
     "help.sectionUi": "Interface",
@@ -1720,7 +1718,7 @@
 
   // src/ui/styles.js
   var CSS = `
-.bhb-hud, .bhb-panel, .bhb-markers, .bhb-help, .bhb-flash, .bhb-drag {
+.bhb-hud, .bhb-panel, .bhb-markers, .bhb-flash, .bhb-drag {
   --bhb-bg: #12141c;
   --bhb-bg-soft: #1a1d29;
   --bhb-line: rgba(255, 255, 255, .09);
@@ -1744,7 +1742,7 @@
   font-family: var(--bhb-font);
   user-select: none;
 }
-.bhb-hud *, .bhb-panel *, .bhb-markers *, .bhb-help *, .bhb-drag * { box-sizing: border-box; }
+.bhb-hud *, .bhb-panel *, .bhb-markers *, .bhb-drag * { box-sizing: border-box; }
 .bhb-mono { font-family: var(--bhb-mono); font-variant-numeric: tabular-nums; }
 
 /* --- HUD ---------------------------------------------------------------- */
@@ -2078,24 +2076,11 @@
   font-family: var(--bhb-mono); font-size: 11px;
 }
 
-/* --- Help & flash ------------------------------------------------------- */
+/* --- Help tab & flash --------------------------------------------------- */
 
-.bhb-help {
-  top: 50%; left: 50%; transform: translate(-50%, -50%);
-  width: 330px; padding: 16px 18px;
-  background: var(--bhb-bg);
-  border: 1px solid var(--bhb-line); border-radius: 14px;
-  box-shadow: 0 18px 50px rgba(0, 0, 0, .7);
-  font-size: 11.5px; line-height: 1.75;
-  pointer-events: none;
-}
-.bhb-help__header {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 9px; padding-bottom: 8px; border-bottom: 1px solid var(--bhb-line);
-}
-.bhb-help__title { font-size: 13px; font-weight: 800; letter-spacing: .08em; }
+.bhb-help { gap: 0; font-size: 11.5px; line-height: 1.8; }
 .bhb-help__section {
-  margin: 11px 0 3px;
+  margin: 13px 0 3px;
   color: var(--bhb-accent); font-size: 10px;
   font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
 }
@@ -2142,7 +2127,8 @@
     SCREENS: "screens",
     QUEUE: "queue",
     SETTINGS: "settings",
-    LOG: "log"
+    LOG: "log",
+    HELP: "help"
   });
   var LOG_LIMIT = 200;
   function createUiStore() {
@@ -2993,6 +2979,53 @@
     ]);
   }
 
+  // src/ui/panel/help.js
+  var SECTIONS = [
+    {
+      title: "help.sectionAuto",
+      entries: [
+        ["3", "help.rerun"],
+        ["4", "help.wb"],
+        ["5", "help.script"],
+        ["6", "help.runAll"]
+      ]
+    },
+    {
+      title: "help.sectionRules",
+      entries: [
+        ["0", "help.capture"]
+      ]
+    },
+    {
+      title: "help.sectionUi",
+      entries: [
+        ["1", "help.togglePanel"]
+      ]
+    },
+    {
+      title: "help.sectionSpeed",
+      entries: [
+        ["= / +", "help.speedUp"],
+        ["-", "help.speedDown"]
+      ]
+    }
+  ];
+  function renderHelpTab() {
+    const sections = SECTIONS.flatMap((section) => [
+      el("div", { class: "bhb-help__section", text: `▸ ${t(section.title)}` }),
+      ...section.entries.map(
+        ([key, labelKey]) => el("div", { class: "bhb-help__entry" }, [
+          el("b", { text: key }),
+          el("span", { class: "bhb-help__label", text: t(labelKey) })
+        ])
+      )
+    ]);
+    return el("div", { class: "bhb-tab bhb-help" }, [
+      ...sections,
+      el("p", { class: "bhb-note bhb-help__footer", text: t("help.footer") })
+    ]);
+  }
+
   // src/ui/panel/index.js
   var TABS = [
     [Tab.TASKS, "tab.tasks"],
@@ -3000,7 +3033,8 @@
     [Tab.SCREENS, "tab.screens"],
     [Tab.QUEUE, "tab.queue"],
     [Tab.SETTINGS, "tab.settings"],
-    [Tab.LOG, "tab.log"]
+    [Tab.LOG, "tab.log"],
+    [Tab.HELP, "tab.help"]
   ];
   function createPanel(deps) {
     let node = null;
@@ -3023,6 +3057,9 @@
       if (tab === Tab.SETTINGS) {
         return renderSettingsTab(deps);
       }
+      if (tab === Tab.HELP) {
+        return renderHelpTab();
+      }
       if (tab === Tab.LOG) {
         return renderLogTab(deps);
       }
@@ -3037,13 +3074,12 @@
         return;
       }
       target.style.display = "flex";
-      const help = el("button", { class: "bhb-icon", title: t("help.title"), text: "?" });
-      help.addEventListener("click", () => deps.toggleHelp());
       const close = el("button", { class: "bhb-icon", title: t("panel.close"), text: "✕" });
       close.addEventListener("click", () => {
         deps.store.closePanel();
         deps.refresh();
       });
+      let activeTab = null;
       const tabs = TABS.map(([id, labelKey]) => {
         const button = el("button", {
           class: `bhb-tabbtn ${state.tab === id ? "is-active" : ""}`,
@@ -3053,6 +3089,9 @@
           deps.store.setTab(id);
           deps.refresh();
         });
+        if (state.tab === id) {
+          activeTab = button;
+        }
         return button;
       });
       target.replaceChildren(
@@ -3062,12 +3101,14 @@
             el("span", { class: "bhb-panel__ver", text: `v${VERSION}` })
           ]),
           el("span", { class: "bhb-panel__profile", text: deps.getProfileName() }),
-          help,
           close
         ]),
         el("nav", { class: "bhb-tabs" }, tabs),
         el("div", { class: "bhb-panel__body" }, [renderBody(state.tab)])
       );
+      if (activeTab && typeof activeTab.scrollIntoView === "function") {
+        activeTab.scrollIntoView({ block: "nearest", inline: "nearest" });
+      }
     }
     function highlight() {
       highlightRules(deps.store.get());
@@ -3155,78 +3196,6 @@
       }
     }
     return { render, highlight };
-  }
-
-  // src/ui/help.js
-  var SECTIONS = [
-    {
-      title: "help.sectionAuto",
-      entries: [
-        ["3", "help.rerun"],
-        ["4", "help.wb"],
-        ["5", "help.script"],
-        ["6", "help.runAll"]
-      ]
-    },
-    {
-      title: "help.sectionRules",
-      entries: [
-        ["0", "help.capture"]
-      ]
-    },
-    {
-      title: "help.sectionUi",
-      entries: [
-        ["1", "help.togglePanel"]
-      ]
-    },
-    {
-      title: "help.sectionSpeed",
-      entries: [
-        ["= / +", "help.speedUp"],
-        ["-", "help.speedDown"]
-      ]
-    }
-  ];
-  function createHelpPanel() {
-    let panel = null;
-    let visible = false;
-    function build() {
-      const sections = SECTIONS.flatMap((section) => [
-        el("div", { class: "bhb-help__section", text: `▸ ${t(section.title)}` }),
-        ...section.entries.map(
-          ([key, labelKey]) => el("div", { class: "bhb-help__entry" }, [
-            el("b", { text: key }),
-            el("span", { class: "bhb-help__label", text: t(labelKey) })
-          ])
-        )
-      ]);
-      return el("div", { class: "bhb-help" }, [
-        el("div", { class: "bhb-help__header" }, [
-          el("span", { class: "bhb-help__title", text: `📖 ${t("help.title")}` }),
-          el("span", { class: "bhb-help__label", text: t("help.close") })
-        ]),
-        ...sections,
-        el("div", { class: "bhb-help__footer", text: t("help.footer") })
-      ]);
-    }
-    function toggle() {
-      visible = !visible;
-      if (panel) {
-        panel.remove();
-        panel = null;
-      }
-      if (visible) {
-        panel = mount(build());
-      }
-    }
-    function close() {
-      if (!visible) {
-        return;
-      }
-      toggle();
-    }
-    return { toggle, close, isVisible: () => visible };
   }
 
   // src/ui/hotkeys.js
@@ -3377,7 +3346,6 @@
       getEngineState: engine.getState,
       toggleTask: engine.toggle,
       getProfileName: () => getActiveProfile(profileState).name,
-      toggleHelp: () => help.toggle(),
       refresh: () => refresh()
     });
     const markers = createMarkerLayer({
@@ -3385,7 +3353,6 @@
       getScaleMode: () => settings.scaleMode,
       store
     });
-    const help = createHelpPanel();
     setClickObserver(showClickFlash);
     engine.on("change", () => refresh());
     engine.on("action", (entry) => {
