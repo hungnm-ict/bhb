@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.9.3
+// @version      0.9.4
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -14,7 +14,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.9.3" : "dev";
+  var VERSION = true ? "0.9.4" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -1216,56 +1216,6 @@
     return { notify, clearCooldown };
   }
 
-  // src/core/canvas-lock.js
-  var LOCK_PRESETS = [
-    { width: 800, height: 520 },
-    { width: 1024, height: 640 },
-    { width: 1280, height: 720 }
-  ];
-  var original = null;
-  function styleTargets() {
-    const canvas = getCanvas();
-    if (!canvas) {
-      return null;
-    }
-    return { canvas, box: canvas.parentElement };
-  }
-  function lockCanvasSize(size) {
-    const target = styleTargets();
-    if (!target) {
-      return false;
-    }
-    if (!original) {
-      original = {
-        canvas: target.canvas.style.cssText,
-        box: target.box ? target.box.style.cssText : ""
-      };
-    }
-    const width = `${Math.max(320, Math.round(size.width))}px`;
-    const height = `${Math.max(240, Math.round(size.height))}px`;
-    if (target.box) {
-      target.box.style.width = width;
-      target.box.style.height = height;
-    }
-    target.canvas.style.width = width;
-    target.canvas.style.height = height;
-    window.dispatchEvent(new Event("resize"));
-    return true;
-  }
-  function unlockCanvasSize() {
-    const target = styleTargets();
-    if (!target || !original) {
-      return false;
-    }
-    target.canvas.style.cssText = original.canvas;
-    if (target.box) {
-      target.box.style.cssText = original.box;
-    }
-    original = null;
-    window.dispatchEvent(new Event("resize"));
-    return true;
-  }
-
   // src/core/storage.js
   var SCHEMA_VERSION = 5;
   function createDefaultState() {
@@ -1408,15 +1358,7 @@
     return true;
   }
   function normaliseCanvasLock(stored) {
-    const fallback = LOCK_PRESETS[0];
-    if (!stored || typeof stored !== "object") {
-      return { enabled: false, ...fallback };
-    }
-    return {
-      enabled: stored.enabled === true,
-      width: Number(stored.width) > 0 ? Math.round(Number(stored.width)) : fallback.width,
-      height: Number(stored.height) > 0 ? Math.round(Number(stored.height)) : fallback.height
-    };
+    return { enabled: Boolean(stored && stored.enabled === true) };
   }
   function loadSettings() {
     const stored = readJson(STORAGE_KEY_SETTINGS) || {};
@@ -1670,6 +1612,73 @@
     return `${seconds}s`;
   }
 
+  // src/core/canvas-lock.js
+  var LOCK_SIZE = Object.freeze({ width: 640, height: 400 });
+  var original = null;
+  var applied = null;
+  function styleTargets() {
+    const canvas = getCanvas();
+    if (!canvas) {
+      return null;
+    }
+    return { canvas, box: canvas.parentElement };
+  }
+  function fitScale(size, viewport) {
+    const scale = Math.min(viewport.width / size.width, viewport.height / size.height, 1);
+    return Math.max(0.2, Number(scale.toFixed(4)));
+  }
+  function lockCanvasSize(size = LOCK_SIZE) {
+    const target = styleTargets();
+    if (!target) {
+      return false;
+    }
+    if (!original) {
+      original = {
+        canvas: target.canvas.style.cssText,
+        box: target.box ? target.box.style.cssText : ""
+      };
+    }
+    const pinned = {
+      width: Math.max(320, Math.round(size.width)),
+      height: Math.max(240, Math.round(size.height))
+    };
+    const width = `${pinned.width}px`;
+    const height = `${pinned.height}px`;
+    if (target.box) {
+      target.box.style.width = width;
+      target.box.style.height = height;
+    }
+    target.canvas.style.width = width;
+    target.canvas.style.height = height;
+    const scale = fitScale(pinned, {
+      width: window.innerWidth,
+      height: window.innerHeight
+    });
+    const scaled = target.box || target.canvas;
+    if (applied && applied.width === pinned.width && applied.height === pinned.height && applied.scale === scale) {
+      return true;
+    }
+    scaled.style.transform = scale < 1 ? `scale(${scale})` : "";
+    scaled.style.transformOrigin = "top left";
+    applied = { ...pinned, scale };
+    window.dispatchEvent(new Event("resize"));
+    return true;
+  }
+  function unlockCanvasSize() {
+    const target = styleTargets();
+    if (!target || !original) {
+      return false;
+    }
+    target.canvas.style.cssText = original.canvas;
+    if (target.box) {
+      target.box.style.cssText = original.box;
+    }
+    original = null;
+    applied = null;
+    window.dispatchEvent(new Event("resize"));
+    return true;
+  }
+
   // src/bot/builtin.js
   var BUILTIN_CAPTURE_BUFFER = { width: 800, height: 520 };
   function point(p) {
@@ -1881,7 +1890,7 @@
     "steps.dryRunHint": "Chạy thử đi dọc danh sách và chấm điểm từng bước trên khung hình đang hiện — ✓ khớp, ✗ không khớp, ⊘ thuộc màn hình khác. Nó KHÔNG bấm gì vào game nên lúc nào cũng an toàn. Bình thường dấu chỉ hiện khi rê chuột lên một dòng.",
     "lock.title": "Khoá cỡ canvas (thử nghiệm)",
     "lock.enabled": "Ghim game ở một cỡ cố định",
-    "lock.hint": "Bật thì game luôn vẽ ở đúng cỡ này dù cửa sổ to nhỏ thế nào — nhờ vậy màu bot đọc được giống hệt nhau trên mọi máy, và bộ bước mới chia sẻ được. Đổi lại: cửa sổ to thì hình hơi mờ vì bị phóng lên. Thấy hình méo hoặc game vẽ sai thì tắt đi, không hỏng gì cả."
+    "lock.hint": "Bật thì game luôn vẽ ở 640×400 dù cửa sổ to nhỏ thế nào — nhờ vậy màu bot đọc được giống hệt nhau trên mọi máy, và bộ bước mới chia sẻ được. Cửa sổ nhỏ hơn thì phần hiển thị tự thu lại cho vừa, toạ độ vẫn đúng. Tắt là game co giãn theo cửa sổ như bình thường."
   };
 
   // src/i18n/en.js
@@ -2048,7 +2057,7 @@
     "steps.dryRunHint": "A dry run walks the list and scores each step against the frame on screen — ✓ matches, ✗ does not, ⊘ belongs to another screen. It clicks nothing, so it is safe at any time. Otherwise a marker appears only while you hover its row.",
     "lock.title": "Canvas size lock (experimental)",
     "lock.enabled": "Pin the game to a fixed size",
-    "lock.hint": "The game then renders at this size whatever the window does, so the colours the bot reads are identical on every machine — which is what makes a step set shareable. The cost is sharpness: a large window scales the result up. If anything looks stretched or wrong, switch it off; nothing is damaged."
+    "lock.hint": "The game then renders at 640×400 whatever the window does, so the colours the bot reads are identical on every machine — which is what makes a step set shareable. A smaller window scales the display down to fit and the coordinates still hold. Switch it off and the game resizes with the window as before."
   };
 
   // src/i18n/index.js
@@ -3973,23 +3982,15 @@
       deps.updateSettings({ canvasLock: { ...lock, ...changes } });
       deps.refresh();
     }
-    const picker = el("select", { class: "bhb-select" });
-    for (const preset of LOCK_PRESETS) {
-      const option = el("option", { text: `${preset.width} × ${preset.height}` });
-      option.value = `${preset.width}x${preset.height}`;
-      picker.append(option);
-    }
-    picker.value = `${lock.width}x${lock.height}`;
-    picker.addEventListener("change", () => {
-      const [width, height] = picker.value.split("x").map(Number);
-      update({ width, height });
-    });
     return el("div", { class: "bhb-field" }, [
       el("div", { class: "bhb-field__head" }, [
-        el("span", { class: "bhb-label", text: t("lock.title") })
+        el("span", { class: "bhb-label", text: t("lock.title") }),
+        el("span", {
+          class: "bhb-mono bhb-note",
+          text: `${LOCK_SIZE.width}×${LOCK_SIZE.height}`
+        })
       ]),
       toggleRow("lock.enabled", lock.enabled, (value) => update({ enabled: value })),
-      picker,
       el("p", { class: "bhb-note", text: t("lock.hint") })
     ]);
   }
@@ -4804,7 +4805,7 @@
     const sizeBadge = createSizeBadge({ isVisible: () => settings.sizeBadge });
     function applyCanvasLock() {
       if (settings.canvasLock.enabled) {
-        lockCanvasSize(settings.canvasLock);
+        lockCanvasSize();
       } else {
         unlockCanvasSize();
       }
@@ -4864,6 +4865,9 @@
     hud.wake();
     realSetInterval(refreshLive, UI_REFRESH_MS);
     const onCanvasMoved = () => {
+      if (settings.canvasLock.enabled) {
+        lockCanvasSize();
+      }
       markers.render();
       sizeBadge.render();
     };

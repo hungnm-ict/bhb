@@ -185,5 +185,5 @@ export default {
 
   'lock.title': 'Canvas size lock (experimental)',
   'lock.enabled': 'Pin the game to a fixed size',
-  'lock.hint': 'The game then renders at this size whatever the window does, so the colours the bot reads are identical on every machine — which is what makes a step set shareable. The cost is sharpness: a large window scales the result up. If anything looks stretched or wrong, switch it off; nothing is damaged.',
+  'lock.hint': 'The game then renders at 640×400 whatever the window does, so the colours the bot reads are identical on every machine — which is what makes a step set shareable. A smaller window scales the display down to fit and the coordinates still hold. Switch it off and the game resizes with the window as before.',
 };
