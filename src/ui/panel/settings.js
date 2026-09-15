@@ -61,20 +61,16 @@ export function renderSettingsTab(deps) {
   });
 
   function toggleRow(labelKey, value, onChange, note) {
-    const toggle = el('button', {
-      class: `bhb-icon ${value ? 'is-on' : ''}`,
-      title: t(labelKey),
-      text: value ? '◉' : '○',
-    });
-    toggle.addEventListener('click', () => {
+    const row = el('button', { class: `bhb-toggle ${value ? 'is-on' : ''}` }, [
+      el('span', { class: 'bhb-toggle__dot', text: value ? '◉' : '○' }),
+      el('span', { class: 'bhb-toggle__label', text: t(labelKey) }),
+      note ? el('span', { class: 'bhb-mono bhb-toggle__note', text: note }) : null,
+    ]);
+    row.addEventListener('click', () => {
       onChange(!value);
       deps.refresh();
     });
-    return el('div', { class: 'bhb-screen__tune' }, [
-      toggle,
-      el('span', { class: 'bhb-note', text: t(labelKey) }),
-      note ? el('span', { class: 'bhb-mono bhb-note', text: note }) : null,
-    ]);
+    return row;
   }
 
   const languagePicker = el('select', { class: 'bhb-select' });

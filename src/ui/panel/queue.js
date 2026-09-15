@@ -36,13 +36,13 @@ export function renderQueueTab(deps) {
     deps.refresh();
   });
 
-  const closeAfter = el('button', {
-    class: `bhb-icon ${deps.getCloseAfterRound() ? 'is-on' : ''}`,
-    title: t('queue.closeAfterRound'),
-    text: deps.getCloseAfterRound() ? '◉' : '○',
-  });
+  const closesAfterRound = deps.getCloseAfterRound();
+  const closeAfter = el('button', { class: `bhb-toggle ${closesAfterRound ? 'is-on' : ''}` }, [
+    el('span', { class: 'bhb-toggle__dot', text: closesAfterRound ? '◉' : '○' }),
+    el('span', { class: 'bhb-toggle__label', text: t('queue.closeAfterRound') }),
+  ]);
   closeAfter.addEventListener('click', () => {
-    deps.setCloseAfterRound(!deps.getCloseAfterRound());
+    deps.setCloseAfterRound(!closesAfterRound);
     deps.refresh();
   });
 
@@ -55,10 +55,7 @@ export function renderQueueTab(deps) {
       }),
     ]),
     run,
-    el('div', { class: 'bhb-screen__tune' }, [
-      closeAfter,
-      el('span', { class: 'bhb-note', text: t('queue.closeAfterRound') }),
-    ]),
+    closeAfter,
     el('p', { class: 'bhb-note', text: t('queue.hint') }),
   ]);
 

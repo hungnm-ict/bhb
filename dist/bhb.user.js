@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.4.1
+// @version      0.4.2
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -14,7 +14,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.4.1" : "dev";
+  var VERSION = true ? "0.4.2" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -1226,7 +1226,7 @@
     "tab.tasks": "Hoạt động",
     "tab.rules": "Rule",
     "tab.screens": "Màn hình",
-    "tab.queue": "Chạy tất cả",
+    "tab.queue": "Hàng đợi",
     "tab.settings": "Cài đặt",
     "tab.log": "Nhật ký",
     "panel.close": "Đóng",
@@ -1247,7 +1247,8 @@
     "rules.screenGate": "Chỉ chạy ở màn hình này",
     "rules.anywhere": "Mọi màn hình",
     "rules.activity": "Rule này thuộc hoạt động nào",
-    "rules.loose": "Chỉ chạy Script",
+    "rules.loose": "Chỉ rule Script",
+    "rules.noActivity": "Script",
     "rules.allRules": "Tất cả rule",
     "rules.filter": "Chỉ hiện một hoạt động",
     "rules.delete": "Xoá rule",
@@ -1356,7 +1357,8 @@
     "rules.screenGate": "Only fire on this screen",
     "rules.anywhere": "Anywhere",
     "rules.activity": "Which activity this rule belongs to",
-    "rules.loose": "Script only",
+    "rules.loose": "Script rules only",
+    "rules.noActivity": "Script",
     "rules.allRules": "All rules",
     "rules.filter": "Show only one activity",
     "rules.delete": "Delete",
@@ -1734,6 +1736,9 @@
 
   position: fixed;
   z-index: ${Z_TOP};
+  /* Without this the browser draws selects, scrollbars and carets from the
+     light palette, which looks pasted onto a dark panel. */
+  color-scheme: dark;
   box-sizing: border-box;
   color: var(--bhb-text);
   font-family: var(--bhb-font);
@@ -1793,7 +1798,8 @@
 .bhb-panel {
   top: 58px; right: 14px;
   display: flex; flex-direction: column;
-  width: 340px; max-height: calc(100vh - 80px);
+  width: 400px; max-width: calc(100vw - 28px);
+  max-height: calc(100vh - 80px);
   background: var(--bhb-bg);
   border: 1px solid var(--bhb-line);
   border-radius: 14px;
@@ -1814,11 +1820,17 @@
 .bhb-panel__ver { color: var(--bhb-dim); font-size: 10px; }
 .bhb-panel__profile { color: var(--bhb-dim); font-size: 10.5px; }
 
-.bhb-tabs { display: flex; gap: 2px; padding: 8px 10px 0; }
+.bhb-tabs {
+  display: flex; gap: 1px; padding: 8px 8px 0;
+  /* Six tabs will not fit at every width, and a wrapped tab strip looks
+     broken — so it scrolls sideways instead, with no visible scrollbar. */
+  overflow-x: auto; scrollbar-width: none;
+}
+.bhb-tabs::-webkit-scrollbar { display: none; }
 .bhb-tabbtn {
-  flex: 1; padding: 7px 0 9px;
+  flex: none; padding: 7px 6px 9px; white-space: nowrap;
   background: none; border: 0; border-bottom: 2px solid transparent;
-  color: var(--bhb-dim); font: inherit; font-size: 11.5px; font-weight: 600;
+  color: var(--bhb-dim); font: inherit; font-size: 11px; font-weight: 600;
   cursor: pointer;
 }
 .bhb-tabbtn:hover { color: var(--bhb-text); }
@@ -1943,7 +1955,14 @@
 .bhb-rule__name:hover { border-color: var(--bhb-line); }
 .bhb-rule__name:focus { outline: none; border-color: var(--bhb-accent); background: #0d0f16; }
 .bhb-rule__coord { color: var(--bhb-cyan); font-size: 10px; }
-.bhb-rule__actions { display: flex; gap: 1px; }
+.bhb-rule__actions { display: flex; gap: 1px; margin-left: auto; }
+
+/* A rule carries a name, a place, an activity and a screen gate. On one line
+   they crush each other, so the row is two: identity above, wiring below. */
+.bhb-rule--stacked { flex-direction: column; align-items: stretch; gap: 5px; }
+.bhb-rule__main { display: flex; align-items: center; gap: 7px; }
+.bhb-rule__meta { display: flex; align-items: center; gap: 6px; padding-left: 21px; }
+.bhb-rule__meta .bhb-rule__gate { flex: 1; min-width: 0; max-width: none; }
 
 /* --- Log ---------------------------------------------------------------- */
 
@@ -1990,15 +2009,36 @@
 
 /* --- Screens & drag capture --------------------------------------------- */
 
+/* Chrome draws its own select button whatever the background says, so the
+   native control is turned off and the arrow drawn here instead. */
+.bhb-select, .bhb-rule__gate {
+  appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='8' height='5' viewBox='0 0 8 5'><path d='M0 0h8L4 5z' fill='%237a8196'/></svg>");
+  background-repeat: no-repeat; background-position: right 6px center;
+  padding-right: 18px;
+}
 .bhb-select, .bhb-textarea {
-  width: 100%; padding: 5px 7px;
-  background: var(--bhb-bg-soft); color: var(--bhb-text);
+  width: 100%; padding: 5px 18px 5px 7px;
+  background-color: var(--bhb-bg-soft); color: var(--bhb-text);
   border: 1px solid var(--bhb-line); border-radius: 7px;
   font-family: var(--bhb-font); font-size: 11px;
 }
 .bhb-textarea { height: 72px; resize: vertical; font-family: var(--bhb-mono); font-size: 10px; }
 .bhb-btnrow { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
 .bhb-btn--small { flex: 1; min-width: 64px; padding: 4px 8px; font-size: 10.5px; }
+/* A settings switch is a whole row, not a 14px dot with a label beside it. */
+.bhb-toggle {
+  display: flex; align-items: center; gap: 9px; width: 100%;
+  padding: 7px 9px;
+  background: none; border: 1px solid transparent; border-radius: 9px;
+  color: inherit; font: inherit; text-align: left; cursor: pointer;
+}
+.bhb-toggle:hover { background: var(--bhb-bg-soft); border-color: var(--bhb-line); }
+.bhb-toggle__dot { color: var(--bhb-dim); font-size: 13px; line-height: 1; }
+.bhb-toggle.is-on .bhb-toggle__dot { color: var(--bhb-live); }
+.bhb-toggle__label { flex: 1; min-width: 0; font-size: 11px; }
+.bhb-toggle__note { color: var(--bhb-dim); font-size: 10px; }
+
 .bhb-queue__row.is-active { border-color: var(--bhb-live); }
 .bhb-queue__row.is-spent { opacity: .45; }
 .bhb-queue__state { width: 14px; text-align: center; color: var(--bhb-live); font-size: 10px; }
@@ -2009,8 +2049,8 @@
   font-size: 10px; letter-spacing: .04em;
 }
 .bhb-rule__gate {
-  max-width: 88px; padding: 2px 4px;
-  background: var(--bhb-bg-soft); color: var(--bhb-dim);
+  max-width: 120px; padding: 2px 18px 2px 5px;
+  background-color: var(--bhb-bg-soft); color: var(--bhb-dim);
   border: 1px solid var(--bhb-line); border-radius: 6px;
   font-family: var(--bhb-font); font-size: 10px;
 }
@@ -2394,7 +2434,7 @@
         deps.refresh();
       });
       const slot = el("select", { class: "bhb-rule__gate", title: t("rules.activity") });
-      const loose = el("option", { text: t("rules.loose") });
+      const loose = el("option", { text: t("rules.noActivity") });
       loose.value = "";
       slot.append(loose);
       for (const activity of activities) {
@@ -2445,7 +2485,7 @@
         deps.store.forgetRule(rule.id);
         deps.refresh();
       });
-      const classes = ["bhb-rule"];
+      const classes = ["bhb-rule", "bhb-rule--stacked"];
       if (!rule.enabled) {
         classes.push("is-off");
       }
@@ -2456,17 +2496,21 @@
         classes.push("is-hovered");
       }
       const row = el("div", { class: classes.join(" ") }, [
-        el("span", { class: "bhb-rule__n", text: String(index + 1) }),
-        el("span", { class: "bhb-rule__swatch", style: { background: rule.hex || "transparent" } }),
-        name,
-        el("span", {
-          class: "bhb-rule__coord bhb-mono",
-          title: legacy ? t("overlay.needsRecapture") : "",
-          text: point2 ? `${point2.x},${point2.y}${legacy ? " ⚠" : ""}` : "—"
-        }),
-        activities.length > 0 ? slot : null,
-        deps.getScreens().length > 0 ? gate : null,
-        el("span", { class: "bhb-rule__actions" }, [toggle, up, down, remove])
+        el("div", { class: "bhb-rule__main" }, [
+          el("span", { class: "bhb-rule__n", text: String(index + 1) }),
+          el("span", { class: "bhb-rule__swatch", style: { background: rule.hex || "transparent" } }),
+          name,
+          el("span", { class: "bhb-rule__actions" }, [toggle, up, down, remove])
+        ]),
+        el("div", { class: "bhb-rule__meta" }, [
+          el("span", {
+            class: "bhb-rule__coord bhb-mono",
+            title: legacy ? t("overlay.needsRecapture") : "",
+            text: point2 ? `${point2.x},${point2.y}${legacy ? " ⚠" : ""}` : "—"
+          }),
+          activities.length > 0 ? slot : null,
+          deps.getScreens().length > 0 ? gate : null
+        ])
       ]);
       row.addEventListener("mouseenter", () => deps.store.hoverRule(rule.id));
       row.addEventListener("mouseleave", () => deps.store.hoverRule(null));
@@ -2693,13 +2737,13 @@
       deps.toggleTask(TaskId.RUN_ALL);
       deps.refresh();
     });
-    const closeAfter = el("button", {
-      class: `bhb-icon ${deps.getCloseAfterRound() ? "is-on" : ""}`,
-      title: t("queue.closeAfterRound"),
-      text: deps.getCloseAfterRound() ? "◉" : "○"
-    });
+    const closesAfterRound = deps.getCloseAfterRound();
+    const closeAfter = el("button", { class: `bhb-toggle ${closesAfterRound ? "is-on" : ""}` }, [
+      el("span", { class: "bhb-toggle__dot", text: closesAfterRound ? "◉" : "○" }),
+      el("span", { class: "bhb-toggle__label", text: t("queue.closeAfterRound") })
+    ]);
     closeAfter.addEventListener("click", () => {
-      deps.setCloseAfterRound(!deps.getCloseAfterRound());
+      deps.setCloseAfterRound(!closesAfterRound);
       deps.refresh();
     });
     const head = el("div", { class: "bhb-field" }, [
@@ -2711,10 +2755,7 @@
         })
       ]),
       run,
-      el("div", { class: "bhb-screen__tune" }, [
-        closeAfter,
-        el("span", { class: "bhb-note", text: t("queue.closeAfterRound") })
-      ]),
+      closeAfter,
       el("p", { class: "bhb-note", text: t("queue.hint") })
     ]);
     const rows2 = activities.map((activity, index) => {
@@ -2807,20 +2848,16 @@
       }
     });
     function toggleRow(labelKey, value, onChange, note) {
-      const toggle = el("button", {
-        class: `bhb-icon ${value ? "is-on" : ""}`,
-        title: t(labelKey),
-        text: value ? "◉" : "○"
-      });
-      toggle.addEventListener("click", () => {
+      const row = el("button", { class: `bhb-toggle ${value ? "is-on" : ""}` }, [
+        el("span", { class: "bhb-toggle__dot", text: value ? "◉" : "○" }),
+        el("span", { class: "bhb-toggle__label", text: t(labelKey) }),
+        note ? el("span", { class: "bhb-mono bhb-toggle__note", text: note }) : null
+      ]);
+      row.addEventListener("click", () => {
         onChange(!value);
         deps.refresh();
       });
-      return el("div", { class: "bhb-screen__tune" }, [
-        toggle,
-        el("span", { class: "bhb-note", text: t(labelKey) }),
-        note ? el("span", { class: "bhb-mono bhb-note", text: note }) : null
-      ]);
+      return row;
     }
     const languagePicker = el("select", { class: "bhb-select" });
     for (const [code, label] of [["vi", "Tiếng Việt"], ["en", "English"]]) {
