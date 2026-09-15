@@ -17,7 +17,7 @@ export default {
   'tab.queue': 'Run All',
   'tab.settings': 'Settings',
   'tab.log': 'Log',
-  'tab.help': 'Keys',
+  'tab.help': '?',
   'panel.close': 'Close',
 
   'overlay.speed': 'Speed',
