@@ -37,7 +37,12 @@ export function updateSpeedDisplay() {
     return;
   }
   const speed = getSpeed();
-  speedControl.slider.value = String(speedIndex(speed));
+  const index = speedIndex(speed);
+  speedControl.slider.value = String(index);
+  speedControl.slider.style.setProperty(
+    '--bhb-fill',
+    `${(index / (SPEED_STEPS.length - 1)) * 100}%`
+  );
   speedControl.readout.textContent = `${formatSpeed(speed)}×`;
   speedControl.readout.className = `bhb-speed ${speed > 1 ? 'is-boosted' : ''}`;
 }

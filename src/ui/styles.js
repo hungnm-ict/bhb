@@ -252,7 +252,51 @@ const CSS = `
   color: var(--bhb-dim); font-family: var(--bhb-mono); font-size: var(--bhb-fs-xs); text-align: center;
 }
 
-.bhb-slider { width: 100%; height: var(--bhb-hit); accent-color: var(--bhb-accent); cursor: pointer; }
+/*
+ * Hand-built, because accent-color only colours the fill and leaves the rest
+ * of the track to the browser — which paints it near-white, the brightest thing
+ * on a dark panel, for a control that is not the point of the tab.
+ *
+ * The fill cannot be expressed in CSS alone, so the track is a gradient and
+ * --bhb-fill carries the percentage; whoever owns the value sets it.
+ */
+.bhb-slider {
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: var(--bhb-hit);
+  background: transparent; cursor: pointer;
+  --bhb-fill: 0%;
+}
+.bhb-slider::-webkit-slider-runnable-track {
+  height: 6px; border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    var(--bhb-accent) 0 var(--bhb-fill),
+    #262b3b var(--bhb-fill) 100%
+  );
+}
+.bhb-slider::-moz-range-track {
+  height: 6px; border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    var(--bhb-accent) 0 var(--bhb-fill),
+    #262b3b var(--bhb-fill) 100%
+  );
+}
+.bhb-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 15px; height: 15px; margin-top: -4.5px;
+  background: #eef0f7; border: 0; border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .55);
+  transition: box-shadow .15s ease;
+}
+.bhb-slider::-moz-range-thumb {
+  width: 15px; height: 15px;
+  background: #eef0f7; border: 0; border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .55);
+}
+.bhb-slider:hover::-webkit-slider-thumb { box-shadow: 0 0 0 5px rgba(124, 92, 255, .28); }
+.bhb-slider:hover::-moz-range-thumb { box-shadow: 0 0 0 5px rgba(124, 92, 255, .28); }
+.bhb-slider:active::-webkit-slider-thumb { box-shadow: 0 0 0 7px rgba(124, 92, 255, .38); }
 .bhb-speedrow { display: flex; align-items: center; gap: 8px; }
 .bhb-speedrow .bhb-slider { flex: 1; min-width: 0; }
 .bhb-speedticks {
@@ -474,6 +518,10 @@ const CSS = `
 .bhb-screen__state.is-seen { color: var(--bhb-live); }
 .bhb-screen__tune { display: flex; align-items: center; gap: 8px; padding: 0 8px 6px; }
 .bhb-slider--thin { flex: 1; height: 20px; }
+.bhb-slider--thin::-webkit-slider-runnable-track { height: 4px; }
+.bhb-slider--thin::-moz-range-track { height: 4px; }
+.bhb-slider--thin::-webkit-slider-thumb { width: 12px; height: 12px; margin-top: -4px; }
+.bhb-slider--thin::-moz-range-thumb { width: 12px; height: 12px; }
 .bhb-icon.is-danger-on { color: var(--bhb-danger); }
 .bhb-icon.is-notify-on { color: var(--bhb-warn); }
 

@@ -116,6 +116,8 @@ export function renderScreensTab(deps) {
     ratio.max = '1';
     ratio.step = '0.05';
     ratio.value = String(screen.minRatio);
+    // The track's fill is a gradient stop, so the value has to be handed to CSS.
+    ratio.style.setProperty('--bhb-fill', `${((screen.minRatio - 0.4) / 0.6) * 100}%`);
     ratio.addEventListener('input', () => {
       deps.screenEditor.setMinRatio(screen.id, Number(ratio.value));
       deps.refresh();
