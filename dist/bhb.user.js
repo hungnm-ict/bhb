@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.7.4
+// @version      0.7.5
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -14,7 +14,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.7.4" : "dev";
+  var VERSION = true ? "0.7.5" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -2490,7 +2490,7 @@
 .bhb-task--wrap .bhb-task__switch { margin-top: 1px; }
 
 /* A switch that cannot do anything yet says so instead of pretending. */
-.bhb-task.is-locked { opacity: .5; cursor: not-allowed; }
+.bhb-task.is-locked { opacity: .62; cursor: not-allowed; }
 .bhb-task.is-locked:hover { border-color: var(--bhb-line); }
 .bhb-task__phase { color: var(--bhb-warn); font-size: var(--bhb-fs-xs); }
 
@@ -2500,6 +2500,9 @@
 .bhb-task--tile .bhb-task__name { flex: none; font-size: var(--bhb-fs-sm); line-height: 1.2; }
 /* Pushes the hotkey to the right edge whether or not a phase is showing. */
 .bhb-task--tile .bhb-task__phase { margin-left: auto; }
+.bhb-task__warn { margin-left: auto; color: var(--bhb-warn); font-size: var(--bhb-fs-md); cursor: help; }
+.bhb-task--tile .bhb-task__phase + .bhb-task__warn { margin-left: 0; }
+.bhb-task--tile .bhb-task__warn + .bhb-kbd { margin-left: 0; }
 .bhb-task--tile .bhb-kbd { margin-left: auto; }
 .bhb-task--tile .bhb-task__phase + .bhb-kbd { margin-left: 0; }
 
@@ -3010,6 +3013,9 @@
             // On the top row rather than a line of its own: a reserved line is
             // empty most of the time, and the tile paid its height for it.
             phase ? el("span", { class: "bhb-task__phase", text: phase }) : null,
+            // The reason a switch is locked belongs on that switch. Said under
+            // the grid instead, it read as a verdict on all four.
+            isLocked ? el("span", { class: "bhb-task__warn", title, text: "⚠" }) : null,
             el("span", { class: "bhb-kbd", text: key })
           ]),
           el("span", { class: "bhb-task__name", text: t(labelKey) })
@@ -3080,7 +3086,7 @@
     }
     return el("div", { class: "bhb-tab" }, [
       el("div", { class: "bhb-taskgrid" }, [...tiles, runAll]),
-      ready === 0 ? el("p", { class: "bhb-note bhb-note--warn", text: t("tasks.runAllLocked") }) : el("p", { class: "bhb-note", text: t("queue.inSettings") }),
+      el("p", { class: "bhb-note", text: t("queue.inSettings") }),
       el("div", { class: "bhb-field" }, [
         el("div", { class: "bhb-field__head" }, [
           el("span", { class: "bhb-label", text: t("overlay.speed") }),

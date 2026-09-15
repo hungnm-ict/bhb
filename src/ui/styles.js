@@ -231,7 +231,7 @@ const CSS = `
 .bhb-task--wrap .bhb-task__switch { margin-top: 1px; }
 
 /* A switch that cannot do anything yet says so instead of pretending. */
-.bhb-task.is-locked { opacity: .5; cursor: not-allowed; }
+.bhb-task.is-locked { opacity: .62; cursor: not-allowed; }
 .bhb-task.is-locked:hover { border-color: var(--bhb-line); }
 .bhb-task__phase { color: var(--bhb-warn); font-size: var(--bhb-fs-xs); }
 
@@ -241,6 +241,9 @@ const CSS = `
 .bhb-task--tile .bhb-task__name { flex: none; font-size: var(--bhb-fs-sm); line-height: 1.2; }
 /* Pushes the hotkey to the right edge whether or not a phase is showing. */
 .bhb-task--tile .bhb-task__phase { margin-left: auto; }
+.bhb-task__warn { margin-left: auto; color: var(--bhb-warn); font-size: var(--bhb-fs-md); cursor: help; }
+.bhb-task--tile .bhb-task__phase + .bhb-task__warn { margin-left: 0; }
+.bhb-task--tile .bhb-task__warn + .bhb-kbd { margin-left: 0; }
 .bhb-task--tile .bhb-kbd { margin-left: auto; }
 .bhb-task--tile .bhb-task__phase + .bhb-kbd { margin-left: 0; }
 

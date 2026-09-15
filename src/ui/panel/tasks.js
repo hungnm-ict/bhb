@@ -110,6 +110,9 @@ export function renderTasksTab(deps) {
           // On the top row rather than a line of its own: a reserved line is
           // empty most of the time, and the tile paid its height for it.
           phase ? el('span', { class: 'bhb-task__phase', text: phase }) : null,
+          // The reason a switch is locked belongs on that switch. Said under
+          // the grid instead, it read as a verdict on all four.
+          isLocked ? el('span', { class: 'bhb-task__warn', title, text: '⚠' }) : null,
           el('span', { class: 'bhb-kbd', text: key }),
         ]),
         el('span', { class: 'bhb-task__name', text: t(labelKey) }),
@@ -197,9 +200,7 @@ export function renderTasksTab(deps) {
 
   return el('div', { class: 'bhb-tab' }, [
     el('div', { class: 'bhb-taskgrid' }, [...tiles, runAll]),
-    ready === 0
-      ? el('p', { class: 'bhb-note bhb-note--warn', text: t('tasks.runAllLocked') })
-      : el('p', { class: 'bhb-note', text: t('queue.inSettings') }),
+    el('p', { class: 'bhb-note', text: t('queue.inSettings') }),
 
     el('div', { class: 'bhb-field' }, [
       el('div', { class: 'bhb-field__head' }, [
