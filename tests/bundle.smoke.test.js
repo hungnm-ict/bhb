@@ -97,3 +97,21 @@ describe('built bundle', () => {
     expect(document.hasFocus()).toBe(true);
   });
 });
+
+describe('published version', () => {
+  it('is the same in package.json, the userscript banner and both READMEs', () => {
+    const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
+
+    const built = readFileSync('dist/bhb.user.js', 'utf8');
+    expect(built, 'the built bundle is older than package.json — run npm run build').toContain(
+      `// @version      ${pkg.version}`
+    );
+
+    for (const file of ['README.md', 'README.en.md']) {
+      const text = readFileSync(file, 'utf8');
+      expect(text, `${file} names a stale version`).toContain(
+        `<!--version-->v${pkg.version}<!--/version-->`
+      );
+    }
+  });
+});
