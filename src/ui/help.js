@@ -10,6 +10,7 @@ const SECTIONS = [
       ['3', 'help.rerun'],
       ['4', 'help.wb'],
       ['5', 'help.script'],
+      ['6', 'help.runAll'],
     ],
   },
   {

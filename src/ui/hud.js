@@ -71,6 +71,9 @@ export function createHud(deps) {
         class: `bhb-hud__speed ${speed > 1 ? 'is-boosted' : ''}`,
         text: `${formatSpeed(speed)}×`,
       }),
+      engine.activityName
+        ? el('span', { class: 'bhb-hud__activity', text: engine.activityName })
+        : null,
       engine.screenName
         ? el('span', { class: 'bhb-hud__screen', text: engine.screenName })
         : null,

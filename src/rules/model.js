@@ -28,6 +28,7 @@ import { isRegionPoint } from '../core/region.js';
  * @property {number} tolerance
  * @property {boolean} enabled
  * @property {string[]} [screens] screen ids this may fire on; empty means any
+ * @property {string | null} [activity] Run-All queue slot; null is the Script set
  */
 
 /** @returns {string} */
@@ -48,6 +49,7 @@ export function createRule(overrides = {}) {
     tolerance: DEFAULT_COLOR_TOLERANCE,
     enabled: true,
     screens: [],
+    activity: null,
     ...overrides,
   };
 }

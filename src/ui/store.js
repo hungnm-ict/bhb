@@ -12,6 +12,7 @@ export const Tab = Object.freeze({
   TASKS: 'tasks',
   RULES: 'rules',
   SCREENS: 'screens',
+  QUEUE: 'queue',
   LOG: 'log',
 });
 
@@ -28,6 +29,8 @@ export function createUiStore() {
     selectedRuleId: null,
     /** @type {string | null} rule under the cursor, in the table or on canvas */
     hoveredRuleId: null,
+    /** @type {string | null} activity id shown in the rules table; null is all */
+    ruleFilter: null,
     /** @type {object[]} newest first */
     log: [],
   };
@@ -59,6 +62,8 @@ export function createUiStore() {
     closePanel: () => patch({ panelOpen: false, hoveredRuleId: null }),
     togglePanel: () => patch({ panelOpen: !state.panelOpen }),
     setTab: (tab) => patch({ tab, panelOpen: true }),
+
+    setRuleFilter: (activityId) => patch({ ruleFilter: activityId }),
 
     selectRule: (id) => patch({ selectedRuleId: id }),
     hoverRule: (id) => patch({ hoveredRuleId: id }),

@@ -3,6 +3,7 @@ export default {
 
   'task.rerun': 'RERUN',
   'task.wb': 'WB SOLO',
+  'task.runAll': 'RUN ALL',
   'task.script': 'SCRIPT',
 
   'phase.hunting': 'hunting',
@@ -13,6 +14,7 @@ export default {
   'tab.tasks': 'Tasks',
   'tab.rules': 'Rules',
   'tab.screens': 'Screens',
+  'tab.queue': 'Run All',
   'tab.log': 'Log',
   'panel.close': 'Close',
 
@@ -34,6 +36,10 @@ export default {
   'rules.moveDown': 'Move down',
   'rules.screenGate': 'Only fire on this screen',
   'rules.anywhere': 'Anywhere',
+  'rules.activity': 'Which activity this rule belongs to',
+  'rules.loose': 'Script only',
+  'rules.allRules': 'All rules',
+  'rules.filter': 'Show only one activity',
   'rules.delete': 'Delete',
 
   'screens.title': 'Screens',
@@ -49,6 +55,14 @@ export default {
   'screens.ratioHint': 'Share of samples matching right now',
   'screen.defaultName': 'Screen {n}',
 
+  'queue.title': 'Activity queue',
+  'queue.start': 'Run all activities',
+  'queue.stop': 'Stop',
+  'queue.round': 'round {n}',
+  'queue.ruleCount': 'Rules tagged to this activity',
+  'queue.closeAfterRound': 'Close the game after a full round',
+  'queue.hint': 'Runs top to bottom, skips what is out of resources, and starts again. Tag rules to an activity in the Rules tab.',
+
   'log.title': 'Activity',
   'log.empty': 'Nothing yet. Start a task to see what the bot does.',
   'log.clear': 'Clear',
@@ -56,6 +70,7 @@ export default {
   'log.busy': 'Matched {label}, busy',
   'log.screen': 'Screen: {label}',
   'log.resource': 'Out of resources at {label} — stopped',
+  'log.activity': 'Queue → {label}',
   'log.taskStarted': 'Started {task}',
   'log.taskStopped': 'Stopped {task}',
 
@@ -68,11 +83,12 @@ export default {
   'help.rerun': 'Auto Rerun (hunt 3s, rest 20s)',
   'help.wb': 'Auto WB Solo (every 2s)',
   'help.script': 'Auto Script (every 3s)',
+  'help.runAll': 'Run every activity in the queue',
   'help.capture': 'Capture a rule at the cursor',
   'help.toggleHelp': 'Show/hide this panel',
   'help.togglePanel': 'Open/close the control panel',
-  'help.speedUp': 'Speed up (+1)',
-  'help.speedDown': 'Slow down (-1)',
+  'help.speedUp': 'Speed up (next stop)',
+  'help.speedDown': 'Slow down (previous stop)',
   'help.footer': 'Stops itself after 3 minutes without a click',
 
   'msg.noCanvas': 'no canvas found',
