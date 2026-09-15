@@ -433,7 +433,7 @@ export function createEngine(deps) {
       restTimer = null;
       if (state.activeTask === TaskId.RERUN) {
         state.phase = Phase.HUNTING;
-        setMessage('rerun: hunting');
+        setMessage('rerun: running');
       }
     }, INTERVAL_RERUN_REST);
 

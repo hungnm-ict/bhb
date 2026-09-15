@@ -6,7 +6,7 @@ export default {
   'task.runAll': 'Run all',
   'task.script': 'Custom',
 
-  'phase.hunting': 'hunting',
+  'phase.hunting': 'running',
   'phase.resting': 'resting',
 
   'hud.idle': 'idle',
