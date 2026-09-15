@@ -10,7 +10,7 @@ import {
 } from '../core/coords.js';
 import { realRequestAnimationFrame } from '../core/timers.js';
 import { HOVER_RESET_POINT } from '../core/constants.js';
-import { createStep } from './step.js';
+import { createStep, StepKind } from './step.js';
 import { t } from '../i18n/index.js';
 
 /**
@@ -206,6 +206,20 @@ export function createStepEditor(deps) {
   }
 
   /** Which Run-All slot a step belongs to; null leaves it in the Script set. */
+  /**
+   * How the step behaves: click it, click it if it happens to be there, or
+   * hold the sequence while it is there.
+   */
+  function setBehaviour(stepId, { kind, optional }) {
+    const step = find(stepId);
+    if (!step) {
+      return;
+    }
+    step.kind = kind === StepKind.WAIT ? StepKind.WAIT : StepKind.CLICK;
+    step.optional = step.kind === StepKind.CLICK && optional === true;
+    deps.persist();
+  }
+
   /** Seconds this step waits after clicking; 0 turns the wait off. */
   function setRest(stepId, seconds) {
     const step = find(stepId);
@@ -254,6 +268,7 @@ export function createStepEditor(deps) {
     setEnabled,
     setScreens,
     setRest,
+    setBehaviour,
     setActivity,
     remove,
     move,

@@ -81,6 +81,29 @@ kết quả, nên chúng là màn hình cần bắt trực tiếp trên game, kh
 
 ---
 
+## Milestone 6 — Bước có điều kiện *(xong)*
+
+Hai chế độ cứng `Re-run` và `Solo WB` đã bị xoá: toạ độ viết sẵn trong mã nguồn
+chỉ đúng trên máy đã bắt chúng, và màu thì không quy đổi được theo cỡ canvas.
+
+- [x] **Chạy riêng một hoạt động** — nút ▶ ở mỗi dòng hàng đợi; "Solo WB" nay là
+      "chạy riêng World Boss" trên bước do người dùng bắt
+- [x] **Nghỉ N giây sau khi bấm** — tuỳ chọn của từng bước, thay cho pha nghỉ
+      cứng của Re-run; dùng cho nút mở trận Dungeon/Raid
+- [x] **Khoá cỡ canvas 640×400** — cùng một cỡ thì cùng một ảnh, điều kiện cần
+      để chia sẻ bộ bước
+- [x] **Bước "Bấm nếu có"** — không thấy thì bỏ qua, không đứng đợi. Dùng cho ô
+      đã tick sẵn như Private
+- [x] **Bước "Chờ đến khi hết"** — còn thấy màu là còn đứng chờ. Đây là cách nói
+      "chờ đủ người rồi mới bấm START" bằng ngôn ngữ màu: nút INVITE của ô trống
+      chính là màu cần chờ cho mất đi
+- [x] **World Boss tách solo / team** — hai chuỗi khác nhau, không phải một chuỗi
+      kèm tuỳ chọn
+
+**Còn nợ:** bước thật cho từng hoạt động — vẫn phải bắt trực tiếp trên game.
+
+---
+
 ## English summary
 
 Milestone 1 (foundations) is done. Milestone 2 adds region matching and screen-state

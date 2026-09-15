@@ -2,7 +2,7 @@ import { getRenderTarget } from './canvas.js';
 import { matchPoint } from './region.js';
 import { clickBufferPoint } from './input.js';
 import { getBufferSize } from './coords.js';
-import { isStepReady, colorForPoint } from '../bot/step.js';
+import { isStepReady, colorForPoint, StepKind } from '../bot/step.js';
 import { detectScreen, stepAllowedOn } from '../bot/screen.js';
 import { stepsForActivity, looseSteps } from '../bot/activity.js';
 import { createEmitter } from './events.js';
@@ -218,7 +218,15 @@ export function createEngine(deps) {
    *
    * @returns {{ step: object, point: object, clicked: boolean } | null}
    */
-  function tryStep(step, canvas, gl, screenId, buffer, scaleMode) {
+  /**
+   * Is this step's colour on screen right now?
+   *
+   * Separate from clicking, because a `wait` step asks the same question and
+   * must not answer it with a click.
+   *
+   * @returns {{ x: number, y: number } | null}
+   */
+  function matchStep(step, gl, screenId, buffer, scaleMode) {
     if (!isStepReady(step)) {
       return null;
     }
@@ -237,10 +245,18 @@ export function createEngine(deps) {
         step.tolerance
       );
       if (hit.matched) {
-        return { step, point: hit.point, clicked: clickBufferPoint(canvas, hit.point) };
+        return hit.point;
       }
     }
     return null;
+  }
+
+  function tryStep(step, canvas, gl, screenId, buffer, scaleMode) {
+    const point = matchStep(step, gl, screenId, buffer, scaleMode);
+    if (!point) {
+      return null;
+    }
+    return { step, point, clicked: clickBufferPoint(canvas, point) };
   }
 
   /** First match wins. Order is priority, and nothing is remembered. */
@@ -285,17 +301,44 @@ export function createEngine(deps) {
 
     const buffer = getBufferSize(canvas);
     const scaleMode = deps.getScaleMode();
-    const expected = steps[cursor.index % steps.length];
-    state.expectedStepId = expected ? expected.id : null;
 
-    const hit = tryStep(expected, canvas, gl, screenId, buffer, scaleMode);
-    if (hit) {
-      cursor.index = (cursor.index + 1) % steps.length;
-      cursor.misses = 0;
-      return hit;
+    // Several steps can be settled in one tick — a gate that has opened, an
+    // optional step with nothing to do — so the cursor walks until it reaches
+    // one that has to wait or one that clicks.
+    for (let hops = 0; hops < steps.length; hops += 1) {
+      const expected = steps[cursor.index % steps.length];
+      state.expectedStepId = expected ? expected.id : null;
+      const point = matchStep(expected, gl, screenId, buffer, scaleMode);
+
+      if (expected.kind === StepKind.WAIT) {
+        // Present means the thing being waited on is still there: hold, and do
+        // not let the resync scan carry the runner past a deliberate wait.
+        if (point) {
+          cursor.misses = 0;
+          setMessage(`${expected.label || expected.id}: waiting`);
+          return null;
+        }
+        cursor.index = (cursor.index + 1) % steps.length;
+        continue;
+      }
+
+      if (point) {
+        cursor.index = (cursor.index + 1) % steps.length;
+        cursor.misses = 0;
+        return { step: expected, point, clicked: clickBufferPoint(canvas, point) };
+      }
+
+      // Optional: there was nothing to do here, which is not the same as being
+      // stuck — the ticked-already checkbox is the whole reason this exists.
+      if (expected.optional) {
+        cursor.index = (cursor.index + 1) % steps.length;
+        continue;
+      }
+
+      cursor.misses += 1;
+      break;
     }
 
-    cursor.misses += 1;
     if (cursor.misses < RESYNC_AFTER_TICKS) {
       // Still waiting for the expected step: taking a later one out of turn is
       // exactly the out-of-order clicking the cursor exists to prevent.

@@ -1,6 +1,6 @@
 import { matchPoint } from '../core/region.js';
 import { getBufferSize } from '../core/coords.js';
-import { isStepReady, colorForPoint } from './step.js';
+import { isStepReady, colorForPoint, StepKind } from './step.js';
 import { stepAllowedOn } from './screen.js';
 
 /**
@@ -11,7 +11,7 @@ import { stepAllowedOn } from './screen.js';
  * bot sitting still. It reads the same pixels through the same matcher, and
  * sends no clicks at all, so it is safe to run mid-fight.
  *
- * @typedef {'match'|'miss'|'gated'|'empty'|'off'} StepVerdict
+ * @typedef {'match'|'miss'|'gated'|'empty'|'off'|'waiting'} StepVerdict
  * @typedef {{ stepId: string, verdict: StepVerdict }} StepScore
  */
 
@@ -46,10 +46,12 @@ export function scoreStep(step, gl, buffer, scaleMode, screenId) {
       step.tolerance
     );
     if (hit.matched) {
-      return 'match';
+      // A wait step matching is the sequence being held, not a step about to
+      // fire — reporting it as a match would read as the opposite of the truth.
+      return step.kind === StepKind.WAIT ? 'waiting' : 'match';
     }
   }
-  return 'miss';
+  return step.kind === StepKind.WAIT ? 'match' : 'miss';
 }
 
 /**

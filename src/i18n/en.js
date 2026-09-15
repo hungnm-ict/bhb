@@ -194,4 +194,9 @@ export default {
   'queue.noSteps': 'No steps are tagged to this activity yet',
 
   'help.speedReset': 'Back to normal speed (1×)',
+
+  'steps.kindClick': 'Click',
+  'steps.kindOptional': 'Click if present',
+  'steps.kindWait': 'Wait until gone',
+  'steps.behaviourHint': 'Click: click when the colour shows, wait otherwise. Click if present: skip straight on when it does not — for a box like Private that may already be ticked. Wait until gone: hold here while the colour is there — for waiting on a party to fill before Start.',
 };

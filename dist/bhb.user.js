@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.10.0
+// @version      0.11.0
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -14,7 +14,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.10.0" : "dev";
+  var VERSION = true ? "0.11.0" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -595,6 +595,10 @@
   }
 
   // src/bot/step.js
+  var StepKind = Object.freeze({
+    CLICK: "click",
+    WAIT: "wait"
+  });
   function createStepId() {
     return `r${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
   }
@@ -617,6 +621,9 @@
        * starts the fight rather than a mode of its own.
        */
       restSec: 0,
+      kind: StepKind.CLICK,
+      /** Skip instead of waiting when it does not match — a box already ticked. */
+      optional: false,
       ...overrides
     };
   }
@@ -685,7 +692,10 @@
     { id: "invasion", name: "Invasion", enabled: true },
     { id: "expedition", name: "Expedition", enabled: true },
     { id: "trials", name: "Trials / Gauntlet", enabled: true },
-    { id: "worldboss", name: "World Boss", enabled: true },
+    // Solo and team are two different sequences, not one with a setting: the
+    // team lobby has a party to wait for and a Private box to get right.
+    { id: "worldboss", name: "World Boss (solo)", enabled: true },
+    { id: "worldbossteam", name: "World Boss (team)", enabled: false },
     { id: "raid", name: "Raid", enabled: true },
     { id: "dungeon", name: "Dungeon", enabled: true }
   ]);
@@ -846,7 +856,7 @@
         remainingMs: state.activeTask ? Math.max(0, AUTO_STOP_TIMEOUT - (realNow() - state.lastActionAt)) : 0
       };
     }
-    function tryStep(step, canvas, gl, screenId, buffer, scaleMode) {
+    function matchStep(step, gl, screenId, buffer, scaleMode) {
       if (!isStepReady(step)) {
         return null;
       }
@@ -863,10 +873,17 @@
           step.tolerance
         );
         if (hit.matched) {
-          return { step, point: hit.point, clicked: clickBufferPoint(canvas, hit.point) };
+          return hit.point;
         }
       }
       return null;
+    }
+    function tryStep(step, canvas, gl, screenId, buffer, scaleMode) {
+      const point = matchStep(step, gl, screenId, buffer, scaleMode);
+      if (!point) {
+        return null;
+      }
+      return { step, point, clicked: clickBufferPoint(canvas, point) };
     }
     function runSteps(steps, canvas, gl, screenId) {
       const buffer = getBufferSize(canvas);
@@ -891,15 +908,31 @@
       }
       const buffer = getBufferSize(canvas);
       const scaleMode = deps.getScaleMode();
-      const expected = steps[cursor.index % steps.length];
-      state.expectedStepId = expected ? expected.id : null;
-      const hit = tryStep(expected, canvas, gl, screenId, buffer, scaleMode);
-      if (hit) {
-        cursor.index = (cursor.index + 1) % steps.length;
-        cursor.misses = 0;
-        return hit;
+      for (let hops = 0; hops < steps.length; hops += 1) {
+        const expected = steps[cursor.index % steps.length];
+        state.expectedStepId = expected ? expected.id : null;
+        const point = matchStep(expected, gl, screenId, buffer, scaleMode);
+        if (expected.kind === StepKind.WAIT) {
+          if (point) {
+            cursor.misses = 0;
+            setMessage(`${expected.label || expected.id}: waiting`);
+            return null;
+          }
+          cursor.index = (cursor.index + 1) % steps.length;
+          continue;
+        }
+        if (point) {
+          cursor.index = (cursor.index + 1) % steps.length;
+          cursor.misses = 0;
+          return { step: expected, point, clicked: clickBufferPoint(canvas, point) };
+        }
+        if (expected.optional) {
+          cursor.index = (cursor.index + 1) % steps.length;
+          continue;
+        }
+        cursor.misses += 1;
+        break;
       }
-      cursor.misses += 1;
       if (cursor.misses < RESYNC_AFTER_TICKS) {
         return null;
       }
@@ -1259,6 +1292,16 @@
       })
     );
   }
+  function mergeActivities(stored) {
+    if (!Array.isArray(stored) || stored.length === 0) {
+      return createDefaultActivities();
+    }
+    const known = new Set(stored.map((activity) => activity && activity.id));
+    const added = DEFAULT_ACTIVITIES.filter((activity) => !known.has(activity.id)).map(
+      (activity) => ({ ...activity, enabled: false })
+    );
+    return [...stored, ...added];
+  }
   function normaliseState(candidate) {
     if (!candidate || typeof candidate !== "object" || !Array.isArray(candidate.profiles) || candidate.profiles.length === 0) {
       return createDefaultState();
@@ -1269,7 +1312,7 @@
       // v4 and earlier called them rules; the same objects, under the old name.
       steps: Array.isArray(profile.steps) ? profile.steps : Array.isArray(profile.rules) ? profile.rules : [],
       screens: Array.isArray(profile.screens) ? profile.screens : [],
-      activities: Array.isArray(profile.activities) && profile.activities.length > 0 ? profile.activities : createDefaultActivities()
+      activities: mergeActivities(profile.activities)
     }));
     if (profiles.length === 0) {
       return createDefaultState();
@@ -1831,7 +1874,11 @@
     "queue.runSolo": "Chạy riêng hoạt động này",
     "queue.stopSolo": "Dừng",
     "queue.noSteps": "Chưa có bước nào gán cho hoạt động này",
-    "help.speedReset": "Về tốc độ thường (1×)"
+    "help.speedReset": "Về tốc độ thường (1×)",
+    "steps.kindClick": "Bấm",
+    "steps.kindOptional": "Bấm nếu có",
+    "steps.kindWait": "Chờ đến khi hết",
+    "steps.behaviourHint": "Bấm: thấy màu thì bấm, chưa thấy thì đợi. Bấm nếu có: không thấy thì bỏ qua luôn, sang bước sau — dùng cho ô tick sẵn như Private. Chờ đến khi hết: còn thấy màu là còn đứng chờ, mất mới đi tiếp — dùng để chờ đủ người trước khi bấm START."
   };
 
   // src/i18n/en.js
@@ -2002,7 +2049,11 @@
     "queue.runSolo": "Run this activity on its own",
     "queue.stopSolo": "Stop",
     "queue.noSteps": "No steps are tagged to this activity yet",
-    "help.speedReset": "Back to normal speed (1×)"
+    "help.speedReset": "Back to normal speed (1×)",
+    "steps.kindClick": "Click",
+    "steps.kindOptional": "Click if present",
+    "steps.kindWait": "Wait until gone",
+    "steps.behaviourHint": "Click: click when the colour shows, wait otherwise. Click if present: skip straight on when it does not — for a box like Private that may already be ticked. Wait until gone: hold here while the colour is there — for waiting on a party to fill before Start."
   };
 
   // src/i18n/index.js
@@ -2146,6 +2197,15 @@
       step.screens = screenIds;
       deps.persist();
     }
+    function setBehaviour(stepId, { kind, optional }) {
+      const step = find(stepId);
+      if (!step) {
+        return;
+      }
+      step.kind = kind === StepKind.WAIT ? StepKind.WAIT : StepKind.CLICK;
+      step.optional = step.kind === StepKind.CLICK && optional === true;
+      deps.persist();
+    }
     function setRest(stepId, seconds) {
       const step = find(stepId);
       if (!step) {
@@ -2188,6 +2248,7 @@
       setEnabled,
       setScreens,
       setRest,
+      setBehaviour,
       setActivity,
       remove,
       move
@@ -2358,10 +2419,10 @@
         step.tolerance
       );
       if (hit.matched) {
-        return "match";
+        return step.kind === StepKind.WAIT ? "waiting" : "match";
       }
     }
-    return "miss";
+    return step.kind === StepKind.WAIT ? "match" : "miss";
   }
   function scoreSteps(steps, target, scaleMode, screenId) {
     if (!target) {
@@ -2941,6 +3002,7 @@
 .bhb-mark--match { border-color: var(--bhb-live); box-shadow: 0 0 0 2px rgba(61, 220, 151, .35); }
 .bhb-mark--miss { border-color: var(--bhb-danger); opacity: .75; }
 .bhb-mark--gated { border-color: var(--bhb-dim); opacity: .45; }
+.bhb-mark--waiting { border-color: var(--bhb-warn); box-shadow: 0 0 0 2px rgba(255, 180, 87, .3); }
 .bhb-mark--testing { transform: translate(-50%, -50%) scale(1.45); z-index: 1; }
 .bhb-mark__n { color: var(--bhb-text); font-family: var(--bhb-mono); font-size: var(--bhb-fs-xs); font-weight: 700; }
 .bhb-mark__swatch {
@@ -3592,6 +3654,24 @@
         deps.store.forgetStep(step.id);
         deps.refresh();
       });
+      const behaviour = el("select", { class: "bhb-rule__gate", title: t("steps.behaviourHint") });
+      for (const [value, labelKey] of [
+        ["click", "steps.kindClick"],
+        ["optional", "steps.kindOptional"],
+        ["wait", "steps.kindWait"]
+      ]) {
+        const option = el("option", { text: t(labelKey) });
+        option.value = value;
+        behaviour.append(option);
+      }
+      behaviour.value = step.kind === StepKind.WAIT ? "wait" : step.optional ? "optional" : "click";
+      behaviour.addEventListener("change", () => {
+        deps.stepEditor.setBehaviour(step.id, {
+          kind: behaviour.value === "wait" ? StepKind.WAIT : StepKind.CLICK,
+          optional: behaviour.value === "optional"
+        });
+        deps.refresh();
+      });
       const rest = el("input", { class: "bhb-rest bhb-mono", title: t("steps.restHint") });
       rest.type = "number";
       rest.min = "0";
@@ -3622,6 +3702,7 @@
           el("span", { class: "bhb-rule__actions" }, [toggle, up, down, remove])
         ]),
         el("div", { class: "bhb-rule__meta" }, [
+          behaviour,
           rest,
           el("span", { class: "bhb-rule__meta-coord" }, [
             el("span", {

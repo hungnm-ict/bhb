@@ -6,7 +6,7 @@ import {
 } from './constants.js';
 import { createStep } from '../bot/step.js';
 import { ScaleMode } from './coords.js';
-import { createDefaultActivities } from '../bot/activity.js';
+import { createDefaultActivities, DEFAULT_ACTIVITIES } from '../bot/activity.js';
 import { normaliseNotifyConfig } from './notify.js';
 
 /**
@@ -93,6 +93,25 @@ function importLegacySteps() {
     );
 }
 
+/**
+ * Keep the user's list and order, and add anything new since they saved it.
+ *
+ * A profile stores its own activity list, so a default added later — World Boss
+ * split into solo and team — would never reach anyone who had already used the
+ * bot. New entries land at the end rather than in the default order, because
+ * the order is the user's.
+ */
+function mergeActivities(stored) {
+  if (!Array.isArray(stored) || stored.length === 0) {
+    return createDefaultActivities();
+  }
+  const known = new Set(stored.map((activity) => activity && activity.id));
+  const added = DEFAULT_ACTIVITIES.filter((activity) => !known.has(activity.id)).map(
+    (activity) => ({ ...activity, enabled: false })
+  );
+  return [...stored, ...added];
+}
+
 /** @param {unknown} candidate @returns {ProfileState} */
 function normaliseState(candidate) {
   if (
@@ -116,10 +135,7 @@ function normaliseState(candidate) {
           ? profile.rules
           : [],
       screens: Array.isArray(profile.screens) ? profile.screens : [],
-      activities:
-        Array.isArray(profile.activities) && profile.activities.length > 0
-          ? profile.activities
-          : createDefaultActivities(),
+      activities: mergeActivities(profile.activities),
     }));
 
   if (profiles.length === 0) {

@@ -32,6 +32,19 @@ import { isRegionPoint } from '../core/region.js';
  */
 
 /** @returns {string} */
+/**
+ * What a step does when its colour is on screen.
+ *
+ * `WAIT` is the one that is not a click: it holds the sequence while its colour
+ * is present, which is how "wait until the party has three players" is said in
+ * a language made of colours — the empty slot's INVITE button is the colour,
+ * and its absence is the condition.
+ */
+export const StepKind = Object.freeze({
+  CLICK: 'click',
+  WAIT: 'wait',
+});
+
 export function createStepId() {
   return `r${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
 }
@@ -59,6 +72,9 @@ export function createStep(overrides = {}) {
      * starts the fight rather than a mode of its own.
      */
     restSec: 0,
+    kind: StepKind.CLICK,
+    /** Skip instead of waiting when it does not match — a box already ticked. */
+    optional: false,
     ...overrides,
   };
 }
