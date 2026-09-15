@@ -18,6 +18,17 @@ import { isLegacyPoint } from '../../core/coords.js';
  * @param {object} deps.editor
  * @param {() => void} deps.refresh
  */
+/** @type {Map<string, HTMLElement>} rule id to its row, for highlighting */
+const rows = new Map();
+
+/** Lighting a row is a class change; it never needs the table rebuilt. */
+export function highlightRules(state) {
+  for (const [ruleId, row] of rows) {
+    row.classList.toggle('is-selected', state.selectedRuleId === ruleId);
+    row.classList.toggle('is-hovered', state.hoveredRuleId === ruleId);
+  }
+}
+
 export function renderRulesTab(deps) {
   const all = deps.getRules();
   const state = deps.store.get();
@@ -68,7 +79,8 @@ export function renderRulesTab(deps) {
     return el('div', { class: 'bhb-tab' }, [head, el('p', { class: 'bhb-empty', text: t('overlay.noRules') })]);
   }
 
-  const rows = rules.map((rule, index) => {
+  rows.clear();
+  const ruleRows = rules.map((rule, index) => {
     const point = rule.points[0];
     const legacy = point && isLegacyPoint(point);
 
@@ -167,8 +179,9 @@ export function renderRulesTab(deps) {
     row.addEventListener('mouseleave', () => deps.store.hoverRule(null));
     row.addEventListener('click', () => deps.store.selectRule(rule.id));
 
+    rows.set(rule.id, row);
     return row;
   });
 
-  return el('div', { class: 'bhb-tab' }, [head, el('div', { class: 'bhb-rules' }, rows)]);
+  return el('div', { class: 'bhb-tab' }, [head, el('div', { class: 'bhb-rules' }, ruleRows)]);
 }

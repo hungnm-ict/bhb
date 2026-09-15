@@ -97,7 +97,7 @@ export default {
   'log.taskStopped': 'Tắt {task}',
 
   'help.title': 'PHÍM TẮT',
-  'help.close': 'Bấm 1 để đóng',
+  'help.close': 'Bấm lại dấu ? để đóng',
   'help.sectionAuto': 'Tự động',
   'help.sectionRules': 'Rule',
   'help.sectionUi': 'Giao diện',
@@ -107,7 +107,6 @@ export default {
   'help.script': 'Auto Script (3s/lần)',
   'help.runAll': 'Chạy lần lượt mọi hoạt động trong hàng đợi',
   'help.capture': 'Bắt rule tại con trỏ',
-  'help.toggleHelp': 'Hiện/ẩn bảng này',
   'help.togglePanel': 'Mở/đóng bảng điều khiển',
   'help.speedUp': 'Nhanh hơn (mốc kế tiếp)',
   'help.speedDown': 'Chậm lại (mốc trước đó)',

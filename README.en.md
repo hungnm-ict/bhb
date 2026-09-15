@@ -44,7 +44,7 @@ After that the script **updates itself** — no reinstalling. Tampermonkey check
 
 A small **HUD** sits in the top-right corner of the game: a status dot, the speed, and a line saying what the bot is doing. It fades after 4 seconds so it stops covering the game; hovering brings it back.
 
-Click it (or press `2`) to open the **control panel**, which has six tabs:
+Click it (or press `1`) to open the **control panel**, which has six tabs:
 
 | Tab | Contents |
 |---|---|
@@ -54,6 +54,8 @@ Click it (or press `2`) to open the **control panel**, which has six tabs:
 | **Run All** | The activity queue: enable, reorder, and the round it is on |
 | **Settings** | Profiles (one per character), reload-on-hang, language, export/import |
 | **Log** | What the bot has actually done, newest first |
+
+The keyboard reference lives behind the **?** in the panel header. It has no hotkey of its own: a panel that explains the hotkeys is the last thing that should occupy one.
 
 With the **Rules** tab open, every rule is drawn as a **marker on the canvas** at the position it watches. Hovering a row lights its marker and the other way round, so you can see which button a rule points at.
 
@@ -67,8 +69,7 @@ The bot handles the hover problem for you: it parks the **synthetic** pointer in
 
 | Key | Action |
 |:---:|---|
-| `1` | Show/hide the keyboard reference |
-| `2` | Open/close the control panel |
+| `1` | Open/close the control panel |
 | `3` | Auto Rerun — polls every 3s, rests 20s after a click |
 | `4` | Auto World Boss Solo — polls every 2s |
 | `5` | Auto Script — runs your own rules, every 3s |

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.4.0
+// @version      0.4.1
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -14,7 +14,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.4.0" : "dev";
+  var VERSION = true ? "0.4.1" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -299,8 +299,8 @@
       y: Math.round(relY * canvas.height)
     };
   }
-  function bufferToClient(canvas, bufferX, bufferY) {
-    const rect = canvas.getBoundingClientRect();
+  function bufferToClient(canvas, bufferX, bufferY, knownRect) {
+    const rect = knownRect || canvas.getBoundingClientRect();
     return {
       clientX: rect.left + bufferX / canvas.width * rect.width,
       clientY: rect.bottom - bufferY / canvas.height * rect.height
@@ -1300,7 +1300,7 @@
     "log.taskStarted": "Bật {task}",
     "log.taskStopped": "Tắt {task}",
     "help.title": "PHÍM TẮT",
-    "help.close": "Bấm 1 để đóng",
+    "help.close": "Bấm lại dấu ? để đóng",
     "help.sectionAuto": "Tự động",
     "help.sectionRules": "Rule",
     "help.sectionUi": "Giao diện",
@@ -1310,7 +1310,6 @@
     "help.script": "Auto Script (3s/lần)",
     "help.runAll": "Chạy lần lượt mọi hoạt động trong hàng đợi",
     "help.capture": "Bắt rule tại con trỏ",
-    "help.toggleHelp": "Hiện/ẩn bảng này",
     "help.togglePanel": "Mở/đóng bảng điều khiển",
     "help.speedUp": "Nhanh hơn (mốc kế tiếp)",
     "help.speedDown": "Chậm lại (mốc trước đó)",
@@ -1410,7 +1409,7 @@
     "log.taskStarted": "Started {task}",
     "log.taskStopped": "Stopped {task}",
     "help.title": "KEYBOARD",
-    "help.close": "Press 1 to close",
+    "help.close": "Click the ? again to close",
     "help.sectionAuto": "Automation",
     "help.sectionRules": "Rules",
     "help.sectionUi": "Interface",
@@ -1420,7 +1419,6 @@
     "help.script": "Auto Script (every 3s)",
     "help.runAll": "Run every activity in the queue",
     "help.capture": "Capture a rule at the cursor",
-    "help.toggleHelp": "Show/hide this panel",
     "help.togglePanel": "Open/close the control panel",
     "help.speedUp": "Speed up (next stop)",
     "help.speedDown": "Slow down (previous stop)",
@@ -2121,25 +2119,32 @@
       /** @type {object[]} newest first */
       log: []
     };
+    const HIGHLIGHT_KEYS = /* @__PURE__ */ new Set(["selectedRuleId", "hoveredRuleId"]);
     function emit() {
       emitter.emit("change", state);
     }
     function patch(changes) {
-      let changed = false;
+      const changed = [];
       for (const [key, value] of Object.entries(changes)) {
         if (state[key] !== value) {
           state[key] = value;
-          changed = true;
+          changed.push(key);
         }
       }
-      if (changed) {
+      if (changed.length === 0) {
+        return false;
+      }
+      if (changed.every((key) => HIGHLIGHT_KEYS.has(key))) {
+        emitter.emit("highlight", state);
+      } else {
         emit();
       }
-      return changed;
+      return true;
     }
     return {
       get: () => state,
       subscribe: (handler) => emitter.on("change", handler),
+      onHighlight: (handler) => emitter.on("highlight", handler),
       openPanel: () => patch({ panelOpen: true }),
       closePanel: () => patch({ panelOpen: false, hoveredRuleId: null }),
       togglePanel: () => patch({ panelOpen: !state.panelOpen }),
@@ -2279,7 +2284,7 @@
   function renderTasksTab(deps) {
     const engine = deps.getEngineState();
     const speed2 = getSpeed();
-    const rows = TASKS.map(([taskId, labelKey, key]) => {
+    const rows2 = TASKS.map(([taskId, labelKey, key]) => {
       const on = engine.activeTask === taskId;
       const phase = on && taskId === TaskId.RERUN ? t(engine.phase === Phase.RESTING ? "phase.resting" : "phase.hunting") : "";
       const button = el("button", { class: `bhb-task ${on ? "is-on" : ""}` }, [
@@ -2305,7 +2310,7 @@
       deps.refresh();
     });
     return el("div", { class: "bhb-tab" }, [
-      el("div", { class: "bhb-stack" }, rows),
+      el("div", { class: "bhb-stack" }, rows2),
       el("div", { class: "bhb-field" }, [
         el("div", { class: "bhb-field__head" }, [
           el("span", { class: "bhb-label", text: t("overlay.speed") }),
@@ -2326,6 +2331,13 @@
   }
 
   // src/ui/panel/rules.js
+  var rows = /* @__PURE__ */ new Map();
+  function highlightRules(state) {
+    for (const [ruleId, row] of rows) {
+      row.classList.toggle("is-selected", state.selectedRuleId === ruleId);
+      row.classList.toggle("is-hovered", state.hoveredRuleId === ruleId);
+    }
+  }
   function renderRulesTab(deps) {
     const all = deps.getRules();
     const state = deps.store.get();
@@ -2370,7 +2382,8 @@
     if (rules.length === 0) {
       return el("div", { class: "bhb-tab" }, [head, el("p", { class: "bhb-empty", text: t("overlay.noRules") })]);
     }
-    const rows = rules.map((rule, index) => {
+    rows.clear();
+    const ruleRows = rules.map((rule, index) => {
       const point2 = rule.points[0];
       const legacy = point2 && isLegacyPoint(point2);
       const name = el("input", { class: "bhb-rule__name" });
@@ -2458,9 +2471,10 @@
       row.addEventListener("mouseenter", () => deps.store.hoverRule(rule.id));
       row.addEventListener("mouseleave", () => deps.store.hoverRule(null));
       row.addEventListener("click", () => deps.store.selectRule(rule.id));
+      rows.set(rule.id, row);
       return row;
     });
-    return el("div", { class: "bhb-tab" }, [head, el("div", { class: "bhb-rules" }, rows)]);
+    return el("div", { class: "bhb-tab" }, [head, el("div", { class: "bhb-rules" }, ruleRows)]);
   }
 
   // src/ui/dragselect.js
@@ -2586,7 +2600,7 @@
         el("p", { class: "bhb-empty", text: t("screens.empty") })
       ]);
     }
-    const rows = screens.map((screen, index) => {
+    const rows2 = screens.map((screen, index) => {
       const probe = deps.screenEditor.probe(screen.id);
       const name = el("input", { class: "bhb-rule__name" });
       name.value = screen.name || "";
@@ -2660,7 +2674,7 @@
         ])
       ]);
     });
-    return el("div", { class: "bhb-tab" }, [head, el("div", { class: "bhb-rules" }, rows)]);
+    return el("div", { class: "bhb-tab" }, [head, el("div", { class: "bhb-rules" }, rows2)]);
   }
 
   // src/ui/panel/queue.js
@@ -2703,7 +2717,7 @@
       ]),
       el("p", { class: "bhb-note", text: t("queue.hint") })
     ]);
-    const rows = activities.map((activity, index) => {
+    const rows2 = activities.map((activity, index) => {
       const count = rulesForActivity(rules, activity.id).length;
       const toggle = el("button", {
         class: `bhb-icon ${activity.enabled ? "is-on" : ""}`,
@@ -2749,7 +2763,7 @@
         el("span", { class: "bhb-rule__actions" }, [toggle, up, down])
       ]);
     });
-    return el("div", { class: "bhb-tab" }, [head, el("div", { class: "bhb-rules" }, rows)]);
+    return el("div", { class: "bhb-tab" }, [head, el("div", { class: "bhb-rules" }, rows2)]);
   }
 
   // src/ui/panel/settings.js
@@ -2922,7 +2936,7 @@
     if (entries.length === 0) {
       return el("div", { class: "bhb-tab" }, [el("p", { class: "bhb-empty", text: t("log.empty") })]);
     }
-    const rows = entries.map(
+    const rows2 = entries.map(
       (entry) => el("div", { class: `bhb-log__row bhb-log__row--${entry.kind}` }, [
         el("span", { class: "bhb-log__time bhb-mono", text: clock(entry.at) }),
         el("span", { class: "bhb-log__icon", text: KIND_ICON[entry.kind] || "·" }),
@@ -2938,7 +2952,7 @@
         el("span", { class: "bhb-label", text: `${t("log.title")} · ${entries.length}` }),
         clear
       ]),
-      el("div", { class: "bhb-log" }, rows)
+      el("div", { class: "bhb-log" }, rows2)
     ]);
   }
 
@@ -2986,6 +3000,8 @@
         return;
       }
       target.style.display = "flex";
+      const help = el("button", { class: "bhb-icon", title: t("help.title"), text: "?" });
+      help.addEventListener("click", () => deps.toggleHelp());
       const close = el("button", { class: "bhb-icon", title: t("panel.close"), text: "✕" });
       close.addEventListener("click", () => {
         deps.store.closePanel();
@@ -3009,31 +3025,36 @@
             el("span", { class: "bhb-panel__ver", text: `v${VERSION}` })
           ]),
           el("span", { class: "bhb-panel__profile", text: deps.getProfileName() }),
+          help,
           close
         ]),
         el("nav", { class: "bhb-tabs" }, tabs),
         el("div", { class: "bhb-panel__body" }, [renderBody(state.tab)])
       );
     }
-    return { render };
+    function highlight() {
+      highlightRules(deps.store.get());
+    }
+    return { render, highlight };
   }
 
   // src/ui/markers.js
   function createMarkerLayer(deps) {
     let layer = null;
+    const nodes = /* @__PURE__ */ new Map();
     function ensureLayer() {
       if (!layer) {
         layer = mount(el("div", { class: "bhb-markers" }));
       }
       return layer;
     }
-    function markerFor(rule, index, canvas, buffer) {
+    function markerFor(rule, index, canvas, buffer, rect) {
       const stored = rule.points[0];
       if (!stored) {
         return null;
       }
       const resolved = resolvePoint(stored, buffer, deps.getScaleMode());
-      const pos = bufferToClient(canvas, resolved.x, resolved.y);
+      const pos = bufferToClient(canvas, resolved.x, resolved.y, rect);
       const state = deps.store.get();
       const classes = ["bhb-mark"];
       if (!rule.enabled) {
@@ -3066,6 +3087,7 @@
       });
       node.addEventListener("mouseenter", () => deps.store.hoverRule(rule.id));
       node.addEventListener("mouseleave", () => deps.store.hoverRule(null));
+      nodes.set(rule.id, node);
       return node;
     }
     function render() {
@@ -3073,6 +3095,7 @@
       if (!deps.store.markersVisible()) {
         node.style.display = "none";
         node.replaceChildren();
+        nodes.clear();
         return;
       }
       const canvas = getCanvas();
@@ -3082,10 +3105,19 @@
       }
       node.style.display = "block";
       const buffer = getBufferSize(canvas);
-      const marks = deps.getRules().map((rule, index) => markerFor(rule, index, canvas, buffer)).filter(Boolean);
+      const rect = canvas.getBoundingClientRect();
+      nodes.clear();
+      const marks = deps.getRules().map((rule, index) => markerFor(rule, index, canvas, buffer, rect)).filter(Boolean);
       node.replaceChildren(...marks);
     }
-    return { render };
+    function highlight() {
+      const state = deps.store.get();
+      for (const [ruleId, marker] of nodes) {
+        marker.classList.toggle("bhb-mark--selected", state.selectedRuleId === ruleId);
+        marker.classList.toggle("bhb-mark--hovered", state.hoveredRuleId === ruleId);
+      }
+    }
+    return { render, highlight };
   }
 
   // src/ui/help.js
@@ -3108,8 +3140,7 @@
     {
       title: "help.sectionUi",
       entries: [
-        ["1", "help.toggleHelp"],
-        ["2", "help.togglePanel"]
+        ["1", "help.togglePanel"]
       ]
     },
     {
@@ -3152,7 +3183,13 @@
         panel = mount(build());
       }
     }
-    return { toggle, isVisible: () => visible };
+    function close() {
+      if (!visible) {
+        return;
+      }
+      toggle();
+    }
+    return { toggle, close, isVisible: () => visible };
   }
 
   // src/ui/hotkeys.js
@@ -3165,7 +3202,7 @@
       if (target instanceof HTMLElement && target.isContentEditable) {
         return;
       }
-      if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
+      if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement) {
         return;
       }
       const handler = bindings[event.key];
@@ -3235,6 +3272,14 @@
       panel.render();
       markers.render();
     };
+    const LIVE_TABS = /* @__PURE__ */ new Set([Tab.TASKS, Tab.SCREENS, Tab.QUEUE]);
+    const refreshLive = () => {
+      hud.render();
+      const state = store.get();
+      if (state.panelOpen && LIVE_TABS.has(state.tab)) {
+        panel.render();
+      }
+    };
     const hud = createHud({ getEngineState: engine.getState, store });
     const profileActions = {
       list: () => profileState.profiles.map(({ id, name }) => ({ id, name })),
@@ -3295,6 +3340,7 @@
       getEngineState: engine.getState,
       toggleTask: engine.toggle,
       getProfileName: () => getActiveProfile(profileState).name,
+      toggleHelp: () => help.toggle(),
       refresh: () => refresh()
     });
     const markers = createMarkerLayer({
@@ -3319,10 +3365,14 @@
       }
     });
     store.subscribe(() => refresh());
+    store.onHighlight(() => {
+      panel.highlight();
+      markers.highlight();
+    });
     onSpeedChange(() => refresh());
     installHotkeys({
-      "1": () => help.toggle(),
-      "2": () => store.togglePanel(),
+      // The keyboard reference has no key of its own; it opens from the panel.
+      "1": () => store.togglePanel(),
       "3": () => engine.toggle(TaskId.RERUN),
       "4": () => engine.toggle(TaskId.WORLD_BOSS),
       "5": () => engine.toggle(TaskId.SCRIPT),
@@ -3334,7 +3384,7 @@
     });
     refresh();
     hud.wake();
-    realSetInterval(refresh, UI_REFRESH_MS);
+    realSetInterval(refreshLive, UI_REFRESH_MS);
     window.addEventListener("resize", () => markers.render());
     resumeAfterReload(engine, watchdog);
     console.info("[BHB] ready — press 1 for the keyboard reference");

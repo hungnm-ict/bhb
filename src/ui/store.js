@@ -36,28 +36,41 @@ export function createUiStore() {
     log: [],
   };
 
+  /**
+   * Hover and selection change nothing but which row is lit, so they are
+   * announced separately: rebuilding the panel on every mouseenter replaced
+   * the row under the cursor twice a second and felt like lag.
+   */
+  const HIGHLIGHT_KEYS = new Set(['selectedRuleId', 'hoveredRuleId']);
+
   function emit() {
     emitter.emit('change', state);
   }
 
   /** Assign only if something actually differs, so views do not churn. */
   function patch(changes) {
-    let changed = false;
+    const changed = [];
     for (const [key, value] of Object.entries(changes)) {
       if (state[key] !== value) {
         state[key] = value;
-        changed = true;
+        changed.push(key);
       }
     }
-    if (changed) {
+    if (changed.length === 0) {
+      return false;
+    }
+    if (changed.every((key) => HIGHLIGHT_KEYS.has(key))) {
+      emitter.emit('highlight', state);
+    } else {
       emit();
     }
-    return changed;
+    return true;
   }
 
   return {
     get: () => state,
     subscribe: (handler) => emitter.on('change', handler),
+    onHighlight: (handler) => emitter.on('highlight', handler),
 
     openPanel: () => patch({ panelOpen: true }),
     closePanel: () => patch({ panelOpen: false, hoveredRuleId: null }),

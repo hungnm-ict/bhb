@@ -37,7 +37,7 @@ import { createScreenEditor } from './rules/screen-editor.js';
 import { createQueueEditor } from './rules/queue-editor.js';
 import { setLanguage } from './i18n/index.js';
 import { installStyles } from './ui/styles.js';
-import { createUiStore } from './ui/store.js';
+import { createUiStore, Tab } from './ui/store.js';
 import { createHud } from './ui/hud.js';
 import { createPanel } from './ui/panel/index.js';
 import { createMarkerLayer } from './ui/markers.js';
@@ -105,6 +105,17 @@ function bootstrap() {
     markers.render();
   };
 
+  /** Tabs whose contents change on their own: a countdown, a probe, a queue. */
+  const LIVE_TABS = new Set([Tab.TASKS, Tab.SCREENS, Tab.QUEUE]);
+
+  const refreshLive = () => {
+    hud.render();
+    const state = store.get();
+    if (state.panelOpen && LIVE_TABS.has(state.tab)) {
+      panel.render();
+    }
+  };
+
   const hud = createHud({ getEngineState: engine.getState, store });
 
   const profileActions = {
@@ -167,6 +178,7 @@ function bootstrap() {
     getEngineState: engine.getState,
     toggleTask: engine.toggle,
     getProfileName: () => getActiveProfile(profileState).name,
+    toggleHelp: () => help.toggle(),
     refresh: () => refresh(),
   });
 
@@ -196,11 +208,16 @@ function bootstrap() {
     }
   });
   store.subscribe(() => refresh());
+  // Hover and selection only light a row, so they never rebuild the panel.
+  store.onHighlight(() => {
+    panel.highlight();
+    markers.highlight();
+  });
   onSpeedChange(() => refresh());
 
   installHotkeys({
-    '1': () => help.toggle(),
-    '2': () => store.togglePanel(),
+    // The keyboard reference has no key of its own; it opens from the panel.
+    '1': () => store.togglePanel(),
     '3': () => engine.toggle(TaskId.RERUN),
     '4': () => engine.toggle(TaskId.WORLD_BOSS),
     '5': () => engine.toggle(TaskId.SCRIPT),
@@ -213,8 +230,9 @@ function bootstrap() {
 
   refresh();
   hud.wake();
-  // The countdown and the canvas readout are time-based, not event-based.
-  realSetInterval(refresh, UI_REFRESH_MS);
+  // Only the tabs that show live numbers are worth redrawing on a timer.
+  // Redrawing the rules table twice a second ate the caret out of its inputs.
+  realSetInterval(refreshLive, UI_REFRESH_MS);
   // Markers are positioned from the live canvas box, so a resize moves them.
   window.addEventListener('resize', () => markers.render());
 

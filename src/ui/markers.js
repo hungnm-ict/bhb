@@ -23,6 +23,8 @@ import { bufferToClient, resolvePoint, getBufferSize, isLegacyPoint } from '../c
 export function createMarkerLayer(deps) {
   /** @type {HTMLElement | null} */
   let layer = null;
+  /** @type {Map<string, HTMLElement>} rule id to its marker, for highlighting */
+  const nodes = new Map();
 
   function ensureLayer() {
     if (!layer) {
@@ -31,14 +33,14 @@ export function createMarkerLayer(deps) {
     return layer;
   }
 
-  function markerFor(rule, index, canvas, buffer) {
+  function markerFor(rule, index, canvas, buffer, rect) {
     const stored = rule.points[0];
     if (!stored) {
       return null;
     }
 
     const resolved = resolvePoint(stored, buffer, deps.getScaleMode());
-    const pos = bufferToClient(canvas, resolved.x, resolved.y);
+    const pos = bufferToClient(canvas, resolved.x, resolved.y, rect);
 
     const state = deps.store.get();
     const classes = ['bhb-mark'];
@@ -75,6 +77,7 @@ export function createMarkerLayer(deps) {
     node.addEventListener('mouseenter', () => deps.store.hoverRule(rule.id));
     node.addEventListener('mouseleave', () => deps.store.hoverRule(null));
 
+    nodes.set(rule.id, node);
     return node;
   }
 
@@ -84,6 +87,7 @@ export function createMarkerLayer(deps) {
     if (!deps.store.markersVisible()) {
       node.style.display = 'none';
       node.replaceChildren();
+      nodes.clear();
       return;
     }
 
@@ -95,13 +99,25 @@ export function createMarkerLayer(deps) {
 
     node.style.display = 'block';
     const buffer = getBufferSize(canvas);
+    // One layout query for the whole layer, not one per marker.
+    const rect = canvas.getBoundingClientRect();
+    nodes.clear();
     const marks = deps
       .getRules()
-      .map((rule, index) => markerFor(rule, index, canvas, buffer))
+      .map((rule, index) => markerFor(rule, index, canvas, buffer, rect))
       .filter(Boolean);
 
     node.replaceChildren(...marks);
   }
 
-  return { render };
+  /** Lighting a marker is a class change; it never needs the layer rebuilt. */
+  function highlight() {
+    const state = deps.store.get();
+    for (const [ruleId, marker] of nodes) {
+      marker.classList.toggle('bhb-mark--selected', state.selectedRuleId === ruleId);
+      marker.classList.toggle('bhb-mark--hovered', state.hoveredRuleId === ruleId);
+    }
+  }
+
+  return { render, highlight };
 }

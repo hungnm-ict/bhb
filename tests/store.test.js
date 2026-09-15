@@ -63,3 +63,31 @@ describe('ui store', () => {
     expect(store.markersVisible()).toBe(false);
   });
 });
+
+describe('highlight is not a rebuild', () => {
+  it('announces hover and selection separately from other changes', () => {
+    const store = createUiStore();
+    const changes = [];
+    const highlights = [];
+    store.subscribe(() => changes.push(1));
+    store.onHighlight(() => highlights.push(1));
+
+    store.hoverRule('r1');
+    store.selectRule('r1');
+    expect(highlights, 'hovering must not redraw the panel').toHaveLength(2);
+    expect(changes).toHaveLength(0);
+
+    store.setTab('rules');
+    expect(changes, 'a tab change is a real change').toHaveLength(1);
+  });
+
+  it('says nothing at all when the value is unchanged', () => {
+    const store = createUiStore();
+    const highlights = [];
+    store.onHighlight(() => highlights.push(1));
+
+    store.hoverRule('r1');
+    store.hoverRule('r1');
+    expect(highlights).toHaveLength(1);
+  });
+});

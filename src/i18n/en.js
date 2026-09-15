@@ -97,7 +97,7 @@ export default {
   'log.taskStopped': 'Stopped {task}',
 
   'help.title': 'KEYBOARD',
-  'help.close': 'Press 1 to close',
+  'help.close': 'Click the ? again to close',
   'help.sectionAuto': 'Automation',
   'help.sectionRules': 'Rules',
   'help.sectionUi': 'Interface',
@@ -107,7 +107,6 @@ export default {
   'help.script': 'Auto Script (every 3s)',
   'help.runAll': 'Run every activity in the queue',
   'help.capture': 'Capture a rule at the cursor',
-  'help.toggleHelp': 'Show/hide this panel',
   'help.togglePanel': 'Open/close the control panel',
   'help.speedUp': 'Speed up (next stop)',
   'help.speedDown': 'Slow down (previous stop)',

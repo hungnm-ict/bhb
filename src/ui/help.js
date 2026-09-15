@@ -1,7 +1,12 @@
 import { el, mount } from './dom.js';
 import { t } from '../i18n/index.js';
 
-/** Keyboard reference panel, toggled with `1`. */
+/**
+ * Keyboard reference.
+ *
+ * It has no hotkey of its own: a panel that explains the hotkeys is the last
+ * thing that should occupy one. It opens from the ? in the panel header.
+ */
 
 const SECTIONS = [
   {
@@ -22,8 +27,7 @@ const SECTIONS = [
   {
     title: 'help.sectionUi',
     entries: [
-      ['1', 'help.toggleHelp'],
-      ['2', 'help.togglePanel'],
+      ['1', 'help.togglePanel'],
     ],
   },
   {
@@ -74,5 +78,12 @@ export function createHelpPanel() {
     }
   }
 
-  return { toggle, isVisible: () => visible };
+  function close() {
+    if (!visible) {
+      return;
+    }
+    toggle();
+  }
+
+  return { toggle, close, isVisible: () => visible };
 }

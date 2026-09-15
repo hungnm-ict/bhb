@@ -85,10 +85,12 @@ export function clientToBuffer(canvas, clientX, clientY) {
  * @param {HTMLCanvasElement} canvas
  * @param {number} bufferX
  * @param {number} bufferY
+ * @param {DOMRect} [knownRect] the canvas box, when the caller already has it —
+ *   one marker layer asking per marker is one forced layout per marker
  * @returns {{ clientX: number, clientY: number }}
  */
-export function bufferToClient(canvas, bufferX, bufferY) {
-  const rect = canvas.getBoundingClientRect();
+export function bufferToClient(canvas, bufferX, bufferY, knownRect) {
+  const rect = knownRect || canvas.getBoundingClientRect();
   return {
     clientX: rect.left + (bufferX / canvas.width) * rect.width,
     clientY: rect.bottom - (bufferY / canvas.height) * rect.height,
