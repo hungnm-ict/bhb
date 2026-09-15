@@ -1,6 +1,6 @@
 import { el, mount } from './dom.js';
 import { t } from '../i18n/index.js';
-import { getSpeed } from '../core/speed.js';
+import { getSpeed, formatSpeed } from '../core/speed.js';
 import { VERSION } from '../core/constants.js';
 import { realSetTimeout, realClearTimeout } from '../core/timers.js';
 
@@ -58,7 +58,7 @@ export function createHud(deps) {
       target.classList.contains('bhb-hud--dim') ? 'bhb-hud--dim' : ''
     }`;
 
-    target.replaceChildren(
+    const parts = [
       el('span', { class: 'bhb-hud__dot' }),
       el('span', { class: 'bhb-hud__name', text: t('app.name') }),
       el('span', { class: 'bhb-hud__ver', text: `v${VERSION}` }),
@@ -69,10 +69,15 @@ export function createHud(deps) {
       }),
       el('span', {
         class: `bhb-hud__speed ${speed > 1 ? 'is-boosted' : ''}`,
-        text: `${speed}×`,
+        text: `${formatSpeed(speed)}×`,
       }),
-      el('span', { class: 'bhb-hud__msg', text: engine.lastMessage || '' })
-    );
+      engine.screenName
+        ? el('span', { class: 'bhb-hud__screen', text: engine.screenName })
+        : null,
+      el('span', { class: 'bhb-hud__msg', text: engine.lastMessage || '' }),
+    ].filter(Boolean);
+
+    target.replaceChildren(...parts);
   }
 
   return { render, wake };

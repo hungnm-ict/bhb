@@ -12,6 +12,8 @@ const KIND_ICON = {
   click: '⊙',
   busy: '⋯',
   task: '⏻',
+  screen: '▣',
+  resource: '⛔',
 };
 
 function clock(at) {
@@ -24,6 +26,12 @@ function clock(at) {
 function describe(entry) {
   if (entry.kind === 'task') {
     return t(entry.started ? 'log.taskStarted' : 'log.taskStopped', { task: entry.label });
+  }
+  if (entry.kind === 'screen') {
+    return t('log.screen', { label: entry.label });
+  }
+  if (entry.kind === 'resource') {
+    return t('log.resource', { label: entry.label });
   }
   if (entry.kind === 'busy') {
     return t('log.busy', { label: entry.label });

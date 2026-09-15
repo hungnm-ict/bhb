@@ -11,6 +11,7 @@ import { createEmitter } from '../core/events.js';
 export const Tab = Object.freeze({
   TASKS: 'tasks',
   RULES: 'rules',
+  SCREENS: 'screens',
   LOG: 'log',
 });
 

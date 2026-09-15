@@ -15,18 +15,22 @@ import { ScaleMode } from './coords.js';
  * malformed blob must degrade to defaults rather than take the bot down.
  *
  * @typedef {import('../rules/model.js').Rule} Rule
- * @typedef {{ id: string, name: string, rules: Rule[] }} Profile
- * @typedef {{ version: 2, activeProfileId: string, profiles: Profile[] }} ProfileState
+ * @typedef {import('../rules/screen.js').Screen} Screen
+ * @typedef {{ id: string, name: string, rules: Rule[], screens: Screen[] }} Profile
+ * @typedef {{ version: 3, activeProfileId: string, profiles: Profile[] }} ProfileState
+ *
+ * v2 → v3 adds `screens` to every profile and changes nothing else, so a v2
+ * export still loads with all of its rules.
  */
 
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 3;
 
 /** @returns {ProfileState} */
 function createDefaultState() {
   return {
     version: SCHEMA_VERSION,
     activeProfileId: 'default',
-    profiles: [{ id: 'default', name: 'Default', rules: [] }],
+    profiles: [{ id: 'default', name: 'Default', rules: [], screens: [] }],
   };
 }
 
@@ -94,6 +98,7 @@ function normaliseState(candidate) {
       id: profile.id,
       name: typeof profile.name === 'string' ? profile.name : profile.id,
       rules: Array.isArray(profile.rules) ? profile.rules : [],
+      screens: Array.isArray(profile.screens) ? profile.screens : [],
     }));
 
   if (profiles.length === 0) {

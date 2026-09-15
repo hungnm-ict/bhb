@@ -1,4 +1,5 @@
 import { DEFAULT_COLOR_TOLERANCE } from '../core/constants.js';
+import { isRegionPoint } from '../core/region.js';
 
 /**
  * A rule is "when this colour appears at this spot, click there".
@@ -15,6 +16,9 @@ import { DEFAULT_COLOR_TOLERANCE } from '../core/constants.js';
  * @property {number} [bw] framebuffer width at capture time
  * @property {number} [bh] framebuffer height at capture time
  * @property {string} [hex] overrides the rule's colour for this point
+ * @property {number} [w] region width; a point with `samples` is matched as one
+ * @property {number} [h]
+ * @property {import('../core/region.js').Sample[]} [samples]
  *
  * @typedef {object} Rule
  * @property {string} id
@@ -23,6 +27,7 @@ import { DEFAULT_COLOR_TOLERANCE } from '../core/constants.js';
  * @property {string | null} hex  null while awaiting colour capture
  * @property {number} tolerance
  * @property {boolean} enabled
+ * @property {string[]} [screens] screen ids this may fire on; empty means any
  */
 
 /** @returns {string} */
@@ -42,13 +47,20 @@ export function createRule(overrides = {}) {
     hex: null,
     tolerance: DEFAULT_COLOR_TOLERANCE,
     enabled: true,
+    screens: [],
     ...overrides,
   };
 }
 
-/** A rule is only actionable once it has both a colour and somewhere to look. */
+/**
+ * A rule is only actionable once it has somewhere to look and a colour to
+ * expect there. A region point carries its own colours, so it needs no `hex`.
+ */
 export function isRuleReady(rule) {
-  return Boolean(rule.enabled && rule.hex && rule.points.length > 0);
+  if (!rule.enabled || rule.points.length === 0) {
+    return false;
+  }
+  return Boolean(rule.hex) || rule.points.every(isRegionPoint);
 }
 
 /** The colour to match for a given point — the point's own wins. */

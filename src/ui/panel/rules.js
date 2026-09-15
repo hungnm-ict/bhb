@@ -13,6 +13,7 @@ import { isLegacyPoint } from '../../core/coords.js';
  * @param {object} deps
  * @param {() => import('../../rules/model.js').Rule[]} deps.getRules
  * @param {ReturnType<import('../store.js').createUiStore>} deps.store
+ * @param {() => import('../../rules/screen.js').Screen[]} deps.getScreens
  * @param {object} deps.editor
  * @param {() => void} deps.refresh
  */
@@ -51,6 +52,20 @@ export function renderRulesTab(deps) {
     name.placeholder = t('rules.unnamed');
     name.addEventListener('change', () => {
       deps.editor.rename(rule.id, name.value.trim());
+      deps.refresh();
+    });
+
+    const gate = el('select', { class: 'bhb-rule__gate', title: t('rules.screenGate') });
+    gate.append(el('option', { text: t('rules.anywhere') }));
+    gate.options[0].value = '';
+    for (const screen of deps.getScreens()) {
+      const option = el('option', { text: screen.name || screen.id });
+      option.value = screen.id;
+      gate.append(option);
+    }
+    gate.value = (rule.screens && rule.screens[0]) || '';
+    gate.addEventListener('change', () => {
+      deps.editor.setScreens(rule.id, gate.value ? [gate.value] : []);
       deps.refresh();
     });
 
@@ -103,6 +118,7 @@ export function renderRulesTab(deps) {
         title: legacy ? t('overlay.needsRecapture') : '',
         text: point ? `${point.x},${point.y}${legacy ? ' ⚠' : ''}` : '—',
       }),
+      deps.getScreens().length > 0 ? gate : null,
       el('span', { class: 'bhb-rule__actions' }, [toggle, up, down, remove]),
     ]);
 
