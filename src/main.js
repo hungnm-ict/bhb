@@ -235,10 +235,18 @@ function bootstrap() {
   // Redrawing the steps table twice a second ate the caret out of its inputs.
   realSetInterval(refreshLive, UI_REFRESH_MS);
   // Markers are positioned from the live canvas box, so a resize moves them.
-  window.addEventListener('resize', () => {
+  const onCanvasMoved = () => {
     markers.render();
     sizeBadge.render();
-  });
+  };
+
+  window.addEventListener('resize', onCanvasMoved);
+  // The game can resize its own canvas without the window moving — a fullscreen
+  // toggle, a layout change — and markers pinned to the old box would lie.
+  const canvas = getCanvas();
+  if (canvas && typeof ResizeObserver === 'function') {
+    new ResizeObserver(onCanvasMoved).observe(canvas);
+  }
 
   resumeAfterReload(engine, watchdog);
 

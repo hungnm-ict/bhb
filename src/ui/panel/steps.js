@@ -67,6 +67,10 @@ export function renderStepsTab(deps) {
     deps.refresh();
   });
 
+  // A legacy step cannot be rescaled, so it clicks the wrong place the moment
+  // the window moves — loud enough to act on, not a ⚠ to squint at.
+  const legacyCount = all.filter((step) => step.points[0] && isLegacyPoint(step.points[0])).length;
+
   const head = el('div', { class: 'bhb-field' }, [
     el('div', { class: 'bhb-field__head' }, [
       el('span', { class: 'bhb-label', text: `${t('overlay.steps')} · ${steps.length}` }),
@@ -74,6 +78,9 @@ export function renderStepsTab(deps) {
     ]),
     capture,
     el('p', { class: 'bhb-note', text: t('steps.captureHint') }),
+    legacyCount > 0
+      ? el('p', { class: 'bhb-note bhb-note--warn', text: t('steps.legacyWarning', { n: legacyCount }) })
+      : null,
   ]);
 
   if (steps.length === 0) {

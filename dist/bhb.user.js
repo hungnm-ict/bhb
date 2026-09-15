@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.5.2
+// @version      0.5.3
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -14,7 +14,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.5.2" : "dev";
+  var VERSION = true ? "0.5.3" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -1357,6 +1357,7 @@
     "log.resync": "Lạc nhịp — bắt lại từ {label}",
     "size.same": "Cỡ framebuffer game vẽ ra — bước lưu toạ độ theo hệ này",
     "size.scaled": "Cỡ framebuffer → cỡ hiển thị. Khác nhau nghĩa là game đang được co giãn",
+    "steps.legacyWarning": "{n} bước chưa có cỡ canvas lúc bắt nên không co giãn được — đổi cỡ cửa sổ là bấm sai chỗ. Bắt lại từng cái để sửa.",
     "log.title": "Nhật ký",
     "log.empty": "Chưa có gì. Bật một hoạt động để bắt đầu.",
     "log.clear": "Xoá",
@@ -1473,6 +1474,7 @@
     "log.resync": "Lost the thread — picking up at {label}",
     "size.same": "The framebuffer the game draws into — steps store their coordinates in it",
     "size.scaled": "Framebuffer size → displayed size. They differ when the game is being scaled",
+    "steps.legacyWarning": "{n} steps were captured without a canvas size, so they cannot be rescaled — resize the window and they click the wrong place. Recapture each one to fix it.",
     "log.title": "Activity",
     "log.empty": "Nothing yet. Start a task to see what the bot does.",
     "log.clear": "Clear",
@@ -2084,6 +2086,14 @@
   color: var(--bhb-dim); font-size: 10px;
   /* It sits over the game: taking a click here would be worse than no badge. */
   pointer-events: none;
+  transition: opacity .25s ease, color .25s ease, border-color .25s ease;
+}
+.bhb-size--dim { opacity: .28; }
+.bhb-size--near {
+  opacity: 1;
+  background: rgba(18, 20, 28, .92);
+  border-color: rgba(124, 92, 255, .5);
+  color: var(--bhb-text);
 }
 
 /* --- Marker layer ------------------------------------------------------- */
@@ -2522,13 +2532,15 @@
       deps.store.setRuleFilter(filterSelect.value === "__all__" ? null : filterSelect.value);
       deps.refresh();
     });
+    const legacyCount = all.filter((step) => step.points[0] && isLegacyPoint(step.points[0])).length;
     const head = el("div", { class: "bhb-field" }, [
       el("div", { class: "bhb-field__head" }, [
         el("span", { class: "bhb-label", text: `${t("overlay.steps")} · ${steps.length}` }),
         filterSelect
       ]),
       capture,
-      el("p", { class: "bhb-note", text: t("steps.captureHint") })
+      el("p", { class: "bhb-note", text: t("steps.captureHint") }),
+      legacyCount > 0 ? el("p", { class: "bhb-note bhb-note--warn", text: t("steps.legacyWarning", { n: legacyCount }) }) : null
     ]);
     if (steps.length === 0) {
       return el("div", { class: "bhb-tab" }, [head, el("p", { class: "bhb-empty", text: t("overlay.noSteps") })]);
@@ -3318,13 +3330,44 @@
   }
 
   // src/ui/size-badge.js
+  var DIM_AFTER_MS2 = 5e3;
+  var NEAR_PX = 32;
   function createSizeBadge(deps) {
     let node = null;
+    let dimTimer = null;
+    let previousText = null;
     function ensureNode() {
       if (!node) {
         node = mount(el("div", { class: "bhb-size bhb-mono" }));
+        window.addEventListener("mousemove", onMouseMove, { passive: true, capture: true });
       }
       return node;
+    }
+    function wake() {
+      if (!node) {
+        return;
+      }
+      node.classList.remove("bhb-size--dim");
+      if (dimTimer !== null) {
+        realClearTimeout(dimTimer);
+      }
+      dimTimer = realSetTimeout(() => {
+        dimTimer = null;
+        if (node) {
+          node.classList.add("bhb-size--dim");
+        }
+      }, DIM_AFTER_MS2);
+    }
+    function onMouseMove(event) {
+      if (!node || node.style.display === "none") {
+        return;
+      }
+      const rect = node.getBoundingClientRect();
+      const near = event.clientX >= rect.left - NEAR_PX && event.clientX <= rect.right + NEAR_PX && event.clientY >= rect.top - NEAR_PX && event.clientY <= rect.bottom + NEAR_PX;
+      node.classList.toggle("bhb-size--near", near);
+      if (near) {
+        wake();
+      }
     }
     function render() {
       const target = ensureNode();
@@ -3339,6 +3382,10 @@
       const sameSize = clientWidth === canvas.width && clientHeight === canvas.height;
       target.textContent = sameSize ? `${canvas.width}×${canvas.height}` : `${canvas.width}×${canvas.height} → ${clientWidth}×${clientHeight}`;
       target.title = t(sameSize ? "size.same" : "size.scaled");
+      if (target.textContent !== previousText) {
+        previousText = target.textContent;
+        wake();
+      }
     }
     return { render };
   }
@@ -3537,10 +3584,15 @@
     refresh();
     hud.wake();
     realSetInterval(refreshLive, UI_REFRESH_MS);
-    window.addEventListener("resize", () => {
+    const onCanvasMoved = () => {
       markers.render();
       sizeBadge.render();
-    });
+    };
+    window.addEventListener("resize", onCanvasMoved);
+    const canvas = getCanvas();
+    if (canvas && typeof ResizeObserver === "function") {
+      new ResizeObserver(onCanvasMoved).observe(canvas);
+    }
     resumeAfterReload(engine, watchdog);
     console.info("[BHB] ready — press 1 for the keyboard reference");
   }

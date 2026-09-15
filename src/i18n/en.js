@@ -96,6 +96,8 @@ export default {
   'log.resync': 'Lost the thread — picking up at {label}',
   'size.same': 'The framebuffer the game draws into — steps store their coordinates in it',
   'size.scaled': 'Framebuffer size → displayed size. They differ when the game is being scaled',
+  'steps.legacyWarning':
+    '{n} steps were captured without a canvas size, so they cannot be rescaled — resize the window and they click the wrong place. Recapture each one to fix it.',
   'log.title': 'Activity',
   'log.empty': 'Nothing yet. Start a task to see what the bot does.',
   'log.clear': 'Clear',

@@ -96,6 +96,8 @@ export default {
   'log.resync': 'Lạc nhịp — bắt lại từ {label}',
   'size.same': 'Cỡ framebuffer game vẽ ra — bước lưu toạ độ theo hệ này',
   'size.scaled': 'Cỡ framebuffer → cỡ hiển thị. Khác nhau nghĩa là game đang được co giãn',
+  'steps.legacyWarning':
+    '{n} bước chưa có cỡ canvas lúc bắt nên không co giãn được — đổi cỡ cửa sổ là bấm sai chỗ. Bắt lại từng cái để sửa.',
   'log.title': 'Nhật ký',
   'log.empty': 'Chưa có gì. Bật một hoạt động để bắt đầu.',
   'log.clear': 'Xoá',
