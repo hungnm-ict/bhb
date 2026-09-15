@@ -19,7 +19,10 @@ export const DEFAULT_ACTIVITIES = Object.freeze([
   { id: 'invasion', name: 'Invasion', enabled: true },
   { id: 'expedition', name: 'Expedition', enabled: true },
   { id: 'trials', name: 'Trials / Gauntlet', enabled: true },
-  { id: 'worldboss', name: 'World Boss', enabled: true },
+  // Solo and team are two different sequences, not one with a setting: the
+  // team lobby has a party to wait for and a Private box to get right.
+  { id: 'worldboss', name: 'World Boss (solo)', enabled: true },
+  { id: 'worldbossteam', name: 'World Boss (team)', enabled: false },
   { id: 'raid', name: 'Raid', enabled: true },
   { id: 'dungeon', name: 'Dungeon', enabled: true },
 ]);

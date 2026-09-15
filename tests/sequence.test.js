@@ -173,3 +173,75 @@ describe('step cursor', () => {
     engine.stop();
   });
 });
+
+describe('waiting and optional steps', () => {
+  /** The WB team lobby: an empty party slot still shows its INVITE button. */
+  function waitAt(x, label) {
+    return { ...stepAt(x, label), kind: 'wait' };
+  }
+
+  function optionalAt(x, label) {
+    return { ...stepAt(x, label), optional: true };
+  }
+
+  it('holds at a wait step while its colour is still there', () => {
+    // 100 = the empty slot, 200 = START. Nothing may click START yet.
+    lit = new Set([100, 200]);
+    const engine = build([waitAt(100, 'slot 3 empty'), stepAt(200, 'start')]);
+
+    engine.start(TaskId.SCRIPT);
+    engine.tick();
+    engine.tick();
+
+    expect(clicks, 'START is behind the wait').toEqual([]);
+    engine.stop();
+  });
+
+  it('goes on the moment the wait clears, in the same tick', () => {
+    lit = new Set([100, 200]);
+    const engine = build([waitAt(100, 'slot 3 empty'), stepAt(200, 'start')]);
+    engine.start(TaskId.SCRIPT);
+
+    // A third player joins: the slot's button is gone.
+    lit = new Set([200]);
+    engine.tick();
+
+    expect(clicks).toEqual([200]);
+    engine.stop();
+  });
+
+  it('never lets a resync carry the runner past a deliberate wait', () => {
+    lit = new Set([100, 200]);
+    const engine = build([waitAt(100, 'slot 3 empty'), stepAt(200, 'start')]);
+    engine.start(TaskId.SCRIPT);
+
+    for (let tick = 0; tick < RESYNC_AFTER_TICKS + 3; tick += 1) {
+      engine.tick();
+    }
+
+    expect(clicks, 'a wait is intended, not a step that is stuck').toEqual([]);
+    engine.stop();
+  });
+
+  it('skips an optional step that is not there, without stalling the sequence', () => {
+    // Private is already ticked, so its unticked colour is absent.
+    lit = new Set([200]);
+    const engine = build([optionalAt(100, 'tick private'), stepAt(200, 'start')]);
+
+    engine.start(TaskId.SCRIPT);
+
+    expect(clicks, 'straight on to START in the same tick').toEqual([200]);
+    engine.stop();
+  });
+
+  it('still clicks an optional step when it is there', () => {
+    lit = new Set([100, 200]);
+    const engine = build([optionalAt(100, 'tick private'), stepAt(200, 'start')]);
+
+    engine.start(TaskId.SCRIPT);
+    engine.tick();
+
+    expect(clicks).toEqual([100, 200]);
+    engine.stop();
+  });
+});

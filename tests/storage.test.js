@@ -75,7 +75,17 @@ describe('migration to the current schema', () => {
     localStorage.setItem(STORAGE_KEY_PROFILES, JSON.stringify(v3));
 
     const state = loadProfiles();
-    expect(state.profiles[0].activities).toEqual(v3.profiles[0].activities);
+    const activities = state.profiles[0].activities;
+
+    // The user's list and order survive...
+    expect(activities[0]).toEqual({ id: 'raid', name: 'Raid', enabled: false });
+
+    // ...and activities added to the defaults since they saved still reach
+    // them, off by default, at the end where they disturb nothing.
+    const team = activities.find((activity) => activity.id === 'worldbossteam');
+    expect(team, 'World Boss (team) was added after this profile was written').toBeTruthy();
+    expect(team.enabled, 'nothing new starts running by itself').toBe(false);
+    expect(activities.indexOf(team), 'appended, never inserted into their order').toBeGreaterThan(0);
   });
 
   it('round-trips screens through save and load', () => {

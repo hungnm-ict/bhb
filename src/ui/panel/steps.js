@@ -1,6 +1,7 @@
 import { el } from '../dom.js';
 import { t } from '../../i18n/index.js';
 import { Keys, keyLabel } from '../../core/keys.js';
+import { StepKind } from '../../bot/step.js';
 import { isLegacyPoint } from '../../core/coords.js';
 
 /**
@@ -199,6 +200,29 @@ export function renderStepsTab(deps) {
       deps.refresh();
     });
 
+    // Three behaviours, one control: click it, click it only if it is there,
+    // or hold here while it is there. The third is how "wait for a third
+    // player" is expressed — the empty slot's button is the colour to wait out.
+    const behaviour = el('select', { class: 'bhb-rule__gate', title: t('steps.behaviourHint') });
+    for (const [value, labelKey] of [
+      ['click', 'steps.kindClick'],
+      ['optional', 'steps.kindOptional'],
+      ['wait', 'steps.kindWait'],
+    ]) {
+      const option = el('option', { text: t(labelKey) });
+      option.value = value;
+      behaviour.append(option);
+    }
+    behaviour.value =
+      step.kind === StepKind.WAIT ? 'wait' : step.optional ? 'optional' : 'click';
+    behaviour.addEventListener('change', () => {
+      deps.stepEditor.setBehaviour(step.id, {
+        kind: behaviour.value === 'wait' ? StepKind.WAIT : StepKind.CLICK,
+        optional: behaviour.value === 'optional',
+      });
+      deps.refresh();
+    });
+
     // A dungeon run lasts a minute; the step that starts one says how long to
     // stop looking, rather than the bot re-reading the same frame throughout.
     const rest = el('input', { class: 'bhb-rest bhb-mono', title: t('steps.restHint') });
@@ -233,6 +257,7 @@ export function renderStepsTab(deps) {
         el('span', { class: 'bhb-rule__actions' }, [toggle, up, down, remove]),
       ]),
       el('div', { class: 'bhb-rule__meta' }, [
+        behaviour,
         rest,
         el('span', { class: 'bhb-rule__meta-coord' }, [
           el('span', {

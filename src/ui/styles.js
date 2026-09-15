@@ -525,6 +525,7 @@ const CSS = `
 .bhb-mark--match { border-color: var(--bhb-live); box-shadow: 0 0 0 2px rgba(61, 220, 151, .35); }
 .bhb-mark--miss { border-color: var(--bhb-danger); opacity: .75; }
 .bhb-mark--gated { border-color: var(--bhb-dim); opacity: .45; }
+.bhb-mark--waiting { border-color: var(--bhb-warn); box-shadow: 0 0 0 2px rgba(255, 180, 87, .3); }
 .bhb-mark--testing { transform: translate(-50%, -50%) scale(1.45); z-index: 1; }
 .bhb-mark__n { color: var(--bhb-text); font-family: var(--bhb-mono); font-size: var(--bhb-fs-xs); font-weight: 700; }
 .bhb-mark__swatch {

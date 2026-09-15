@@ -69,6 +69,18 @@ describe('scoring a step', () => {
   });
 });
 
+describe('a wait step reads the other way round', () => {
+  it('calls a present colour waiting, not matching', () => {
+    const wait = { ...stepOf(), kind: 'wait' };
+    expect(scoreStep(wait, glOf(RED), BUFFER, 'scale', null)).toBe('waiting');
+  });
+
+  it('calls an absent colour a match, because that is the gate opening', () => {
+    const wait = { ...stepOf(), kind: 'wait' };
+    expect(scoreStep(wait, glOf({ r: 0, g: 0, b: 255 }), BUFFER, 'scale', null)).toBe('match');
+  });
+});
+
 describe('scoring a list', () => {
   it('returns a verdict per step, in order', () => {
     const steps = [stepOf({ label: 'a' }), stepOf({ label: 'b', hex: '#00ff00' })];
