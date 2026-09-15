@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.7.6
+// @version      0.7.7
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -14,7 +14,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.7.6" : "dev";
+  var VERSION = true ? "0.7.7" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -2291,6 +2291,7 @@
   --bhb-fs-md: 13px;   /* row text, task names, inputs */
   --bhb-fs-lg: 15px;   /* panel title, stat values */
   --bhb-fs-xl: 17px;   /* the one number a tile exists to show */
+  --bhb-fs-2xl: 20px;  /* a glyph that is the whole button, like − and + */
 
   /* Below this a control is fiddly to hit, whatever it looks like. */
   --bhb-hit: 28px;
@@ -2413,8 +2414,8 @@
 .bhb-tab { display: flex; flex-direction: column; gap: 13px; }
 
 .bhb-label {
-  color: var(--bhb-dim); font-size: var(--bhb-fs-xs);
-  font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--bhb-dim); font-size: var(--bhb-fs-sm);
+  font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
 }
 .bhb-note { margin: 0; color: var(--bhb-dim); font-size: var(--bhb-fs-sm); line-height: 1.5; }
 .bhb-note--warn { color: var(--bhb-warn); }
@@ -2513,10 +2514,9 @@
 .bhb-slider { width: 100%; height: var(--bhb-hit); accent-color: var(--bhb-accent); cursor: pointer; }
 .bhb-speedrow { display: flex; align-items: center; gap: 8px; }
 .bhb-speedrow .bhb-slider { flex: 1; min-width: 0; }
-.bhb-icon--wide { min-width: 32px; font-size: var(--bhb-fs-xl); font-weight: 700; line-height: 1; }
 .bhb-speedticks {
   /* The inset clears the −/+ buttons, so a tick sits over the track it marks. */
-  position: relative; height: 5px; margin-inline: calc(32px + 8px);
+  position: relative; height: 5px; margin-inline: calc(34px + 8px);
 }
 .bhb-speedticks__tick {
   position: absolute; top: 0;
@@ -2529,7 +2529,7 @@
 
 .bhb-speedscale {
   position: relative; height: 15px;
-  margin-top: 1px; margin-inline: calc(32px + 8px);
+  margin-top: 1px; margin-inline: calc(34px + 8px);
   color: var(--bhb-dim); font-size: var(--bhb-fs-sm);
 }
 .bhb-speedscale__mark { position: absolute; transform: translateX(-50%); white-space: nowrap; }
@@ -2570,6 +2570,11 @@
   padding: 0; background: none; border: 0; border-radius: 6px;
   color: var(--bhb-dim); font: inherit; font-size: var(--bhb-fs-sm); line-height: 1;
   cursor: pointer;
+}
+/* Must follow .bhb-icon: same specificity, so order is what decides the size. */
+.bhb-icon--wide {
+  min-width: 34px;
+  color: var(--bhb-text); font-size: var(--bhb-fs-2xl); font-weight: 700; line-height: 1;
 }
 .bhb-icon:hover { background: rgba(255, 255, 255, .08); color: var(--bhb-text); }
 .bhb-icon.is-on { color: var(--bhb-live); }
