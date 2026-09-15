@@ -1,4 +1,4 @@
-# BHB <!--version-->v0.12.0<!--/version-->
+# BHB <!--version-->v0.12.1<!--/version-->
 
 > 🇬🇧 [English version](README.en.md) · [Nhật ký thay đổi](https://github.com/hungnm-ict/bhb/commits/master)
 
@@ -69,7 +69,28 @@ Bật **chế độ bắt bước** ở đầu tab Bước, rê chuột lên nú
 
 Bot tự xử lý chuyện nút bị sáng lên do con trỏ đang nằm trên đó: nó gạt **con trỏ ảo** ra góc canvas, đợi game vẽ lại, đọc màu lúc nút không sáng, rồi trả con trỏ ảo về chỗ cũ. Con trỏ thật của bạn không hề nhúc nhích. Cả hai màu — lúc sáng và lúc thường — đều được lưu, nên bước khớp được ở cả hai trạng thái.
 
-Muốn bot biết nó đang ở đâu thì sang tab **Màn hình**, kéo một khung quanh thứ chỉ màn hình đó mới có. Màn hình "hết vé / hết năng lượng" thì bật thêm `stopsTask` (nút ⏹) — đó là cái làm hàng đợi tự nhảy sang hoạt động khác thay vì đứng bấm mãi. Nút **★** cạnh nó là "báo tin khi thấy màn hình này": xem mục Thông báo bên dưới.
+### Màn hình — cho bot biết nó đang đứng ở đâu
+
+Đây là tab dễ bị bỏ qua nhất, mà lại là thứ quyết định bot chạy có ra hồn không. Nó **không liên quan gì tới phát hiện lag** (cái đó là *Tự tải lại khi game treo* trong Cài đặt).
+
+**Vì sao cần.** Một màu chỉ có nghĩa trong ngữ cảnh. Nút xanh lá ghi "Yes" ở hộp thoại Raid và nút xanh lá ở màn chiến lợi phẩm có thể cùng một sắc độ — bot không phân biệt được thì nó bấm cả hai. Khai báo màn hình cho bạn ba thứ:
+
+1. **Giới hạn bước theo màn hình** — mỗi bước trong tab Bước chọn được "chỉ chạy ở màn hình này". Hết cảnh bấm nhầm nút trùng màu ở nơi khác.
+2. **Nhận biết hết tài nguyên** — nút **⏹** trên dòng màn hình. Đánh dấu màn "hết vé / hết năng lượng" là `stopsTask`; gặp nó thì hàng đợi **tự nhảy sang hoạt động khác** thay vì đứng bấm mãi vào tường. Đây là thứ thay cho việc chờ hết 3 phút vô ích.
+3. **Báo tin** — nút **★**: thấy màn hình này thì bắn thông báo Discord/Telegram. Đó cũng chính là cách làm "phát hiện đồ rơi hiếm" mà không cần cơ chế thị giác riêng nào.
+
+**Cách bắt.** Bấm **Bắt vùng nhận diện** → bảng tự ẩn đi → **kéo một khung** quanh thứ **chỉ màn hình đó mới có**: dòng tiêu đề, một biểu tượng riêng, chữ `HEROIC`… Rồi đặt tên cho dễ nhớ. Tránh vùng có nhân vật, hiệu ứng hay số liệu nhảy liên tục.
+
+**Đọc các con số trên mỗi dòng:**
+
+| Thấy gì | Nghĩa là |
+|---|---|
+| `unknown` ở góc phải | Ngay lúc này bot **không nhận ra** đang ở màn nào |
+| Số xanh (`0.19`, `0.83`…) | Tỉ lệ điểm mẫu đang khớp, cập nhật trực tiếp. Mỗi vùng lấy 16 điểm |
+| Số cạnh thanh trượt (`0.75`) | Ngưỡng cần đạt. `0.19 < 0.75` → không khớp (✗) |
+| `Vùng 1` | Màn hình đó đang có 1 vùng nhận diện. Nút **＋** thêm vùng nữa — nhiều vùng thì phải khớp **tất cả**, chặt hơn |
+
+**Cách chỉnh ngưỡng:** đứng đúng ở màn hình đó trong game rồi nhìn con số. Đang ở đó mà chỉ được `0.6` thì kéo ngưỡng xuống; **không** ở đó mà vẫn `0.8` thì vùng bạn chọn chưa đủ đặc trưng — bắt lại chỗ khác.
 
 ### Phím tắt
 
