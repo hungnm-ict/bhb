@@ -51,11 +51,13 @@ Tự động chạy hết các hoạt động mình chọn, theo thứ tự mìn
 
 ---
 
-## Milestone 4 — Ổn định & nhân vật
+## ✅ Milestone 4 — Ổn định & nhân vật *(xong)*
 
-- [ ] **Phát hiện lag/treo** — không có tiến triển trong N giây thì reload trang, chờ đăng nhập lại, chạy tiếp
-- [ ] **Đổi nhân vật** — slot 1–3 (MAIN / NFT / CLONE), mỗi slot một cấu hình riêng
-- [ ] Chạy nhiều tài khoản bằng nhiều browser profile
+- [x] **Phát hiện lag/treo** — quá 3 phút không click được gì thì tải lại trang, đợi game vào lại rồi chạy tiếp; tối đa 3 lần liên tiếp rồi dừng
+- [x] **Đổi nhân vật** — hồ sơ trong tab Cài đặt: tạo / nhân bản / đổi tên / xoá / chuyển, mỗi hồ sơ một bộ rule + màn hình + hàng đợi
+- [x] Chạy nhiều tài khoản bằng nhiều browser profile — mỗi browser profile là một `localStorage` riêng, không cần code
+
+**Còn nợ:** rule bấm đổi nhân vật trong game — phải bắt trực tiếp như mọi thao tác khác.
 
 ---
 

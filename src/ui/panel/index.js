@@ -6,6 +6,7 @@ import { renderTasksTab } from './tasks.js';
 import { renderRulesTab } from './rules.js';
 import { renderScreensTab } from './screens.js';
 import { renderQueueTab } from './queue.js';
+import { renderSettingsTab } from './settings.js';
 import { renderLogTab } from './log.js';
 
 /**
@@ -20,6 +21,7 @@ const TABS = [
   [Tab.RULES, 'tab.rules'],
   [Tab.SCREENS, 'tab.screens'],
   [Tab.QUEUE, 'tab.queue'],
+  [Tab.SETTINGS, 'tab.settings'],
   [Tab.LOG, 'tab.log'],
 ];
 
@@ -55,6 +57,9 @@ export function createPanel(deps) {
     }
     if (tab === Tab.QUEUE) {
       return renderQueueTab(deps);
+    }
+    if (tab === Tab.SETTINGS) {
+      return renderSettingsTab(deps);
     }
     if (tab === Tab.LOG) {
       return renderLogTab(deps);

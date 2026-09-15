@@ -18,6 +18,22 @@ vi.mock('../src/core/input.js', () => ({
 
 let frame = () => ({ r: 0, g: 0, b: 0 });
 
+/**
+ * The idle clock is real time captured at import, so it cannot be faked from
+ * outside — the timer module is mocked instead and the clock driven by hand.
+ */
+let clock = 1_000_000;
+
+vi.mock('../src/core/timers.js', () => ({
+  realNow: () => clock,
+  realPerformanceNow: () => clock,
+  realSetTimeout: (...args) => setTimeout(...args),
+  realClearTimeout: (...args) => clearTimeout(...args),
+  realSetInterval: (...args) => setInterval(...args),
+  realClearInterval: (...args) => clearInterval(...args),
+  realRequestAnimationFrame: (callback) => setTimeout(callback, 16),
+}));
+
 vi.mock('../src/core/canvas.js', () => ({
   getRenderTarget: () => ({
     canvas: { width: 800, height: 600 },
@@ -46,7 +62,7 @@ const { createEngine, TaskId } = await import('../src/core/engine.js');
 const { createRule } = await import('../src/rules/model.js');
 const { createScreen } = await import('../src/rules/screen.js');
 const { captureFingerprint } = await import('../src/core/region.js');
-const { IDLE_ADVANCE_TICKS } = await import('../src/core/constants.js');
+const { IDLE_ADVANCE_TICKS, AUTO_STOP_TIMEOUT } = await import('../src/core/constants.js');
 
 const RED = { r: 255, g: 0, b: 0 };
 const BLUE = { r: 0, g: 0, b: 255 };
@@ -101,6 +117,7 @@ const QUEUE = [
 beforeEach(() => {
   clicks.length = 0;
   frame = () => RED;
+  clock = 1_000_000;
 });
 
 describe('run-all queue', () => {
@@ -243,5 +260,61 @@ describe('run-all queue', () => {
 
     expect(closeGame).toHaveBeenCalled();
     engine.stop();
+  });
+});
+
+describe('hang recovery', () => {
+  it('reloads instead of stopping when the watchdog is on', () => {
+    const recoverFromHang = vi.fn(() => true);
+    const engine = createEngine({
+      getScriptRules: () => [],
+      getRerunRules: () => [],
+      getWorldBossRules: () => [],
+      getScaleMode: () => 'scale',
+      getActivities: () => [...QUEUE],
+      shouldRecoverFromHang: () => true,
+      recoverFromHang,
+    });
+    const entries = [];
+    engine.on('action', (entry) => entries.push(entry));
+
+    engine.start(TaskId.RUN_ALL);
+    clock += AUTO_STOP_TIMEOUT + 1000;
+    engine.checkIdle();
+
+    expect(recoverFromHang).toHaveBeenCalledWith(TaskId.RUN_ALL);
+    expect(engine.getState().activeTask, 'the reload carries the task, not a restart').toBe(
+      TaskId.RUN_ALL
+    );
+    expect(entries.some((entry) => entry.kind === 'hang')).toBe(true);
+    engine.stop();
+  });
+
+  it('stops once reloading has stopped helping', () => {
+    const engine = createEngine({
+      getScriptRules: () => [],
+      getRerunRules: () => [],
+      getWorldBossRules: () => [],
+      getScaleMode: () => 'scale',
+      getActivities: () => [...QUEUE],
+      shouldRecoverFromHang: () => true,
+      recoverFromHang: () => false,
+    });
+
+    engine.start(TaskId.RUN_ALL);
+    clock += AUTO_STOP_TIMEOUT + 1000;
+    engine.checkIdle();
+
+    expect(engine.getState().activeTask).toBeNull();
+  });
+
+  it('stops, as it always did, when the watchdog is off', () => {
+    const engine = build({ rules: [], activities: [...QUEUE] });
+
+    engine.start(TaskId.RUN_ALL);
+    clock += AUTO_STOP_TIMEOUT + 1000;
+    engine.checkIdle();
+
+    expect(engine.getState().activeTask).toBeNull();
   });
 });

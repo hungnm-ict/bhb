@@ -161,7 +161,85 @@ export function getActiveProfile(state) {
   );
 }
 
-/** @returns {{ scaleMode: string, language: string, closeAfterRound: boolean }} */
+/** @returns {string} */
+function createProfileId() {
+  return `p${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
+}
+
+/**
+ * Profile management.
+ *
+ * A profile holds everything that makes a configuration — rules, screens and
+ * the activity queue — so a character slot or a second account is a profile
+ * and needs no concept of its own.
+ *
+ * @param {ProfileState} state
+ * @param {string} name
+ * @returns {Profile} the new profile, already active
+ */
+export function createProfile(state, name) {
+  const profile = {
+    id: createProfileId(),
+    name: name || `Profile ${state.profiles.length + 1}`,
+    rules: [],
+    screens: [],
+    activities: createDefaultActivities(),
+  };
+  state.profiles.push(profile);
+  state.activeProfileId = profile.id;
+  return profile;
+}
+
+/** A copy of the active profile, including its rules. */
+export function duplicateProfile(state, name) {
+  const source = getActiveProfile(state);
+  const copy = JSON.parse(JSON.stringify(source));
+  copy.id = createProfileId();
+  copy.name = name || `${source.name} copy`;
+  state.profiles.push(copy);
+  state.activeProfileId = copy.id;
+  return copy;
+}
+
+export function renameProfile(state, profileId, name) {
+  const profile = state.profiles.find((entry) => entry.id === profileId);
+  if (!profile || !name) {
+    return false;
+  }
+  profile.name = name;
+  return true;
+}
+
+/**
+ * A state with no profiles has no meaning, and every read would have to defend
+ * against it, so deleting the last one is refused rather than handled.
+ *
+ * @returns {boolean} whether anything was deleted
+ */
+export function deleteProfile(state, profileId) {
+  if (state.profiles.length <= 1) {
+    return false;
+  }
+  const index = state.profiles.findIndex((entry) => entry.id === profileId);
+  if (index === -1) {
+    return false;
+  }
+  state.profiles.splice(index, 1);
+  if (state.activeProfileId === profileId) {
+    state.activeProfileId = state.profiles[0].id;
+  }
+  return true;
+}
+
+export function setActiveProfile(state, profileId) {
+  if (!state.profiles.some((entry) => entry.id === profileId)) {
+    return false;
+  }
+  state.activeProfileId = profileId;
+  return true;
+}
+
+/** @returns {{ scaleMode: string, language: string, closeAfterRound: boolean, watchdog: boolean }} */
 export function loadSettings() {
   const stored = readJson(STORAGE_KEY_SETTINGS) || {};
   return {
@@ -172,6 +250,7 @@ export function loadSettings() {
     language: stored.language === 'en' ? 'en' : 'vi',
     // A bot that closes the game unasked is a bot that loses a session.
     closeAfterRound: stored.closeAfterRound === true,
+    watchdog: stored.watchdog === true,
   };
 }
 

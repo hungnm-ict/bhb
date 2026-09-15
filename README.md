@@ -44,12 +44,15 @@ Từ lần sau **script tự cập nhật** — không phải cài lại. Tamper
 
 Bot hiện một **thanh nhỏ** ở góc phải trên mặt game: chấm trạng thái, tốc độ, và dòng mô tả bot đang làm gì. Không đụng vào 4 giây thì nó tự mờ đi để khỏi che game; rê chuột vào là rõ lại.
 
-Bấm vào thanh đó (hoặc phím `2`) để mở **bảng điều khiển**, gồm 3 tab:
+Bấm vào thanh đó (hoặc phím `2`) để mở **bảng điều khiển**, gồm 6 tab:
 
 | Tab | Nội dung |
 |---|---|
 | **Hoạt động** | Công tắc bật/tắt từng chế độ, thanh trượt tốc độ, cỡ canvas, đếm ngược tự tắt |
-| **Rule** | Bảng rule: đổi tên, bật/tắt, sắp xếp thứ tự ưu tiên, xoá, và nút bắt rule mới |
+| **Rule** | Bảng rule: đổi tên, bật/tắt, gán hoạt động, giới hạn theo màn hình, sắp xếp ưu tiên, xoá |
+| **Màn hình** | Vùng nhận diện màn hình game, có ✓/✗ và tỉ lệ khớp trực tiếp |
+| **Chạy tất cả** | Hàng đợi hoạt động: bật/tắt, sắp xếp, số vòng đang chạy |
+| **Cài đặt** | Hồ sơ (mỗi nhân vật một cái), tự tải lại khi treo, ngôn ngữ, xuất/nhập |
 | **Nhật ký** | Từng việc bot đã làm, mới nhất trên cùng |
 
 Khi mở tab **Rule**, mỗi rule được vẽ thành một **dấu ngay trên canvas** tại đúng chỗ nó nhìn vào. Rê chuột lên dòng nào thì dấu tương ứng sáng lên và ngược lại — nhìn là biết rule trỏ vào nút nào.
@@ -69,20 +72,24 @@ Bot tự xử lý chuyện nút bị sáng lên do con trỏ đang nằm trên �
 | `3` | Auto Rerun — tìm 3 giây/lần, click xong nghỉ 20 giây |
 | `4` | Auto World Boss Solo — 2 giây/lần |
 | `5` | Auto Script — chạy rule bạn tự tạo, 3 giây/lần |
+| `6` | Chạy tất cả — lần lượt mọi hoạt động trong hàng đợi |
 | `0` | Bắt rule tại con trỏ |
-| `= / +` | Tăng tốc độ game (tối đa 10×) |
-| `-` | Giảm tốc độ game |
+| `= / +` | Tăng tốc độ game (mốc kế tiếp, tối đa 20×) |
+| `-` | Giảm tốc độ game (chậm nhất 0.1×) |
 
 ---
 
 ## Tính năng
 
-- **Tăng tốc game tới 10×** — can thiệp đồng hồ và khung hình của game, không phải tua nhanh giả
+- **Chỉnh tốc độ game 0.1× – 20×** — can thiệp đồng hồ và khung hình của game, không phải tua nhanh giả
 - **Không chiếm chuột** — gửi sự kiện thẳng vào canvas, con trỏ thật đứng yên
 - **Chạy nền được** — game không bị treo khi bạn chuyển sang tab khác
 - **Rule tự tạo** — chỉ vào nút nào là bot tự học vị trí + màu nút đó
+- **So khớp cả vùng** — thay vì 1 pixel, bot đọc cả một khung và chấm 16 điểm mẫu, nên một hiệu ứng lướt qua không làm rule sai
+- **Biết đang ở màn hình nào** — rule chỉ chạy ở màn hình bạn cho phép, và màn hình "hết vé" sẽ tự chuyển sang hoạt động khác
+- **Chạy tất cả** — hàng đợi hoạt động chạy từ trên xuống, hết tài nguyên thì sang mục kế, hết một vòng thì quay lại từ đầu
 - **Rule không phụ thuộc độ phân giải** — xem mục dưới
-- **Tự tắt** — không click được gì trong 3 phút thì dừng, tránh chạy hoang
+- **Tự tải lại khi game treo** — bật trong Cài đặt; không bật thì bot chỉ dừng sau 3 phút không làm gì
 
 ### Rule không phụ thuộc độ phân giải
 
@@ -92,7 +99,13 @@ Bản gốc lưu toạ độ pixel trần. Trên macOS canvas bị ghim ở mộ
 
 BHB lưu kèm **kích thước framebuffer lúc chụp rule**, nên rule tự quy đổi sang khung hình hiện tại. Đổi cỡ cửa sổ hay zoom vẫn chạy đúng.
 
-Rule nhập từ bản cũ không có thông tin này, nên overlay đánh dấu **⚠ màu cam** — nên bấm `6` chụp lại cho chắc.
+Rule nhập từ bản cũ không có thông tin này, nên overlay đánh dấu **⚠ màu cam** — nên bấm `0` chụp lại cho chắc.
+
+### Nhiều nhân vật, nhiều tài khoản
+
+Mỗi **hồ sơ** trong tab Cài đặt giữ rule, màn hình và hàng đợi riêng — mỗi nhân vật một hồ sơ, đổi bằng dropdown. Việc bấm đổi nhân vật *trong game* thì vẫn phải bắt rule như mọi thao tác khác.
+
+Tài khoản khác thì không cần gì thêm: mở một **browser profile** khác là có một `localStorage` khác, nên script tự có bộ cấu hình riêng ở đó.
 
 ---
 

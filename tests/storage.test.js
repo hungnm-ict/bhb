@@ -5,7 +5,17 @@
  * @vitest-environment jsdom
  */
 import { describe, it, expect, beforeEach } from 'vitest';
-import { loadProfiles, saveProfiles, importProfiles } from '../src/core/storage.js';
+import {
+  loadProfiles,
+  saveProfiles,
+  importProfiles,
+  createProfile,
+  duplicateProfile,
+  renameProfile,
+  deleteProfile,
+  setActiveProfile,
+  getActiveProfile,
+} from '../src/core/storage.js';
 import { STORAGE_KEY_PROFILES } from '../src/core/constants.js';
 import { DEFAULT_ACTIVITIES } from '../src/rules/activity.js';
 
@@ -74,5 +84,48 @@ describe('migration to the current schema', () => {
 
     const reloaded = loadProfiles();
     expect(reloaded.profiles[0].screens[0]).toMatchObject({ id: 's1', stopsTask: true });
+  });
+});
+
+describe('profiles', () => {
+  it('creates, renames and switches', () => {
+    const state = loadProfiles();
+    const created = createProfile(state, 'NFT');
+
+    expect(state.profiles).toHaveLength(2);
+    expect(getActiveProfile(state).name).toBe('NFT');
+
+    renameProfile(state, created.id, 'CLONE');
+    expect(getActiveProfile(state).name).toBe('CLONE');
+
+    setActiveProfile(state, state.profiles[0].id);
+    expect(getActiveProfile(state).id).toBe(state.profiles[0].id);
+    expect(setActiveProfile(state, 'nope')).toBe(false);
+  });
+
+  it('duplicates the active profile without sharing its rules', () => {
+    const state = loadProfiles();
+    getActiveProfile(state).rules.push({ id: 'r1', label: 'one', points: [], hex: null, tolerance: 10, enabled: true });
+
+    const copy = duplicateProfile(state, 'Copy');
+    copy.rules[0].label = 'changed';
+
+    expect(state.profiles[0].rules[0].label, 'the original is untouched').toBe('one');
+    expect(copy.activities).toHaveLength(DEFAULT_ACTIVITIES.length);
+  });
+
+  it('refuses to delete the last profile, because no profiles has no meaning', () => {
+    const state = loadProfiles();
+    expect(deleteProfile(state, state.profiles[0].id)).toBe(false);
+    expect(state.profiles).toHaveLength(1);
+  });
+
+  it('moves the active profile along when the active one is deleted', () => {
+    const state = loadProfiles();
+    const first = state.profiles[0].id;
+    const second = createProfile(state, 'Second');
+
+    expect(deleteProfile(state, second.id)).toBe(true);
+    expect(state.activeProfileId).toBe(first);
   });
 });

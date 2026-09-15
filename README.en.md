@@ -44,12 +44,15 @@ After that the script **updates itself** — no reinstalling. Tampermonkey check
 
 A small **HUD** sits in the top-right corner of the game: a status dot, the speed, and a line saying what the bot is doing. It fades after 4 seconds so it stops covering the game; hovering brings it back.
 
-Click it (or press `2`) to open the **control panel**, which has three tabs:
+Click it (or press `2`) to open the **control panel**, which has six tabs:
 
 | Tab | Contents |
 |---|---|
 | **Tasks** | A switch per mode, the speed slider, canvas size, auto-stop countdown |
-| **Rules** | The rule table: rename, enable, reorder by priority, delete, and capture |
+| **Rules** | The rule table: rename, enable, tag to an activity, gate to a screen, reorder, delete |
+| **Screens** | Screen anchors, with a live ✓/✗ and the measured match ratio |
+| **Run All** | The activity queue: enable, reorder, and the round it is on |
+| **Settings** | Profiles (one per character), reload-on-hang, language, export/import |
 | **Log** | What the bot has actually done, newest first |
 
 With the **Rules** tab open, every rule is drawn as a **marker on the canvas** at the position it watches. Hovering a row lights its marker and the other way round, so you can see which button a rule points at.
@@ -69,20 +72,30 @@ The bot handles the hover problem for you: it parks the **synthetic** pointer in
 | `3` | Auto Rerun — polls every 3s, rests 20s after a click |
 | `4` | Auto World Boss Solo — polls every 2s |
 | `5` | Auto Script — runs your own rules, every 3s |
+| `6` | Run All — every activity in the queue, in order |
 | `0` | Capture a rule at the cursor |
-| `= / +` | Increase game speed (up to 10×) |
-| `-` | Decrease game speed |
+| `= / +` | Increase game speed (next stop, up to 20×) |
+| `-` | Decrease game speed (down to 0.1×) |
 
 ---
 
 ## Features
 
-- **Up to 10× game speed** — patches the game's clocks and frame loop, not a fake fast-forward
+- **Game speed from 0.1× to 20×** — patches the game's clocks and frame loop, not a fake fast-forward
 - **Non-intrusive input** — events go straight to the canvas; your real cursor stays put
 - **Runs in the background** — the game keeps going when you switch tabs
 - **Your own rules** — point at a button and the bot learns its position and colour
+- **Region matching** — a rule can read a whole rectangle and score 16 samples in it, so one stray frame does not flip the match
+- **Screen awareness** — a rule fires only on the screens you allow, and an out-of-resources screen moves the queue on
+- **Run All** — an ordered activity queue that skips what has run dry and starts the round again
 - **Resolution-independent rules** — see below
-- **Auto-stop** — halts after 3 minutes with no successful click, so it never runs away
+- **Reload on hang** — optional; without it the bot simply stops after 3 idle minutes
+
+### Several characters, several accounts
+
+Each **profile** in Settings holds its own rules, screens and queue — one per character, switched from a dropdown. Clicking through the game's own character menu is a captured rule set like anything else.
+
+A second account needs nothing: a second browser profile is a second `localStorage`, so the script keeps a separate configuration there.
 
 ### Resolution-independent rules
 

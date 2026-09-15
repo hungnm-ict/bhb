@@ -6,6 +6,7 @@ export const VERSION =
 export const STORAGE_KEY_PROFILES = 'bhb.profiles.v2';
 export const STORAGE_KEY_SETTINGS = 'bhb.settings.v2';
 /** Upstream's key, read once to migrate a user coming from bh-scripts. */
+export const STORAGE_KEY_RESUME = 'bhb.resume.v1';
 export const STORAGE_KEY_LEGACY_RULES = 'bh_script_rules_v1';
 
 /** Default per-channel RGB distance allowed when matching a colour. */
@@ -24,6 +25,15 @@ export const IDLE_ADVANCE_TICKS = 8;
 
 /** Stop automation after this long with no successful click. */
 export const AUTO_STOP_TIMEOUT = 3 * 60 * 1000;
+
+/** A resume record older than this is a session the user walked away from. */
+export const RESUME_MAX_AGE = 15 * 60 * 1000;
+
+/** Time after the canvas appears before resuming — the game has to load. */
+export const RESUME_DELAY = 45 * 1000;
+
+/** Consecutive reloads with no click before the watchdog gives up. */
+export const MAX_RELOADS = 3;
 
 /** Debounce between synthetic clicks, so the game sees them as distinct. */
 export const CLICK_LOCKOUT_MS = 200;

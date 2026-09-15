@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.3.0
+// @version      0.4.0
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -14,9 +14,10 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.3.0" : "dev";
+  var VERSION = true ? "0.4.0" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
+  var STORAGE_KEY_RESUME = "bhb.resume.v1";
   var STORAGE_KEY_LEGACY_RULES = "bh_script_rules_v1";
   var DEFAULT_COLOR_TOLERANCE = 15;
   var INTERVAL_RERUN_HUNT = 3e3;
@@ -27,6 +28,9 @@
   var INTERVAL_RUN_ALL = 1500;
   var IDLE_ADVANCE_TICKS = 8;
   var AUTO_STOP_TIMEOUT = 3 * 60 * 1e3;
+  var RESUME_MAX_AGE = 15 * 60 * 1e3;
+  var RESUME_DELAY = 45 * 1e3;
+  var MAX_RELOADS = 3;
   var CLICK_LOCKOUT_MS = 200;
   var CLICK_HOVER_RESET_MS = 100;
   var HOVER_RESET_POINT = { x: 5, y: 5 };
@@ -163,7 +167,7 @@
   function createVirtualClock(readReal) {
     let virtual = null;
     let previous = null;
-    return function read() {
+    return function read2() {
       const real = readReal();
       if (virtual === null) {
         virtual = real;
@@ -860,11 +864,22 @@
       if (!state.activeTask) {
         return;
       }
-      if (realNow() - state.lastActionAt >= AUTO_STOP_TIMEOUT) {
-        const stopped = state.activeTask;
-        stop();
-        setMessage(`${stopped} auto-stopped (idle ${AUTO_STOP_TIMEOUT / 6e4}m)`);
+      if (realNow() - state.lastActionAt < AUTO_STOP_TIMEOUT) {
+        return;
       }
+      const stalled = state.activeTask;
+      if (deps.shouldRecoverFromHang && deps.shouldRecoverFromHang() && deps.recoverFromHang) {
+        report("hang", { label: stalled });
+        setMessage(`${stalled} looks stuck — reloading`);
+        if (deps.recoverFromHang(stalled)) {
+          return;
+        }
+        stop();
+        setMessage(`${stalled} stopped: reloading did not help`);
+        return;
+      }
+      stop();
+      setMessage(`${stalled} auto-stopped (idle ${AUTO_STOP_TIMEOUT / 6e4}m)`);
     }
     function start2(taskId) {
       if (!TASKS2[taskId]) {
@@ -911,7 +926,7 @@
         start2(taskId);
       }
     }
-    return { start: start2, stop, toggle, tick, getState, on: emitter.on, setMessage };
+    return { start: start2, stop, toggle, tick, checkIdle: checkAutoStop, getState, on: emitter.on, setMessage };
   }
 
   // src/core/storage.js
@@ -1001,17 +1016,154 @@
   function getActiveProfile(state) {
     return state.profiles.find((p) => p.id === state.activeProfileId) ?? state.profiles[0];
   }
+  function createProfileId() {
+    return `p${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
+  }
+  function createProfile(state, name) {
+    const profile = {
+      id: createProfileId(),
+      name: name || `Profile ${state.profiles.length + 1}`,
+      rules: [],
+      screens: [],
+      activities: createDefaultActivities()
+    };
+    state.profiles.push(profile);
+    state.activeProfileId = profile.id;
+    return profile;
+  }
+  function duplicateProfile(state, name) {
+    const source = getActiveProfile(state);
+    const copy = JSON.parse(JSON.stringify(source));
+    copy.id = createProfileId();
+    copy.name = name || `${source.name} copy`;
+    state.profiles.push(copy);
+    state.activeProfileId = copy.id;
+    return copy;
+  }
+  function renameProfile(state, profileId, name) {
+    const profile = state.profiles.find((entry) => entry.id === profileId);
+    if (!profile || !name) {
+      return false;
+    }
+    profile.name = name;
+    return true;
+  }
+  function deleteProfile(state, profileId) {
+    if (state.profiles.length <= 1) {
+      return false;
+    }
+    const index = state.profiles.findIndex((entry) => entry.id === profileId);
+    if (index === -1) {
+      return false;
+    }
+    state.profiles.splice(index, 1);
+    if (state.activeProfileId === profileId) {
+      state.activeProfileId = state.profiles[0].id;
+    }
+    return true;
+  }
+  function setActiveProfile(state, profileId) {
+    if (!state.profiles.some((entry) => entry.id === profileId)) {
+      return false;
+    }
+    state.activeProfileId = profileId;
+    return true;
+  }
   function loadSettings() {
     const stored = readJson(STORAGE_KEY_SETTINGS) || {};
     return {
       scaleMode: stored.scaleMode === ScaleMode.ABSOLUTE ? ScaleMode.ABSOLUTE : ScaleMode.SCALE,
       language: stored.language === "en" ? "en" : "vi",
       // A bot that closes the game unasked is a bot that loses a session.
-      closeAfterRound: stored.closeAfterRound === true
+      closeAfterRound: stored.closeAfterRound === true,
+      watchdog: stored.watchdog === true
     };
   }
   function saveSettings(settings) {
     return writeJson(STORAGE_KEY_SETTINGS, settings);
+  }
+  function exportProfiles(state) {
+    return JSON.stringify(state, null, 2);
+  }
+  function importProfiles(json) {
+    const parsed = JSON.parse(json);
+    const state = normaliseState(parsed);
+    if (state.profiles.every((p) => p.rules.length === 0) && !parsed.profiles) {
+      throw new Error("not a BHB profile export");
+    }
+    return state;
+  }
+
+  // src/core/watchdog.js
+  function read() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY_RESUME);
+      const parsed = raw ? JSON.parse(raw) : null;
+      if (!parsed || typeof parsed.task !== "string" || typeof parsed.at !== "number") {
+        return null;
+      }
+      return { task: parsed.task, at: parsed.at, reloads: Number(parsed.reloads) || 0 };
+    } catch (error) {
+      console.warn("[BHB] could not read the resume record", error);
+      return null;
+    }
+  }
+  function write(record) {
+    try {
+      if (record === null) {
+        localStorage.removeItem(STORAGE_KEY_RESUME);
+      } else {
+        localStorage.setItem(STORAGE_KEY_RESUME, JSON.stringify(record));
+      }
+      return true;
+    } catch (error) {
+      console.warn("[BHB] could not write the resume record", error);
+      return false;
+    }
+  }
+  function createWatchdog(deps = {}) {
+    const now = deps.now || realNow;
+    const reload = deps.reload || (() => window.location.reload());
+    function arm(task) {
+      const previous = read();
+      write({ task, at: now(), reloads: previous ? previous.reloads : 0 });
+    }
+    function disarm() {
+      write(null);
+    }
+    function noteProgress() {
+      const record = read();
+      if (record && record.reloads !== 0) {
+        write({ ...record, reloads: 0 });
+      }
+    }
+    function taskToResume() {
+      const record = read();
+      if (!record) {
+        return null;
+      }
+      if (now() - record.at > RESUME_MAX_AGE) {
+        write(null);
+        return null;
+      }
+      return record.task;
+    }
+    function reloadCount() {
+      const record = read();
+      return record ? record.reloads : 0;
+    }
+    function recover(task) {
+      const record = read();
+      const reloads = (record ? record.reloads : 0) + 1;
+      if (reloads > MAX_RELOADS) {
+        write(null);
+        return false;
+      }
+      write({ task, at: now(), reloads });
+      reload();
+      return true;
+    }
+    return { arm, disarm, noteProgress, taskToResume, reloadCount, recover };
   }
 
   // src/rules/builtin.js
@@ -1075,6 +1227,7 @@
     "tab.rules": "Rule",
     "tab.screens": "Màn hình",
     "tab.queue": "Chạy tất cả",
+    "tab.settings": "Cài đặt",
     "tab.log": "Nhật ký",
     "panel.close": "Đóng",
     "overlay.speed": "Tốc độ",
@@ -1116,6 +1269,25 @@
     "queue.ruleCount": "Số rule thuộc hoạt động này",
     "queue.closeAfterRound": "Đóng game sau khi xong một vòng",
     "queue.hint": "Chạy từ trên xuống, bỏ qua cái đã hết tài nguyên, rồi quay lại từ đầu. Gán rule cho hoạt động ở tab Rule.",
+    "settings.profiles": "Hồ sơ",
+    "settings.profilesHint": "Mỗi hồ sơ có rule, màn hình và hàng đợi riêng — mỗi nhân vật một hồ sơ. Tài khoản khác thì chỉ cần một browser profile khác.",
+    "settings.newProfile": "Tạo mới",
+    "settings.newProfileName": "Hồ sơ mới",
+    "settings.duplicate": "Nhân bản",
+    "settings.rename": "Đổi tên",
+    "settings.renamePrompt": "Đặt tên cho hồ sơ này",
+    "settings.delete": "Xoá",
+    "settings.behaviour": "Hành vi",
+    "settings.watchdog": "Tải lại game khi game treo",
+    "settings.watchdogHint": "Không bật thì bot chỉ dừng sau 3 phút không làm gì. Bật thì trang tự tải lại và chạy tiếp — tối đa 3 lần rồi mới chịu thua.",
+    "settings.reloads": "đã tải lại {n}×",
+    "settings.absoluteCoords": "Dùng toạ độ thô (không co giãn theo cỡ canvas)",
+    "settings.language": "Ngôn ngữ",
+    "settings.transfer": "Xuất / nhập",
+    "settings.transferHint": "Dán nội dung hồ sơ đã xuất vào đây rồi bấm Nhập.",
+    "settings.export": "Xuất",
+    "settings.import": "Nhập",
+    "settings.importFailed": "Nhập thất bại",
     "log.title": "Nhật ký",
     "log.empty": "Chưa có gì. Bật một hoạt động để bắt đầu.",
     "log.clear": "Xoá",
@@ -1124,6 +1296,7 @@
     "log.screen": "Màn hình: {label}",
     "log.resource": "Hết tài nguyên ở {label} — đã dừng",
     "log.activity": "Hàng đợi → {label}",
+    "log.hang": "{label} không phản hồi — đang tải lại",
     "log.taskStarted": "Bật {task}",
     "log.taskStopped": "Tắt {task}",
     "help.title": "PHÍM TẮT",
@@ -1164,6 +1337,7 @@
     "tab.rules": "Rules",
     "tab.screens": "Screens",
     "tab.queue": "Run All",
+    "tab.settings": "Settings",
     "tab.log": "Log",
     "panel.close": "Close",
     "overlay.speed": "Speed",
@@ -1205,6 +1379,25 @@
     "queue.ruleCount": "Rules tagged to this activity",
     "queue.closeAfterRound": "Close the game after a full round",
     "queue.hint": "Runs top to bottom, skips what is out of resources, and starts again. Tag rules to an activity in the Rules tab.",
+    "settings.profiles": "Profiles",
+    "settings.profilesHint": "A profile holds its own rules, screens and queue — one per character. A second account just needs a second browser profile.",
+    "settings.newProfile": "New",
+    "settings.newProfileName": "New profile",
+    "settings.duplicate": "Duplicate",
+    "settings.rename": "Rename",
+    "settings.renamePrompt": "Name this profile",
+    "settings.delete": "Delete",
+    "settings.behaviour": "Behaviour",
+    "settings.watchdog": "Reload the game when it stops responding",
+    "settings.watchdogHint": "Without this the bot just stops after three idle minutes. With it, the page reloads and the task starts again — up to three times before it gives up.",
+    "settings.reloads": "reloaded {n}×",
+    "settings.absoluteCoords": "Use raw coordinates (do not rescale rules)",
+    "settings.language": "Language",
+    "settings.transfer": "Export / import",
+    "settings.transferHint": "Paste a profile export here, then press Import.",
+    "settings.export": "Export",
+    "settings.import": "Import",
+    "settings.importFailed": "Import failed",
     "log.title": "Activity",
     "log.empty": "Nothing yet. Start a task to see what the bot does.",
     "log.clear": "Clear",
@@ -1213,6 +1406,7 @@
     "log.screen": "Screen: {label}",
     "log.resource": "Out of resources at {label} — stopped",
     "log.activity": "Queue → {label}",
+    "log.hang": "{label} stopped responding — reloading",
     "log.taskStarted": "Started {task}",
     "log.taskStopped": "Stopped {task}",
     "help.title": "KEYBOARD",
@@ -1246,6 +1440,9 @@
   function setLanguage(code) {
     active = BUNDLES[code] || vi_default;
     activeCode = BUNDLES[code] ? code : "vi";
+  }
+  function getLanguage() {
+    return activeCode;
   }
   function t(key, params) {
     const template = active[key] ?? key;
@@ -1795,6 +1992,15 @@
 
 /* --- Screens & drag capture --------------------------------------------- */
 
+.bhb-select, .bhb-textarea {
+  width: 100%; padding: 5px 7px;
+  background: var(--bhb-bg-soft); color: var(--bhb-text);
+  border: 1px solid var(--bhb-line); border-radius: 7px;
+  font-family: var(--bhb-font); font-size: 11px;
+}
+.bhb-textarea { height: 72px; resize: vertical; font-family: var(--bhb-mono); font-size: 10px; }
+.bhb-btnrow { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.bhb-btn--small { flex: 1; min-width: 64px; padding: 4px 8px; font-size: 10.5px; }
 .bhb-queue__row.is-active { border-color: var(--bhb-live); }
 .bhb-queue__row.is-spent { opacity: .45; }
 .bhb-queue__state { width: 14px; text-align: center; color: var(--bhb-live); font-size: 10px; }
@@ -1897,6 +2103,7 @@
     RULES: "rules",
     SCREENS: "screens",
     QUEUE: "queue",
+    SETTINGS: "settings",
     LOG: "log"
   });
   var LOG_LIMIT = 200;
@@ -2545,6 +2752,131 @@
     return el("div", { class: "bhb-tab" }, [head, el("div", { class: "bhb-rules" }, rows)]);
   }
 
+  // src/ui/panel/settings.js
+  function renderSettingsTab(deps) {
+    const { profiles, settings } = deps;
+    const list = profiles.list();
+    const activeId = profiles.activeId();
+    const picker = el("select", { class: "bhb-select" });
+    for (const profile of list) {
+      const option = el("option", { text: profile.name });
+      option.value = profile.id;
+      picker.append(option);
+    }
+    picker.value = activeId;
+    picker.addEventListener("change", () => {
+      profiles.setActive(picker.value);
+      deps.refresh();
+    });
+    function action(labelKey, run) {
+      const button = el("button", { class: "bhb-btn bhb-btn--small", text: t(labelKey) });
+      button.addEventListener("click", () => {
+        run();
+        deps.refresh();
+      });
+      return button;
+    }
+    const transfer = el("textarea", { class: "bhb-textarea" });
+    transfer.placeholder = t("settings.transferHint");
+    transfer.spellcheck = false;
+    const exportButton = action("settings.export", () => {
+      transfer.value = profiles.exportAll();
+    });
+    const importButton = el("button", { class: "bhb-btn bhb-btn--small", text: t("settings.import") });
+    importButton.addEventListener("click", () => {
+      try {
+        profiles.importAll(transfer.value);
+        transfer.value = "";
+        deps.refresh();
+      } catch (error) {
+        transfer.value = `${t("settings.importFailed")}: ${error.message}`;
+      }
+    });
+    function toggleRow(labelKey, value, onChange, note) {
+      const toggle = el("button", {
+        class: `bhb-icon ${value ? "is-on" : ""}`,
+        title: t(labelKey),
+        text: value ? "◉" : "○"
+      });
+      toggle.addEventListener("click", () => {
+        onChange(!value);
+        deps.refresh();
+      });
+      return el("div", { class: "bhb-screen__tune" }, [
+        toggle,
+        el("span", { class: "bhb-note", text: t(labelKey) }),
+        note ? el("span", { class: "bhb-mono bhb-note", text: note }) : null
+      ]);
+    }
+    const languagePicker = el("select", { class: "bhb-select" });
+    for (const [code, label] of [["vi", "Tiếng Việt"], ["en", "English"]]) {
+      const option = el("option", { text: label });
+      option.value = code;
+      languagePicker.append(option);
+    }
+    languagePicker.value = getLanguage();
+    languagePicker.addEventListener("change", () => {
+      deps.updateSettings({ language: languagePicker.value });
+      deps.refresh();
+    });
+    const reloads = deps.getReloadCount();
+    return el("div", { class: "bhb-tab" }, [
+      el("div", { class: "bhb-field" }, [
+        el("div", { class: "bhb-field__head" }, [
+          el("span", { class: "bhb-label", text: t("settings.profiles") })
+        ]),
+        picker,
+        el("div", { class: "bhb-btnrow" }, [
+          action("settings.newProfile", () => profiles.create(t("settings.newProfileName"))),
+          action("settings.duplicate", () => profiles.duplicate()),
+          action("settings.rename", () => {
+            const name = window.prompt(t("settings.renamePrompt"), profiles.activeName());
+            if (name) {
+              profiles.rename(activeId, name.trim());
+            }
+          }),
+          action("settings.delete", () => profiles.remove(activeId))
+        ]),
+        el("p", { class: "bhb-note", text: t("settings.profilesHint") })
+      ]),
+      el("div", { class: "bhb-field" }, [
+        el("div", { class: "bhb-field__head" }, [
+          el("span", { class: "bhb-label", text: t("settings.behaviour") })
+        ]),
+        toggleRow(
+          "settings.watchdog",
+          settings.watchdog,
+          (value) => deps.updateSettings({ watchdog: value }),
+          reloads > 0 ? t("settings.reloads", { n: reloads }) : null
+        ),
+        toggleRow(
+          "queue.closeAfterRound",
+          settings.closeAfterRound,
+          (value) => deps.updateSettings({ closeAfterRound: value })
+        ),
+        toggleRow(
+          "settings.absoluteCoords",
+          settings.scaleMode === ScaleMode.ABSOLUTE,
+          (value) => deps.updateSettings({ scaleMode: value ? ScaleMode.ABSOLUTE : ScaleMode.SCALE })
+        ),
+        el("p", { class: "bhb-note", text: t("settings.watchdogHint") })
+      ]),
+      el("div", { class: "bhb-field" }, [
+        el("div", { class: "bhb-field__head" }, [
+          el("span", { class: "bhb-label", text: t("settings.language") })
+        ]),
+        languagePicker
+      ]),
+      el("div", { class: "bhb-field" }, [
+        el("div", { class: "bhb-field__head" }, [
+          el("span", { class: "bhb-label", text: t("settings.transfer") })
+        ]),
+        transfer,
+        el("div", { class: "bhb-btnrow" }, [exportButton, importButton])
+      ])
+    ]);
+  }
+
   // src/ui/panel/log.js
   var KIND_ICON = {
     click: "⊙",
@@ -2552,6 +2884,7 @@
     task: "⏻",
     screen: "▣",
     activity: "➜",
+    hang: "⟳",
     resource: "⛔"
   };
   function clock(at) {
@@ -2561,6 +2894,9 @@
   function describe(entry) {
     if (entry.kind === "task") {
       return t(entry.started ? "log.taskStarted" : "log.taskStopped", { task: entry.label });
+    }
+    if (entry.kind === "hang") {
+      return t("log.hang", { label: entry.label });
     }
     if (entry.kind === "activity") {
       return t("log.activity", { label: entry.label });
@@ -2612,6 +2948,7 @@
     [Tab.RULES, "tab.rules"],
     [Tab.SCREENS, "tab.screens"],
     [Tab.QUEUE, "tab.queue"],
+    [Tab.SETTINGS, "tab.settings"],
     [Tab.LOG, "tab.log"]
   ];
   function createPanel(deps) {
@@ -2631,6 +2968,9 @@
       }
       if (tab === Tab.QUEUE) {
         return renderQueueTab(deps);
+      }
+      if (tab === Tab.SETTINGS) {
+        return renderSettingsTab(deps);
       }
       if (tab === Tab.LOG) {
         return renderLogTab(deps);
@@ -2865,6 +3205,7 @@
     const getActivities = () => getActiveProfile(profileState).activities;
     const persist = () => saveProfiles(profileState);
     const store = createUiStore();
+    const watchdog = createWatchdog();
     const engine = createEngine({
       getScriptRules: getRules,
       getRerunRules: () => RERUN_RULES,
@@ -2873,7 +3214,9 @@
       getScreens,
       getActivities,
       shouldCloseAfterRound: () => settings.closeAfterRound,
-      closeGame: () => window.close()
+      closeGame: () => window.close(),
+      shouldRecoverFromHang: () => settings.watchdog,
+      recoverFromHang: (task) => watchdog.recover(task)
     });
     const editor = createRuleEditor({
       getRules,
@@ -2893,6 +3236,39 @@
       markers.render();
     };
     const hud = createHud({ getEngineState: engine.getState, store });
+    const profileActions = {
+      list: () => profileState.profiles.map(({ id, name }) => ({ id, name })),
+      activeId: () => getActiveProfile(profileState).id,
+      activeName: () => getActiveProfile(profileState).name,
+      create: (name) => {
+        createProfile(profileState, name);
+        persist();
+      },
+      duplicate: () => {
+        duplicateProfile(profileState);
+        persist();
+      },
+      rename: (id, name) => {
+        renameProfile(profileState, id, name);
+        persist();
+      },
+      remove: (id) => {
+        deleteProfile(profileState, id);
+        persist();
+      },
+      setActive: (id) => {
+        setActiveProfile(profileState, id);
+        persist();
+      },
+      exportAll: () => exportProfiles(profileState),
+      importAll: (json) => {
+        const imported = importProfiles(json);
+        profileState.version = imported.version;
+        profileState.activeProfileId = imported.activeProfileId;
+        profileState.profiles = imported.profiles;
+        persist();
+      }
+    };
     const panel = createPanel({
       store,
       editor,
@@ -2905,6 +3281,16 @@
       setCloseAfterRound: (value) => {
         settings.closeAfterRound = value;
         saveSettings(settings);
+      },
+      profiles: profileActions,
+      settings,
+      getReloadCount: () => watchdog.reloadCount(),
+      updateSettings: (changes) => {
+        Object.assign(settings, changes);
+        saveSettings(settings);
+        if (changes.language) {
+          setLanguage(changes.language);
+        }
       },
       getEngineState: engine.getState,
       toggleTask: engine.toggle,
@@ -2919,7 +3305,19 @@
     const help = createHelpPanel();
     setClickObserver(showClickFlash);
     engine.on("change", () => refresh());
-    engine.on("action", (entry) => store.log(entry));
+    engine.on("action", (entry) => {
+      store.log(entry);
+      if (entry.kind === "task") {
+        if (entry.started) {
+          watchdog.arm(entry.label);
+        } else {
+          watchdog.disarm();
+        }
+      }
+      if (entry.kind === "click") {
+        watchdog.noteProgress();
+      }
+    });
     store.subscribe(() => refresh());
     onSpeedChange(() => refresh());
     installHotkeys({
@@ -2938,7 +3336,20 @@
     hud.wake();
     realSetInterval(refresh, UI_REFRESH_MS);
     window.addEventListener("resize", () => markers.render());
+    resumeAfterReload(engine, watchdog);
     console.info("[BHB] ready — press 1 for the keyboard reference");
+  }
+  function resumeAfterReload(engine, watchdog) {
+    const task = watchdog.taskToResume();
+    if (!task) {
+      return;
+    }
+    engine.setMessage(`resuming ${task} in ${RESUME_DELAY / 1e3}s`);
+    realSetTimeout(() => {
+      if (!engine.getState().activeTask) {
+        engine.start(task);
+      }
+    }, RESUME_DELAY);
   }
   function whenCanvasAppears(onReady) {
     const POLL_MS = 300;
