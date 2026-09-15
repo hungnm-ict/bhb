@@ -93,7 +93,7 @@ export function renderRulesTab(deps) {
     });
 
     const slot = el('select', { class: 'bhb-rule__gate', title: t('rules.activity') });
-    const loose = el('option', { text: t('rules.loose') });
+    const loose = el('option', { text: t('rules.noActivity') });
     loose.value = '';
     slot.append(loose);
     for (const activity of activities) {
@@ -150,7 +150,7 @@ export function renderRulesTab(deps) {
       deps.refresh();
     });
 
-    const classes = ['bhb-rule'];
+    const classes = ['bhb-rule', 'bhb-rule--stacked'];
     if (!rule.enabled) {
       classes.push('is-off');
     }
@@ -162,17 +162,21 @@ export function renderRulesTab(deps) {
     }
 
     const row = el('div', { class: classes.join(' ') }, [
-      el('span', { class: 'bhb-rule__n', text: String(index + 1) }),
-      el('span', { class: 'bhb-rule__swatch', style: { background: rule.hex || 'transparent' } }),
-      name,
-      el('span', {
-        class: 'bhb-rule__coord bhb-mono',
-        title: legacy ? t('overlay.needsRecapture') : '',
-        text: point ? `${point.x},${point.y}${legacy ? ' ⚠' : ''}` : '—',
-      }),
-      activities.length > 0 ? slot : null,
-      deps.getScreens().length > 0 ? gate : null,
-      el('span', { class: 'bhb-rule__actions' }, [toggle, up, down, remove]),
+      el('div', { class: 'bhb-rule__main' }, [
+        el('span', { class: 'bhb-rule__n', text: String(index + 1) }),
+        el('span', { class: 'bhb-rule__swatch', style: { background: rule.hex || 'transparent' } }),
+        name,
+        el('span', { class: 'bhb-rule__actions' }, [toggle, up, down, remove]),
+      ]),
+      el('div', { class: 'bhb-rule__meta' }, [
+        el('span', {
+          class: 'bhb-rule__coord bhb-mono',
+          title: legacy ? t('overlay.needsRecapture') : '',
+          text: point ? `${point.x},${point.y}${legacy ? ' ⚠' : ''}` : '—',
+        }),
+        activities.length > 0 ? slot : null,
+        deps.getScreens().length > 0 ? gate : null,
+      ]),
     ]);
 
     row.addEventListener('mouseenter', () => deps.store.hoverRule(rule.id));
