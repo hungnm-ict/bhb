@@ -1,4 +1,4 @@
-# BHB <!--version-->v0.12.0<!--/version-->
+# BHB <!--version-->v0.12.1<!--/version-->
 
 > 🇻🇳 [Phiên bản tiếng Việt](README.md) · [Changelog](https://github.com/hungnm-ict/bhb/commits/master)
 
@@ -67,7 +67,28 @@ Hover a button in the game and press **Capture a step at the cursor** (or the `0
 
 The bot handles the hover problem for you: it parks the **synthetic** pointer in a corner of the canvas, waits for the game to repaint, reads the resting colour, and puts the synthetic pointer back. Your real cursor never moves. Both shades — lit and resting — are stored, so the step matches either way.
 
-To let the bot know where it is, go to the **Screens** tab and drag a box around something only that screen shows. Mark an out-of-resources screen with `stopsTask` (the ⏹ button) — that is what makes the queue move on instead of clicking at a wall. The **★** next to it means "alert me when this screen appears"; see Alerts below.
+### Screens — telling the bot where it is standing
+
+The easiest tab to skip, and the one that decides whether the bot runs sensibly. It has nothing to do with lag detection (that is *reload on hang*, in Settings).
+
+**Why it exists.** A colour only means something in context. The green "Yes" on the raid dialog and the green button on the loot screen can be the same shade — a bot that cannot tell them apart clicks both. Declaring a screen buys three things:
+
+1. **Steps limited to a screen** — each step in the Steps tab can say "only on this screen", so a colour that repeats elsewhere stops being a hazard.
+2. **Knowing a resource ran out** — the **⏹** button marks a screen `stopsTask`. Meeting it makes the queue **move to the next activity** instead of clicking at a wall, which is what replaces waiting out the blind three-minute timeout.
+3. **Alerts** — the **★** button: see this screen, send a Discord/Telegram message. That is also how rare-drop detection works, with no vision code of its own.
+
+**Capturing one.** Press **Capture a screen anchor** → the panel steps aside → **drag a box** around something **only that screen shows**: a title, a unique icon, the word `HEROIC`. Then name it. Avoid anything with characters, effects or ticking numbers in it.
+
+**Reading the row:**
+
+| What you see | What it means |
+|---|---|
+| `unknown` in the corner | Right now the bot **does not recognise** where it is |
+| The cyan number (`0.19`, `0.83`…) | Share of sample points matching, live. Each anchor samples 16 |
+| The number by the slider (`0.75`) | The threshold to clear. `0.19 < 0.75` means no match (✗) |
+| `Anchors 1` | One anchor so far. **＋** adds another — every anchor must match, which is stricter |
+
+**Tuning the threshold:** stand on that screen in the game and watch the number. On the screen but only scoring `0.6`? Lower the threshold. **Not** on it and still scoring `0.8`? The box is not distinctive — capture somewhere else.
 
 ### Keyboard shortcuts
 
