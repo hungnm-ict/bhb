@@ -137,6 +137,9 @@ export function renderSettingsTab(deps) {
       toggleRow('queue.closeAfterRound', settings.closeAfterRound, (value) =>
         deps.updateSettings({ closeAfterRound: value })
       ),
+      toggleRow('settings.keepAlive', settings.keepAlive, (value) =>
+        deps.updateSettings({ keepAlive: value })
+      ),
       toggleRow('settings.sizeBadge', settings.sizeBadge, (value) =>
         deps.updateSettings({ sizeBadge: value })
       ),
@@ -144,6 +147,7 @@ export function renderSettingsTab(deps) {
         deps.updateSettings({ scaleMode: value ? ScaleMode.ABSOLUTE : ScaleMode.SCALE })
       ),
       el('p', { class: 'bhb-note', text: t('settings.watchdogHint') }),
+      el('p', { class: 'bhb-note', text: t('settings.keepAliveHint') }),
     ]),
 
     renderQueueSection(deps),

@@ -246,7 +246,7 @@ export function setActiveProfile(state, profileId) {
 
 /**
  * @returns {{ scaleMode: string, language: string, closeAfterRound: boolean,
- *   watchdog: boolean, sizeBadge: boolean }}
+ *   watchdog: boolean, sizeBadge: boolean, keepAlive: boolean }}
  */
 export function loadSettings() {
   const stored = readJson(STORAGE_KEY_SETTINGS) || {};
@@ -260,6 +260,7 @@ export function loadSettings() {
     closeAfterRound: stored.closeAfterRound === true,
     watchdog: stored.watchdog === true,
     sizeBadge: stored.sizeBadge !== false,
+    keepAlive: stored.keepAlive !== false,
   };
 }
 

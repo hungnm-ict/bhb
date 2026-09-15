@@ -79,6 +79,9 @@ export default {
   'settings.watchdog': 'Reload the game when it stops responding',
   'settings.watchdogHint': 'Without this the bot just stops after three idle minutes. With it, the page reloads and the task starts again — up to three times before it gives up.',
   'settings.reloads': 'reloaded {n}×',
+  'settings.keepAlive': 'Keep running when the window is covered',
+  'settings.keepAliveHint':
+    'A window covered edge to edge stops being painted, and the game stops with it. This drives the game loop by hand instead. Takes effect after a reload.',
   'settings.sizeBadge': 'Show the canvas size in the corner',
   'settings.absoluteCoords': 'Use raw coordinates (do not rescale steps)',
   'settings.language': 'Language',

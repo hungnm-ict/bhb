@@ -93,6 +93,17 @@ The bot handles the hover problem for you: it parks the **synthetic** pointer in
 - **Run All** — an ordered activity queue that skips what has run dry and starts the round again
 - **Resolution-independent rules** — see below
 - **Reload on hang** — optional; without it the bot simply stops after 3 idle minutes
+- **Keeps running when the window is covered** — see below
+
+### A covered window freezes the game
+
+Chrome and Edge treat a window **covered edge to edge** as hidden and stop painting it. `requestAnimationFrame` is driven by the compositor, so it stops firing and the game's loop dies with it. A partly visible window is fine — which is why switching apps is harmless and only maximising one over the browser freezes it.
+
+No amount of lying about `document.hidden` brings the frames back; that decision is made below JavaScript. So BHB drives the loop itself: it already intercepts `requestAnimationFrame` for the speed hack, so it holds the game's callback, and runs it by hand when 250ms pass with no real frame.
+
+The heartbeat comes from the **audio thread** (a silent `ScriptProcessorNode`), because `setInterval` is clamped to once a second in exactly this situation and the audio thread is not. Browsers only start audio after a user gesture, so press any key in the page once after loading the game.
+
+It can be turned off in Settings.
 
 ### Several characters, several accounts
 

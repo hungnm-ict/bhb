@@ -79,6 +79,9 @@ export default {
   'settings.watchdog': 'Tải lại game khi game treo',
   'settings.watchdogHint': 'Không bật thì bot chỉ dừng sau 3 phút không làm gì. Bật thì trang tự tải lại và chạy tiếp — tối đa 3 lần rồi mới chịu thua.',
   'settings.reloads': 'đã tải lại {n}×',
+  'settings.keepAlive': 'Chạy tiếp khi cửa sổ bị che kín',
+  'settings.keepAliveHint':
+    'Trình duyệt ngừng vẽ khi cửa sổ bị cửa sổ khác phủ kín, và game đứng theo. Bật cái này thì bot tự lái vòng lặp của game. Cần tải lại trang sau khi đổi.',
   'settings.sizeBadge': 'Hiện cỡ canvas ở góc màn hình',
   'settings.absoluteCoords': 'Dùng toạ độ thô (không co giãn theo cỡ canvas)',
   'settings.language': 'Ngôn ngữ',

@@ -93,6 +93,7 @@ Bot tự xử lý chuyện nút bị sáng lên do con trỏ đang nằm trên �
 - **Chạy tất cả** — hàng đợi hoạt động chạy từ trên xuống, hết tài nguyên thì sang mục kế, hết một vòng thì quay lại từ đầu
 - **Rule không phụ thuộc độ phân giải** — xem mục dưới
 - **Tự tải lại khi game treo** — bật trong Cài đặt; không bật thì bot chỉ dừng sau 3 phút không làm gì
+- **Chạy tiếp khi cửa sổ bị che kín** — xem mục dưới
 
 ### Rule không phụ thuộc độ phân giải
 
@@ -103,6 +104,16 @@ Bản gốc lưu toạ độ pixel trần. Trên macOS canvas bị ghim ở mộ
 BHB lưu kèm **kích thước framebuffer lúc chụp rule**, nên rule tự quy đổi sang khung hình hiện tại. Đổi cỡ cửa sổ hay zoom vẫn chạy đúng.
 
 Rule nhập từ bản cũ không có thông tin này, nên overlay đánh dấu **⚠ màu cam** — nên bấm `0` chụp lại cho chắc.
+
+### Cửa sổ bị che kín thì game đứng
+
+Chrome và Edge coi một cửa sổ **bị cửa sổ khác phủ kín hoàn toàn** là đang ẩn, và ngừng vẽ nó. `requestAnimationFrame` do bộ vẽ điều khiển nên ngừng bắn theo, và vòng lặp của game chết đứng. Che một phần thì không sao — đó là lý do bạn bấm sang app khác mà game vẫn chạy, chỉ maximize mới đứng.
+
+Không có cách nào nói dối để trình duyệt bắn lại rAF: quyết định đó nằm dưới tầng JavaScript. Nên BHB **tự lái vòng lặp**: nó vốn đã chặn `requestAnimationFrame` cho phần tăng tốc, nên đang giữ callback của game — khi 250ms không có frame thật nào tới, nó tự gọi callback đó.
+
+Nhịp gọi lấy từ **luồng âm thanh** (một `ScriptProcessorNode` im lặng), vì `setInterval` bị bóp còn 1 lần/giây đúng trong tình huống này, còn luồng âm thanh thì không. Trình duyệt chỉ cho âm thanh chạy sau khi bạn bấm gì đó trong trang, nên bấm một phím bất kỳ sau khi mở game là xong.
+
+Tắt được trong Cài đặt nếu không cần.
 
 ### Nhiều nhân vật, nhiều tài khoản
 
