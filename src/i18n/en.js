@@ -170,4 +170,11 @@ export default {
   'notify.hint': 'One channel is enough: paste a Discord webhook, or both the Telegram token and chat ID. Each kind of alert goes out at most once a minute.',
   'notify.noTarget': 'No channel yet — paste a webhook or token below.',
   'msg.notify': 'Alert sent: {label}',
+
+  'toast.captured': '✓ captured: {label}',
+  'toast.capturedUnstable': '⚠ captured, but the colour here keeps changing',
+
+  'steps.armCapture': 'Capture mode — enables the 0 key',
+  'steps.armHint': 'Switch this off once you are done: 0 sits beside the keys that drive the bot, and leaving it live invites a stray press mid-fight. The button above always works.',
+  'msg.captureDisarmed': 'the 0 key is off — switch capture mode on in the Steps tab',
 };

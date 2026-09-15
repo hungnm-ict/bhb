@@ -32,6 +32,15 @@ export function createUiStore() {
     hoveredStepId: null,
     /** @type {string | null} activity id shown in the steps table; null is all */
     stepFilter: null,
+    /**
+     * Whether the capture hotkey is armed.
+     *
+     * Off on every load, and deliberately not persisted: the key sits next to
+     * the ones that drive the bot, and a session that starts armed is a stray
+     * `0` mid-fight that captures whatever happened to be under the cursor.
+     */
+    isCaptureArmed: false,
+
     /** @type {object[]} newest first */
     log: [],
   };
@@ -78,6 +87,8 @@ export function createUiStore() {
     setTab: (tab) => patch({ tab, panelOpen: true }),
 
     setRuleFilter: (activityId) => patch({ stepFilter: activityId }),
+
+    armCapture: (armed) => patch({ isCaptureArmed: armed }),
 
     selectStep: (id) => patch({ selectedStepId: id }),
     hoverStep: (id) => patch({ hoveredStepId: id }),

@@ -170,4 +170,11 @@ export default {
   'notify.hint': 'Cần ít nhất một kênh: dán Discord webhook, hoặc cả token lẫn chat ID của Telegram. Mỗi loại tin chỉ gửi tối đa 1 lần/phút.',
   'notify.noTarget': 'Chưa có kênh nào — dán webhook hoặc token vào bên dưới.',
   'msg.notify': 'Đã báo tin: {label}',
+
+  'toast.captured': '✓ đã bắt: {label}',
+  'toast.capturedUnstable': '⚠ đã bắt, nhưng màu ở đây đổi liên tục',
+
+  'steps.armCapture': 'Bật chế độ bắt bước — cho phép phím 0',
+  'steps.armHint': 'Tắt công tắc này khi bắt xong: phím 0 nằm cạnh các phím điều khiển bot, bật suốt thì dễ bấm nhầm giữa lúc đang chơi. Nút tím bên trên thì lúc nào cũng dùng được.',
+  'msg.captureDisarmed': 'phím 0 đang tắt — bật chế độ bắt bước ở tab Bước',
 };

@@ -55,6 +55,7 @@ import { createMarkerLayer } from './ui/markers.js';
 import { createSizeBadge } from './ui/size-badge.js';
 import { installHotkeys } from './ui/hotkeys.js';
 import { showClickFlash } from './ui/flash.js';
+import { showToast } from './ui/toast.js';
 import { realSetInterval, realClearInterval, realSetTimeout, realNow } from './core/timers.js';
 import { getCanvas } from './core/canvas.js';
 
@@ -105,6 +106,18 @@ function bootstrap() {
     getSteps,
     persist,
     report: engine.setMessage,
+    // The status line is in a corner; the user is looking at the button they
+    // just pointed at, so the confirmation goes there.
+    onCaptured: ({ step, clientX, clientY, isSettled }) => {
+      showClickFlash(clientX, clientY);
+      showToast({
+        clientX,
+        clientY,
+        text: isSettled ? t('toast.captured', { label: step.label }) : t('toast.capturedUnstable'),
+        hex: step.hex,
+        isWarning: !isSettled,
+      });
+    },
   });
 
   const screenEditor = createScreenEditor({
@@ -262,7 +275,13 @@ function bootstrap() {
     '4': () => engine.toggle(TaskId.WORLD_BOSS),
     '5': () => engine.toggle(TaskId.SCRIPT),
     '6': () => engine.toggle(TaskId.RUN_ALL),
-    '0': () => stepEditor.captureAtCursor().then(refresh),
+    '0': () => {
+      if (!store.get().isCaptureArmed) {
+        engine.setMessage(t('msg.captureDisarmed'));
+        return;
+      }
+      stepEditor.captureAtCursor().then(refresh);
+    },
     '=': () => setSpeed(stepSpeed(getSpeed(), 1)),
     '+': () => setSpeed(stepSpeed(getSpeed(), 1)),
     '-': () => setSpeed(stepSpeed(getSpeed(), -1)),
