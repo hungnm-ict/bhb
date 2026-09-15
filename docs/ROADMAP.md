@@ -4,6 +4,9 @@
 
 Mỗi milestone là một lớp; lớp sau dựa trên lớp trước.
 
+**Đánh số bản:** xong một milestone thì tăng minor (`0.2.0` → `0.3.0`), sửa vặt
+và tính năng nhỏ thì tăng patch. `1.0.0` là khi đủ hoàn thiện để share rộng.
+
 ---
 
 ## ✅ Milestone 1 — Nền tảng *(xong)*
