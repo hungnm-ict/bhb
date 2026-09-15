@@ -134,6 +134,7 @@ export default {
   'msg.outsideCanvas': 'con trỏ ngoài canvas',
   'msg.anchorCaptured': 'đã bắt vùng {n} cho {name}',
   'msg.stepCaptured': 'đã bắt bước tại ({x}, {y}) — {hex}',
+  'msg.stepUnstable': 'đã bắt bước tại ({x}, {y}) — {hex}, nhưng màu ở đây đổi liên tục (icon nhấp nháy?) nên bước có thể trượt',
 
   'screens.notify': 'Báo tin khi thấy màn hình này (đồ rơi hiếm, familiar xịn)',
   'log.notify': 'Thấy {label} — đã báo tin',

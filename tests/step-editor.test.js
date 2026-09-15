@@ -22,8 +22,11 @@ vi.mock('../src/core/canvas.js', () => ({
   getCanvas: () => canvas,
 }));
 
+/** Overridable, so a test can make the button fade or flicker instead. */
+let readPixelImpl = () => (pointerOnButton ? { r: 203, g: 240, b: 103 } : { r: 166, g: 211, b: 57 });
+
 vi.mock('../src/core/pixel.js', () => ({
-  readPixel: () => (pointerOnButton ? { r: 203, g: 240, b: 103 } : { r: 166, g: 211, b: 57 }),
+  readPixel: (...args) => readPixelImpl(...args),
 }));
 
 vi.mock('../src/core/input.js', () => ({
@@ -40,6 +43,7 @@ describe('step editor capture', () => {
   beforeEach(async () => {
     vi.resetModules();
     pointerOnButton = true;
+    readPixelImpl = () => (pointerOnButton ? { r: 203, g: 240, b: 103 } : { r: 166, g: 211, b: 57 });
     steps = [];
     report = vi.fn();
     const { createStepEditor } = await import('../src/bot/step-editor.js');
@@ -85,5 +89,45 @@ describe('step editor capture', () => {
     await first;
     expect(second).toBe(null);
     expect(steps).toHaveLength(1);
+  });
+
+  it('waits out a hover highlight that fades instead of snapping off', async () => {
+    // The lit colour walks down to the resting one over several frames; a
+    // fixed two-frame wait would store a shade from the middle of the fade.
+    const FADE = [
+      { r: 203, g: 240, b: 103 },
+      { r: 190, g: 230, b: 88 },
+      { r: 175, g: 219, b: 70 },
+      { r: 166, g: 211, b: 57 },
+      { r: 166, g: 211, b: 57 },
+    ];
+    let frame = 0;
+    readPixelImpl = () => {
+      if (pointerOnButton) {
+        return FADE[0];
+      }
+      const pixel = FADE[Math.min(frame, FADE.length - 1)];
+      frame += 1;
+      return pixel;
+    };
+
+    await editor.captureAtCursor();
+
+    expect(steps[0].hex, 'the settled colour, not a frame of the fade').toBe('#a6d339');
+    expect(report.mock.calls.at(-1)[0]).not.toMatch(/liên tục|keeps changing/);
+  });
+
+  it('says so when the colour never settles, rather than storing a random frame', async () => {
+    let tick = 0;
+    readPixelImpl = () => {
+      tick += 1;
+      // An icon that pulses on its own: no wait makes this one stand still.
+      return tick % 2 === 0 ? { r: 240, g: 90, b: 240 } : { r: 150, g: 40, b: 150 };
+    };
+
+    await editor.captureAtCursor();
+
+    expect(steps).toHaveLength(1);
+    expect(report.mock.calls.at(-1)[0]).toMatch(/liên tục|keeps changing/);
   });
 });

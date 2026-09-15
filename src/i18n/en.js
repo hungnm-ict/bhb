@@ -134,6 +134,7 @@ export default {
   'msg.outsideCanvas': 'cursor is outside the canvas',
   'msg.anchorCaptured': 'anchor {n} captured for {name}',
   'msg.stepCaptured': 'captured a step at ({x}, {y}) — {hex}',
+  'msg.stepUnstable': 'captured a step at ({x}, {y}) — {hex}, but the colour here keeps changing (an animated icon?) so the step may miss',
 
   'screens.notify': 'Send an alert when this screen appears (rare drop, legendary familiar)',
   'log.notify': 'Saw {label} — alert sent',

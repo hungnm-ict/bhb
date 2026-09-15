@@ -1,6 +1,6 @@
 import { getRenderTarget } from '../core/canvas.js';
 import { readPixel } from '../core/pixel.js';
-import { rgbToHex } from '../core/color.js';
+import { rgbToHex, colorMatches } from '../core/color.js';
 import { dispatchMoveTo } from '../core/input.js';
 import {
   clientToBuffer,
@@ -30,8 +30,47 @@ import { t } from '../i18n/index.js';
 /** Frames to let the game repaint after the synthetic pointer moves. */
 const REPAINT_FRAMES = 2;
 
+/** Give up waiting for a still colour after this many frames (~330ms). */
+const SETTLE_MAX_FRAMES = 20;
+
+/** Two reads this close apart are the same colour, not a fade still running. */
+const SETTLE_TOLERANCE = 4;
+
 function nextFrame() {
   return new Promise((resolve) => realRequestAnimationFrame(() => resolve()));
+}
+
+/**
+ * Read a pixel once it stops changing.
+ *
+ * A fixed two-frame wait assumes the highlight vanishes the instant the pointer
+ * leaves. Plenty of buttons fade out over a few hundred milliseconds instead,
+ * and the colour captured mid-fade belongs to neither state — the step then
+ * matches nothing. Some icons animate on their own and never settle at all,
+ * which is worth saying out loud rather than storing a frame at random.
+ *
+ * @returns {Promise<{ pixel: import('../core/color.js').Rgb | null, isSettled: boolean }>}
+ */
+async function readSettledPixel(gl, point) {
+  let previous = null;
+
+  for (let frame = 0; frame < SETTLE_MAX_FRAMES; frame += 1) {
+    await nextFrame();
+    const pixel = readPixel(gl, point.x, point.y);
+    if (!pixel) {
+      return { pixel: null, isSettled: false };
+    }
+    if (
+      previous &&
+      frame + 1 >= REPAINT_FRAMES &&
+      colorMatches(pixel, previous, SETTLE_TOLERANCE)
+    ) {
+      return { pixel, isSettled: true };
+    }
+    previous = pixel;
+  }
+
+  return { pixel: previous, isSettled: false };
 }
 
 /**
@@ -89,11 +128,9 @@ export function createStepEditor(deps) {
 
       const corner = bufferToClient(canvas, HOVER_RESET_POINT.x, HOVER_RESET_POINT.y);
       dispatchMoveTo(canvas, corner.clientX, corner.clientY);
-      for (let i = 0; i < REPAINT_FRAMES; i += 1) {
-        await nextFrame();
-      }
 
-      const resting = readPixel(gl, point.x, point.y);
+      const settled = await readSettledPixel(gl, point);
+      const resting = settled.pixel;
       dispatchMoveTo(canvas, cursorX, cursorY);
 
       if (!resting) {
@@ -119,7 +156,11 @@ export function createStepEditor(deps) {
       steps.push(step);
       deps.persist();
 
-      deps.report(t('msg.stepCaptured', { x: point.x, y: point.y, hex: restingHex }));
+      deps.report(
+        settled.isSettled
+          ? t('msg.stepCaptured', { x: point.x, y: point.y, hex: restingHex })
+          : t('msg.stepUnstable', { x: point.x, y: point.y, hex: restingHex })
+      );
       return step;
     } finally {
       capturing = false;

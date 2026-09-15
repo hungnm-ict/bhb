@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.7.3
+// @version      0.7.4
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -14,7 +14,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.7.3" : "dev";
+  var VERSION = true ? "0.7.4" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -1756,6 +1756,7 @@
     "msg.outsideCanvas": "con trỏ ngoài canvas",
     "msg.anchorCaptured": "đã bắt vùng {n} cho {name}",
     "msg.stepCaptured": "đã bắt bước tại ({x}, {y}) — {hex}",
+    "msg.stepUnstable": "đã bắt bước tại ({x}, {y}) — {hex}, nhưng màu ở đây đổi liên tục (icon nhấp nháy?) nên bước có thể trượt",
     "screens.notify": "Báo tin khi thấy màn hình này (đồ rơi hiếm, familiar xịn)",
     "log.notify": "Thấy {label} — đã báo tin",
     "stats.title": "Thống kê phiên",
@@ -1910,6 +1911,7 @@
     "msg.outsideCanvas": "cursor is outside the canvas",
     "msg.anchorCaptured": "anchor {n} captured for {name}",
     "msg.stepCaptured": "captured a step at ({x}, {y}) — {hex}",
+    "msg.stepUnstable": "captured a step at ({x}, {y}) — {hex}, but the colour here keeps changing (an animated icon?) so the step may miss",
     "screens.notify": "Send an alert when this screen appears (rare drop, legendary familiar)",
     "log.notify": "Saw {label} — alert sent",
     "stats.title": "Session stats",
@@ -1970,8 +1972,25 @@
 
   // src/bot/step-editor.js
   var REPAINT_FRAMES = 2;
+  var SETTLE_MAX_FRAMES = 20;
+  var SETTLE_TOLERANCE = 4;
   function nextFrame() {
     return new Promise((resolve) => realRequestAnimationFrame(() => resolve()));
+  }
+  async function readSettledPixel(gl, point2) {
+    let previous = null;
+    for (let frame = 0; frame < SETTLE_MAX_FRAMES; frame += 1) {
+      await nextFrame();
+      const pixel = readPixel(gl, point2.x, point2.y);
+      if (!pixel) {
+        return { pixel: null, isSettled: false };
+      }
+      if (previous && frame + 1 >= REPAINT_FRAMES && colorMatches(pixel, previous, SETTLE_TOLERANCE)) {
+        return { pixel, isSettled: true };
+      }
+      previous = pixel;
+    }
+    return { pixel: previous, isSettled: false };
   }
   function createStepEditor(deps) {
     let cursorX = null;
@@ -2010,10 +2029,8 @@
         const hovered = readPixel(gl, point2.x, point2.y);
         const corner = bufferToClient(canvas, HOVER_RESET_POINT.x, HOVER_RESET_POINT.y);
         dispatchMoveTo(canvas, corner.clientX, corner.clientY);
-        for (let i = 0; i < REPAINT_FRAMES; i += 1) {
-          await nextFrame();
-        }
-        const resting = readPixel(gl, point2.x, point2.y);
+        const settled = await readSettledPixel(gl, point2);
+        const resting = settled.pixel;
         dispatchMoveTo(canvas, cursorX, cursorY);
         if (!resting) {
           deps.report(t("msg.noWebgl"));
@@ -2034,7 +2051,9 @@
         });
         steps.push(step);
         deps.persist();
-        deps.report(t("msg.stepCaptured", { x: point2.x, y: point2.y, hex: restingHex }));
+        deps.report(
+          settled.isSettled ? t("msg.stepCaptured", { x: point2.x, y: point2.y, hex: restingHex }) : t("msg.stepUnstable", { x: point2.x, y: point2.y, hex: restingHex })
+        );
         return step;
       } finally {
         capturing = false;
