@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.9.1
+// @version      0.9.2
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -14,7 +14,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.9.1" : "dev";
+  var VERSION = true ? "0.9.2" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -43,7 +43,7 @@
   var Z_TOP = "2147483647";
 
   // src/core/keys.js
-  var Keys2 = Object.freeze({
+  var Keys = Object.freeze({
     PANEL: "`",
     RERUN: "r",
     WORLD_BOSS: "b",
@@ -54,7 +54,7 @@
     SPEED_UP_ALT: "+",
     SPEED_DOWN: "-"
   });
-  function keyLabel2(key) {
+  function keyLabel(key) {
     return key.length === 1 ? key.toUpperCase() : key;
   }
 
@@ -3221,9 +3221,9 @@
   }
   var LABELLED_SPEEDS = [0.1, 1, 5, 10, 20];
   var TASKS = [
-    [TaskId.RERUN, "task.rerun", Keys2.RERUN],
-    [TaskId.WORLD_BOSS, "task.wb", Keys2.WORLD_BOSS],
-    [TaskId.SCRIPT, "task.script", Keys2.SCRIPT]
+    [TaskId.RERUN, "task.rerun", Keys.RERUN],
+    [TaskId.WORLD_BOSS, "task.wb", Keys.WORLD_BOSS],
+    [TaskId.SCRIPT, "task.script", Keys.SCRIPT]
   ];
   function formatRemaining(ms) {
     const total = Math.floor(ms / 1e3);
@@ -3260,7 +3260,7 @@
           // The reason a switch is locked belongs on that switch. Said under the
           // grid instead, it read as a verdict on all four.
           isLocked ? el("span", { class: "bhb-task__warn", title, text: "⚠" }) : null,
-          el("span", { class: "bhb-kbd", text: keyLabel2(key) })
+          el("span", { class: "bhb-kbd", text: keyLabel(key) })
         ]
       );
       if (!isLocked) {
@@ -3284,7 +3284,7 @@
     const runAll = taskTile({
       taskId: TaskId.RUN_ALL,
       labelKey: "task.runAll",
-      key: Keys2.RUN_ALL,
+      key: Keys.RUN_ALL,
       phase: engine.activeTask === TaskId.RUN_ALL ? t("queue.round", { n: engine.round }) : "",
       isLocked: ready === 0,
       title: ready === 0 ? t("tasks.runAllLocked") : t("tasks.runAllReady", { n: ready })
@@ -4182,29 +4182,29 @@
     {
       title: "help.sectionAuto",
       entries: [
-        [keyLabel2(Keys2.RERUN), "help.rerun"],
-        [keyLabel2(Keys2.WORLD_BOSS), "help.wb"],
-        [keyLabel2(Keys2.SCRIPT), "help.script"],
-        [keyLabel2(Keys2.RUN_ALL), "help.runAll"]
+        [keyLabel(Keys.RERUN), "help.rerun"],
+        [keyLabel(Keys.WORLD_BOSS), "help.wb"],
+        [keyLabel(Keys.SCRIPT), "help.script"],
+        [keyLabel(Keys.RUN_ALL), "help.runAll"]
       ]
     },
     {
       title: "help.sectionSteps",
       entries: [
-        [keyLabel2(Keys2.CAPTURE), "help.capture"]
+        [keyLabel(Keys.CAPTURE), "help.capture"]
       ]
     },
     {
       title: "help.sectionUi",
       entries: [
-        [keyLabel2(Keys2.PANEL), "help.togglePanel"]
+        [keyLabel(Keys.PANEL), "help.togglePanel"]
       ]
     },
     {
       title: "help.sectionSpeed",
       entries: [
-        [`${Keys2.SPEED_UP} / ${Keys2.SPEED_UP_ALT}`, "help.speedUp"],
-        [Keys2.SPEED_DOWN, "help.speedDown"]
+        [`${Keys.SPEED_UP} / ${Keys.SPEED_UP_ALT}`, "help.speedUp"],
+        [Keys.SPEED_DOWN, "help.speedDown"]
       ]
     }
   ];
@@ -4737,21 +4737,21 @@
     });
     installHotkeys({
       // The keyboard reference has no key of its own; it opens from the panel.
-      [Keys2.PANEL]: () => store.togglePanel(),
-      [Keys2.RERUN]: () => engine.toggle(TaskId.RERUN),
-      [Keys2.WORLD_BOSS]: () => engine.toggle(TaskId.WORLD_BOSS),
-      [Keys2.SCRIPT]: () => engine.toggle(TaskId.SCRIPT),
-      [Keys2.RUN_ALL]: () => engine.toggle(TaskId.RUN_ALL),
-      [Keys2.CAPTURE]: () => {
+      [Keys.PANEL]: () => store.togglePanel(),
+      [Keys.RERUN]: () => engine.toggle(TaskId.RERUN),
+      [Keys.WORLD_BOSS]: () => engine.toggle(TaskId.WORLD_BOSS),
+      [Keys.SCRIPT]: () => engine.toggle(TaskId.SCRIPT),
+      [Keys.RUN_ALL]: () => engine.toggle(TaskId.RUN_ALL),
+      [Keys.CAPTURE]: () => {
         if (!store.get().isCaptureArmed) {
           engine.setMessage(t("msg.captureDisarmed"));
           return;
         }
         stepEditor.captureAtCursor().then(refresh);
       },
-      [Keys2.SPEED_UP]: () => setSpeed(stepSpeed(getSpeed(), 1)),
-      [Keys2.SPEED_UP_ALT]: () => setSpeed(stepSpeed(getSpeed(), 1)),
-      [Keys2.SPEED_DOWN]: () => setSpeed(stepSpeed(getSpeed(), -1))
+      [Keys.SPEED_UP]: () => setSpeed(stepSpeed(getSpeed(), 1)),
+      [Keys.SPEED_UP_ALT]: () => setSpeed(stepSpeed(getSpeed(), 1)),
+      [Keys.SPEED_DOWN]: () => setSpeed(stepSpeed(getSpeed(), -1))
     });
     refresh();
     hud.wake();

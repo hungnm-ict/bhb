@@ -1,5 +1,6 @@
 import { el } from '../dom.js';
 import { t } from '../../i18n/index.js';
+import { Keys, keyLabel } from '../../core/keys.js';
 import { isLegacyPoint } from '../../core/coords.js';
 
 /**
