@@ -41,6 +41,19 @@ export function createPanel(deps) {
   /** @type {HTMLElement | null} */
   let node = null;
 
+  /**
+   * The tab the last render drew.
+   *
+   * The panel is rebuilt on every engine tick, and a rebuilt body starts at
+   * scroll zero — which is what dragged the scrollbar back up under the user a
+   * couple of seconds after they scrolled down. Restoring the offset fixes that,
+   * but only within one tab: arriving at a tab part-way down is disorienting,
+   * so a tab change deliberately starts at the top.
+   *
+   * @type {string | null}
+   */
+  let renderedTab = null;
+
   function ensureNode() {
     if (!node) {
       node = mount(el('div', { class: 'bhb-panel' }));
@@ -74,6 +87,7 @@ export function createPanel(deps) {
     if (!state.panelOpen) {
       target.style.display = 'none';
       target.replaceChildren();
+      renderedTab = null;
       return;
     }
     target.style.display = 'flex';
@@ -104,6 +118,11 @@ export function createPanel(deps) {
       return button;
     });
 
+    const previousBody = target.querySelector('.bhb-panel__body');
+    const keptScroll = previousBody && renderedTab === state.tab ? previousBody.scrollTop : 0;
+
+    const body = el('div', { class: 'bhb-panel__body' }, [renderBody(state.tab)]);
+
     target.replaceChildren(
       el('header', { class: 'bhb-panel__head' }, [
         el('span', { class: 'bhb-panel__brand' }, [
@@ -114,8 +133,11 @@ export function createPanel(deps) {
         close,
       ]),
       el('nav', { class: 'bhb-tabs' }, tabs),
-      el('div', { class: 'bhb-panel__body' }, [renderBody(state.tab)])
+      body
     );
+
+    body.scrollTop = keptScroll;
+    renderedTab = state.tab;
 
     // The strip scrolls, so the tab the user just picked has to be brought
     // into view or it stays off the right edge.
