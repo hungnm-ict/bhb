@@ -140,18 +140,6 @@ export function renderTasksTab(deps) {
     slider.min = '0';
     slider.max = String(SPEED_STEPS.length - 1);
     slider.step = '1';
-    // Native tick marks, so a notch is visible before it is dragged onto.
-    const stops = el('datalist');
-    stops.id = 'bhb-speed-stops';
-    for (const stop of SPEED_STEPS) {
-      const option = el('option');
-      option.value = String(SPEED_STEPS.indexOf(stop));
-      option.label = `${formatSpeed(stop)}×`;
-      stops.append(option);
-    }
-    slider.setAttribute('list', stops.id);
-    slider.append(stops);
-
     slider.addEventListener('input', () => {
       setSpeed(SPEED_STEPS[Number(slider.value)]);
     });
@@ -161,6 +149,19 @@ export function renderTasksTab(deps) {
 
   const { slider, readout } = speedControl;
   updateSpeedDisplay();
+
+  // Drawn by hand: Chrome renders a `<datalist>`'s marks so faintly that the
+  // stops were invisible, which made an uneven scale look like a linear one.
+  const ticks = el(
+    'div',
+    { class: 'bhb-speedticks' },
+    SPEED_STEPS.map((stop, index) =>
+      el('span', {
+        class: `bhb-speedticks__tick ${stop === 1 ? 'is-unity' : ''}`,
+        style: { left: `${(index / (SPEED_STEPS.length - 1)) * 100}%` },
+      })
+    )
+  );
 
   function nudge(direction, label) {
     const button = el('button', { class: 'bhb-icon bhb-icon--wide', text: label });
@@ -184,6 +185,7 @@ export function renderTasksTab(deps) {
         slider,
         nudge(1, '+'),
       ]),
+      ticks,
       el('div', { class: 'bhb-speedends bhb-mono' }, [
         el('span', { text: `${formatSpeed(SPEED_STEPS[0])}×` }),
         // The stops are uneven, so 1x is not the middle of the track; a label
