@@ -8,7 +8,6 @@ import { createStep } from '../bot/step.js';
 import { ScaleMode } from './coords.js';
 import { createDefaultActivities } from '../bot/activity.js';
 import { normaliseNotifyConfig } from './notify.js';
-import { LOCK_PRESETS } from './canvas-lock.js';
 
 /**
  * Persistence for step profiles and settings.
@@ -248,15 +247,7 @@ export function setActiveProfile(state, profileId) {
 
 /** Off by default: pinning costs sharpness, and most users never share steps. */
 function normaliseCanvasLock(stored) {
-  const fallback = LOCK_PRESETS[0];
-  if (!stored || typeof stored !== 'object') {
-    return { enabled: false, ...fallback };
-  }
-  return {
-    enabled: stored.enabled === true,
-    width: Number(stored.width) > 0 ? Math.round(Number(stored.width)) : fallback.width,
-    height: Number(stored.height) > 0 ? Math.round(Number(stored.height)) : fallback.height,
-  };
+  return { enabled: Boolean(stored && stored.enabled === true) };
 }
 
 /**

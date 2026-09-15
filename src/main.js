@@ -248,7 +248,7 @@ function bootstrap() {
   /** The game rewrites its own layout, so the lock is re-asserted, not set once. */
   function applyCanvasLock() {
     if (settings.canvasLock.enabled) {
-      lockCanvasSize(settings.canvasLock);
+      lockCanvasSize();
     } else {
       unlockCanvasSize();
     }
@@ -323,6 +323,11 @@ function bootstrap() {
   realSetInterval(refreshLive, UI_REFRESH_MS);
   // Markers are positioned from the live canvas box, so a resize moves them.
   const onCanvasMoved = () => {
+    // The fit scale is derived from the viewport, so a resize has to redo it
+    // before anything reads the canvas box.
+    if (settings.canvasLock.enabled) {
+      lockCanvasSize();
+    }
     markers.render();
     sizeBadge.render();
   };
