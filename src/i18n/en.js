@@ -182,4 +182,8 @@ export default {
   'steps.dryRunStop': '■ Stop the dry run',
   'steps.pinMarkers': 'Show every marker',
   'steps.dryRunHint': 'A dry run walks the list and scores each step against the frame on screen — ✓ matches, ✗ does not, ⊘ belongs to another screen. It clicks nothing, so it is safe at any time. Otherwise a marker appears only while you hover its row.',
+
+  'lock.title': 'Canvas size lock (experimental)',
+  'lock.enabled': 'Pin the game to a fixed size',
+  'lock.hint': 'The game then renders at this size whatever the window does, so the colours the bot reads are identical on every machine — which is what makes a step set shareable. The cost is sharpness: a large window scales the result up. If anything looks stretched or wrong, switch it off; nothing is damaged.',
 };

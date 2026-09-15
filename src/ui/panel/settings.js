@@ -3,6 +3,7 @@ import { t, getLanguage } from '../../i18n/index.js';
 import { ScaleMode } from '../../core/coords.js';
 import { renderQueueSection } from './queue.js';
 import { NOTIFY_EVENTS, hasNotifyTarget } from '../../core/notify.js';
+import { LOCK_PRESETS } from '../../core/canvas-lock.js';
 
 /**
  * Settings, and the first home for the profile list.
@@ -109,6 +110,43 @@ function renderAlerts(deps, toggleRow) {
     toggleRow('notify.withShot', config.withShot, (value) => update({ withShot: value })),
     el('div', { class: 'bhb-btnrow' }, [test, testResult]),
     el('p', { class: 'bhb-note', text: t('notify.hint') }),
+  ]);
+}
+
+/**
+ * Pinning the game's size.
+ *
+ * Experimental, and labelled as such: it depends on the game sizing its
+ * framebuffer from its container, which is true of the builds seen so far but
+ * is not a promise anyone made.
+ */
+function renderCanvasLock(deps, toggleRow) {
+  const lock = deps.settings.canvasLock;
+
+  function update(changes) {
+    deps.updateSettings({ canvasLock: { ...lock, ...changes } });
+    deps.refresh();
+  }
+
+  const picker = el('select', { class: 'bhb-select' });
+  for (const preset of LOCK_PRESETS) {
+    const option = el('option', { text: `${preset.width} × ${preset.height}` });
+    option.value = `${preset.width}x${preset.height}`;
+    picker.append(option);
+  }
+  picker.value = `${lock.width}x${lock.height}`;
+  picker.addEventListener('change', () => {
+    const [width, height] = picker.value.split('x').map(Number);
+    update({ width, height });
+  });
+
+  return el('div', { class: 'bhb-field' }, [
+    el('div', { class: 'bhb-field__head' }, [
+      el('span', { class: 'bhb-label', text: t('lock.title') }),
+    ]),
+    toggleRow('lock.enabled', lock.enabled, (value) => update({ enabled: value })),
+    picker,
+    el('p', { class: 'bhb-note', text: t('lock.hint') }),
   ]);
 }
 
@@ -236,6 +274,8 @@ export function renderSettingsTab(deps) {
     ]),
 
     renderQueueSection(deps),
+
+    renderCanvasLock(deps, toggleRow),
 
     renderAlerts(deps, toggleRow),
 

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.9.2
+// @version      0.9.3
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -14,7 +14,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.9.2" : "dev";
+  var VERSION = true ? "0.9.3" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -63,12 +63,12 @@
   var cachedContext = null;
   var WEBGL_TYPES = ["webgl", "webgl2", "experimental-webgl"];
   function installCanvasPatch() {
-    const original = HTMLCanvasElement.prototype.getContext;
+    const original2 = HTMLCanvasElement.prototype.getContext;
     HTMLCanvasElement.prototype.getContext = function(type, attributes) {
       if (WEBGL_TYPES.includes(type)) {
         attributes = { ...attributes || {}, preserveDrawingBuffer: true };
       }
-      return original.call(this, type, attributes);
+      return original2.call(this, type, attributes);
     };
   }
   function getCanvas() {
@@ -1216,6 +1216,56 @@
     return { notify, clearCooldown };
   }
 
+  // src/core/canvas-lock.js
+  var LOCK_PRESETS = [
+    { width: 800, height: 520 },
+    { width: 1024, height: 640 },
+    { width: 1280, height: 720 }
+  ];
+  var original = null;
+  function styleTargets() {
+    const canvas = getCanvas();
+    if (!canvas) {
+      return null;
+    }
+    return { canvas, box: canvas.parentElement };
+  }
+  function lockCanvasSize(size) {
+    const target = styleTargets();
+    if (!target) {
+      return false;
+    }
+    if (!original) {
+      original = {
+        canvas: target.canvas.style.cssText,
+        box: target.box ? target.box.style.cssText : ""
+      };
+    }
+    const width = `${Math.max(320, Math.round(size.width))}px`;
+    const height = `${Math.max(240, Math.round(size.height))}px`;
+    if (target.box) {
+      target.box.style.width = width;
+      target.box.style.height = height;
+    }
+    target.canvas.style.width = width;
+    target.canvas.style.height = height;
+    window.dispatchEvent(new Event("resize"));
+    return true;
+  }
+  function unlockCanvasSize() {
+    const target = styleTargets();
+    if (!target || !original) {
+      return false;
+    }
+    target.canvas.style.cssText = original.canvas;
+    if (target.box) {
+      target.box.style.cssText = original.box;
+    }
+    original = null;
+    window.dispatchEvent(new Event("resize"));
+    return true;
+  }
+
   // src/core/storage.js
   var SCHEMA_VERSION = 5;
   function createDefaultState() {
@@ -1357,6 +1407,17 @@
     state.activeProfileId = profileId;
     return true;
   }
+  function normaliseCanvasLock(stored) {
+    const fallback = LOCK_PRESETS[0];
+    if (!stored || typeof stored !== "object") {
+      return { enabled: false, ...fallback };
+    }
+    return {
+      enabled: stored.enabled === true,
+      width: Number(stored.width) > 0 ? Math.round(Number(stored.width)) : fallback.width,
+      height: Number(stored.height) > 0 ? Math.round(Number(stored.height)) : fallback.height
+    };
+  }
   function loadSettings() {
     const stored = readJson(STORAGE_KEY_SETTINGS) || {};
     return {
@@ -1367,7 +1428,8 @@
       watchdog: stored.watchdog === true,
       sizeBadge: stored.sizeBadge !== false,
       keepAlive: stored.keepAlive !== false,
-      notify: normaliseNotifyConfig(stored.notify)
+      notify: normaliseNotifyConfig(stored.notify),
+      canvasLock: normaliseCanvasLock(stored.canvasLock)
     };
   }
   function saveSettings(settings) {
@@ -1816,7 +1878,10 @@
     "steps.dryRun": "▷ Chạy thử",
     "steps.dryRunStop": "■ Dừng chạy thử",
     "steps.pinMarkers": "Hiện hết dấu",
-    "steps.dryRunHint": "Chạy thử đi dọc danh sách và chấm điểm từng bước trên khung hình đang hiện — ✓ khớp, ✗ không khớp, ⊘ thuộc màn hình khác. Nó KHÔNG bấm gì vào game nên lúc nào cũng an toàn. Bình thường dấu chỉ hiện khi rê chuột lên một dòng."
+    "steps.dryRunHint": "Chạy thử đi dọc danh sách và chấm điểm từng bước trên khung hình đang hiện — ✓ khớp, ✗ không khớp, ⊘ thuộc màn hình khác. Nó KHÔNG bấm gì vào game nên lúc nào cũng an toàn. Bình thường dấu chỉ hiện khi rê chuột lên một dòng.",
+    "lock.title": "Khoá cỡ canvas (thử nghiệm)",
+    "lock.enabled": "Ghim game ở một cỡ cố định",
+    "lock.hint": "Bật thì game luôn vẽ ở đúng cỡ này dù cửa sổ to nhỏ thế nào — nhờ vậy màu bot đọc được giống hệt nhau trên mọi máy, và bộ bước mới chia sẻ được. Đổi lại: cửa sổ to thì hình hơi mờ vì bị phóng lên. Thấy hình méo hoặc game vẽ sai thì tắt đi, không hỏng gì cả."
   };
 
   // src/i18n/en.js
@@ -1980,7 +2045,10 @@
     "steps.dryRun": "▷ Dry run",
     "steps.dryRunStop": "■ Stop the dry run",
     "steps.pinMarkers": "Show every marker",
-    "steps.dryRunHint": "A dry run walks the list and scores each step against the frame on screen — ✓ matches, ✗ does not, ⊘ belongs to another screen. It clicks nothing, so it is safe at any time. Otherwise a marker appears only while you hover its row."
+    "steps.dryRunHint": "A dry run walks the list and scores each step against the frame on screen — ✓ matches, ✗ does not, ⊘ belongs to another screen. It clicks nothing, so it is safe at any time. Otherwise a marker appears only while you hover its row.",
+    "lock.title": "Canvas size lock (experimental)",
+    "lock.enabled": "Pin the game to a fixed size",
+    "lock.hint": "The game then renders at this size whatever the window does, so the colours the bot reads are identical on every machine — which is what makes a step set shareable. The cost is sharpness: a large window scales the result up. If anything looks stretched or wrong, switch it off; nothing is damaged."
   };
 
   // src/i18n/index.js
@@ -3899,6 +3967,32 @@
       el("p", { class: "bhb-note", text: t("notify.hint") })
     ]);
   }
+  function renderCanvasLock(deps, toggleRow) {
+    const lock = deps.settings.canvasLock;
+    function update(changes) {
+      deps.updateSettings({ canvasLock: { ...lock, ...changes } });
+      deps.refresh();
+    }
+    const picker = el("select", { class: "bhb-select" });
+    for (const preset of LOCK_PRESETS) {
+      const option = el("option", { text: `${preset.width} × ${preset.height}` });
+      option.value = `${preset.width}x${preset.height}`;
+      picker.append(option);
+    }
+    picker.value = `${lock.width}x${lock.height}`;
+    picker.addEventListener("change", () => {
+      const [width, height] = picker.value.split("x").map(Number);
+      update({ width, height });
+    });
+    return el("div", { class: "bhb-field" }, [
+      el("div", { class: "bhb-field__head" }, [
+        el("span", { class: "bhb-label", text: t("lock.title") })
+      ]),
+      toggleRow("lock.enabled", lock.enabled, (value) => update({ enabled: value })),
+      picker,
+      el("p", { class: "bhb-note", text: t("lock.hint") })
+    ]);
+  }
   function renderSettingsTab(deps) {
     const { profiles, settings } = deps;
     const list = profiles.list();
@@ -4018,6 +4112,7 @@
         el("p", { class: "bhb-note", text: t("settings.keepAliveHint") })
       ]),
       renderQueueSection(deps),
+      renderCanvasLock(deps, toggleRow),
       renderAlerts(deps, toggleRow),
       el("div", { class: "bhb-field" }, [
         el("div", { class: "bhb-field__head" }, [
@@ -4692,6 +4787,9 @@
         if (changes.language) {
           setLanguage(changes.language);
         }
+        if (changes.canvasLock) {
+          applyCanvasLock();
+        }
       },
       getEngineState: engine.getState,
       toggleTask: engine.toggle,
@@ -4704,6 +4802,15 @@
       store
     });
     const sizeBadge = createSizeBadge({ isVisible: () => settings.sizeBadge });
+    function applyCanvasLock() {
+      if (settings.canvasLock.enabled) {
+        lockCanvasSize(settings.canvasLock);
+      } else {
+        unlockCanvasSize();
+      }
+      sizeBadge.render();
+    }
+    applyCanvasLock();
     if (settings.keepAlive) {
       installKeepAlive(() => pumpFrame());
     }
