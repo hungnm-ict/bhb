@@ -1,4 +1,4 @@
-# BHB <!--version-->v0.9.0<!--/version-->
+# BHB <!--version-->v0.9.1<!--/version-->
 
 > 🇬🇧 [English version](README.en.md) · [Nhật ký thay đổi](https://github.com/hungnm-ict/bhb/commits/master)
 
@@ -32,9 +32,9 @@ Nếu dùng Chrome/Edge **cũ hơn 138** và không thấy công tắc đó: b�
 
 1. Mở link: **[dist/bhb.user.js](https://raw.githubusercontent.com/hungnm-ict/bhb/master/dist/bhb.user.js)**
 2. Tampermonkey hiện trang cài đặt → bấm **Install**
-3. Mở game, bấm phím **`1`** để xem bảng phím tắt
+3. Mở game, bấm phím **`` ` ``** (dấu huyền, dưới phím Esc) để mở bảng điều khiển
 
-> Nếu bấm `1` không hiện gì: gần như chắc chắn là Bước 2 chưa xong. Mở Console (F12) tìm dòng `[BHB] ready` — không có nghĩa là script chưa chạy.
+> Nếu bấm `` ` `` không hiện gì: gần như chắc chắn là Bước 2 chưa xong. Mở Console (F12) tìm dòng `[BHB] ready` — không có nghĩa là script chưa chạy.
 
 Từ lần sau **script tự cập nhật** — không phải cài lại. Tampermonkey tự kiểm tra bản mới; muốn cập nhật ngay thì vào Tampermonkey → Dashboard → tab **Installed userscripts** → bấm **Check for userscript updates**.
 
@@ -44,7 +44,7 @@ Từ lần sau **script tự cập nhật** — không phải cài lại. Tamper
 
 Bot hiện một **thanh nhỏ** ở góc phải trên mặt game: chấm trạng thái, tốc độ, và dòng mô tả bot đang làm gì. Không đụng vào 4 giây thì nó tự mờ đi để khỏi che game; rê chuột vào là rõ lại.
 
-Bấm vào thanh đó (hoặc phím `1`) để mở **bảng điều khiển**, gồm 6 tab:
+Bấm vào thanh đó (hoặc phím `` ` ``) để mở **bảng điều khiển**, gồm 6 tab:
 
 | Tab | Nội dung |
 |---|---|
@@ -63,7 +63,9 @@ Khi mở tab **Bước**, mỗi bước được vẽ thành một **dấu ngay 
 
 ### Tạo bước
 
-Rê chuột lên nút trong game, rồi bấm **Bắt bước tại con trỏ** (hoặc phím `0`). Xong.
+Bật **chế độ bắt bước** ở đầu tab Bước, rê chuột lên nút trong game rồi bấm phím `X`. Hoặc bấm thẳng nút **Bắt bước tại con trỏ** — nút thì lúc nào cũng dùng được, không cần bật gì.
+
+> Phím `X` mặc định tắt, và nên tắt lại khi bắt xong: nó nằm cạnh các phím điều khiển bot, để bật suốt thì dễ bấm nhầm giữa lúc đang chơi.
 
 Bot tự xử lý chuyện nút bị sáng lên do con trỏ đang nằm trên đó: nó gạt **con trỏ ảo** ra góc canvas, đợi game vẽ lại, đọc màu lúc nút không sáng, rồi trả con trỏ ảo về chỗ cũ. Con trỏ thật của bạn không hề nhúc nhích. Cả hai màu — lúc sáng và lúc thường — đều được lưu, nên bước khớp được ở cả hai trạng thái.
 
@@ -73,12 +75,12 @@ Muốn bot biết nó đang ở đâu thì sang tab **Màn hình**, kéo một k
 
 | Phím | Chức năng |
 |:---:|---|
-| `1` | Mở/đóng bảng điều khiển |
-| `3` | Re-run — tìm 3 giây/lần, click xong nghỉ 20 giây |
-| `4` | Solo WB — World Boss, 2 giây/lần |
-| `5` | Tuỳ chỉnh — chạy các bước chưa gán hoạt động, 3 giây/lần |
-| `6` | Chạy tất cả — lần lượt mọi hoạt động trong hàng đợi (cần có bước đã gán) |
-| `0` | Bắt bước tại con trỏ |
+| `` ` `` | Mở/đóng bảng điều khiển |
+| `R` | Re-run — tìm 3 giây/lần, click xong nghỉ 20 giây |
+| `B` | Solo WB — World Boss, 2 giây/lần |
+| `C` | Tuỳ chỉnh — chạy các bước chưa gán hoạt động, 3 giây/lần |
+| `A` | Chạy tất cả — lần lượt mọi hoạt động trong hàng đợi (cần có bước đã gán) |
+| `X` | Bắt bước tại con trỏ (phải bật chế độ bắt bước trước) |
 | `= / +` | Tăng tốc độ game (mốc kế tiếp, tối đa 20×) — hoặc bấm nút + cạnh thanh trượt |
 | `-` | Giảm tốc độ game (chậm nhất 0.1×) |
 
@@ -110,7 +112,7 @@ Bản gốc lưu toạ độ pixel trần. Trên macOS canvas bị ghim ở mộ
 
 BHB lưu kèm **kích thước framebuffer lúc bắt bước**, nên bước tự quy đổi sang khung hình hiện tại. Đổi cỡ cửa sổ hay zoom vẫn chạy đúng.
 
-Bước nhập từ bản cũ không có thông tin này nên **không quy đổi được** — tab Bước đếm và cảnh báo chúng, và cạnh toạ độ có dấu **⚠ cam**. Bắt lại bằng phím `0` là hết.
+Bước nhập từ bản cũ không có thông tin này nên **không quy đổi được** — tab Bước đếm và cảnh báo chúng, và cạnh toạ độ có dấu **⚠ cam**. Bắt lại bằng phím `X` là hết.
 
 ### Cửa sổ bị che kín thì game đứng
 

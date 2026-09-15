@@ -174,9 +174,9 @@ export default {
   'toast.captured': '✓ captured: {label}',
   'toast.capturedUnstable': '⚠ captured, but the colour here keeps changing',
 
-  'steps.armCapture': 'Capture mode — enables the 0 key',
-  'steps.armHint': 'Switch this off once you are done: 0 sits beside the keys that drive the bot, and leaving it live invites a stray press mid-fight. The button above always works.',
-  'msg.captureDisarmed': 'the 0 key is off — switch capture mode on in the Steps tab',
+  'steps.armCapture': 'Capture mode — enables the X key',
+  'steps.armHint': 'Switch this off once you are done: X sits beside the keys that drive the bot, and leaving it live invites a stray press mid-fight. The button above always works.',
+  'msg.captureDisarmed': 'the X key is off — switch capture mode on in the Steps tab',
 
   'steps.dryRun': '▷ Dry run',
   'steps.dryRunStop': '■ Stop the dry run',

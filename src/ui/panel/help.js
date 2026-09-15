@@ -1,5 +1,6 @@
 import { el } from '../dom.js';
 import { t } from '../../i18n/index.js';
+import { Keys, keyLabel } from '../../core/keys.js';
 
 /**
  * Keyboard reference.
@@ -12,29 +13,29 @@ const SECTIONS = [
   {
     title: 'help.sectionAuto',
     entries: [
-      ['3', 'help.rerun'],
-      ['4', 'help.wb'],
-      ['5', 'help.script'],
-      ['6', 'help.runAll'],
+      [keyLabel(Keys.RERUN), 'help.rerun'],
+      [keyLabel(Keys.WORLD_BOSS), 'help.wb'],
+      [keyLabel(Keys.SCRIPT), 'help.script'],
+      [keyLabel(Keys.RUN_ALL), 'help.runAll'],
     ],
   },
   {
     title: 'help.sectionSteps',
     entries: [
-      ['0', 'help.capture'],
+      [keyLabel(Keys.CAPTURE), 'help.capture'],
     ],
   },
   {
     title: 'help.sectionUi',
     entries: [
-      ['1', 'help.togglePanel'],
+      [keyLabel(Keys.PANEL), 'help.togglePanel'],
     ],
   },
   {
     title: 'help.sectionSpeed',
     entries: [
-      ['= / +', 'help.speedUp'],
-      ['-', 'help.speedDown'],
+      [`${Keys.SPEED_UP} / ${Keys.SPEED_UP_ALT}`, 'help.speedUp'],
+      [Keys.SPEED_DOWN, 'help.speedDown'],
     ],
   },
 ];

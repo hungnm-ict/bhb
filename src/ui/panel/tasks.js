@@ -5,6 +5,7 @@ import { getSpeed, setSpeed, formatSpeed, speedIndex, stepSpeed } from '../../co
 import { SPEED_STEPS } from '../../core/constants.js';
 import { getCanvas } from '../../core/canvas.js';
 import { stepsForActivity } from '../../bot/activity.js';
+import { Keys, keyLabel } from '../../core/keys.js';
 
 /**
  * The speed control outlives its render.
@@ -57,9 +58,9 @@ const LABELLED_SPEEDS = [0.1, 1, 5, 10, 20];
 
 /** Hotkeys still work; showing them here is how the user learns them. */
 const TASKS = [
-  [TaskId.RERUN, 'task.rerun', '3'],
-  [TaskId.WORLD_BOSS, 'task.wb', '4'],
-  [TaskId.SCRIPT, 'task.script', '5'],
+  [TaskId.RERUN, 'task.rerun', Keys.RERUN],
+  [TaskId.WORLD_BOSS, 'task.wb', Keys.WORLD_BOSS],
+  [TaskId.SCRIPT, 'task.script', Keys.SCRIPT],
 ];
 
 function formatRemaining(ms) {
@@ -124,7 +125,7 @@ export function renderTasksTab(deps) {
         // The reason a switch is locked belongs on that switch. Said under the
         // grid instead, it read as a verdict on all four.
         isLocked ? el('span', { class: 'bhb-task__warn', title, text: '⚠' }) : null,
-        el('span', { class: 'bhb-kbd', text: key }),
+        el('span', { class: 'bhb-kbd', text: keyLabel(key) }),
       ]
     );
     if (!isLocked) {
@@ -152,7 +153,7 @@ export function renderTasksTab(deps) {
   const runAll = taskTile({
     taskId: TaskId.RUN_ALL,
     labelKey: 'task.runAll',
-    key: '6',
+    key: Keys.RUN_ALL,
     phase:
       engine.activeTask === TaskId.RUN_ALL ? t('queue.round', { n: engine.round }) : '',
     isLocked: ready === 0,

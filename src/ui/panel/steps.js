@@ -45,7 +45,7 @@ export function renderStepsTab(deps) {
   const arm = el('button', { class: `bhb-task bhb-task--wrap ${isArmed ? 'is-on' : ''}` }, [
     el('span', { class: 'bhb-task__switch' }),
     el('span', { class: 'bhb-task__label', text: t('steps.armCapture') }),
-    el('span', { class: 'bhb-kbd', text: '0' }),
+    el('span', { class: 'bhb-kbd', text: keyLabel(Keys.CAPTURE) }),
   ]);
   arm.addEventListener('click', () => {
     deps.store.armCapture(!isArmed);
