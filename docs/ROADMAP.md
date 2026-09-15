@@ -104,6 +104,38 @@ chỉ đúng trên máy đã bắt chúng, và màu thì không quy đổi đư�
 
 ---
 
+## Milestone 7 — Cập nhật không phải bấm *(chưa làm)*
+
+**Vấn đề:** Tampermonkey giữ khoảng cách tối thiểu giữa hai lần kiểm tra, và
+bước xác nhận cài là bắt buộc — nên vừa phát hành xong thì phải mở tab cài rồi
+tải lại trang. v0.13.0 đã bớt một nửa phiền phức (đọc thẳng bản phát hành, có
+nút cài và nút tải lại), nhưng vẫn còn hai cú bấm.
+
+**Không làm được:** tự cài từ trong trang. Userscript chạy ở ngữ cảnh trang thì
+không ghi được vào kho script của Tampermonkey — ranh giới bảo mật có chủ ý, vì
+nếu không thì trang web nào cũng cài được userscript. `@grant GM_*` cũng không
+có API tự cập nhật, chỉ có `GM_info` để đọc phiên bản.
+
+**Hướng khả dĩ — "script mồi":** thứ cài vào Tampermonkey chỉ là đoạn nạp nhỏ;
+mỗi lần mở game nó tải mã bot mới nhất từ GitHub rồi chạy. Cập nhật tức thì,
+không bao giờ phải cài lại.
+
+Cái giá, và là lý do chưa làm:
+
+- [ ] **Mất quyền xem trước thứ mình chạy** — bản dựng hiện cố tình không nén để
+      người cài đọc được. Script mồi biến nó thành "chạy bất cứ thứ gì đang nằm
+      trên GitHub lúc đó", kể cả một bản đẩy nhầm
+- [ ] **Mất mạng là không nạp được** — cần đệm bản đã tải trong `localStorage`
+      để offline vẫn chạy
+- [ ] **CSP trang game có thể chặn** nạp mã từ ngoài — phải thử mới biết
+- [ ] Ghim theo phiên bản, để không tự nhảy sang bản chưa được duyệt
+
+**Giải pháp tạm thời, không tốn dòng mã nào:** Tampermonkey → Settings (chế độ
+`Advanced`) → **Script Update** → đặt **Check interval** dày nhất. Bản mới về tự
+động, tải lại trang game là xong.
+
+---
+
 ## English summary
 
 Milestone 1 (foundations) is done. Milestone 2 adds region matching and screen-state
@@ -113,4 +145,8 @@ Expedition → Trials/Gauntlet → World Boss → Raid → Dungeon) looping unti
 run out. Milestone 4 covers lag detection with auto-restart and character-slot
 switching. Milestone 5 adds session stats that survive a watchdog reload, and
 Discord/Telegram alerts with a canvas screenshot — a rare drop is just a screen
-with its `notify` flag set, so it needs no vision code of its own.
+with its `notify` flag set, so it needs no vision code of its own. Milestone 6
+replaced the hard-coded modes with conditional steps: wait until a colour is
+gone, click one only if it is there, run any activity on its own. Milestone 7 is
+unbuilt — updating without the install tab, which needs a loader that would cost
+the reader the ability to see what they are about to run.
