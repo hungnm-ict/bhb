@@ -1,6 +1,7 @@
 import { el } from '../dom.js';
 import { t, getLanguage } from '../../i18n/index.js';
 import { ScaleMode } from '../../core/coords.js';
+import { renderQueueSection } from './queue.js';
 
 /**
  * Settings, and the first home for the profile list.
@@ -15,6 +16,17 @@ import { ScaleMode } from '../../core/coords.js';
  * @param {() => number} deps.getReloadCount
  * @param {() => void} deps.refresh
  */
+/**
+ * The import box outlives its render.
+ *
+ * The panel is rebuilt on every engine tick, and a textarea rebuilt under the
+ * user is a pasted profile silently thrown away. Keeping the node itself keeps
+ * both the text and the caret.
+ *
+ * @type {HTMLTextAreaElement | null}
+ */
+let transferBox = null;
+
 export function renderSettingsTab(deps) {
   const { profiles, settings } = deps;
   const list = profiles.list();
@@ -41,9 +53,12 @@ export function renderSettingsTab(deps) {
     return button;
   }
 
-  const transfer = el('textarea', { class: 'bhb-textarea' });
+  if (!transferBox) {
+    transferBox = el('textarea', { class: 'bhb-textarea' });
+    transferBox.spellcheck = false;
+  }
+  const transfer = transferBox;
   transfer.placeholder = t('settings.transferHint');
-  transfer.spellcheck = false;
 
   const exportButton = action('settings.export', () => {
     transfer.value = profiles.exportAll();
@@ -60,11 +75,13 @@ export function renderSettingsTab(deps) {
     }
   });
 
+  // The same switch as the task tab's: a settings page of dim little circles
+  // reads as a wall of grey text.
   function toggleRow(labelKey, value, onChange, note) {
-    const row = el('button', { class: `bhb-toggle ${value ? 'is-on' : ''}` }, [
-      el('span', { class: 'bhb-toggle__dot', text: value ? '◉' : '○' }),
-      el('span', { class: 'bhb-toggle__label', text: t(labelKey) }),
-      note ? el('span', { class: 'bhb-mono bhb-toggle__note', text: note }) : null,
+    const row = el('button', { class: `bhb-task bhb-task--wrap ${value ? 'is-on' : ''}` }, [
+      el('span', { class: 'bhb-task__switch' }),
+      el('span', { class: 'bhb-task__label', text: t(labelKey) }),
+      note ? el('span', { class: 'bhb-mono bhb-task__phase', text: note }) : null,
     ]);
     row.addEventListener('click', () => {
       onChange(!value);
@@ -125,6 +142,8 @@ export function renderSettingsTab(deps) {
       ),
       el('p', { class: 'bhb-note', text: t('settings.watchdogHint') }),
     ]),
+
+    renderQueueSection(deps),
 
     el('div', { class: 'bhb-field' }, [
       el('div', { class: 'bhb-field__head' }, [

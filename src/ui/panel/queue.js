@@ -1,12 +1,15 @@
 import { el } from '../dom.js';
 import { t } from '../../i18n/index.js';
 import { rulesForActivity } from '../../rules/activity.js';
-import { TaskId } from '../../core/engine.js';
 
 /**
- * The Run-All queue.
+ * The Run-All queue, as a section of the settings tab.
  *
- * Reordering is ▲▼ rather than drag-and-drop, to match the rules table: one
+ * The order and the on/off switches are configuration, so they live with the
+ * other settings; the switch that starts Run-All sits with the other task
+ * switches, because that is what the user reaches for every session.
+ *
+ * Reordering is ▲▼ rather than drag-and-drop, to match the actions table: one
  * interaction to learn, not two.
  *
  * @param {object} deps
@@ -19,44 +22,19 @@ import { TaskId } from '../../core/engine.js';
  * @param {(value: boolean) => void} deps.setCloseAfterRound
  * @param {() => void} deps.refresh
  */
-export function renderQueueTab(deps) {
+export function renderQueueSection(deps) {
   const activities = deps.getActivities();
   const engine = deps.getEngineState();
   const rules = deps.getRules();
-  const running = engine.activeTask === TaskId.RUN_ALL;
+  const running = Boolean(engine.activity);
   const spent = new Set(engine.spent || []);
 
-  const run = el('button', { class: `bhb-btn ${running ? 'is-on' : 'bhb-btn--primary'}` }, [
-    el('span', { class: 'bhb-btn__dot' }),
-    el('span', { text: t(running ? 'queue.stop' : 'queue.start') }),
-    el('span', { class: 'bhb-kbd', text: '6' }),
-  ]);
-  run.addEventListener('click', () => {
-    deps.toggleTask(TaskId.RUN_ALL);
-    deps.refresh();
-  });
-
-  const closesAfterRound = deps.getCloseAfterRound();
-  const closeAfter = el('button', { class: `bhb-toggle ${closesAfterRound ? 'is-on' : ''}` }, [
-    el('span', { class: 'bhb-toggle__dot', text: closesAfterRound ? '◉' : '○' }),
-    el('span', { class: 'bhb-toggle__label', text: t('queue.closeAfterRound') }),
-  ]);
-  closeAfter.addEventListener('click', () => {
-    deps.setCloseAfterRound(!closesAfterRound);
-    deps.refresh();
-  });
-
-  const head = el('div', { class: 'bhb-field' }, [
-    el('div', { class: 'bhb-field__head' }, [
-      el('span', { class: 'bhb-label', text: t('queue.title') }),
-      el('span', {
-        class: 'bhb-mono bhb-note',
-        text: running ? t('queue.round', { n: engine.round }) : '',
-      }),
-    ]),
-    run,
-    closeAfter,
-    el('p', { class: 'bhb-note', text: t('queue.hint') }),
+  const head = el('div', { class: 'bhb-field__head' }, [
+    el('span', { class: 'bhb-label', text: t('queue.title') }),
+    el('span', {
+      class: 'bhb-mono bhb-note',
+      text: running ? t('queue.round', { n: engine.round }) : '',
+    }),
   ]);
 
   const rows = activities.map((activity, index) => {
@@ -111,5 +89,9 @@ export function renderQueueTab(deps) {
     ]);
   });
 
-  return el('div', { class: 'bhb-tab' }, [head, el('div', { class: 'bhb-rules' }, rows)]);
+  return el('div', { class: 'bhb-field' }, [
+    head,
+    el('p', { class: 'bhb-note', text: t('queue.hint') }),
+    el('div', { class: 'bhb-rules' }, rows),
+  ]);
 }

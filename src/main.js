@@ -104,8 +104,8 @@ function bootstrap() {
     markers.render();
   };
 
-  /** Tabs whose contents change on their own: a countdown, a probe, a queue. */
-  const LIVE_TABS = new Set([Tab.TASKS, Tab.SCREENS, Tab.QUEUE]);
+  /** Tabs whose contents change on their own: a countdown, a live probe. */
+  const LIVE_TABS = new Set([Tab.TASKS, Tab.SCREENS]);
 
   const refreshLive = () => {
     hud.render();

@@ -138,6 +138,7 @@ const CSS = `
   font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
 }
 .bhb-note { margin: 0; color: var(--bhb-dim); font-size: 10.5px; line-height: 1.5; }
+.bhb-note--warn { color: var(--bhb-warn); }
 .bhb-empty { margin: 0; padding: 18px 0; color: var(--bhb-dim); font-size: 11px; text-align: center; }
 .bhb-field { display: flex; flex-direction: column; gap: 7px; }
 .bhb-field__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
@@ -171,6 +172,13 @@ const CSS = `
 .bhb-task.is-on .bhb-task__switch::after { transform: translateX(12px); background: var(--bhb-live); }
 
 .bhb-task__name { flex: 1; font-weight: 700; font-size: 11.5px; letter-spacing: .05em; }
+.bhb-task__label { flex: 1; font-size: 11px; line-height: 1.4; }
+.bhb-task--wrap { align-items: flex-start; }
+.bhb-task--wrap .bhb-task__switch { margin-top: 1px; }
+
+/* A switch that cannot do anything yet says so instead of pretending. */
+.bhb-task.is-locked { opacity: .5; cursor: not-allowed; }
+.bhb-task.is-locked:hover { border-color: var(--bhb-line); }
 .bhb-task__phase { color: var(--bhb-warn); font-size: 10px; }
 
 .bhb-kbd {
@@ -319,19 +327,6 @@ const CSS = `
 .bhb-textarea { height: 72px; resize: vertical; font-family: var(--bhb-mono); font-size: 10px; }
 .bhb-btnrow { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
 .bhb-btn--small { flex: 1; min-width: 64px; padding: 4px 8px; font-size: 10.5px; }
-/* A settings switch is a whole row, not a 14px dot with a label beside it. */
-.bhb-toggle {
-  display: flex; align-items: center; gap: 9px; width: 100%;
-  padding: 7px 9px;
-  background: none; border: 1px solid transparent; border-radius: 9px;
-  color: inherit; font: inherit; text-align: left; cursor: pointer;
-}
-.bhb-toggle:hover { background: var(--bhb-bg-soft); border-color: var(--bhb-line); }
-.bhb-toggle__dot { color: var(--bhb-dim); font-size: 13px; line-height: 1; }
-.bhb-toggle.is-on .bhb-toggle__dot { color: var(--bhb-live); }
-.bhb-toggle__label { flex: 1; min-width: 0; font-size: 11px; }
-.bhb-toggle__note { color: var(--bhb-dim); font-size: 10px; }
-
 .bhb-queue__row.is-active { border-color: var(--bhb-live); }
 .bhb-queue__row.is-spent { opacity: .45; }
 .bhb-queue__state { width: 14px; text-align: center; color: var(--bhb-live); font-size: 10px; }
