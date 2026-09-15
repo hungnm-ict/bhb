@@ -10,7 +10,7 @@
  *  3. Everything else once the DOM is ready.
  */
 
-import { SPEED_STEPS, RESUME_DELAY } from './core/constants.js';
+import { RESUME_DELAY } from './core/constants.js';
 import { installCanvasPatch } from './core/canvas.js';
 import { installFocusPatch } from './core/focus.js';
 import {
@@ -18,7 +18,7 @@ import {
   getSpeed,
   setSpeed,
   onSpeedChange,
-  speedIndex,
+  stepSpeed,
   pumpFrame,
 } from './core/speed.js';
 import { installKeepAlive } from './core/keepalive.js';
@@ -228,7 +228,12 @@ function bootstrap() {
     panel.highlight();
     markers.highlight();
   });
-  onSpeedChange(() => refresh());
+  // Rebuilding the panel on every notch replaced the slider mid-drag, which is
+  // what made dragging feel like it was fighting back.
+  onSpeedChange(() => {
+    hud.render();
+    panel.updateSpeed();
+  });
 
   installHotkeys({
     // The keyboard reference has no key of its own; it opens from the panel.
@@ -238,9 +243,9 @@ function bootstrap() {
     '5': () => engine.toggle(TaskId.SCRIPT),
     '6': () => engine.toggle(TaskId.RUN_ALL),
     '0': () => stepEditor.captureAtCursor().then(refresh),
-    '=': () => setSpeed(nextSpeedStep(getSpeed(), 1)),
-    '+': () => setSpeed(nextSpeedStep(getSpeed(), 1)),
-    '-': () => setSpeed(nextSpeedStep(getSpeed(), -1)),
+    '=': () => setSpeed(stepSpeed(getSpeed(), 1)),
+    '+': () => setSpeed(stepSpeed(getSpeed(), 1)),
+    '-': () => setSpeed(stepSpeed(getSpeed(), -1)),
   });
 
   refresh();
@@ -330,11 +335,4 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', start, { once: true });
 } else {
   start();
-}
-
-/** The hotkeys walk the slider's stops rather than adding a fixed amount. */
-function nextSpeedStep(current, direction) {
-  const index = speedIndex(current) + direction;
-  const bounded = Math.max(0, Math.min(SPEED_STEPS.length - 1, index));
-  return SPEED_STEPS[bounded];
 }

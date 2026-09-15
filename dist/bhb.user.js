@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.6.0
+// @version      0.6.1
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -14,7 +14,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.6.0" : "dev";
+  var VERSION = true ? "0.6.1" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -160,6 +160,10 @@
     return SPEED_STEPS.reduce(
       (best, stop) => Math.abs(stop - value) < Math.abs(best - value) ? stop : best
     );
+  }
+  function stepSpeed(current, direction) {
+    const index = speedIndex(current) + direction;
+    return SPEED_STEPS[Math.max(0, Math.min(SPEED_STEPS.length - 1, index))];
   }
   function speedIndex(value) {
     return SPEED_STEPS.indexOf(snapSpeed(value));
@@ -1340,10 +1344,10 @@
   // src/i18n/vi.js
   var vi_default = {
     "app.name": "BHB",
-    "task.rerun": "RERUN",
-    "task.wb": "WB SOLO",
+    "task.rerun": "CHẠY LẠI",
+    "task.wb": "BOSS SOLO",
     "task.runAll": "CHẠY TẤT CẢ",
-    "task.script": "SCRIPT",
+    "task.script": "BƯỚC TỰ TẠO",
     "phase.hunting": "đang tìm",
     "phase.resting": "nghỉ",
     "hud.idle": "đang dừng",
@@ -1371,8 +1375,8 @@
     "steps.screenGate": "Chỉ chạy ở màn hình này",
     "steps.anywhere": "Mọi màn hình",
     "steps.activity": "Bước này thuộc hoạt động nào",
-    "steps.loose": "Chỉ bước Script",
-    "steps.noActivity": "Script",
+    "steps.loose": "Chỉ bước tự tạo",
+    "steps.noActivity": "Tự tạo",
     "steps.allSteps": "Tất cả bước",
     "steps.filter": "Chỉ hiện một hoạt động",
     "steps.delete": "Xoá bước",
@@ -1439,9 +1443,9 @@
     "help.sectionSteps": "Bước",
     "help.sectionUi": "Giao diện",
     "help.sectionSpeed": "Tốc độ",
-    "help.rerun": "Auto Rerun (tìm 3s, nghỉ 20s)",
-    "help.wb": "Auto WB Solo (2s/lần)",
-    "help.script": "Auto Script (3s/lần)",
+    "help.rerun": "Tự chạy lại (tìm 3s, nghỉ 20s)",
+    "help.wb": "Tự đánh World Boss solo (2s/lần)",
+    "help.script": "Chạy các bước tự tạo chưa gán hoạt động (3s/lần)",
     "help.runAll": "Chạy lần lượt mọi hoạt động trong hàng đợi",
     "help.capture": "Bắt bước tại con trỏ",
     "help.togglePanel": "Mở/đóng bảng điều khiển",
@@ -1462,7 +1466,7 @@
     "task.rerun": "RERUN",
     "task.wb": "WB SOLO",
     "task.runAll": "RUN ALL",
-    "task.script": "SCRIPT",
+    "task.script": "MY STEPS",
     "phase.hunting": "hunting",
     "phase.resting": "resting",
     "hud.idle": "idle",
@@ -1490,8 +1494,8 @@
     "steps.screenGate": "Only fire on this screen",
     "steps.anywhere": "Anywhere",
     "steps.activity": "Which activity this step belongs to",
-    "steps.loose": "Script steps only",
-    "steps.noActivity": "Script",
+    "steps.loose": "Untagged steps only",
+    "steps.noActivity": "Untagged",
     "steps.allSteps": "All steps",
     "steps.filter": "Show only one activity",
     "steps.delete": "Delete",
@@ -1558,9 +1562,9 @@
     "help.sectionSteps": "Steps",
     "help.sectionUi": "Interface",
     "help.sectionSpeed": "Speed",
-    "help.rerun": "Auto Rerun (hunt 3s, rest 20s)",
-    "help.wb": "Auto WB Solo (every 2s)",
-    "help.script": "Auto Script (every 3s)",
+    "help.rerun": "Auto Rerun (polls 3s, rests 20s)",
+    "help.wb": "Auto World Boss solo (every 2s)",
+    "help.script": "Run the steps not tagged to an activity (every 3s)",
     "help.runAll": "Run every activity in the queue",
     "help.capture": "Capture a step at the cursor",
     "help.togglePanel": "Open/close the control panel",
@@ -2050,6 +2054,16 @@
 }
 
 .bhb-slider { width: 100%; accent-color: var(--bhb-accent); cursor: pointer; }
+.bhb-speedrow { display: flex; align-items: center; gap: 8px; }
+.bhb-speedrow .bhb-slider { flex: 1; min-width: 0; }
+.bhb-icon--wide { min-width: 26px; font-size: 14px; line-height: 1; }
+.bhb-speedends {
+  position: relative;
+  display: flex; justify-content: space-between;
+  margin-top: 2px; margin-inline: 34px;
+  color: var(--bhb-dim); font-size: 9.5px;
+}
+.bhb-speedends__mark { position: absolute; transform: translateX(-50%); }
 .bhb-speed { font-family: var(--bhb-mono); font-size: 13px; font-weight: 700; }
 .bhb-speed.is-boosted { color: var(--bhb-cyan); }
 
@@ -2462,6 +2476,16 @@
   }
 
   // src/ui/panel/tasks.js
+  var speedControl = null;
+  function updateSpeedDisplay() {
+    if (!speedControl) {
+      return;
+    }
+    const speed2 = getSpeed();
+    speedControl.slider.value = String(speedIndex(speed2));
+    speedControl.readout.textContent = `${formatSpeed(speed2)}×`;
+    speedControl.readout.className = `bhb-speed ${speed2 > 1 ? "is-boosted" : ""}`;
+  }
   var TASKS = [
     [TaskId.RERUN, "task.rerun", "3"],
     [TaskId.WORLD_BOSS, "task.wb", "4"],
@@ -2526,25 +2550,58 @@
         deps.refresh();
       });
     }
-    const slider = el("input", { class: "bhb-slider" });
-    slider.type = "range";
-    slider.min = "0";
-    slider.max = String(SPEED_STEPS.length - 1);
-    slider.step = "1";
-    slider.value = String(speedIndex(speed2));
-    slider.addEventListener("input", () => {
-      setSpeed(SPEED_STEPS[Number(slider.value)]);
-      deps.refresh();
-    });
+    if (!speedControl) {
+      const slider2 = el("input", { class: "bhb-slider" });
+      slider2.type = "range";
+      slider2.min = "0";
+      slider2.max = String(SPEED_STEPS.length - 1);
+      slider2.step = "1";
+      const stops = el("datalist");
+      stops.id = "bhb-speed-stops";
+      for (const stop of SPEED_STEPS) {
+        const option = el("option");
+        option.value = String(SPEED_STEPS.indexOf(stop));
+        option.label = `${formatSpeed(stop)}×`;
+        stops.append(option);
+      }
+      slider2.setAttribute("list", stops.id);
+      slider2.append(stops);
+      slider2.addEventListener("input", () => {
+        setSpeed(SPEED_STEPS[Number(slider2.value)]);
+      });
+      speedControl = { slider: slider2, readout: el("span", { class: "bhb-speed" }) };
+    }
+    const { slider, readout } = speedControl;
+    updateSpeedDisplay();
+    function nudge(direction, label) {
+      const button = el("button", { class: "bhb-icon bhb-icon--wide", text: label });
+      button.addEventListener("click", () => setSpeed(stepSpeed(getSpeed(), direction)));
+      return button;
+    }
     return el("div", { class: "bhb-tab" }, [
       el("div", { class: "bhb-stack" }, [...rows2, runAll]),
       ready === 0 ? el("p", { class: "bhb-note bhb-note--warn", text: t("tasks.runAllLocked") }) : el("p", { class: "bhb-note", text: t("queue.inSettings") }),
       el("div", { class: "bhb-field" }, [
         el("div", { class: "bhb-field__head" }, [
           el("span", { class: "bhb-label", text: t("overlay.speed") }),
-          el("span", { class: `bhb-speed ${speed2 > 1 ? "is-boosted" : ""}`, text: `${formatSpeed(speed2)}×` })
+          readout
         ]),
-        slider
+        el("div", { class: "bhb-speedrow" }, [
+          nudge(-1, "−"),
+          slider,
+          nudge(1, "+")
+        ]),
+        el("div", { class: "bhb-speedends bhb-mono" }, [
+          el("span", { text: `${formatSpeed(SPEED_STEPS[0])}×` }),
+          // The stops are uneven, so 1x is not the middle of the track; a label
+          // sitting there anyway would misread the whole scale.
+          el("span", {
+            class: "bhb-speedends__mark",
+            text: "1×",
+            style: { left: `${speedIndex(1) / (SPEED_STEPS.length - 1) * 100}%` }
+          }),
+          el("span", { text: `${formatSpeed(SPEED_STEPS[SPEED_STEPS.length - 1])}×` })
+        ])
       ]),
       el("dl", { class: "bhb-facts" }, [
         el("dt", { text: t("overlay.canvas") }),
@@ -3315,10 +3372,13 @@
         activeTab.scrollIntoView({ block: "nearest", inline: "nearest" });
       }
     }
+    function updateSpeed() {
+      updateSpeedDisplay();
+    }
     function highlight() {
       highlightSteps(deps.store.get());
     }
-    return { render, highlight };
+    return { render, highlight, updateSpeed };
   }
 
   // src/ui/markers.js
@@ -3645,7 +3705,10 @@
       panel.highlight();
       markers.highlight();
     });
-    onSpeedChange(() => refresh());
+    onSpeedChange(() => {
+      hud.render();
+      panel.updateSpeed();
+    });
     installHotkeys({
       // The keyboard reference has no key of its own; it opens from the panel.
       "1": () => store.togglePanel(),
@@ -3654,9 +3717,9 @@
       "5": () => engine.toggle(TaskId.SCRIPT),
       "6": () => engine.toggle(TaskId.RUN_ALL),
       "0": () => stepEditor.captureAtCursor().then(refresh),
-      "=": () => setSpeed(nextSpeedStep(getSpeed(), 1)),
-      "+": () => setSpeed(nextSpeedStep(getSpeed(), 1)),
-      "-": () => setSpeed(nextSpeedStep(getSpeed(), -1))
+      "=": () => setSpeed(stepSpeed(getSpeed(), 1)),
+      "+": () => setSpeed(stepSpeed(getSpeed(), 1)),
+      "-": () => setSpeed(stepSpeed(getSpeed(), -1))
     });
     refresh();
     hud.wake();
@@ -3709,10 +3772,5 @@
     document.addEventListener("DOMContentLoaded", start, { once: true });
   } else {
     start();
-  }
-  function nextSpeedStep(current, direction) {
-    const index = speedIndex(current) + direction;
-    const bounded = Math.max(0, Math.min(SPEED_STEPS.length - 1, index));
-    return SPEED_STEPS[bounded];
   }
 })();
