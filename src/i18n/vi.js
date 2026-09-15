@@ -3,6 +3,7 @@ export default {
 
   'task.rerun': 'RERUN',
   'task.wb': 'WB SOLO',
+  'task.runAll': 'CHẠY TẤT CẢ',
   'task.script': 'SCRIPT',
 
   'phase.hunting': 'đang tìm',
@@ -13,6 +14,7 @@ export default {
   'tab.tasks': 'Hoạt động',
   'tab.rules': 'Rule',
   'tab.screens': 'Màn hình',
+  'tab.queue': 'Chạy tất cả',
   'tab.log': 'Nhật ký',
   'panel.close': 'Đóng',
 
@@ -34,6 +36,10 @@ export default {
   'rules.moveDown': 'Xuống',
   'rules.screenGate': 'Chỉ chạy ở màn hình này',
   'rules.anywhere': 'Mọi màn hình',
+  'rules.activity': 'Rule này thuộc hoạt động nào',
+  'rules.loose': 'Chỉ chạy Script',
+  'rules.allRules': 'Tất cả rule',
+  'rules.filter': 'Chỉ hiện một hoạt động',
   'rules.delete': 'Xoá rule',
 
   'screens.title': 'Màn hình',
@@ -49,6 +55,14 @@ export default {
   'screens.ratioHint': 'Tỉ lệ điểm mẫu đang khớp',
   'screen.defaultName': 'Màn hình {n}',
 
+  'queue.title': 'Hàng đợi hoạt động',
+  'queue.start': 'Chạy tất cả',
+  'queue.stop': 'Dừng',
+  'queue.round': 'vòng {n}',
+  'queue.ruleCount': 'Số rule thuộc hoạt động này',
+  'queue.closeAfterRound': 'Đóng game sau khi xong một vòng',
+  'queue.hint': 'Chạy từ trên xuống, bỏ qua cái đã hết tài nguyên, rồi quay lại từ đầu. Gán rule cho hoạt động ở tab Rule.',
+
   'log.title': 'Nhật ký',
   'log.empty': 'Chưa có gì. Bật một hoạt động để bắt đầu.',
   'log.clear': 'Xoá',
@@ -56,6 +70,7 @@ export default {
   'log.busy': 'Khớp {label}, đang bận',
   'log.screen': 'Màn hình: {label}',
   'log.resource': 'Hết tài nguyên ở {label} — đã dừng',
+  'log.activity': 'Hàng đợi → {label}',
   'log.taskStarted': 'Bật {task}',
   'log.taskStopped': 'Tắt {task}',
 
@@ -68,11 +83,12 @@ export default {
   'help.rerun': 'Auto Rerun (tìm 3s, nghỉ 20s)',
   'help.wb': 'Auto WB Solo (2s/lần)',
   'help.script': 'Auto Script (3s/lần)',
+  'help.runAll': 'Chạy lần lượt mọi hoạt động trong hàng đợi',
   'help.capture': 'Bắt rule tại con trỏ',
   'help.toggleHelp': 'Hiện/ẩn bảng này',
   'help.togglePanel': 'Mở/đóng bảng điều khiển',
-  'help.speedUp': 'Tăng tốc độ (+1)',
-  'help.speedDown': 'Giảm tốc độ (-1)',
+  'help.speedUp': 'Nhanh hơn (mốc kế tiếp)',
+  'help.speedDown': 'Chậm lại (mốc trước đó)',
   'help.footer': 'Tự tắt sau 3 phút không click',
 
   'msg.noCanvas': 'không thấy canvas',

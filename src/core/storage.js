@@ -6,6 +6,7 @@ import {
 } from './constants.js';
 import { createRule } from '../rules/model.js';
 import { ScaleMode } from './coords.js';
+import { createDefaultActivities } from '../rules/activity.js';
 
 /**
  * Persistence for rule profiles and settings.
@@ -16,21 +17,31 @@ import { ScaleMode } from './coords.js';
  *
  * @typedef {import('../rules/model.js').Rule} Rule
  * @typedef {import('../rules/screen.js').Screen} Screen
- * @typedef {{ id: string, name: string, rules: Rule[], screens: Screen[] }} Profile
- * @typedef {{ version: 3, activeProfileId: string, profiles: Profile[] }} ProfileState
+ * @typedef {import('../rules/activity.js').Activity} Activity
+ * @typedef {{ id: string, name: string, rules: Rule[], screens: Screen[], activities: Activity[] }} Profile
+ * @typedef {{ version: 4, activeProfileId: string, profiles: Profile[] }} ProfileState
  *
- * v2 → v3 adds `screens` to every profile and changes nothing else, so a v2
- * export still loads with all of its rules.
+ * Each migration only ever adds a list: v3 added `screens`, v4 adds
+ * `activities`. An export from any earlier version still loads with every
+ * rule it had.
  */
 
-const SCHEMA_VERSION = 3;
+const SCHEMA_VERSION = 4;
 
 /** @returns {ProfileState} */
 function createDefaultState() {
   return {
     version: SCHEMA_VERSION,
     activeProfileId: 'default',
-    profiles: [{ id: 'default', name: 'Default', rules: [], screens: [] }],
+    profiles: [
+      {
+        id: 'default',
+        name: 'Default',
+        rules: [],
+        screens: [],
+        activities: createDefaultActivities(),
+      },
+    ],
   };
 }
 
@@ -99,6 +110,10 @@ function normaliseState(candidate) {
       name: typeof profile.name === 'string' ? profile.name : profile.id,
       rules: Array.isArray(profile.rules) ? profile.rules : [],
       screens: Array.isArray(profile.screens) ? profile.screens : [],
+      activities:
+        Array.isArray(profile.activities) && profile.activities.length > 0
+          ? profile.activities
+          : createDefaultActivities(),
     }));
 
   if (profiles.length === 0) {
@@ -146,7 +161,7 @@ export function getActiveProfile(state) {
   );
 }
 
-/** @returns {{ scaleMode: string, language: string }} */
+/** @returns {{ scaleMode: string, language: string, closeAfterRound: boolean }} */
 export function loadSettings() {
   const stored = readJson(STORAGE_KEY_SETTINGS) || {};
   return {
@@ -155,6 +170,8 @@ export function loadSettings() {
         ? ScaleMode.ABSOLUTE
         : ScaleMode.SCALE,
     language: stored.language === 'en' ? 'en' : 'vi',
+    // A bot that closes the game unasked is a bot that loses a session.
+    closeAfterRound: stored.closeAfterRound === true,
   };
 }
 

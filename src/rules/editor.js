@@ -158,6 +158,16 @@ export function createRuleEditor(deps) {
     deps.persist();
   }
 
+  /** Which Run-All slot a rule belongs to; null leaves it in the Script set. */
+  function setActivity(ruleId, activityId) {
+    const rule = find(ruleId);
+    if (!rule) {
+      return;
+    }
+    rule.activity = activityId;
+    deps.persist();
+  }
+
   function remove(ruleId) {
     const rules = deps.getRules();
     const index = rules.findIndex((rule) => rule.id === ruleId);
@@ -186,6 +196,7 @@ export function createRuleEditor(deps) {
     rename,
     setEnabled,
     setScreens,
+    setActivity,
     remove,
     move,
   };

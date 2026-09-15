@@ -21,10 +21,12 @@ import {
   saveProfiles,
   getActiveProfile,
   loadSettings,
+  saveSettings,
 } from './core/storage.js';
 import { RERUN_RULES, WORLD_BOSS_RULES } from './rules/builtin.js';
 import { createRuleEditor } from './rules/editor.js';
 import { createScreenEditor } from './rules/screen-editor.js';
+import { createQueueEditor } from './rules/queue-editor.js';
 import { setLanguage } from './i18n/index.js';
 import { installStyles } from './ui/styles.js';
 import { createUiStore } from './ui/store.js';
@@ -54,6 +56,7 @@ function bootstrap() {
   const profileState = loadProfiles();
   const getRules = () => getActiveProfile(profileState).rules;
   const getScreens = () => getActiveProfile(profileState).screens;
+  const getActivities = () => getActiveProfile(profileState).activities;
   const persist = () => saveProfiles(profileState);
 
   const store = createUiStore();
@@ -64,6 +67,9 @@ function bootstrap() {
     getWorldBossRules: () => WORLD_BOSS_RULES,
     getScaleMode: () => settings.scaleMode,
     getScreens,
+    getActivities,
+    shouldCloseAfterRound: () => settings.closeAfterRound,
+    closeGame: () => window.close(),
   });
 
   const editor = createRuleEditor({
@@ -79,6 +85,8 @@ function bootstrap() {
     getScaleMode: () => settings.scaleMode,
   });
 
+  const queueEditor = createQueueEditor({ getActivities, persist });
+
   // One renderer for all three views: any change redraws whatever is showing.
   const refresh = () => {
     hud.render();
@@ -92,8 +100,15 @@ function bootstrap() {
     store,
     editor,
     screenEditor,
+    queueEditor,
     getRules,
     getScreens,
+    getActivities,
+    getCloseAfterRound: () => settings.closeAfterRound,
+    setCloseAfterRound: (value) => {
+      settings.closeAfterRound = value;
+      saveSettings(settings);
+    },
     getEngineState: engine.getState,
     toggleTask: engine.toggle,
     getProfileName: () => getActiveProfile(profileState).name,
@@ -120,6 +135,7 @@ function bootstrap() {
     '3': () => engine.toggle(TaskId.RERUN),
     '4': () => engine.toggle(TaskId.WORLD_BOSS),
     '5': () => engine.toggle(TaskId.SCRIPT),
+    '6': () => engine.toggle(TaskId.RUN_ALL),
     '0': () => editor.captureAtCursor().then(refresh),
     '=': () => setSpeed(nextSpeedStep(getSpeed(), 1)),
     '+': () => setSpeed(nextSpeedStep(getSpeed(), 1)),

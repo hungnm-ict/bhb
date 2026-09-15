@@ -17,6 +17,10 @@ export const INTERVAL_RERUN_REST = 20000;
 export const INTERVAL_WORLD_BOSS = 2000;
 export const INTERVAL_SCRIPT = 3000;
 export const INTERVAL_AUTO_STOP_CHECK = 5000;
+export const INTERVAL_RUN_ALL = 1500;
+
+/** Ticks with no match before Run-All gives up on an activity and moves on. */
+export const IDLE_ADVANCE_TICKS = 8;
 
 /** Stop automation after this long with no successful click. */
 export const AUTO_STOP_TIMEOUT = 3 * 60 * 1000;

@@ -283,6 +283,15 @@ const CSS = `
 
 /* --- Screens & drag capture --------------------------------------------- */
 
+.bhb-queue__row.is-active { border-color: var(--bhb-live); }
+.bhb-queue__row.is-spent { opacity: .45; }
+.bhb-queue__state { width: 14px; text-align: center; color: var(--bhb-live); font-size: 10px; }
+.bhb-queue__name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bhb-hud__activity {
+  padding: 1px 7px; border-radius: 999px;
+  background: rgba(124, 92, 255, .18); color: var(--bhb-accent);
+  font-size: 10px; letter-spacing: .04em;
+}
 .bhb-rule__gate {
   max-width: 88px; padding: 2px 4px;
   background: var(--bhb-bg-soft); color: var(--bhb-dim);

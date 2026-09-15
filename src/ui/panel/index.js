@@ -5,6 +5,7 @@ import { VERSION } from '../../core/constants.js';
 import { renderTasksTab } from './tasks.js';
 import { renderRulesTab } from './rules.js';
 import { renderScreensTab } from './screens.js';
+import { renderQueueTab } from './queue.js';
 import { renderLogTab } from './log.js';
 
 /**
@@ -18,6 +19,7 @@ const TABS = [
   [Tab.TASKS, 'tab.tasks'],
   [Tab.RULES, 'tab.rules'],
   [Tab.SCREENS, 'tab.screens'],
+  [Tab.QUEUE, 'tab.queue'],
   [Tab.LOG, 'tab.log'],
 ];
 
@@ -50,6 +52,9 @@ export function createPanel(deps) {
     }
     if (tab === Tab.SCREENS) {
       return renderScreensTab(deps);
+    }
+    if (tab === Tab.QUEUE) {
+      return renderQueueTab(deps);
     }
     if (tab === Tab.LOG) {
       return renderLogTab(deps);

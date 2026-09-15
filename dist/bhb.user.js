@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.2.3
+// @version      0.2.4
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -14,7 +14,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.2.3" : "dev";
+  var VERSION = true ? "0.2.4" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_LEGACY_RULES = "bh_script_rules_v1";
@@ -24,6 +24,8 @@
   var INTERVAL_WORLD_BOSS = 2e3;
   var INTERVAL_SCRIPT = 3e3;
   var INTERVAL_AUTO_STOP_CHECK = 5e3;
+  var INTERVAL_RUN_ALL = 1500;
+  var IDLE_ADVANCE_TICKS = 8;
   var AUTO_STOP_TIMEOUT = 3 * 60 * 1e3;
   var CLICK_LOCKOUT_MS = 200;
   var CLICK_HOVER_RESET_MS = 100;
@@ -516,6 +518,7 @@
       tolerance: DEFAULT_COLOR_TOLERANCE,
       enabled: true,
       screens: [],
+      activity: null,
       ...overrides
     };
   }
@@ -576,6 +579,27 @@
     return screenId !== null && rule.screens.includes(screenId);
   }
 
+  // src/rules/activity.js
+  var DEFAULT_ACTIVITIES = Object.freeze([
+    { id: "pvp", name: "PVP", enabled: true },
+    { id: "gvg", name: "GVG", enabled: true },
+    { id: "invasion", name: "Invasion", enabled: true },
+    { id: "expedition", name: "Expedition", enabled: true },
+    { id: "trials", name: "Trials / Gauntlet", enabled: true },
+    { id: "worldboss", name: "World Boss", enabled: true },
+    { id: "raid", name: "Raid", enabled: true },
+    { id: "dungeon", name: "Dungeon", enabled: true }
+  ]);
+  function createDefaultActivities() {
+    return DEFAULT_ACTIVITIES.map((activity) => ({ ...activity }));
+  }
+  function rulesForActivity(rules, activityId) {
+    return rules.filter((rule) => rule.activity === activityId);
+  }
+  function looseRules(rules) {
+    return rules.filter((rule) => !rule.activity);
+  }
+
   // src/core/events.js
   function createEmitter() {
     const handlers = /* @__PURE__ */ new Map();
@@ -608,7 +632,8 @@
   var TaskId = Object.freeze({
     RERUN: "rerun",
     WORLD_BOSS: "wb",
-    SCRIPT: "script"
+    SCRIPT: "script",
+    RUN_ALL: "runAll"
   });
   var Phase = Object.freeze({
     HUNTING: "hunting",
@@ -625,16 +650,74 @@
       /** @type {string | null} id of the screen detected on the last tick */
       screen: null,
       /** @type {string | null} */
-      screenName: null
+      screenName: null,
+      /** @type {string | null} id of the activity Run-All is on */
+      activity: null,
+      /** @type {string | null} */
+      activityName: null,
+      round: 0
     };
+    let spent = /* @__PURE__ */ new Set();
+    let queueIndex = 0;
+    let idleTicks = 0;
     let pollTimer = null;
     let autoStopTimer = null;
     let restTimer = null;
     const TASKS2 = {
       [TaskId.RERUN]: { interval: INTERVAL_RERUN_HUNT, getRules: deps.getRerunRules },
       [TaskId.WORLD_BOSS]: { interval: INTERVAL_WORLD_BOSS, getRules: deps.getWorldBossRules },
-      [TaskId.SCRIPT]: { interval: INTERVAL_SCRIPT, getRules: deps.getScriptRules }
+      [TaskId.SCRIPT]: { interval: INTERVAL_SCRIPT, getRules: () => looseRules(deps.getScriptRules()) },
+      [TaskId.RUN_ALL]: { interval: INTERVAL_RUN_ALL, getRules: runAllRules }
     };
+    function activities() {
+      return (deps.getActivities ? deps.getActivities() : []).filter((a) => a.enabled);
+    }
+    function runAllRules() {
+      const current = currentActivity();
+      return current ? rulesForActivity(deps.getScriptRules(), current.id) : [];
+    }
+    function currentActivity() {
+      const queue = activities();
+      return queue.length > 0 ? queue[queueIndex % queue.length] : null;
+    }
+    function setActivity(activity) {
+      state.activity = activity ? activity.id : null;
+      state.activityName = activity ? activity.name : null;
+    }
+    function advanceQueue(why) {
+      const queue = activities();
+      if (queue.length === 0) {
+        return;
+      }
+      const leaving = currentActivity();
+      if (why === "spent" && leaving) {
+        spent.add(leaving.id);
+      }
+      idleTicks = 0;
+      for (let step = 1; step <= queue.length; step += 1) {
+        const index = (queueIndex + step) % queue.length;
+        if (index === 0) {
+          if (spent.size >= queue.length) {
+            report("resource", { label: leaving ? leaving.name : "run all" });
+            stop();
+            setMessage("run all: everything is spent");
+            return;
+          }
+          state.round += 1;
+          spent = /* @__PURE__ */ new Set();
+          if (deps.shouldCloseAfterRound && deps.shouldCloseAfterRound() && deps.closeGame) {
+            deps.closeGame();
+          }
+        }
+        if (!spent.has(queue[index].id)) {
+          queueIndex = index;
+          setActivity(queue[index]);
+          report("activity", { label: queue[index].name, activityId: queue[index].id, why });
+          setMessage(`${queue[index].name}: ${why === "spent" ? "next" : "nothing to do, next"}`);
+          return;
+        }
+      }
+    }
     function report(kind, detail = {}) {
       emitter.emit("action", { at: realNow(), kind, task: state.activeTask, ...detail });
     }
@@ -649,6 +732,10 @@
         lastMessage: state.lastMessage,
         screen: state.screen,
         screenName: state.screenName,
+        activity: state.activity,
+        activityName: state.activityName,
+        round: state.round,
+        spent: [...spent],
         remainingMs: state.activeTask ? Math.max(0, AUTO_STOP_TIMEOUT - (realNow() - state.lastActionAt)) : 0
       };
     }
@@ -706,6 +793,10 @@
         return;
       }
       const screen = updateScreen(target.canvas, target.gl);
+      if (screen && screen.stopsTask && state.activeTask === TaskId.RUN_ALL) {
+        advanceQueue("spent");
+        return;
+      }
       if (screen && screen.stopsTask) {
         const stopped = state.activeTask;
         const label = screen.name || screen.id;
@@ -717,9 +808,19 @@
       const task = TASKS2[state.activeTask];
       const hit = evaluateRules(task.getRules(), target.canvas, target.gl, state.screen);
       if (!hit) {
+        if (state.activeTask === TaskId.RUN_ALL) {
+          idleTicks += 1;
+          if (idleTicks >= IDLE_ADVANCE_TICKS) {
+            advanceQueue("idle");
+            return;
+          }
+          setMessage(`${state.activityName || "run all"}: no match`);
+          return;
+        }
         setMessage(`${state.activeTask}: no match`);
         return;
       }
+      idleTicks = 0;
       if (hit.clicked) {
         state.lastActionAt = realNow();
         if (state.activeTask === TaskId.RERUN) {
@@ -775,6 +876,11 @@
       state.activeTask = taskId;
       state.phase = Phase.HUNTING;
       state.lastActionAt = realNow();
+      spent = /* @__PURE__ */ new Set();
+      queueIndex = 0;
+      idleTicks = 0;
+      state.round = taskId === TaskId.RUN_ALL ? 1 : 0;
+      setActivity(taskId === TaskId.RUN_ALL ? currentActivity() : null);
       pollTimer = realSetInterval(tick, TASKS2[taskId].interval);
       autoStopTimer = realSetInterval(checkAutoStop, INTERVAL_AUTO_STOP_CHECK);
       report("task", { started: true, label: taskId });
@@ -790,6 +896,7 @@
       state.phase = Phase.HUNTING;
       state.screen = null;
       state.screenName = null;
+      setActivity(null);
       clearInterval_(pollTimer);
       clearInterval_(autoStopTimer);
       clearTimeout_(restTimer);
@@ -808,12 +915,20 @@
   }
 
   // src/core/storage.js
-  var SCHEMA_VERSION = 3;
+  var SCHEMA_VERSION = 4;
   function createDefaultState() {
     return {
       version: SCHEMA_VERSION,
       activeProfileId: "default",
-      profiles: [{ id: "default", name: "Default", rules: [], screens: [] }]
+      profiles: [
+        {
+          id: "default",
+          name: "Default",
+          rules: [],
+          screens: [],
+          activities: createDefaultActivities()
+        }
+      ]
     };
   }
   function readJson(key) {
@@ -857,7 +972,8 @@
       id: profile.id,
       name: typeof profile.name === "string" ? profile.name : profile.id,
       rules: Array.isArray(profile.rules) ? profile.rules : [],
-      screens: Array.isArray(profile.screens) ? profile.screens : []
+      screens: Array.isArray(profile.screens) ? profile.screens : [],
+      activities: Array.isArray(profile.activities) && profile.activities.length > 0 ? profile.activities : createDefaultActivities()
     }));
     if (profiles.length === 0) {
       return createDefaultState();
@@ -889,8 +1005,13 @@
     const stored = readJson(STORAGE_KEY_SETTINGS) || {};
     return {
       scaleMode: stored.scaleMode === ScaleMode.ABSOLUTE ? ScaleMode.ABSOLUTE : ScaleMode.SCALE,
-      language: stored.language === "en" ? "en" : "vi"
+      language: stored.language === "en" ? "en" : "vi",
+      // A bot that closes the game unasked is a bot that loses a session.
+      closeAfterRound: stored.closeAfterRound === true
     };
+  }
+  function saveSettings(settings) {
+    return writeJson(STORAGE_KEY_SETTINGS, settings);
   }
 
   // src/rules/builtin.js
@@ -945,6 +1066,7 @@
     "app.name": "BHB",
     "task.rerun": "RERUN",
     "task.wb": "WB SOLO",
+    "task.runAll": "CHẠY TẤT CẢ",
     "task.script": "SCRIPT",
     "phase.hunting": "đang tìm",
     "phase.resting": "nghỉ",
@@ -952,6 +1074,7 @@
     "tab.tasks": "Hoạt động",
     "tab.rules": "Rule",
     "tab.screens": "Màn hình",
+    "tab.queue": "Chạy tất cả",
     "tab.log": "Nhật ký",
     "panel.close": "Đóng",
     "overlay.speed": "Tốc độ",
@@ -970,6 +1093,10 @@
     "rules.moveDown": "Xuống",
     "rules.screenGate": "Chỉ chạy ở màn hình này",
     "rules.anywhere": "Mọi màn hình",
+    "rules.activity": "Rule này thuộc hoạt động nào",
+    "rules.loose": "Chỉ chạy Script",
+    "rules.allRules": "Tất cả rule",
+    "rules.filter": "Chỉ hiện một hoạt động",
     "rules.delete": "Xoá rule",
     "screens.title": "Màn hình",
     "screens.empty": "Chưa có màn hình nào. Bắt một cái để bot biết nó đang ở đâu.",
@@ -982,6 +1109,13 @@
     "screens.stopsTask": "Hết tài nguyên — dừng hoạt động ở màn hình này",
     "screens.ratioHint": "Tỉ lệ điểm mẫu đang khớp",
     "screen.defaultName": "Màn hình {n}",
+    "queue.title": "Hàng đợi hoạt động",
+    "queue.start": "Chạy tất cả",
+    "queue.stop": "Dừng",
+    "queue.round": "vòng {n}",
+    "queue.ruleCount": "Số rule thuộc hoạt động này",
+    "queue.closeAfterRound": "Đóng game sau khi xong một vòng",
+    "queue.hint": "Chạy từ trên xuống, bỏ qua cái đã hết tài nguyên, rồi quay lại từ đầu. Gán rule cho hoạt động ở tab Rule.",
     "log.title": "Nhật ký",
     "log.empty": "Chưa có gì. Bật một hoạt động để bắt đầu.",
     "log.clear": "Xoá",
@@ -989,6 +1123,7 @@
     "log.busy": "Khớp {label}, đang bận",
     "log.screen": "Màn hình: {label}",
     "log.resource": "Hết tài nguyên ở {label} — đã dừng",
+    "log.activity": "Hàng đợi → {label}",
     "log.taskStarted": "Bật {task}",
     "log.taskStopped": "Tắt {task}",
     "help.title": "PHÍM TẮT",
@@ -1000,11 +1135,12 @@
     "help.rerun": "Auto Rerun (tìm 3s, nghỉ 20s)",
     "help.wb": "Auto WB Solo (2s/lần)",
     "help.script": "Auto Script (3s/lần)",
+    "help.runAll": "Chạy lần lượt mọi hoạt động trong hàng đợi",
     "help.capture": "Bắt rule tại con trỏ",
     "help.toggleHelp": "Hiện/ẩn bảng này",
     "help.togglePanel": "Mở/đóng bảng điều khiển",
-    "help.speedUp": "Tăng tốc độ (+1)",
-    "help.speedDown": "Giảm tốc độ (-1)",
+    "help.speedUp": "Nhanh hơn (mốc kế tiếp)",
+    "help.speedDown": "Chậm lại (mốc trước đó)",
     "help.footer": "Tự tắt sau 3 phút không click",
     "msg.noCanvas": "không thấy canvas",
     "msg.noWebgl": "không có WebGL",
@@ -1019,6 +1155,7 @@
     "app.name": "BHB",
     "task.rerun": "RERUN",
     "task.wb": "WB SOLO",
+    "task.runAll": "RUN ALL",
     "task.script": "SCRIPT",
     "phase.hunting": "hunting",
     "phase.resting": "resting",
@@ -1026,6 +1163,7 @@
     "tab.tasks": "Tasks",
     "tab.rules": "Rules",
     "tab.screens": "Screens",
+    "tab.queue": "Run All",
     "tab.log": "Log",
     "panel.close": "Close",
     "overlay.speed": "Speed",
@@ -1044,6 +1182,10 @@
     "rules.moveDown": "Move down",
     "rules.screenGate": "Only fire on this screen",
     "rules.anywhere": "Anywhere",
+    "rules.activity": "Which activity this rule belongs to",
+    "rules.loose": "Script only",
+    "rules.allRules": "All rules",
+    "rules.filter": "Show only one activity",
     "rules.delete": "Delete",
     "screens.title": "Screens",
     "screens.empty": "No screens yet. Capture one so the bot knows where it is.",
@@ -1056,6 +1198,13 @@
     "screens.stopsTask": "Out of resources — stop the task here",
     "screens.ratioHint": "Share of samples matching right now",
     "screen.defaultName": "Screen {n}",
+    "queue.title": "Activity queue",
+    "queue.start": "Run all activities",
+    "queue.stop": "Stop",
+    "queue.round": "round {n}",
+    "queue.ruleCount": "Rules tagged to this activity",
+    "queue.closeAfterRound": "Close the game after a full round",
+    "queue.hint": "Runs top to bottom, skips what is out of resources, and starts again. Tag rules to an activity in the Rules tab.",
     "log.title": "Activity",
     "log.empty": "Nothing yet. Start a task to see what the bot does.",
     "log.clear": "Clear",
@@ -1063,6 +1212,7 @@
     "log.busy": "Matched {label}, busy",
     "log.screen": "Screen: {label}",
     "log.resource": "Out of resources at {label} — stopped",
+    "log.activity": "Queue → {label}",
     "log.taskStarted": "Started {task}",
     "log.taskStopped": "Stopped {task}",
     "help.title": "KEYBOARD",
@@ -1074,11 +1224,12 @@
     "help.rerun": "Auto Rerun (hunt 3s, rest 20s)",
     "help.wb": "Auto WB Solo (every 2s)",
     "help.script": "Auto Script (every 3s)",
+    "help.runAll": "Run every activity in the queue",
     "help.capture": "Capture a rule at the cursor",
     "help.toggleHelp": "Show/hide this panel",
     "help.togglePanel": "Open/close the control panel",
-    "help.speedUp": "Speed up (+1)",
-    "help.speedDown": "Slow down (-1)",
+    "help.speedUp": "Speed up (next stop)",
+    "help.speedDown": "Slow down (previous stop)",
     "help.footer": "Stops itself after 3 minutes without a click",
     "msg.noCanvas": "no canvas found",
     "msg.noWebgl": "no WebGL context",
@@ -1206,6 +1357,14 @@
       rule.screens = screenIds;
       deps.persist();
     }
+    function setActivity(ruleId, activityId) {
+      const rule = find(ruleId);
+      if (!rule) {
+        return;
+      }
+      rule.activity = activityId;
+      deps.persist();
+    }
     function remove(ruleId) {
       const rules = deps.getRules();
       const index = rules.findIndex((rule) => rule.id === ruleId);
@@ -1231,6 +1390,7 @@
       rename,
       setEnabled,
       setScreens,
+      setActivity,
       remove,
       move
     };
@@ -1335,6 +1495,30 @@
       return scoreScreen(target.gl, screen, getBufferSize(target.canvas), deps.getScaleMode());
     }
     return { captureAnchor, rename, setStopsTask, setMinRatio, removeAnchor, remove, move, probe };
+  }
+
+  // src/rules/queue-editor.js
+  function createQueueEditor(deps) {
+    function setEnabled(activityId, enabled) {
+      const activity = deps.getActivities().find((entry) => entry.id === activityId);
+      if (!activity) {
+        return;
+      }
+      activity.enabled = enabled;
+      deps.persist();
+    }
+    function move(activityId, delta) {
+      const activities = deps.getActivities();
+      const from = activities.findIndex((entry) => entry.id === activityId);
+      const to = from + delta;
+      if (from === -1 || to < 0 || to >= activities.length) {
+        return;
+      }
+      const [activity] = activities.splice(from, 1);
+      activities.splice(to, 0, activity);
+      deps.persist();
+    }
+    return { setEnabled, move };
   }
 
   // src/ui/styles.js
@@ -1611,6 +1795,15 @@
 
 /* --- Screens & drag capture --------------------------------------------- */
 
+.bhb-queue__row.is-active { border-color: var(--bhb-live); }
+.bhb-queue__row.is-spent { opacity: .45; }
+.bhb-queue__state { width: 14px; text-align: center; color: var(--bhb-live); font-size: 10px; }
+.bhb-queue__name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bhb-hud__activity {
+  padding: 1px 7px; border-radius: 999px;
+  background: rgba(124, 92, 255, .18); color: var(--bhb-accent);
+  font-size: 10px; letter-spacing: .04em;
+}
 .bhb-rule__gate {
   max-width: 88px; padding: 2px 4px;
   background: var(--bhb-bg-soft); color: var(--bhb-dim);
@@ -1703,6 +1896,7 @@
     TASKS: "tasks",
     RULES: "rules",
     SCREENS: "screens",
+    QUEUE: "queue",
     LOG: "log"
   });
   var LOG_LIMIT = 200;
@@ -1715,6 +1909,8 @@
       selectedRuleId: null,
       /** @type {string | null} rule under the cursor, in the table or on canvas */
       hoveredRuleId: null,
+      /** @type {string | null} activity id shown in the rules table; null is all */
+      ruleFilter: null,
       /** @type {object[]} newest first */
       log: []
     };
@@ -1741,6 +1937,7 @@
       closePanel: () => patch({ panelOpen: false, hoveredRuleId: null }),
       togglePanel: () => patch({ panelOpen: !state.panelOpen }),
       setTab: (tab) => patch({ tab, panelOpen: true }),
+      setRuleFilter: (activityId) => patch({ ruleFilter: activityId }),
       selectRule: (id) => patch({ selectedRuleId: id }),
       hoverRule: (id) => patch({ hoveredRuleId: id }),
       /** Drop any reference to a rule that no longer exists. */
@@ -1844,6 +2041,7 @@
           class: `bhb-hud__speed ${speed2 > 1 ? "is-boosted" : ""}`,
           text: `${formatSpeed(speed2)}×`
         }),
+        engine.activityName ? el("span", { class: "bhb-hud__activity", text: engine.activityName }) : null,
         engine.screenName ? el("span", { class: "bhb-hud__screen", text: engine.screenName }) : null,
         el("span", { class: "bhb-hud__msg", text: engine.lastMessage || "" })
       ].filter(Boolean);
@@ -1922,8 +2120,11 @@
 
   // src/ui/panel/rules.js
   function renderRulesTab(deps) {
-    const rules = deps.getRules();
+    const all = deps.getRules();
     const state = deps.store.get();
+    const activities = deps.getActivities();
+    const filter = state.ruleFilter;
+    const rules = filter === null ? all : all.filter((rule) => (rule.activity || "") === filter);
     const capture = el("button", { class: "bhb-btn bhb-btn--primary" }, [
       el("span", { class: "bhb-btn__dot" }),
       el("span", { text: t("rules.capture") }),
@@ -1933,9 +2134,28 @@
       await deps.editor.captureAtCursor();
       deps.refresh();
     });
+    const filterSelect = el("select", { class: "bhb-rule__gate", title: t("rules.filter") });
+    const filterOptions = [["", t("rules.allRules")], ["", t("rules.loose")]];
+    filterOptions[0][0] = "__all__";
+    for (const [value, label] of filterOptions) {
+      const option = el("option", { text: label });
+      option.value = value;
+      filterSelect.append(option);
+    }
+    for (const activity of activities) {
+      const option = el("option", { text: activity.name });
+      option.value = activity.id;
+      filterSelect.append(option);
+    }
+    filterSelect.value = filter === null ? "__all__" : filter;
+    filterSelect.addEventListener("change", () => {
+      deps.store.setRuleFilter(filterSelect.value === "__all__" ? null : filterSelect.value);
+      deps.refresh();
+    });
     const head = el("div", { class: "bhb-field" }, [
       el("div", { class: "bhb-field__head" }, [
-        el("span", { class: "bhb-label", text: `${t("overlay.rules")} · ${rules.length}` })
+        el("span", { class: "bhb-label", text: `${t("overlay.rules")} · ${rules.length}` }),
+        filterSelect
       ]),
       capture,
       el("p", { class: "bhb-note", text: t("rules.captureHint") })
@@ -1951,6 +2171,20 @@
       name.placeholder = t("rules.unnamed");
       name.addEventListener("change", () => {
         deps.editor.rename(rule.id, name.value.trim());
+        deps.refresh();
+      });
+      const slot = el("select", { class: "bhb-rule__gate", title: t("rules.activity") });
+      const loose = el("option", { text: t("rules.loose") });
+      loose.value = "";
+      slot.append(loose);
+      for (const activity of activities) {
+        const option = el("option", { text: activity.name });
+        option.value = activity.id;
+        slot.append(option);
+      }
+      slot.value = rule.activity || "";
+      slot.addEventListener("change", () => {
+        deps.editor.setActivity(rule.id, slot.value || null);
         deps.refresh();
       });
       const gate = el("select", { class: "bhb-rule__gate", title: t("rules.screenGate") });
@@ -2010,6 +2244,7 @@
           title: legacy ? t("overlay.needsRecapture") : "",
           text: point2 ? `${point2.x},${point2.y}${legacy ? " ⚠" : ""}` : "—"
         }),
+        activities.length > 0 ? slot : null,
         deps.getScreens().length > 0 ? gate : null,
         el("span", { class: "bhb-rule__actions" }, [toggle, up, down, remove])
       ]);
@@ -2221,12 +2456,102 @@
     return el("div", { class: "bhb-tab" }, [head, el("div", { class: "bhb-rules" }, rows)]);
   }
 
+  // src/ui/panel/queue.js
+  function renderQueueTab(deps) {
+    const activities = deps.getActivities();
+    const engine = deps.getEngineState();
+    const rules = deps.getRules();
+    const running = engine.activeTask === TaskId.RUN_ALL;
+    const spent = new Set(engine.spent || []);
+    const run = el("button", { class: `bhb-btn ${running ? "is-on" : "bhb-btn--primary"}` }, [
+      el("span", { class: "bhb-btn__dot" }),
+      el("span", { text: t(running ? "queue.stop" : "queue.start") }),
+      el("span", { class: "bhb-kbd", text: "6" })
+    ]);
+    run.addEventListener("click", () => {
+      deps.toggleTask(TaskId.RUN_ALL);
+      deps.refresh();
+    });
+    const closeAfter = el("button", {
+      class: `bhb-icon ${deps.getCloseAfterRound() ? "is-on" : ""}`,
+      title: t("queue.closeAfterRound"),
+      text: deps.getCloseAfterRound() ? "◉" : "○"
+    });
+    closeAfter.addEventListener("click", () => {
+      deps.setCloseAfterRound(!deps.getCloseAfterRound());
+      deps.refresh();
+    });
+    const head = el("div", { class: "bhb-field" }, [
+      el("div", { class: "bhb-field__head" }, [
+        el("span", { class: "bhb-label", text: t("queue.title") }),
+        el("span", {
+          class: "bhb-mono bhb-note",
+          text: running ? t("queue.round", { n: engine.round }) : ""
+        })
+      ]),
+      run,
+      el("div", { class: "bhb-screen__tune" }, [
+        closeAfter,
+        el("span", { class: "bhb-note", text: t("queue.closeAfterRound") })
+      ]),
+      el("p", { class: "bhb-note", text: t("queue.hint") })
+    ]);
+    const rows = activities.map((activity, index) => {
+      const count = rulesForActivity(rules, activity.id).length;
+      const toggle = el("button", {
+        class: `bhb-icon ${activity.enabled ? "is-on" : ""}`,
+        title: t(activity.enabled ? "rules.disable" : "rules.enable"),
+        text: activity.enabled ? "◉" : "○"
+      });
+      toggle.addEventListener("click", () => {
+        deps.queueEditor.setEnabled(activity.id, !activity.enabled);
+        deps.refresh();
+      });
+      const up = el("button", { class: "bhb-icon", title: t("rules.moveUp"), text: "▲" });
+      up.addEventListener("click", () => {
+        deps.queueEditor.move(activity.id, -1);
+        deps.refresh();
+      });
+      const down = el("button", { class: "bhb-icon", title: t("rules.moveDown"), text: "▼" });
+      down.addEventListener("click", () => {
+        deps.queueEditor.move(activity.id, 1);
+        deps.refresh();
+      });
+      const classes = ["bhb-rule", "bhb-queue__row"];
+      if (!activity.enabled) {
+        classes.push("is-off");
+      }
+      if (engine.activity === activity.id) {
+        classes.push("is-active");
+      }
+      if (spent.has(activity.id)) {
+        classes.push("is-spent");
+      }
+      return el("div", { class: classes.join(" ") }, [
+        el("span", { class: "bhb-rule__n", text: String(index + 1) }),
+        el("span", {
+          class: "bhb-queue__state",
+          text: engine.activity === activity.id ? "▶" : spent.has(activity.id) ? "∅" : ""
+        }),
+        el("span", { class: "bhb-queue__name", text: activity.name }),
+        el("span", {
+          class: "bhb-rule__coord bhb-mono",
+          title: t("queue.ruleCount"),
+          text: String(count)
+        }),
+        el("span", { class: "bhb-rule__actions" }, [toggle, up, down])
+      ]);
+    });
+    return el("div", { class: "bhb-tab" }, [head, el("div", { class: "bhb-rules" }, rows)]);
+  }
+
   // src/ui/panel/log.js
   var KIND_ICON = {
     click: "⊙",
     busy: "⋯",
     task: "⏻",
     screen: "▣",
+    activity: "➜",
     resource: "⛔"
   };
   function clock(at) {
@@ -2236,6 +2561,9 @@
   function describe(entry) {
     if (entry.kind === "task") {
       return t(entry.started ? "log.taskStarted" : "log.taskStopped", { task: entry.label });
+    }
+    if (entry.kind === "activity") {
+      return t("log.activity", { label: entry.label });
     }
     if (entry.kind === "screen") {
       return t("log.screen", { label: entry.label });
@@ -2283,6 +2611,7 @@
     [Tab.TASKS, "tab.tasks"],
     [Tab.RULES, "tab.rules"],
     [Tab.SCREENS, "tab.screens"],
+    [Tab.QUEUE, "tab.queue"],
     [Tab.LOG, "tab.log"]
   ];
   function createPanel(deps) {
@@ -2299,6 +2628,9 @@
       }
       if (tab === Tab.SCREENS) {
         return renderScreensTab(deps);
+      }
+      if (tab === Tab.QUEUE) {
+        return renderQueueTab(deps);
       }
       if (tab === Tab.LOG) {
         return renderLogTab(deps);
@@ -2423,7 +2755,8 @@
       entries: [
         ["3", "help.rerun"],
         ["4", "help.wb"],
-        ["5", "help.script"]
+        ["5", "help.script"],
+        ["6", "help.runAll"]
       ]
     },
     {
@@ -2529,6 +2862,7 @@
     const profileState = loadProfiles();
     const getRules = () => getActiveProfile(profileState).rules;
     const getScreens = () => getActiveProfile(profileState).screens;
+    const getActivities = () => getActiveProfile(profileState).activities;
     const persist = () => saveProfiles(profileState);
     const store = createUiStore();
     const engine = createEngine({
@@ -2536,7 +2870,10 @@
       getRerunRules: () => RERUN_RULES,
       getWorldBossRules: () => WORLD_BOSS_RULES,
       getScaleMode: () => settings.scaleMode,
-      getScreens
+      getScreens,
+      getActivities,
+      shouldCloseAfterRound: () => settings.closeAfterRound,
+      closeGame: () => window.close()
     });
     const editor = createRuleEditor({
       getRules,
@@ -2549,6 +2886,7 @@
       report: engine.setMessage,
       getScaleMode: () => settings.scaleMode
     });
+    const queueEditor = createQueueEditor({ getActivities, persist });
     const refresh = () => {
       hud.render();
       panel.render();
@@ -2559,8 +2897,15 @@
       store,
       editor,
       screenEditor,
+      queueEditor,
       getRules,
       getScreens,
+      getActivities,
+      getCloseAfterRound: () => settings.closeAfterRound,
+      setCloseAfterRound: (value) => {
+        settings.closeAfterRound = value;
+        saveSettings(settings);
+      },
       getEngineState: engine.getState,
       toggleTask: engine.toggle,
       getProfileName: () => getActiveProfile(profileState).name,
@@ -2583,6 +2928,7 @@
       "3": () => engine.toggle(TaskId.RERUN),
       "4": () => engine.toggle(TaskId.WORLD_BOSS),
       "5": () => engine.toggle(TaskId.SCRIPT),
+      "6": () => engine.toggle(TaskId.RUN_ALL),
       "0": () => editor.captureAtCursor().then(refresh),
       "=": () => setSpeed(nextSpeedStep(getSpeed(), 1)),
       "+": () => setSpeed(nextSpeedStep(getSpeed(), 1)),

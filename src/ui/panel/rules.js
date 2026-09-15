@@ -14,12 +14,17 @@ import { isLegacyPoint } from '../../core/coords.js';
  * @param {() => import('../../rules/model.js').Rule[]} deps.getRules
  * @param {ReturnType<import('../store.js').createUiStore>} deps.store
  * @param {() => import('../../rules/screen.js').Screen[]} deps.getScreens
+ * @param {() => import('../../rules/activity.js').Activity[]} deps.getActivities
  * @param {object} deps.editor
  * @param {() => void} deps.refresh
  */
 export function renderRulesTab(deps) {
-  const rules = deps.getRules();
+  const all = deps.getRules();
   const state = deps.store.get();
+  const activities = deps.getActivities();
+  // Eight activities' rules in one list is unreadable, so the table is filtered.
+  const filter = state.ruleFilter;
+  const rules = filter === null ? all : all.filter((rule) => (rule.activity || '') === filter);
 
   const capture = el('button', { class: 'bhb-btn bhb-btn--primary' }, [
     el('span', { class: 'bhb-btn__dot' }),
@@ -31,9 +36,29 @@ export function renderRulesTab(deps) {
     deps.refresh();
   });
 
+  const filterSelect = el('select', { class: 'bhb-rule__gate', title: t('rules.filter') });
+  const filterOptions = [['', t('rules.allRules')], ['', t('rules.loose')]];
+  filterOptions[0][0] = '__all__';
+  for (const [value, label] of filterOptions) {
+    const option = el('option', { text: label });
+    option.value = value;
+    filterSelect.append(option);
+  }
+  for (const activity of activities) {
+    const option = el('option', { text: activity.name });
+    option.value = activity.id;
+    filterSelect.append(option);
+  }
+  filterSelect.value = filter === null ? '__all__' : filter;
+  filterSelect.addEventListener('change', () => {
+    deps.store.setRuleFilter(filterSelect.value === '__all__' ? null : filterSelect.value);
+    deps.refresh();
+  });
+
   const head = el('div', { class: 'bhb-field' }, [
     el('div', { class: 'bhb-field__head' }, [
       el('span', { class: 'bhb-label', text: `${t('overlay.rules')} · ${rules.length}` }),
+      filterSelect,
     ]),
     capture,
     el('p', { class: 'bhb-note', text: t('rules.captureHint') }),
@@ -52,6 +77,21 @@ export function renderRulesTab(deps) {
     name.placeholder = t('rules.unnamed');
     name.addEventListener('change', () => {
       deps.editor.rename(rule.id, name.value.trim());
+      deps.refresh();
+    });
+
+    const slot = el('select', { class: 'bhb-rule__gate', title: t('rules.activity') });
+    const loose = el('option', { text: t('rules.loose') });
+    loose.value = '';
+    slot.append(loose);
+    for (const activity of activities) {
+      const option = el('option', { text: activity.name });
+      option.value = activity.id;
+      slot.append(option);
+    }
+    slot.value = rule.activity || '';
+    slot.addEventListener('change', () => {
+      deps.editor.setActivity(rule.id, slot.value || null);
       deps.refresh();
     });
 
@@ -118,6 +158,7 @@ export function renderRulesTab(deps) {
         title: legacy ? t('overlay.needsRecapture') : '',
         text: point ? `${point.x},${point.y}${legacy ? ' ⚠' : ''}` : '—',
       }),
+      activities.length > 0 ? slot : null,
       deps.getScreens().length > 0 ? gate : null,
       el('span', { class: 'bhb-rule__actions' }, [toggle, up, down, remove]),
     ]);

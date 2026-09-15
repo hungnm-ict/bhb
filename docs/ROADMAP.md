@@ -32,15 +32,17 @@ Nền cho mọi thứ phía sau. Dò 1 pixel quá mong manh cho chuỗi hành đ
 
 ---
 
-## Milestone 3 — Auto-regen (Run-All)
+## ✅ Milestone 3 — Auto-regen (Run-All) *(khung xong, chờ rule thật)*
 
 Tự động chạy hết các hoạt động mình chọn, theo thứ tự mình đặt.
 
-- [ ] Runner từng hoạt động: PVP, GVG, Invasion, Expedition, Trials/Gauntlet, World Boss, Raid, Dungeon
-- [ ] **Hàng đợi ưu tiên** — bật/tắt và kéo thả sắp xếp từng mục
-- [ ] Lặp vô hạn đến khi hết tài nguyên hoặc người dùng dừng
-- [ ] Tuỳ chọn: chạy xong một vòng thì đóng game
-- [ ] Thứ tự mặc định: PVP → GVG → Invasion → Expedition → TG → WB → Raid → Dungeon
+- [x] Runner từng hoạt động: mỗi rule gắn thẻ hoạt động, hàng đợi chỉ chạy rule của hoạt động hiện tại
+- [x] **Hàng đợi ưu tiên** — tab Chạy tất cả: bật/tắt và ▲▼ sắp xếp
+- [x] Lặp vô hạn: hết tài nguyên thì sang mục kế, hết một vòng thì quay lại từ đầu, mọi mục cạn trong cùng một vòng thì dừng
+- [x] Tuỳ chọn: chạy xong một vòng thì đóng game (mặc định tắt)
+- [x] Thứ tự mặc định: PVP → GVG → Invasion → Expedition → TG → WB → Raid → Dungeon
+
+**Còn nợ:** rule thật cho từng hoạt động — phải bắt trực tiếp trên game, không viết sẵn được.
 
 *Tham khảo: nhánh `upstream/feature-afk` có `afk/pvp.js`, `raid.js`, `tg.js`, `wb.js`.*
 
