@@ -50,6 +50,15 @@ export function createHud(deps) {
 
   function render() {
     const target = ensureNode();
+
+    // With the panel open the strip says nothing the panel is not already
+    // saying, and it costs the panel the height it sits in.
+    if (deps.store.get().panelOpen) {
+      target.style.display = 'none';
+      return;
+    }
+    target.style.display = '';
+
     const engine = deps.getEngineState();
     const speed = getSpeed();
     const running = Boolean(engine.activeTask);

@@ -98,11 +98,12 @@ const CSS = `
 
 /* --- Panel -------------------------------------------------------------- */
 
+/* The HUD hides while this is open, so the panel takes the top of the screen. */
 .bhb-panel {
-  top: 58px; right: 14px;
+  top: 14px; right: 14px;
   display: flex; flex-direction: column;
   width: 400px; max-width: calc(100vw - 28px);
-  max-height: calc(100vh - 80px);
+  max-height: calc(100vh - 28px);
   background: var(--bhb-bg);
   border: 1px solid var(--bhb-line);
   border-radius: 14px;
