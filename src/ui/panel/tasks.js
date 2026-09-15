@@ -93,10 +93,12 @@ export function renderTasksTab(deps) {
       [
         el('div', { class: 'bhb-task__top' }, [
           el('span', { class: 'bhb-task__switch' }),
+          // On the top row rather than a line of its own: a reserved line is
+          // empty most of the time, and the tile paid its height for it.
+          phase ? el('span', { class: 'bhb-task__phase', text: phase }) : null,
           el('span', { class: 'bhb-kbd', text: key }),
         ]),
         el('span', { class: 'bhb-task__name', text: t(labelKey) }),
-        el('span', { class: 'bhb-task__phase', text: phase }),
       ]
     );
     if (!isLocked) {

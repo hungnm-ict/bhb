@@ -224,12 +224,14 @@ const CSS = `
 .bhb-task.is-locked:hover { border-color: var(--bhb-line); }
 .bhb-task__phase { color: var(--bhb-warn); font-size: 10px; }
 
-/* Tile variant: switch and hotkey on top, name under them. */
-.bhb-task--tile { flex-direction: column; align-items: stretch; gap: 6px; padding: 9px 10px 8px; }
-.bhb-task--tile .bhb-task__top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.bhb-task--tile .bhb-task__name { flex: none; font-size: 11px; }
-/* Reserved so a phase appearing mid-run does not jog the grid. */
-.bhb-task--tile .bhb-task__phase { min-height: 12px; line-height: 12px; }
+/* Tile variant: switch, phase and hotkey on top, name under them. */
+.bhb-task--tile { flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 9px; }
+.bhb-task--tile .bhb-task__top { display: flex; align-items: center; gap: 7px; }
+.bhb-task--tile .bhb-task__name { flex: none; font-size: 11px; line-height: 1.2; }
+/* Pushes the hotkey to the right edge whether or not a phase is showing. */
+.bhb-task--tile .bhb-task__phase { margin-left: auto; }
+.bhb-task--tile .bhb-kbd { margin-left: auto; }
+.bhb-task--tile .bhb-task__phase + .bhb-kbd { margin-left: 0; }
 
 .bhb-kbd {
   min-width: 17px; padding: 2px 4px;

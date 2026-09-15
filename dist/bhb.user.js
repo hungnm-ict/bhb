@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.7.0
+// @version      0.7.1
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -14,7 +14,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.7.0" : "dev";
+  var VERSION = true ? "0.7.1" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -2462,12 +2462,14 @@
 .bhb-task.is-locked:hover { border-color: var(--bhb-line); }
 .bhb-task__phase { color: var(--bhb-warn); font-size: 10px; }
 
-/* Tile variant: switch and hotkey on top, name under them. */
-.bhb-task--tile { flex-direction: column; align-items: stretch; gap: 6px; padding: 9px 10px 8px; }
-.bhb-task--tile .bhb-task__top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.bhb-task--tile .bhb-task__name { flex: none; font-size: 11px; }
-/* Reserved so a phase appearing mid-run does not jog the grid. */
-.bhb-task--tile .bhb-task__phase { min-height: 12px; line-height: 12px; }
+/* Tile variant: switch, phase and hotkey on top, name under them. */
+.bhb-task--tile { flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 9px; }
+.bhb-task--tile .bhb-task__top { display: flex; align-items: center; gap: 7px; }
+.bhb-task--tile .bhb-task__name { flex: none; font-size: 11px; line-height: 1.2; }
+/* Pushes the hotkey to the right edge whether or not a phase is showing. */
+.bhb-task--tile .bhb-task__phase { margin-left: auto; }
+.bhb-task--tile .bhb-kbd { margin-left: auto; }
+.bhb-task--tile .bhb-task__phase + .bhb-kbd { margin-left: 0; }
 
 .bhb-kbd {
   min-width: 17px; padding: 2px 4px;
@@ -2946,10 +2948,12 @@
         [
           el("div", { class: "bhb-task__top" }, [
             el("span", { class: "bhb-task__switch" }),
+            // On the top row rather than a line of its own: a reserved line is
+            // empty most of the time, and the tile paid its height for it.
+            phase ? el("span", { class: "bhb-task__phase", text: phase }) : null,
             el("span", { class: "bhb-kbd", text: key })
           ]),
-          el("span", { class: "bhb-task__name", text: t(labelKey) }),
-          el("span", { class: "bhb-task__phase", text: phase })
+          el("span", { class: "bhb-task__name", text: t(labelKey) })
         ]
       );
       if (!isLocked) {
@@ -3870,6 +3874,7 @@
   ];
   function createPanel(deps) {
     let node = null;
+    let renderedTab = null;
     function ensureNode() {
       if (!node) {
         node = mount(el("div", { class: "bhb-panel" }));
@@ -3900,6 +3905,7 @@
       if (!state.panelOpen) {
         target.style.display = "none";
         target.replaceChildren();
+        renderedTab = null;
         return;
       }
       target.style.display = "flex";
@@ -3923,6 +3929,9 @@
         }
         return button;
       });
+      const previousBody = target.querySelector(".bhb-panel__body");
+      const keptScroll = previousBody && renderedTab === state.tab ? previousBody.scrollTop : 0;
+      const body = el("div", { class: "bhb-panel__body" }, [renderBody(state.tab)]);
       target.replaceChildren(
         el("header", { class: "bhb-panel__head" }, [
           el("span", { class: "bhb-panel__brand" }, [
@@ -3933,8 +3942,10 @@
           close
         ]),
         el("nav", { class: "bhb-tabs" }, tabs),
-        el("div", { class: "bhb-panel__body" }, [renderBody(state.tab)])
+        body
       );
+      body.scrollTop = keptScroll;
+      renderedTab = state.tab;
       if (activeTab && typeof activeTab.scrollIntoView === "function") {
         activeTab.scrollIntoView({ block: "nearest", inline: "nearest" });
       }
