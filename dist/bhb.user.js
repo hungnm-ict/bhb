@@ -1348,7 +1348,7 @@
     "task.wb": "SOLO WB",
     "task.runAll": "CHẠY TẤT CẢ",
     "task.script": "TUỲ CHỈNH",
-    "phase.hunting": "đang tìm",
+    "phase.hunting": "đang chạy",
     "phase.resting": "nghỉ",
     "hud.idle": "đang dừng",
     "tab.tasks": "Chạy",
@@ -1996,7 +1996,6 @@
   padding: 12px 13px 14px; overflow-y: auto;
 }
 .bhb-tab { display: flex; flex-direction: column; gap: 13px; }
-.bhb-stack { display: flex; flex-direction: column; gap: 6px; }
 
 .bhb-label {
   color: var(--bhb-dim); font-size: 10px;
@@ -2009,6 +2008,8 @@
 .bhb-field__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 
 /* --- Task switches ------------------------------------------------------ */
+
+.bhb-taskgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
 
 .bhb-task {
   display: flex; align-items: center; gap: 9px;
@@ -2045,6 +2046,13 @@
 .bhb-task.is-locked { opacity: .5; cursor: not-allowed; }
 .bhb-task.is-locked:hover { border-color: var(--bhb-line); }
 .bhb-task__phase { color: var(--bhb-warn); font-size: 10px; }
+
+/* Tile variant: switch and hotkey on top, name under them. */
+.bhb-task--tile { flex-direction: column; align-items: stretch; gap: 6px; padding: 9px 10px 8px; }
+.bhb-task--tile .bhb-task__top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.bhb-task--tile .bhb-task__name { flex: none; font-size: 11px; }
+/* Reserved so a phase appearing mid-run does not jog the grid. */
+.bhb-task--tile .bhb-task__phase { min-height: 12px; line-height: 12px; }
 
 .bhb-kbd {
   min-width: 17px; padding: 2px 4px;
@@ -2511,45 +2519,49 @@
   function renderTasksTab(deps) {
     const engine = deps.getEngineState();
     const speed2 = getSpeed();
-    const rows2 = TASKS.map(([taskId, labelKey, key]) => {
+    function taskTile({ taskId, labelKey, key, phase, isLocked, title }) {
       const on = engine.activeTask === taskId;
-      const phase = on && taskId === TaskId.RERUN ? t(engine.phase === Phase.RESTING ? "phase.resting" : "phase.hunting") : "";
-      const button = el("button", { class: `bhb-task ${on ? "is-on" : ""}` }, [
-        el("span", { class: "bhb-task__switch" }),
-        el("span", { class: "bhb-task__name", text: t(labelKey) }),
-        el("span", { class: "bhb-task__phase", text: phase }),
-        el("span", { class: "bhb-kbd", text: key })
-      ]);
-      button.addEventListener("click", () => {
-        deps.toggleTask(taskId);
-        deps.refresh();
+      const tile = el(
+        "button",
+        {
+          class: `bhb-task bhb-task--tile ${on ? "is-on" : ""} ${isLocked ? "is-locked" : ""}`,
+          ...title ? { title } : {}
+        },
+        [
+          el("div", { class: "bhb-task__top" }, [
+            el("span", { class: "bhb-task__switch" }),
+            el("span", { class: "bhb-kbd", text: key })
+          ]),
+          el("span", { class: "bhb-task__name", text: t(labelKey) }),
+          el("span", { class: "bhb-task__phase", text: phase })
+        ]
+      );
+      if (!isLocked) {
+        tile.addEventListener("click", () => {
+          deps.toggleTask(taskId);
+          deps.refresh();
+        });
+      }
+      return tile;
+    }
+    const tiles = TASKS.map(([taskId, labelKey, key]) => {
+      const isRerunRunning = engine.activeTask === taskId && taskId === TaskId.RERUN;
+      return taskTile({
+        taskId,
+        labelKey,
+        key,
+        phase: isRerunRunning ? t(engine.phase === Phase.RESTING ? "phase.resting" : "phase.hunting") : ""
       });
-      return button;
     });
     const ready = readyActivityCount(deps);
-    const runningAll = engine.activeTask === TaskId.RUN_ALL;
-    const runAll = el(
-      "button",
-      {
-        class: `bhb-task ${runningAll ? "is-on" : ""} ${ready === 0 ? "is-locked" : ""}`,
-        title: ready === 0 ? t("tasks.runAllLocked") : t("tasks.runAllReady", { n: ready })
-      },
-      [
-        el("span", { class: "bhb-task__switch" }),
-        el("span", { class: "bhb-task__name", text: t("task.runAll") }),
-        el("span", {
-          class: "bhb-task__phase",
-          text: runningAll ? t("queue.round", { n: engine.round }) : ""
-        }),
-        el("span", { class: "bhb-kbd", text: "6" })
-      ]
-    );
-    if (ready > 0) {
-      runAll.addEventListener("click", () => {
-        deps.toggleTask(TaskId.RUN_ALL);
-        deps.refresh();
-      });
-    }
+    const runAll = taskTile({
+      taskId: TaskId.RUN_ALL,
+      labelKey: "task.runAll",
+      key: "6",
+      phase: engine.activeTask === TaskId.RUN_ALL ? t("queue.round", { n: engine.round }) : "",
+      isLocked: ready === 0,
+      title: ready === 0 ? t("tasks.runAllLocked") : t("tasks.runAllReady", { n: ready })
+    });
     if (!speedControl) {
       const slider2 = el("input", { class: "bhb-slider" });
       slider2.type = "range";
@@ -2579,7 +2591,7 @@
       return button;
     }
     return el("div", { class: "bhb-tab" }, [
-      el("div", { class: "bhb-stack" }, [...rows2, runAll]),
+      el("div", { class: "bhb-taskgrid" }, [...tiles, runAll]),
       ready === 0 ? el("p", { class: "bhb-note bhb-note--warn", text: t("tasks.runAllLocked") }) : el("p", { class: "bhb-note", text: t("queue.inSettings") }),
       el("div", { class: "bhb-field" }, [
         el("div", { class: "bhb-field__head" }, [

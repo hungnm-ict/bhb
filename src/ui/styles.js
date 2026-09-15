@@ -141,7 +141,6 @@ const CSS = `
   padding: 12px 13px 14px; overflow-y: auto;
 }
 .bhb-tab { display: flex; flex-direction: column; gap: 13px; }
-.bhb-stack { display: flex; flex-direction: column; gap: 6px; }
 
 .bhb-label {
   color: var(--bhb-dim); font-size: 10px;
@@ -154,6 +153,8 @@ const CSS = `
 .bhb-field__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 
 /* --- Task switches ------------------------------------------------------ */
+
+.bhb-taskgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
 
 .bhb-task {
   display: flex; align-items: center; gap: 9px;
@@ -190,6 +191,13 @@ const CSS = `
 .bhb-task.is-locked { opacity: .5; cursor: not-allowed; }
 .bhb-task.is-locked:hover { border-color: var(--bhb-line); }
 .bhb-task__phase { color: var(--bhb-warn); font-size: 10px; }
+
+/* Tile variant: switch and hotkey on top, name under them. */
+.bhb-task--tile { flex-direction: column; align-items: stretch; gap: 6px; padding: 9px 10px 8px; }
+.bhb-task--tile .bhb-task__top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.bhb-task--tile .bhb-task__name { flex: none; font-size: 11px; }
+/* Reserved so a phase appearing mid-run does not jog the grid. */
+.bhb-task--tile .bhb-task__phase { min-height: 12px; line-height: 12px; }
 
 .bhb-kbd {
   min-width: 17px; padding: 2px 4px;

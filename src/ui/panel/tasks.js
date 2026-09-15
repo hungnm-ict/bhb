@@ -81,50 +81,55 @@ export function renderTasksTab(deps) {
   const engine = deps.getEngineState();
   const speed = getSpeed();
 
-  const rows = TASKS.map(([taskId, labelKey, key]) => {
+  /** One tile in the 2×2 switch grid. */
+  function taskTile({ taskId, labelKey, key, phase, isLocked, title }) {
     const on = engine.activeTask === taskId;
-    const phase =
-      on && taskId === TaskId.RERUN
-        ? t(engine.phase === Phase.RESTING ? 'phase.resting' : 'phase.hunting')
-        : '';
+    const tile = el(
+      'button',
+      {
+        class: `bhb-task bhb-task--tile ${on ? 'is-on' : ''} ${isLocked ? 'is-locked' : ''}`,
+        ...(title ? { title } : {}),
+      },
+      [
+        el('div', { class: 'bhb-task__top' }, [
+          el('span', { class: 'bhb-task__switch' }),
+          el('span', { class: 'bhb-kbd', text: key }),
+        ]),
+        el('span', { class: 'bhb-task__name', text: t(labelKey) }),
+        el('span', { class: 'bhb-task__phase', text: phase }),
+      ]
+    );
+    if (!isLocked) {
+      tile.addEventListener('click', () => {
+        deps.toggleTask(taskId);
+        deps.refresh();
+      });
+    }
+    return tile;
+  }
 
-    const button = el('button', { class: `bhb-task ${on ? 'is-on' : ''}` }, [
-      el('span', { class: 'bhb-task__switch' }),
-      el('span', { class: 'bhb-task__name', text: t(labelKey) }),
-      el('span', { class: 'bhb-task__phase', text: phase }),
-      el('span', { class: 'bhb-kbd', text: key }),
-    ]);
-    button.addEventListener('click', () => {
-      deps.toggleTask(taskId);
-      deps.refresh();
+  const tiles = TASKS.map(([taskId, labelKey, key]) => {
+    const isRerunRunning = engine.activeTask === taskId && taskId === TaskId.RERUN;
+    return taskTile({
+      taskId,
+      labelKey,
+      key,
+      phase: isRerunRunning
+        ? t(engine.phase === Phase.RESTING ? 'phase.resting' : 'phase.hunting')
+        : '',
     });
-    return button;
   });
 
   const ready = readyActivityCount(deps);
-  const runningAll = engine.activeTask === TaskId.RUN_ALL;
-  const runAll = el(
-    'button',
-    {
-      class: `bhb-task ${runningAll ? 'is-on' : ''} ${ready === 0 ? 'is-locked' : ''}`,
-      title: ready === 0 ? t('tasks.runAllLocked') : t('tasks.runAllReady', { n: ready }),
-    },
-    [
-      el('span', { class: 'bhb-task__switch' }),
-      el('span', { class: 'bhb-task__name', text: t('task.runAll') }),
-      el('span', {
-        class: 'bhb-task__phase',
-        text: runningAll ? t('queue.round', { n: engine.round }) : '',
-      }),
-      el('span', { class: 'bhb-kbd', text: '6' }),
-    ]
-  );
-  if (ready > 0) {
-    runAll.addEventListener('click', () => {
-      deps.toggleTask(TaskId.RUN_ALL);
-      deps.refresh();
-    });
-  }
+  const runAll = taskTile({
+    taskId: TaskId.RUN_ALL,
+    labelKey: 'task.runAll',
+    key: '6',
+    phase:
+      engine.activeTask === TaskId.RUN_ALL ? t('queue.round', { n: engine.round }) : '',
+    isLocked: ready === 0,
+    title: ready === 0 ? t('tasks.runAllLocked') : t('tasks.runAllReady', { n: ready }),
+  });
 
   if (!speedControl) {
     const slider = el('input', { class: 'bhb-slider' });
@@ -162,7 +167,7 @@ export function renderTasksTab(deps) {
   }
 
   return el('div', { class: 'bhb-tab' }, [
-    el('div', { class: 'bhb-stack' }, [...rows, runAll]),
+    el('div', { class: 'bhb-taskgrid' }, [...tiles, runAll]),
     ready === 0
       ? el('p', { class: 'bhb-note bhb-note--warn', text: t('tasks.runAllLocked') })
       : el('p', { class: 'bhb-note', text: t('queue.inSettings') }),
