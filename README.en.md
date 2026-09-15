@@ -72,9 +72,9 @@ The bot handles the hover problem for you: it parks the **synthetic** pointer in
 | Key | Action |
 |:---:|---|
 | `1` | Open/close the control panel |
-| `3` | Auto Rerun — polls every 3s, rests 20s after a click |
-| `4` | Auto World Boss Solo — polls every 2s |
-| `5` | My Steps — runs the steps not tagged to an activity, every 3s |
+| `3` | Re-run — polls every 3s, rests 20s after a click |
+| `4` | Solo WB — polls every 2s |
+| `5` | Custom — runs the steps not tagged to an activity, every 3s |
 | `6` | Run All — every activity in the queue, in order |
 | `0` | Capture a rule at the cursor |
 | `= / +` | Increase game speed (next stop, up to 20×) |

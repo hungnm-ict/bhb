@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.6.1
+// @version      0.6.2
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -14,7 +14,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.6.1" : "dev";
+  var VERSION = true ? "0.6.2" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -1344,10 +1344,10 @@
   // src/i18n/vi.js
   var vi_default = {
     "app.name": "BHB",
-    "task.rerun": "CHẠY LẠI",
-    "task.wb": "BOSS SOLO",
+    "task.rerun": "RE-RUN",
+    "task.wb": "SOLO WB",
     "task.runAll": "CHẠY TẤT CẢ",
-    "task.script": "BƯỚC TỰ TẠO",
+    "task.script": "TUỲ CHỈNH",
     "phase.hunting": "đang tìm",
     "phase.resting": "nghỉ",
     "hud.idle": "đang dừng",
@@ -1375,8 +1375,8 @@
     "steps.screenGate": "Chỉ chạy ở màn hình này",
     "steps.anywhere": "Mọi màn hình",
     "steps.activity": "Bước này thuộc hoạt động nào",
-    "steps.loose": "Chỉ bước tự tạo",
-    "steps.noActivity": "Tự tạo",
+    "steps.loose": "Chỉ bước tuỳ chỉnh",
+    "steps.noActivity": "Tuỳ chỉnh",
     "steps.allSteps": "Tất cả bước",
     "steps.filter": "Chỉ hiện một hoạt động",
     "steps.delete": "Xoá bước",
@@ -1443,9 +1443,9 @@
     "help.sectionSteps": "Bước",
     "help.sectionUi": "Giao diện",
     "help.sectionSpeed": "Tốc độ",
-    "help.rerun": "Tự chạy lại (tìm 3s, nghỉ 20s)",
-    "help.wb": "Tự đánh World Boss solo (2s/lần)",
-    "help.script": "Chạy các bước tự tạo chưa gán hoạt động (3s/lần)",
+    "help.rerun": "Tự re-run (tìm 3s, nghỉ 20s)",
+    "help.wb": "Tự đánh solo World Boss (2s/lần)",
+    "help.script": "Chạy các bước tuỳ chỉnh chưa gán hoạt động (3s/lần)",
     "help.runAll": "Chạy lần lượt mọi hoạt động trong hàng đợi",
     "help.capture": "Bắt bước tại con trỏ",
     "help.togglePanel": "Mở/đóng bảng điều khiển",
@@ -1463,10 +1463,10 @@
   // src/i18n/en.js
   var en_default = {
     "app.name": "BHB",
-    "task.rerun": "RERUN",
-    "task.wb": "WB SOLO",
+    "task.rerun": "RE-RUN",
+    "task.wb": "SOLO WB",
     "task.runAll": "RUN ALL",
-    "task.script": "MY STEPS",
+    "task.script": "CUSTOM",
     "phase.hunting": "hunting",
     "phase.resting": "resting",
     "hud.idle": "idle",
@@ -1494,8 +1494,8 @@
     "steps.screenGate": "Only fire on this screen",
     "steps.anywhere": "Anywhere",
     "steps.activity": "Which activity this step belongs to",
-    "steps.loose": "Untagged steps only",
-    "steps.noActivity": "Untagged",
+    "steps.loose": "Custom steps only",
+    "steps.noActivity": "Custom",
     "steps.allSteps": "All steps",
     "steps.filter": "Show only one activity",
     "steps.delete": "Delete",
@@ -1562,9 +1562,9 @@
     "help.sectionSteps": "Steps",
     "help.sectionUi": "Interface",
     "help.sectionSpeed": "Speed",
-    "help.rerun": "Auto Rerun (polls 3s, rests 20s)",
-    "help.wb": "Auto World Boss solo (every 2s)",
-    "help.script": "Run the steps not tagged to an activity (every 3s)",
+    "help.rerun": "Auto re-run (polls 3s, rests 20s)",
+    "help.wb": "Auto solo World Boss (every 2s)",
+    "help.script": "Run the custom steps not tagged to an activity (every 3s)",
     "help.runAll": "Run every activity in the queue",
     "help.capture": "Capture a step at the cursor",
     "help.togglePanel": "Open/close the control panel",
