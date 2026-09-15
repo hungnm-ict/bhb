@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.9.5
+// @version      0.9.6
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -14,7 +14,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.9.5" : "dev";
+  var VERSION = true ? "0.9.6" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -1615,7 +1615,6 @@
   // src/core/canvas-lock.js
   var LOCK_SIZE = Object.freeze({ width: 640, height: 400 });
   var original = null;
-  var held = null;
   var applied = null;
   function styleTargets() {
     const canvas = getCanvas();
@@ -1623,10 +1622,6 @@
       return null;
     }
     return { canvas, box: canvas.parentElement };
-  }
-  function fitScale(size, viewport) {
-    const scale = Math.min(viewport.width / size.width, viewport.height / size.height, 1);
-    return Math.max(0.2, Number(scale.toFixed(4)));
   }
   function lockCanvasSize(size = LOCK_SIZE) {
     const target = styleTargets();
@@ -1643,6 +1638,9 @@
       width: Math.max(320, Math.round(size.width)),
       height: Math.max(240, Math.round(size.height))
     };
+    if (applied && applied.width === pinned.width && applied.height === pinned.height) {
+      return true;
+    }
     const width = `${pinned.width}px`;
     const height = `${pinned.height}px`;
     if (target.box) {
@@ -1651,49 +1649,9 @@
     }
     target.canvas.style.width = width;
     target.canvas.style.height = height;
-    const scale = fitScale(pinned, {
-      width: window.innerWidth,
-      height: window.innerHeight
-    });
-    holdFramebuffer(target.canvas, pinned);
-    const scaled = target.box || target.canvas;
-    if (applied && applied.width === pinned.width && applied.height === pinned.height && applied.scale === scale) {
-      return true;
-    }
-    scaled.style.transform = scale < 1 ? `scale(${scale})` : "";
-    scaled.style.transformOrigin = "top left";
-    applied = { ...pinned, scale };
+    applied = pinned;
     window.dispatchEvent(new Event("resize"));
     return true;
-  }
-  function holdFramebuffer(canvas, pinned) {
-    if (held === canvas) {
-      return;
-    }
-    const proto = HTMLCanvasElement.prototype;
-    const descriptors = {
-      width: Object.getOwnPropertyDescriptor(proto, "width"),
-      height: Object.getOwnPropertyDescriptor(proto, "height")
-    };
-    descriptors.width.set.call(canvas, pinned.width);
-    descriptors.height.set.call(canvas, pinned.height);
-    for (const name of ["width", "height"]) {
-      Object.defineProperty(canvas, name, {
-        configurable: true,
-        get: () => descriptors[name].get.call(canvas),
-        set: () => {
-        }
-      });
-    }
-    held = canvas;
-  }
-  function releaseFramebuffer() {
-    if (!held) {
-      return;
-    }
-    delete held.width;
-    delete held.height;
-    held = null;
   }
   function unlockCanvasSize() {
     const target = styleTargets();
@@ -1704,7 +1662,6 @@
     if (target.box) {
       target.box.style.cssText = original.box;
     }
-    releaseFramebuffer();
     original = null;
     applied = null;
     window.dispatchEvent(new Event("resize"));
@@ -2592,11 +2549,12 @@
 
 /* --- Panel -------------------------------------------------------------- */
 
+/* The HUD hides while this is open, so the panel takes the top of the screen. */
 .bhb-panel {
-  top: 58px; right: 14px;
+  top: 14px; right: 14px;
   display: flex; flex-direction: column;
   width: 400px; max-width: calc(100vw - 28px);
-  max-height: calc(100vh - 80px);
+  max-height: calc(100vh - 28px);
   background: var(--bhb-bg);
   border: 1px solid var(--bhb-line);
   border-radius: 14px;
@@ -3289,6 +3247,11 @@
     }
     function render() {
       const target = ensureNode();
+      if (deps.store.get().panelOpen) {
+        target.style.display = "none";
+        return;
+      }
+      target.style.display = "";
       const engine = deps.getEngineState();
       const speed2 = getSpeed();
       const running = Boolean(engine.activeTask);
