@@ -19,14 +19,16 @@ Mỗi milestone là một lớp; lớp sau dựa trên lớp trước.
 
 ---
 
-## Milestone 2 — Thị giác & trạng thái
+## ✅ Milestone 2 — Thị giác & trạng thái *(xong)*
 
 Nền cho mọi thứ phía sau. Dò 1 pixel quá mong manh cho chuỗi hành động dài.
 
-- [ ] **Region matching** — đọc cả vùng (vd 24×24) và so khớp, thay vì 1 pixel
-- [ ] **Nhận biết màn hình** — bot biết đang ở đâu: main, chọn dungeon, đang đánh, màn loot, hết vé...
-- [ ] Máy trạng thái: chỉ cho phép hành động hợp lệ với màn hình hiện tại
-- [ ] Nhận biết **hết tài nguyên** (energy / ticket / badge)
+- [x] **Region matching** — đọc cả vùng và so khớp 16 điểm mẫu, thay vì 1 pixel
+- [x] **Nhận biết màn hình** — tab Màn hình: kéo khung để bắt vùng nhận diện, có ✓/✗ và tỉ lệ khớp trực tiếp
+- [x] Máy trạng thái: mỗi rule khai báo màn hình được phép chạy; rule cũ không khai báo thì chạy ở mọi nơi
+- [x] Nhận biết **hết tài nguyên** — màn hình bật `stopsTask` sẽ dừng hoạt động và ghi nhật ký
+
+**Còn nợ:** đồ thị chuyển màn (A + hành động → B, kèm phục hồi) — chỉ rõ được khi có runner ở Milestone 3.
 
 ---
 

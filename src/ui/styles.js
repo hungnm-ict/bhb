@@ -11,7 +11,7 @@ import { Z_TOP } from '../core/constants.js';
  * layer itself must not, or it would swallow every click meant for the game.
  */
 const CSS = `
-.bhb-hud, .bhb-panel, .bhb-markers, .bhb-help, .bhb-flash {
+.bhb-hud, .bhb-panel, .bhb-markers, .bhb-help, .bhb-flash, .bhb-drag {
   --bhb-bg: #12141c;
   --bhb-bg-soft: #1a1d29;
   --bhb-line: rgba(255, 255, 255, .09);
@@ -32,7 +32,7 @@ const CSS = `
   font-family: var(--bhb-font);
   user-select: none;
 }
-.bhb-hud *, .bhb-panel *, .bhb-markers *, .bhb-help * { box-sizing: border-box; }
+.bhb-hud *, .bhb-panel *, .bhb-markers *, .bhb-help *, .bhb-drag * { box-sizing: border-box; }
 .bhb-mono { font-family: var(--bhb-mono); font-variant-numeric: tabular-nums; }
 
 /* --- HUD ---------------------------------------------------------------- */
@@ -71,6 +71,11 @@ const CSS = `
   font-family: var(--bhb-mono); font-size: 11px; color: var(--bhb-dim);
 }
 .bhb-hud__speed.is-boosted { color: var(--bhb-cyan); font-weight: 700; }
+.bhb-hud__screen {
+  padding: 1px 7px; border-radius: 999px;
+  background: rgba(61, 220, 151, .14); color: var(--bhb-live);
+  font-size: 10px; letter-spacing: .04em;
+}
 .bhb-hud__msg {
   max-width: 190px; color: var(--bhb-dim); font-size: 10.5px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -274,6 +279,38 @@ const CSS = `
 .bhb-mark__swatch {
   width: 9px; height: 9px; border-radius: 50%;
   border: 1px solid rgba(255, 255, 255, .5);
+}
+
+/* --- Screens & drag capture --------------------------------------------- */
+
+.bhb-rule__gate {
+  max-width: 88px; padding: 2px 4px;
+  background: var(--bhb-bg-soft); color: var(--bhb-dim);
+  border: 1px solid var(--bhb-line); border-radius: 6px;
+  font-family: var(--bhb-font); font-size: 10px;
+}
+.bhb-screen__wrap { display: flex; flex-direction: column; gap: 2px; }
+.bhb-screen.is-active { border-color: var(--bhb-live); }
+.bhb-screen.is-stopper .bhb-rule__n { color: var(--bhb-danger); }
+.bhb-screen__now { color: var(--bhb-live); font-size: 10px; }
+.bhb-screen__state { width: 14px; text-align: center; color: var(--bhb-dim); }
+.bhb-screen__state.is-seen { color: var(--bhb-live); }
+.bhb-screen__tune { display: flex; align-items: center; gap: 8px; padding: 0 8px 6px; }
+.bhb-slider--thin { flex: 1; }
+.bhb-icon.is-danger-on { color: var(--bhb-danger); }
+
+/* The drag layer is alive only while a capture is running. */
+.bhb-drag { inset: 0; cursor: crosshair; pointer-events: auto; background: rgba(12, 14, 20, .25); }
+.bhb-drag__box {
+  display: none; position: fixed;
+  border: 1px solid var(--bhb-cyan); background: rgba(34, 211, 238, .14);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .5);
+}
+.bhb-drag__hint {
+  position: fixed; left: 50%; top: 14px; transform: translateX(-50%);
+  padding: 4px 10px; border-radius: 999px;
+  background: var(--bhb-bg); border: 1px solid var(--bhb-line);
+  font-family: var(--bhb-mono); font-size: 11px;
 }
 
 /* --- Help & flash ------------------------------------------------------- */

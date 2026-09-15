@@ -12,6 +12,7 @@ export default {
 
   'tab.tasks': 'Tasks',
   'tab.rules': 'Rules',
+  'tab.screens': 'Screens',
   'tab.log': 'Log',
   'panel.close': 'Close',
 
@@ -31,13 +32,30 @@ export default {
   'rules.disable': 'Disable',
   'rules.moveUp': 'Move up (higher priority)',
   'rules.moveDown': 'Move down',
+  'rules.screenGate': 'Only fire on this screen',
+  'rules.anywhere': 'Anywhere',
   'rules.delete': 'Delete',
+
+  'screens.title': 'Screens',
+  'screens.empty': 'No screens yet. Capture one so the bot knows where it is.',
+  'screens.capture': 'Capture a screen anchor',
+  'screens.captureHint':
+    'The panel steps aside; drag a box around something only this screen shows. Esc cancels.',
+  'screens.addAnchor': 'Add another anchor',
+  'screens.unnamed': '(unnamed)',
+  'screens.unknown': 'unknown',
+  'screens.anchors': 'Anchors',
+  'screens.stopsTask': 'Out of resources — stop the task here',
+  'screens.ratioHint': 'Share of samples matching right now',
+  'screen.defaultName': 'Screen {n}',
 
   'log.title': 'Activity',
   'log.empty': 'Nothing yet. Start a task to see what the bot does.',
   'log.clear': 'Clear',
   'log.clicked': 'Clicked {label}',
   'log.busy': 'Matched {label}, busy',
+  'log.screen': 'Screen: {label}',
+  'log.resource': 'Out of resources at {label} — stopped',
   'log.taskStarted': 'Started {task}',
   'log.taskStopped': 'Stopped {task}',
 
@@ -61,5 +79,6 @@ export default {
   'msg.noWebgl': 'no WebGL context',
   'msg.noMousePosition': 'no cursor position yet',
   'msg.outsideCanvas': 'cursor is outside the canvas',
+  'msg.anchorCaptured': 'anchor {n} captured for {name}',
   'msg.ruleCaptured': 'captured a rule at ({x}, {y}) — {hex}',
 };

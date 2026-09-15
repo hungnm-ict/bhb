@@ -4,6 +4,7 @@ import { Tab } from '../store.js';
 import { VERSION } from '../../core/constants.js';
 import { renderTasksTab } from './tasks.js';
 import { renderRulesTab } from './rules.js';
+import { renderScreensTab } from './screens.js';
 import { renderLogTab } from './log.js';
 
 /**
@@ -16,6 +17,7 @@ import { renderLogTab } from './log.js';
 const TABS = [
   [Tab.TASKS, 'tab.tasks'],
   [Tab.RULES, 'tab.rules'],
+  [Tab.SCREENS, 'tab.screens'],
   [Tab.LOG, 'tab.log'],
 ];
 
@@ -26,6 +28,8 @@ const TABS = [
  * @param {(taskId: string) => void} deps.toggleTask
  * @param {() => import('../../rules/model.js').Rule[]} deps.getRules
  * @param {object} deps.editor
+ * @param {object} deps.screenEditor
+ * @param {() => import('../../rules/screen.js').Screen[]} deps.getScreens
  * @param {() => string} deps.getProfileName
  * @param {() => void} deps.refresh
  */
@@ -43,6 +47,9 @@ export function createPanel(deps) {
   function renderBody(tab) {
     if (tab === Tab.RULES) {
       return renderRulesTab(deps);
+    }
+    if (tab === Tab.SCREENS) {
+      return renderScreensTab(deps);
     }
     if (tab === Tab.LOG) {
       return renderLogTab(deps);

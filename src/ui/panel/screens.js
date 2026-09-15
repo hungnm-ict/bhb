@@ -1,0 +1,146 @@
+import { el } from '../dom.js';
+import { t } from '../../i18n/index.js';
+import { startDragSelect } from '../dragselect.js';
+
+/**
+ * The screens tab.
+ *
+ * `minRatio` is the one number here that cannot be guessed, so every screen
+ * shows its live ✓/✗ and measured ratio while the bot runs: it is tuned by
+ * watching it, not by arithmetic.
+ *
+ * @param {object} deps
+ * @param {() => import('../../rules/screen.js').Screen[]} deps.getScreens
+ * @param {object} deps.screenEditor
+ * @param {() => object} deps.getEngineState
+ * @param {ReturnType<import('../store.js').createUiStore>} deps.store
+ * @param {() => void} deps.refresh
+ */
+export function renderScreensTab(deps) {
+  const screens = deps.getScreens();
+  const active = deps.getEngineState().screen;
+
+  function capture(screenId) {
+    // The panel covers the game, so it gets out of the way for the drag.
+    deps.store.closePanel();
+    deps.refresh();
+    startDragSelect((rect) => {
+      if (rect) {
+        deps.screenEditor.captureAnchor(rect, screenId);
+      }
+      deps.store.openPanel();
+      deps.refresh();
+    });
+  }
+
+  const captureButton = el('button', { class: 'bhb-btn bhb-btn--primary' }, [
+    el('span', { class: 'bhb-btn__dot' }),
+    el('span', { text: t('screens.capture') }),
+  ]);
+  captureButton.addEventListener('click', () => capture(null));
+
+  const head = el('div', { class: 'bhb-field' }, [
+    el('div', { class: 'bhb-field__head' }, [
+      el('span', { class: 'bhb-label', text: `${t('screens.title')} · ${screens.length}` }),
+      el('span', {
+        class: 'bhb-mono bhb-screen__now',
+        text: deps.getEngineState().screenName || t('screens.unknown'),
+      }),
+    ]),
+    captureButton,
+    el('p', { class: 'bhb-note', text: t('screens.captureHint') }),
+  ]);
+
+  if (screens.length === 0) {
+    return el('div', { class: 'bhb-tab' }, [
+      head,
+      el('p', { class: 'bhb-empty', text: t('screens.empty') }),
+    ]);
+  }
+
+  const rows = screens.map((screen, index) => {
+    const probe = deps.screenEditor.probe(screen.id);
+
+    const name = el('input', { class: 'bhb-rule__name' });
+    name.value = screen.name || '';
+    name.placeholder = t('screens.unnamed');
+    name.addEventListener('change', () => {
+      deps.screenEditor.rename(screen.id, name.value.trim());
+      deps.refresh();
+    });
+
+    const stops = el('button', {
+      class: `bhb-icon ${screen.stopsTask ? 'is-danger-on' : ''}`,
+      title: t('screens.stopsTask'),
+      text: '⏹',
+    });
+    stops.addEventListener('click', () => {
+      deps.screenEditor.setStopsTask(screen.id, !screen.stopsTask);
+      deps.refresh();
+    });
+
+    const add = el('button', { class: 'bhb-icon', title: t('screens.addAnchor'), text: '＋' });
+    add.addEventListener('click', () => capture(screen.id));
+
+    const up = el('button', { class: 'bhb-icon', title: t('rules.moveUp'), text: '▲' });
+    up.addEventListener('click', () => {
+      deps.screenEditor.move(screen.id, -1);
+      deps.refresh();
+    });
+
+    const down = el('button', { class: 'bhb-icon', title: t('rules.moveDown'), text: '▼' });
+    down.addEventListener('click', () => {
+      deps.screenEditor.move(screen.id, 1);
+      deps.refresh();
+    });
+
+    const remove = el('button', { class: 'bhb-icon bhb-icon--danger', title: t('rules.delete'), text: '✕' });
+    remove.addEventListener('click', () => {
+      deps.screenEditor.remove(screen.id);
+      deps.refresh();
+    });
+
+    const ratio = el('input', { class: 'bhb-slider bhb-slider--thin' });
+    ratio.type = 'range';
+    ratio.min = '0.4';
+    ratio.max = '1';
+    ratio.step = '0.05';
+    ratio.value = String(screen.minRatio);
+    ratio.addEventListener('input', () => {
+      deps.screenEditor.setMinRatio(screen.id, Number(ratio.value));
+      deps.refresh();
+    });
+
+    const classes = ['bhb-rule', 'bhb-screen'];
+    if (active === screen.id) {
+      classes.push('is-active');
+    }
+    if (screen.stopsTask) {
+      classes.push('is-stopper');
+    }
+
+    return el('div', { class: 'bhb-screen__wrap' }, [
+      el('div', { class: classes.join(' ') }, [
+        el('span', { class: 'bhb-rule__n', text: String(index + 1) }),
+        el('span', {
+          class: `bhb-screen__state ${probe && probe.matched ? 'is-seen' : ''}`,
+          text: probe ? (probe.matched ? '✓' : '✗') : '·',
+        }),
+        name,
+        el('span', {
+          class: 'bhb-rule__coord bhb-mono',
+          title: t('screens.ratioHint'),
+          text: probe ? probe.ratio.toFixed(2) : '—',
+        }),
+        el('span', { class: 'bhb-rule__actions' }, [stops, add, up, down, remove]),
+      ]),
+      el('div', { class: 'bhb-screen__tune' }, [
+        el('span', { class: 'bhb-note', text: `${t('screens.anchors')} ${screen.anchors.length}` }),
+        ratio,
+        el('span', { class: 'bhb-mono bhb-note', text: screen.minRatio.toFixed(2) }),
+      ]),
+    ]);
+  });
+
+  return el('div', { class: 'bhb-tab' }, [head, el('div', { class: 'bhb-rules' }, rows)]);
+}

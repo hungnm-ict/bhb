@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      2.4.0
+// @version      0.2.3
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -13,6 +13,24 @@
 // ==/UserScript==
 
 (() => {
+  // src/core/constants.js
+  var VERSION = true ? "0.2.3" : "dev";
+  var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
+  var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
+  var STORAGE_KEY_LEGACY_RULES = "bh_script_rules_v1";
+  var DEFAULT_COLOR_TOLERANCE = 15;
+  var INTERVAL_RERUN_HUNT = 3e3;
+  var INTERVAL_RERUN_REST = 2e4;
+  var INTERVAL_WORLD_BOSS = 2e3;
+  var INTERVAL_SCRIPT = 3e3;
+  var INTERVAL_AUTO_STOP_CHECK = 5e3;
+  var AUTO_STOP_TIMEOUT = 3 * 60 * 1e3;
+  var CLICK_LOCKOUT_MS = 200;
+  var CLICK_HOVER_RESET_MS = 100;
+  var HOVER_RESET_POINT = { x: 5, y: 5 };
+  var SPEED_STEPS = [0.1, 0.25, 0.5, 0.75, 1, 2, 3, 4, 5, 7, 10, 15, 20];
+  var Z_TOP = "2147483647";
+
   // src/core/canvas.js
   var cachedCanvas = null;
   var cachedContext = null;
@@ -110,25 +128,6 @@
   var realClearInterval = window.clearInterval.bind(window);
   var realRequestAnimationFrame = window.requestAnimationFrame.bind(window);
 
-  // src/core/constants.js
-  var VERSION = true ? "2.4.0" : "dev";
-  var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
-  var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
-  var STORAGE_KEY_LEGACY_RULES = "bh_script_rules_v1";
-  var DEFAULT_COLOR_TOLERANCE = 15;
-  var INTERVAL_RERUN_HUNT = 3e3;
-  var INTERVAL_RERUN_REST = 2e4;
-  var INTERVAL_WORLD_BOSS = 2e3;
-  var INTERVAL_SCRIPT = 3e3;
-  var INTERVAL_AUTO_STOP_CHECK = 5e3;
-  var AUTO_STOP_TIMEOUT = 3 * 60 * 1e3;
-  var CLICK_LOCKOUT_MS = 200;
-  var CLICK_HOVER_RESET_MS = 100;
-  var HOVER_RESET_POINT = { x: 5, y: 5 };
-  var SPEED_MIN = 1;
-  var SPEED_MAX = 10;
-  var Z_TOP = "2147483647";
-
   // src/core/speed.js
   var speed = 1;
   var listeners = [];
@@ -136,14 +135,25 @@
     return speed;
   }
   function setSpeed(next) {
-    const clamped = Math.max(SPEED_MIN, Math.min(SPEED_MAX, Math.round(next)));
-    if (clamped === speed) {
+    const snapped = snapSpeed(next);
+    if (snapped === speed) {
       return;
     }
-    speed = clamped;
+    speed = snapped;
     for (const listener of listeners) {
       listener(speed);
     }
+  }
+  function snapSpeed(value) {
+    return SPEED_STEPS.reduce(
+      (best, stop) => Math.abs(stop - value) < Math.abs(best - value) ? stop : best
+    );
+  }
+  function speedIndex(value) {
+    return SPEED_STEPS.indexOf(snapSpeed(value));
+  }
+  function formatSpeed(value) {
+    return Number.isInteger(value) ? String(value) : value.toFixed(1);
   }
   function onSpeedChange(listener) {
     listeners.push(listener);
@@ -298,6 +308,96 @@
     return clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom;
   }
 
+  // src/core/region.js
+  var GRID = 4;
+  var DEFAULT_MIN_RATIO = 0.75;
+  function readRegion(gl, x, y, w, h) {
+    const width = Math.max(1, Math.round(w));
+    const height = Math.max(1, Math.round(h));
+    const data = new Uint8Array(width * height * 4);
+    try {
+      gl.readPixels(Math.round(x), Math.round(y), width, height, gl.RGBA, gl.UNSIGNED_BYTE, data);
+    } catch {
+      return null;
+    }
+    return { x: Math.round(x), y: Math.round(y), w: width, h: height, data };
+  }
+  function sampleRegion(region, dx, dy) {
+    const col = Math.min(region.w - 1, Math.max(0, Math.round(dx * (region.w - 1))));
+    const row = Math.min(region.h - 1, Math.max(0, Math.round(dy * (region.h - 1))));
+    const offset = (row * region.w + col) * 4;
+    return { r: region.data[offset], g: region.data[offset + 1], b: region.data[offset + 2] };
+  }
+  function captureFingerprint(gl, rect) {
+    const region = readRegion(gl, rect.x, rect.y, rect.w, rect.h);
+    if (!region) {
+      return null;
+    }
+    const samples = [];
+    for (let row = 0; row < GRID; row += 1) {
+      for (let col = 0; col < GRID; col += 1) {
+        const dx = (col + 0.5) / GRID;
+        const dy = (row + 0.5) / GRID;
+        samples.push({ dx, dy, hex: rgbToHex(sampleRegion(region, dx, dy)) });
+      }
+    }
+    return { x: region.x, y: region.y, w: region.w, h: region.h, bw: rect.bw, bh: rect.bh, samples };
+  }
+  function resolveRect(fp, buffer, mode) {
+    const origin = resolvePoint(fp, buffer, mode);
+    if (!fp.bw || !fp.bh) {
+      return { x: origin.x, y: origin.y, w: fp.w, h: fp.h };
+    }
+    return {
+      x: origin.x,
+      y: origin.y,
+      w: Math.max(1, Math.round(fp.w / fp.bw * buffer.width)),
+      h: Math.max(1, Math.round(fp.h / fp.bh * buffer.height))
+    };
+  }
+  function matchFingerprint(gl, fp, buffer, mode, tolerance = DEFAULT_COLOR_TOLERANCE, minRatio = DEFAULT_MIN_RATIO) {
+    const samples = fp.samples || [];
+    if (samples.length === 0) {
+      return { matched: false, ratio: 0 };
+    }
+    const rect = resolveRect(fp, buffer, mode);
+    const region = readRegion(gl, rect.x, rect.y, rect.w, rect.h);
+    if (!region) {
+      return { matched: false, ratio: 0 };
+    }
+    let hits = 0;
+    for (const sample of samples) {
+      const actual = sampleRegion(region, sample.dx, sample.dy);
+      if (colorMatches(actual, hexToRgb(sample.hex), tolerance)) {
+        hits += 1;
+      }
+    }
+    const ratio = hits / samples.length;
+    return { matched: ratio >= minRatio, ratio };
+  }
+  function isRegionPoint(point2) {
+    return Array.isArray(point2.samples) && point2.samples.length > 0;
+  }
+  function matchPoint(gl, point2, hex, buffer, mode, tolerance, minRatio) {
+    if (isRegionPoint(point2)) {
+      const rect = resolveRect(point2, buffer, mode);
+      const result = matchFingerprint(gl, point2, buffer, mode, tolerance, minRatio);
+      return {
+        matched: result.matched,
+        ratio: result.ratio,
+        // The click lands in the middle of the region, not on its corner.
+        point: { x: rect.x + Math.round(rect.w / 2), y: rect.y + Math.round(rect.h / 2) }
+      };
+    }
+    const resolved = resolvePoint(point2, buffer, mode);
+    const pixel = readPixel(gl, resolved.x, resolved.y);
+    if (!pixel) {
+      return { matched: false, ratio: 0, point: resolved };
+    }
+    const matched = colorMatches(pixel, hexToRgb(hex), tolerance);
+    return { matched, ratio: matched ? 1 : 0, point: resolved };
+  }
+
   // src/core/input.js
   var locked = false;
   var clickObserver = null;
@@ -415,14 +515,65 @@
       hex: null,
       tolerance: DEFAULT_COLOR_TOLERANCE,
       enabled: true,
+      screens: [],
       ...overrides
     };
   }
   function isRuleReady(rule) {
-    return Boolean(rule.enabled && rule.hex && rule.points.length > 0);
+    if (!rule.enabled || rule.points.length === 0) {
+      return false;
+    }
+    return Boolean(rule.hex) || rule.points.every(isRegionPoint);
   }
   function colorForPoint(rule, point2) {
     return point2.hex || rule.hex;
+  }
+
+  // src/rules/screen.js
+  function createScreenId() {
+    return `s${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
+  }
+  function createScreen(overrides = {}) {
+    return {
+      id: createScreenId(),
+      name: "",
+      anchors: [],
+      minRatio: DEFAULT_MIN_RATIO,
+      tolerance: DEFAULT_COLOR_TOLERANCE,
+      stopsTask: false,
+      ...overrides
+    };
+  }
+  function isScreenReady(screen) {
+    return Boolean(screen && screen.anchors && screen.anchors.length > 0);
+  }
+  function scoreScreen(gl, screen, buffer, mode) {
+    if (!isScreenReady(screen)) {
+      return { matched: false, ratio: 0 };
+    }
+    let weakest = 1;
+    for (const anchor of screen.anchors) {
+      const result = matchFingerprint(gl, anchor, buffer, mode, screen.tolerance, screen.minRatio);
+      weakest = Math.min(weakest, result.ratio);
+      if (!result.matched) {
+        return { matched: false, ratio: weakest };
+      }
+    }
+    return { matched: true, ratio: weakest };
+  }
+  function detectScreen(gl, screens, buffer, mode) {
+    for (const screen of screens || []) {
+      if (scoreScreen(gl, screen, buffer, mode).matched) {
+        return screen;
+      }
+    }
+    return null;
+  }
+  function ruleAllowedOn(rule, screenId) {
+    if (!rule.screens || rule.screens.length === 0) {
+      return true;
+    }
+    return screenId !== null && rule.screens.includes(screenId);
   }
 
   // src/core/events.js
@@ -470,7 +621,11 @@
       activeTask: null,
       phase: Phase.HUNTING,
       lastActionAt: 0,
-      lastMessage: ""
+      lastMessage: "",
+      /** @type {string | null} id of the screen detected on the last tick */
+      screen: null,
+      /** @type {string | null} */
+      screenName: null
     };
     let pollTimer = null;
     let autoStopTimer = null;
@@ -492,30 +647,51 @@
         activeTask: state.activeTask,
         phase: state.phase,
         lastMessage: state.lastMessage,
+        screen: state.screen,
+        screenName: state.screenName,
         remainingMs: state.activeTask ? Math.max(0, AUTO_STOP_TIMEOUT - (realNow() - state.lastActionAt)) : 0
       };
     }
-    function evaluateRules(rules, canvas, gl) {
+    function evaluateRules(rules, canvas, gl, screenId) {
       const buffer = getBufferSize(canvas);
       const scaleMode = deps.getScaleMode();
       for (const rule of rules) {
         if (!isRuleReady(rule)) {
           continue;
         }
+        if (!ruleAllowedOn(rule, screenId)) {
+          continue;
+        }
         for (const storedPoint of rule.points) {
-          const resolved = resolvePoint(storedPoint, buffer, scaleMode);
-          const pixel = readPixel(gl, resolved.x, resolved.y);
-          if (!pixel) {
+          const hit = matchPoint(
+            gl,
+            storedPoint,
+            colorForPoint(rule, storedPoint),
+            buffer,
+            scaleMode,
+            rule.tolerance
+          );
+          if (!hit.matched) {
             continue;
           }
-          const expected = hexToRgb(colorForPoint(rule, storedPoint));
-          if (!colorMatches(pixel, expected, rule.tolerance)) {
-            continue;
-          }
-          return { rule, point: resolved, clicked: clickBufferPoint(canvas, resolved) };
+          return { rule, point: hit.point, clicked: clickBufferPoint(canvas, hit.point) };
         }
       }
       return null;
+    }
+    function updateScreen(canvas, gl) {
+      const screens = deps.getScreens ? deps.getScreens() : [];
+      if (screens.length === 0) {
+        return null;
+      }
+      const screen = detectScreen(gl, screens, getBufferSize(canvas), deps.getScaleMode());
+      const id = screen ? screen.id : null;
+      if (id !== state.screen) {
+        state.screen = id;
+        state.screenName = screen ? screen.name : null;
+        report("screen", { label: screen ? screen.name || screen.id : "unknown", screenId: id });
+      }
+      return screen;
     }
     function tick() {
       if (!state.activeTask) {
@@ -529,8 +705,17 @@
         setMessage("waiting for game canvas");
         return;
       }
+      const screen = updateScreen(target.canvas, target.gl);
+      if (screen && screen.stopsTask) {
+        const stopped = state.activeTask;
+        const label = screen.name || screen.id;
+        report("resource", { label });
+        stop();
+        setMessage(`${stopped} stopped: ${label}`);
+        return;
+      }
       const task = TASKS2[state.activeTask];
-      const hit = evaluateRules(task.getRules(), target.canvas, target.gl);
+      const hit = evaluateRules(task.getRules(), target.canvas, target.gl, state.screen);
       if (!hit) {
         setMessage(`${state.activeTask}: no match`);
         return;
@@ -603,6 +788,8 @@
       const stopped = state.activeTask;
       state.activeTask = null;
       state.phase = Phase.HUNTING;
+      state.screen = null;
+      state.screenName = null;
       clearInterval_(pollTimer);
       clearInterval_(autoStopTimer);
       clearTimeout_(restTimer);
@@ -621,12 +808,12 @@
   }
 
   // src/core/storage.js
-  var SCHEMA_VERSION = 2;
+  var SCHEMA_VERSION = 3;
   function createDefaultState() {
     return {
       version: SCHEMA_VERSION,
       activeProfileId: "default",
-      profiles: [{ id: "default", name: "Default", rules: [] }]
+      profiles: [{ id: "default", name: "Default", rules: [], screens: [] }]
     };
   }
   function readJson(key) {
@@ -669,7 +856,8 @@
     const profiles = candidate.profiles.filter((profile) => profile && typeof profile.id === "string").map((profile) => ({
       id: profile.id,
       name: typeof profile.name === "string" ? profile.name : profile.id,
-      rules: Array.isArray(profile.rules) ? profile.rules : []
+      rules: Array.isArray(profile.rules) ? profile.rules : [],
+      screens: Array.isArray(profile.screens) ? profile.screens : []
     }));
     if (profiles.length === 0) {
       return createDefaultState();
@@ -763,6 +951,7 @@
     "hud.idle": "đang dừng",
     "tab.tasks": "Hoạt động",
     "tab.rules": "Rule",
+    "tab.screens": "Màn hình",
     "tab.log": "Nhật ký",
     "panel.close": "Đóng",
     "overlay.speed": "Tốc độ",
@@ -779,12 +968,27 @@
     "rules.disable": "Tắt rule",
     "rules.moveUp": "Lên (ưu tiên cao hơn)",
     "rules.moveDown": "Xuống",
+    "rules.screenGate": "Chỉ chạy ở màn hình này",
+    "rules.anywhere": "Mọi màn hình",
     "rules.delete": "Xoá rule",
+    "screens.title": "Màn hình",
+    "screens.empty": "Chưa có màn hình nào. Bắt một cái để bot biết nó đang ở đâu.",
+    "screens.capture": "Bắt vùng nhận diện",
+    "screens.captureHint": "Bảng điều khiển sẽ nhường chỗ; kéo một khung quanh thứ chỉ màn hình này có. Esc để huỷ.",
+    "screens.addAnchor": "Thêm vùng nhận diện",
+    "screens.unnamed": "(chưa đặt tên)",
+    "screens.unknown": "chưa rõ",
+    "screens.anchors": "Vùng",
+    "screens.stopsTask": "Hết tài nguyên — dừng hoạt động ở màn hình này",
+    "screens.ratioHint": "Tỉ lệ điểm mẫu đang khớp",
+    "screen.defaultName": "Màn hình {n}",
     "log.title": "Nhật ký",
     "log.empty": "Chưa có gì. Bật một hoạt động để bắt đầu.",
     "log.clear": "Xoá",
     "log.clicked": "Click {label}",
     "log.busy": "Khớp {label}, đang bận",
+    "log.screen": "Màn hình: {label}",
+    "log.resource": "Hết tài nguyên ở {label} — đã dừng",
     "log.taskStarted": "Bật {task}",
     "log.taskStopped": "Tắt {task}",
     "help.title": "PHÍM TẮT",
@@ -806,6 +1010,7 @@
     "msg.noWebgl": "không có WebGL",
     "msg.noMousePosition": "chưa có vị trí chuột",
     "msg.outsideCanvas": "con trỏ ngoài canvas",
+    "msg.anchorCaptured": "đã bắt vùng {n} cho {name}",
     "msg.ruleCaptured": "đã bắt rule tại ({x}, {y}) — {hex}"
   };
 
@@ -820,6 +1025,7 @@
     "hud.idle": "idle",
     "tab.tasks": "Tasks",
     "tab.rules": "Rules",
+    "tab.screens": "Screens",
     "tab.log": "Log",
     "panel.close": "Close",
     "overlay.speed": "Speed",
@@ -836,12 +1042,27 @@
     "rules.disable": "Disable",
     "rules.moveUp": "Move up (higher priority)",
     "rules.moveDown": "Move down",
+    "rules.screenGate": "Only fire on this screen",
+    "rules.anywhere": "Anywhere",
     "rules.delete": "Delete",
+    "screens.title": "Screens",
+    "screens.empty": "No screens yet. Capture one so the bot knows where it is.",
+    "screens.capture": "Capture a screen anchor",
+    "screens.captureHint": "The panel steps aside; drag a box around something only this screen shows. Esc cancels.",
+    "screens.addAnchor": "Add another anchor",
+    "screens.unnamed": "(unnamed)",
+    "screens.unknown": "unknown",
+    "screens.anchors": "Anchors",
+    "screens.stopsTask": "Out of resources — stop the task here",
+    "screens.ratioHint": "Share of samples matching right now",
+    "screen.defaultName": "Screen {n}",
     "log.title": "Activity",
     "log.empty": "Nothing yet. Start a task to see what the bot does.",
     "log.clear": "Clear",
     "log.clicked": "Clicked {label}",
     "log.busy": "Matched {label}, busy",
+    "log.screen": "Screen: {label}",
+    "log.resource": "Out of resources at {label} — stopped",
     "log.taskStarted": "Started {task}",
     "log.taskStopped": "Stopped {task}",
     "help.title": "KEYBOARD",
@@ -863,6 +1084,7 @@
     "msg.noWebgl": "no WebGL context",
     "msg.noMousePosition": "no cursor position yet",
     "msg.outsideCanvas": "cursor is outside the canvas",
+    "msg.anchorCaptured": "anchor {n} captured for {name}",
     "msg.ruleCaptured": "captured a rule at ({x}, {y}) — {hex}"
   };
 
@@ -976,6 +1198,14 @@
       rule.enabled = enabled;
       deps.persist();
     }
+    function setScreens(ruleId, screenIds) {
+      const rule = find(ruleId);
+      if (!rule) {
+        return;
+      }
+      rule.screens = screenIds;
+      deps.persist();
+    }
     function remove(ruleId) {
       const rules = deps.getRules();
       const index = rules.findIndex((rule) => rule.id === ruleId);
@@ -1000,14 +1230,116 @@
       captureAtCursor,
       rename,
       setEnabled,
+      setScreens,
       remove,
       move
     };
   }
 
+  // src/rules/screen-editor.js
+  function createScreenEditor(deps) {
+    function find(screenId) {
+      return deps.getScreens().find((screen) => screen.id === screenId) || null;
+    }
+    function captureAnchor(rect, screenId = null) {
+      const target = getRenderTarget();
+      if (!target) {
+        deps.report(t("msg.noCanvas"));
+        return null;
+      }
+      const { canvas, gl } = target;
+      const origin = clientToBuffer(canvas, rect.left, rect.top + rect.height);
+      const far = clientToBuffer(canvas, rect.left + rect.width, rect.top);
+      const buffer = getBufferSize(canvas);
+      const fingerprint = captureFingerprint(gl, {
+        x: origin.x,
+        y: origin.y,
+        w: Math.max(1, far.x - origin.x),
+        h: Math.max(1, far.y - origin.y),
+        bw: buffer.width,
+        bh: buffer.height
+      });
+      if (!fingerprint) {
+        deps.report(t("msg.noWebgl"));
+        return null;
+      }
+      const screens = deps.getScreens();
+      let screen = screenId ? find(screenId) : null;
+      if (!screen) {
+        screen = createScreen({ name: t("screen.defaultName", { n: screens.length + 1 }) });
+        screens.push(screen);
+      }
+      screen.anchors.push(fingerprint);
+      deps.persist();
+      deps.report(t("msg.anchorCaptured", { name: screen.name, n: screen.anchors.length }));
+      return screen;
+    }
+    function rename(screenId, name) {
+      const screen = find(screenId);
+      if (!screen) {
+        return;
+      }
+      screen.name = name;
+      deps.persist();
+    }
+    function setStopsTask(screenId, stopsTask) {
+      const screen = find(screenId);
+      if (!screen) {
+        return;
+      }
+      screen.stopsTask = stopsTask;
+      deps.persist();
+    }
+    function setMinRatio(screenId, minRatio) {
+      const screen = find(screenId);
+      if (!screen) {
+        return;
+      }
+      screen.minRatio = Math.min(1, Math.max(0, minRatio));
+      deps.persist();
+    }
+    function removeAnchor(screenId, index) {
+      const screen = find(screenId);
+      if (!screen || index < 0 || index >= screen.anchors.length) {
+        return;
+      }
+      screen.anchors.splice(index, 1);
+      deps.persist();
+    }
+    function remove(screenId) {
+      const screens = deps.getScreens();
+      const index = screens.findIndex((screen) => screen.id === screenId);
+      if (index === -1) {
+        return;
+      }
+      screens.splice(index, 1);
+      deps.persist();
+    }
+    function move(screenId, delta) {
+      const screens = deps.getScreens();
+      const from = screens.findIndex((screen2) => screen2.id === screenId);
+      const to = from + delta;
+      if (from === -1 || to < 0 || to >= screens.length) {
+        return;
+      }
+      const [screen] = screens.splice(from, 1);
+      screens.splice(to, 0, screen);
+      deps.persist();
+    }
+    function probe(screenId) {
+      const screen = find(screenId);
+      const target = getRenderTarget();
+      if (!screen || !target) {
+        return null;
+      }
+      return scoreScreen(target.gl, screen, getBufferSize(target.canvas), deps.getScaleMode());
+    }
+    return { captureAnchor, rename, setStopsTask, setMinRatio, removeAnchor, remove, move, probe };
+  }
+
   // src/ui/styles.js
   var CSS = `
-.bhb-hud, .bhb-panel, .bhb-markers, .bhb-help, .bhb-flash {
+.bhb-hud, .bhb-panel, .bhb-markers, .bhb-help, .bhb-flash, .bhb-drag {
   --bhb-bg: #12141c;
   --bhb-bg-soft: #1a1d29;
   --bhb-line: rgba(255, 255, 255, .09);
@@ -1028,7 +1360,7 @@
   font-family: var(--bhb-font);
   user-select: none;
 }
-.bhb-hud *, .bhb-panel *, .bhb-markers *, .bhb-help * { box-sizing: border-box; }
+.bhb-hud *, .bhb-panel *, .bhb-markers *, .bhb-help *, .bhb-drag * { box-sizing: border-box; }
 .bhb-mono { font-family: var(--bhb-mono); font-variant-numeric: tabular-nums; }
 
 /* --- HUD ---------------------------------------------------------------- */
@@ -1067,6 +1399,11 @@
   font-family: var(--bhb-mono); font-size: 11px; color: var(--bhb-dim);
 }
 .bhb-hud__speed.is-boosted { color: var(--bhb-cyan); font-weight: 700; }
+.bhb-hud__screen {
+  padding: 1px 7px; border-radius: 999px;
+  background: rgba(61, 220, 151, .14); color: var(--bhb-live);
+  font-size: 10px; letter-spacing: .04em;
+}
 .bhb-hud__msg {
   max-width: 190px; color: var(--bhb-dim); font-size: 10.5px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -1272,6 +1609,38 @@
   border: 1px solid rgba(255, 255, 255, .5);
 }
 
+/* --- Screens & drag capture --------------------------------------------- */
+
+.bhb-rule__gate {
+  max-width: 88px; padding: 2px 4px;
+  background: var(--bhb-bg-soft); color: var(--bhb-dim);
+  border: 1px solid var(--bhb-line); border-radius: 6px;
+  font-family: var(--bhb-font); font-size: 10px;
+}
+.bhb-screen__wrap { display: flex; flex-direction: column; gap: 2px; }
+.bhb-screen.is-active { border-color: var(--bhb-live); }
+.bhb-screen.is-stopper .bhb-rule__n { color: var(--bhb-danger); }
+.bhb-screen__now { color: var(--bhb-live); font-size: 10px; }
+.bhb-screen__state { width: 14px; text-align: center; color: var(--bhb-dim); }
+.bhb-screen__state.is-seen { color: var(--bhb-live); }
+.bhb-screen__tune { display: flex; align-items: center; gap: 8px; padding: 0 8px 6px; }
+.bhb-slider--thin { flex: 1; }
+.bhb-icon.is-danger-on { color: var(--bhb-danger); }
+
+/* The drag layer is alive only while a capture is running. */
+.bhb-drag { inset: 0; cursor: crosshair; pointer-events: auto; background: rgba(12, 14, 20, .25); }
+.bhb-drag__box {
+  display: none; position: fixed;
+  border: 1px solid var(--bhb-cyan); background: rgba(34, 211, 238, .14);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .5);
+}
+.bhb-drag__hint {
+  position: fixed; left: 50%; top: 14px; transform: translateX(-50%);
+  padding: 4px 10px; border-radius: 999px;
+  background: var(--bhb-bg); border: 1px solid var(--bhb-line);
+  font-family: var(--bhb-mono); font-size: 11px;
+}
+
 /* --- Help & flash ------------------------------------------------------- */
 
 .bhb-help {
@@ -1333,6 +1702,7 @@
   var Tab = Object.freeze({
     TASKS: "tasks",
     RULES: "rules",
+    SCREENS: "screens",
     LOG: "log"
   });
   var LOG_LIMIT = 200;
@@ -1461,7 +1831,7 @@
       const speed2 = getSpeed();
       const running = Boolean(engine.activeTask);
       target.className = `bhb-hud ${running ? "bhb-hud--live" : ""} ${target.classList.contains("bhb-hud--dim") ? "bhb-hud--dim" : ""}`;
-      target.replaceChildren(
+      const parts = [
         el("span", { class: "bhb-hud__dot" }),
         el("span", { class: "bhb-hud__name", text: t("app.name") }),
         el("span", { class: "bhb-hud__ver", text: `v${VERSION}` }),
@@ -1472,10 +1842,12 @@
         }),
         el("span", {
           class: `bhb-hud__speed ${speed2 > 1 ? "is-boosted" : ""}`,
-          text: `${speed2}×`
+          text: `${formatSpeed(speed2)}×`
         }),
+        engine.screenName ? el("span", { class: "bhb-hud__screen", text: engine.screenName }) : null,
         el("span", { class: "bhb-hud__msg", text: engine.lastMessage || "" })
-      );
+      ].filter(Boolean);
+      target.replaceChildren(...parts);
     }
     return { render, wake };
   }
@@ -1519,11 +1891,12 @@
     });
     const slider = el("input", { class: "bhb-slider" });
     slider.type = "range";
-    slider.min = String(SPEED_MIN);
-    slider.max = String(SPEED_MAX);
-    slider.value = String(speed2);
+    slider.min = "0";
+    slider.max = String(SPEED_STEPS.length - 1);
+    slider.step = "1";
+    slider.value = String(speedIndex(speed2));
     slider.addEventListener("input", () => {
-      setSpeed(Number(slider.value));
+      setSpeed(SPEED_STEPS[Number(slider.value)]);
       deps.refresh();
     });
     return el("div", { class: "bhb-tab" }, [
@@ -1531,7 +1904,7 @@
       el("div", { class: "bhb-field" }, [
         el("div", { class: "bhb-field__head" }, [
           el("span", { class: "bhb-label", text: t("overlay.speed") }),
-          el("span", { class: `bhb-speed ${speed2 > 1 ? "is-boosted" : ""}`, text: `${speed2}×` })
+          el("span", { class: `bhb-speed ${speed2 > 1 ? "is-boosted" : ""}`, text: `${formatSpeed(speed2)}×` })
         ]),
         slider
       ]),
@@ -1580,6 +1953,19 @@
         deps.editor.rename(rule.id, name.value.trim());
         deps.refresh();
       });
+      const gate = el("select", { class: "bhb-rule__gate", title: t("rules.screenGate") });
+      gate.append(el("option", { text: t("rules.anywhere") }));
+      gate.options[0].value = "";
+      for (const screen of deps.getScreens()) {
+        const option = el("option", { text: screen.name || screen.id });
+        option.value = screen.id;
+        gate.append(option);
+      }
+      gate.value = rule.screens && rule.screens[0] || "";
+      gate.addEventListener("change", () => {
+        deps.editor.setScreens(rule.id, gate.value ? [gate.value] : []);
+        deps.refresh();
+      });
       const toggle = el("button", {
         class: `bhb-icon ${rule.enabled ? "is-on" : ""}`,
         title: t(rule.enabled ? "rules.disable" : "rules.enable"),
@@ -1624,6 +2010,7 @@
           title: legacy ? t("overlay.needsRecapture") : "",
           text: point2 ? `${point2.x},${point2.y}${legacy ? " ⚠" : ""}` : "—"
         }),
+        deps.getScreens().length > 0 ? gate : null,
         el("span", { class: "bhb-rule__actions" }, [toggle, up, down, remove])
       ]);
       row.addEventListener("mouseenter", () => deps.store.hoverRule(rule.id));
@@ -1634,11 +2021,213 @@
     return el("div", { class: "bhb-tab" }, [head, el("div", { class: "bhb-rules" }, rows)]);
   }
 
+  // src/ui/dragselect.js
+  var MIN_SIDE_PX = 6;
+  function startDragSelect(onDone) {
+    const canvas = getCanvas();
+    if (!canvas) {
+      onDone(null);
+      return () => {
+      };
+    }
+    const layer = mount(el("div", { class: "bhb-drag" }));
+    const box = el("div", { class: "bhb-drag__box" });
+    const hint = el("div", { class: "bhb-drag__hint" });
+    layer.append(box, hint);
+    let startX = null;
+    let startY = null;
+    let finished = false;
+    function rectFrom(x, y) {
+      return {
+        left: Math.min(startX, x),
+        top: Math.min(startY, y),
+        width: Math.abs(x - startX),
+        height: Math.abs(y - startY)
+      };
+    }
+    function draw(rect) {
+      Object.assign(box.style, {
+        display: "block",
+        left: `${rect.left}px`,
+        top: `${rect.top}px`,
+        width: `${rect.width}px`,
+        height: `${rect.height}px`
+      });
+      hint.textContent = `${Math.round(rect.width)} × ${Math.round(rect.height)}`;
+    }
+    function finish(rect) {
+      if (finished) {
+        return;
+      }
+      finished = true;
+      window.removeEventListener("mousedown", onDown, true);
+      window.removeEventListener("mousemove", onMove, true);
+      window.removeEventListener("mouseup", onUp, true);
+      window.removeEventListener("keydown", onKey, true);
+      layer.remove();
+      onDone(rect);
+    }
+    function onDown(event) {
+      if (!isInsideCanvas(canvas, event.clientX, event.clientY)) {
+        finish(null);
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      startX = event.clientX;
+      startY = event.clientY;
+      draw(rectFrom(startX, startY));
+    }
+    function onMove(event) {
+      if (startX === null) {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      draw(rectFrom(event.clientX, event.clientY));
+    }
+    function onUp(event) {
+      if (startX === null) {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      const rect = rectFrom(event.clientX, event.clientY);
+      finish(rect.width >= MIN_SIDE_PX && rect.height >= MIN_SIDE_PX ? rect : null);
+    }
+    function onKey(event) {
+      if (event.key === "Escape") {
+        finish(null);
+      }
+    }
+    window.addEventListener("mousedown", onDown, true);
+    window.addEventListener("mousemove", onMove, true);
+    window.addEventListener("mouseup", onUp, true);
+    window.addEventListener("keydown", onKey, true);
+    return () => finish(null);
+  }
+
+  // src/ui/panel/screens.js
+  function renderScreensTab(deps) {
+    const screens = deps.getScreens();
+    const active2 = deps.getEngineState().screen;
+    function capture(screenId) {
+      deps.store.closePanel();
+      deps.refresh();
+      startDragSelect((rect) => {
+        if (rect) {
+          deps.screenEditor.captureAnchor(rect, screenId);
+        }
+        deps.store.openPanel();
+        deps.refresh();
+      });
+    }
+    const captureButton = el("button", { class: "bhb-btn bhb-btn--primary" }, [
+      el("span", { class: "bhb-btn__dot" }),
+      el("span", { text: t("screens.capture") })
+    ]);
+    captureButton.addEventListener("click", () => capture(null));
+    const head = el("div", { class: "bhb-field" }, [
+      el("div", { class: "bhb-field__head" }, [
+        el("span", { class: "bhb-label", text: `${t("screens.title")} · ${screens.length}` }),
+        el("span", {
+          class: "bhb-mono bhb-screen__now",
+          text: deps.getEngineState().screenName || t("screens.unknown")
+        })
+      ]),
+      captureButton,
+      el("p", { class: "bhb-note", text: t("screens.captureHint") })
+    ]);
+    if (screens.length === 0) {
+      return el("div", { class: "bhb-tab" }, [
+        head,
+        el("p", { class: "bhb-empty", text: t("screens.empty") })
+      ]);
+    }
+    const rows = screens.map((screen, index) => {
+      const probe = deps.screenEditor.probe(screen.id);
+      const name = el("input", { class: "bhb-rule__name" });
+      name.value = screen.name || "";
+      name.placeholder = t("screens.unnamed");
+      name.addEventListener("change", () => {
+        deps.screenEditor.rename(screen.id, name.value.trim());
+        deps.refresh();
+      });
+      const stops = el("button", {
+        class: `bhb-icon ${screen.stopsTask ? "is-danger-on" : ""}`,
+        title: t("screens.stopsTask"),
+        text: "⏹"
+      });
+      stops.addEventListener("click", () => {
+        deps.screenEditor.setStopsTask(screen.id, !screen.stopsTask);
+        deps.refresh();
+      });
+      const add = el("button", { class: "bhb-icon", title: t("screens.addAnchor"), text: "＋" });
+      add.addEventListener("click", () => capture(screen.id));
+      const up = el("button", { class: "bhb-icon", title: t("rules.moveUp"), text: "▲" });
+      up.addEventListener("click", () => {
+        deps.screenEditor.move(screen.id, -1);
+        deps.refresh();
+      });
+      const down = el("button", { class: "bhb-icon", title: t("rules.moveDown"), text: "▼" });
+      down.addEventListener("click", () => {
+        deps.screenEditor.move(screen.id, 1);
+        deps.refresh();
+      });
+      const remove = el("button", { class: "bhb-icon bhb-icon--danger", title: t("rules.delete"), text: "✕" });
+      remove.addEventListener("click", () => {
+        deps.screenEditor.remove(screen.id);
+        deps.refresh();
+      });
+      const ratio = el("input", { class: "bhb-slider bhb-slider--thin" });
+      ratio.type = "range";
+      ratio.min = "0.4";
+      ratio.max = "1";
+      ratio.step = "0.05";
+      ratio.value = String(screen.minRatio);
+      ratio.addEventListener("input", () => {
+        deps.screenEditor.setMinRatio(screen.id, Number(ratio.value));
+        deps.refresh();
+      });
+      const classes = ["bhb-rule", "bhb-screen"];
+      if (active2 === screen.id) {
+        classes.push("is-active");
+      }
+      if (screen.stopsTask) {
+        classes.push("is-stopper");
+      }
+      return el("div", { class: "bhb-screen__wrap" }, [
+        el("div", { class: classes.join(" ") }, [
+          el("span", { class: "bhb-rule__n", text: String(index + 1) }),
+          el("span", {
+            class: `bhb-screen__state ${probe && probe.matched ? "is-seen" : ""}`,
+            text: probe ? probe.matched ? "✓" : "✗" : "·"
+          }),
+          name,
+          el("span", {
+            class: "bhb-rule__coord bhb-mono",
+            title: t("screens.ratioHint"),
+            text: probe ? probe.ratio.toFixed(2) : "—"
+          }),
+          el("span", { class: "bhb-rule__actions" }, [stops, add, up, down, remove])
+        ]),
+        el("div", { class: "bhb-screen__tune" }, [
+          el("span", { class: "bhb-note", text: `${t("screens.anchors")} ${screen.anchors.length}` }),
+          ratio,
+          el("span", { class: "bhb-mono bhb-note", text: screen.minRatio.toFixed(2) })
+        ])
+      ]);
+    });
+    return el("div", { class: "bhb-tab" }, [head, el("div", { class: "bhb-rules" }, rows)]);
+  }
+
   // src/ui/panel/log.js
   var KIND_ICON = {
     click: "⊙",
     busy: "⋯",
-    task: "⏻"
+    task: "⏻",
+    screen: "▣",
+    resource: "⛔"
   };
   function clock(at) {
     const date = new Date(at);
@@ -1647,6 +2236,12 @@
   function describe(entry) {
     if (entry.kind === "task") {
       return t(entry.started ? "log.taskStarted" : "log.taskStopped", { task: entry.label });
+    }
+    if (entry.kind === "screen") {
+      return t("log.screen", { label: entry.label });
+    }
+    if (entry.kind === "resource") {
+      return t("log.resource", { label: entry.label });
     }
     if (entry.kind === "busy") {
       return t("log.busy", { label: entry.label });
@@ -1687,6 +2282,7 @@
   var TABS = [
     [Tab.TASKS, "tab.tasks"],
     [Tab.RULES, "tab.rules"],
+    [Tab.SCREENS, "tab.screens"],
     [Tab.LOG, "tab.log"]
   ];
   function createPanel(deps) {
@@ -1700,6 +2296,9 @@
     function renderBody(tab) {
       if (tab === Tab.RULES) {
         return renderRulesTab(deps);
+      }
+      if (tab === Tab.SCREENS) {
+        return renderScreensTab(deps);
       }
       if (tab === Tab.LOG) {
         return renderLogTab(deps);
@@ -1929,18 +2528,26 @@
     setLanguage(settings.language);
     const profileState = loadProfiles();
     const getRules = () => getActiveProfile(profileState).rules;
+    const getScreens = () => getActiveProfile(profileState).screens;
     const persist = () => saveProfiles(profileState);
     const store = createUiStore();
     const engine = createEngine({
       getScriptRules: getRules,
       getRerunRules: () => RERUN_RULES,
       getWorldBossRules: () => WORLD_BOSS_RULES,
-      getScaleMode: () => settings.scaleMode
+      getScaleMode: () => settings.scaleMode,
+      getScreens
     });
     const editor = createRuleEditor({
       getRules,
       persist,
       report: engine.setMessage
+    });
+    const screenEditor = createScreenEditor({
+      getScreens,
+      persist,
+      report: engine.setMessage,
+      getScaleMode: () => settings.scaleMode
     });
     const refresh = () => {
       hud.render();
@@ -1951,7 +2558,9 @@
     const panel = createPanel({
       store,
       editor,
+      screenEditor,
       getRules,
+      getScreens,
       getEngineState: engine.getState,
       toggleTask: engine.toggle,
       getProfileName: () => getActiveProfile(profileState).name,
@@ -1975,9 +2584,9 @@
       "4": () => engine.toggle(TaskId.WORLD_BOSS),
       "5": () => engine.toggle(TaskId.SCRIPT),
       "0": () => editor.captureAtCursor().then(refresh),
-      "=": () => setSpeed(getSpeed() + 1),
-      "+": () => setSpeed(getSpeed() + 1),
-      "-": () => setSpeed(getSpeed() - 1)
+      "=": () => setSpeed(nextSpeedStep(getSpeed(), 1)),
+      "+": () => setSpeed(nextSpeedStep(getSpeed(), 1)),
+      "-": () => setSpeed(nextSpeedStep(getSpeed(), -1))
     });
     refresh();
     hud.wake();
@@ -2009,5 +2618,10 @@
     document.addEventListener("DOMContentLoaded", start, { once: true });
   } else {
     start();
+  }
+  function nextSpeedStep(current, direction) {
+    const index = speedIndex(current) + direction;
+    const bounded = Math.max(0, Math.min(SPEED_STEPS.length - 1, index));
+    return SPEED_STEPS[bounded];
   }
 })();

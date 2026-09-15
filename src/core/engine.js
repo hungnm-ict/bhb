@@ -1,9 +1,9 @@
 import { getRenderTarget } from './canvas.js';
-import { readPixel } from './pixel.js';
-import { hexToRgb, colorMatches } from './color.js';
+import { matchPoint } from './region.js';
 import { clickBufferPoint } from './input.js';
-import { resolvePoint, getBufferSize } from './coords.js';
+import { getBufferSize } from './coords.js';
 import { isRuleReady, colorForPoint } from '../rules/model.js';
+import { detectScreen, ruleAllowedOn } from '../rules/screen.js';
 import { createEmitter } from './events.js';
 import {
   realNow,
@@ -49,6 +49,7 @@ export const Phase = Object.freeze({
  * @property {() => import('../rules/model.js').Rule[]} getRerunRules
  * @property {() => import('../rules/model.js').Rule[]} getWorldBossRules
  * @property {() => string} getScaleMode
+ * @property {() => import('../rules/screen.js').Screen[]} [getScreens]
  */
 
 export function createEngine(deps) {
@@ -60,6 +61,10 @@ export function createEngine(deps) {
     phase: Phase.HUNTING,
     lastActionAt: 0,
     lastMessage: '',
+    /** @type {string | null} id of the screen detected on the last tick */
+    screen: null,
+    /** @type {string | null} */
+    screenName: null,
   };
 
   let pollTimer = null;
@@ -78,7 +83,7 @@ export function createEngine(deps) {
    * `lastMessage` is overwritten on every tick, so a log cannot be recovered
    * from it; these events are what the log tab is built from.
    *
-   * @param {'click'|'busy'|'task'|'idle'} kind
+   * @param {'click'|'busy'|'task'|'idle'|'screen'|'resource'} kind
    * @param {object} [detail]
    */
   function report(kind, detail = {}) {
@@ -95,6 +100,8 @@ export function createEngine(deps) {
       activeTask: state.activeTask,
       phase: state.phase,
       lastMessage: state.lastMessage,
+      screen: state.screen,
+      screenName: state.screenName,
       remainingMs: state.activeTask
         ? Math.max(0, AUTO_STOP_TIMEOUT - (realNow() - state.lastActionAt))
         : 0,
@@ -105,7 +112,7 @@ export function createEngine(deps) {
    * Walk a rule's points and click the first colour match.
    * @returns {{ rule: object, clicked: boolean } | null}
    */
-  function evaluateRules(rules, canvas, gl) {
+  function evaluateRules(rules, canvas, gl, screenId) {
     const buffer = getBufferSize(canvas);
     const scaleMode = deps.getScaleMode();
 
@@ -113,24 +120,52 @@ export function createEngine(deps) {
       if (!isRuleReady(rule)) {
         continue;
       }
+      // Gated out before any pixel is read, which pays back the screen check.
+      if (!ruleAllowedOn(rule, screenId)) {
+        continue;
+      }
 
       for (const storedPoint of rule.points) {
-        const resolved = resolvePoint(storedPoint, buffer, scaleMode);
-        const pixel = readPixel(gl, resolved.x, resolved.y);
-        if (!pixel) {
+        const hit = matchPoint(
+          gl,
+          storedPoint,
+          colorForPoint(rule, storedPoint),
+          buffer,
+          scaleMode,
+          rule.tolerance
+        );
+        if (!hit.matched) {
           continue;
         }
 
-        const expected = hexToRgb(colorForPoint(rule, storedPoint));
-        if (!colorMatches(pixel, expected, rule.tolerance)) {
-          continue;
-        }
-
-        return { rule, point: resolved, clicked: clickBufferPoint(canvas, resolved) };
+        return { rule, point: hit.point, clicked: clickBufferPoint(canvas, hit.point) };
       }
     }
 
     return null;
+  }
+
+  /**
+   * Where the game is, once per tick.
+   *
+   * @returns {import('../rules/screen.js').Screen | null}
+   */
+  function updateScreen(canvas, gl) {
+    const screens = deps.getScreens ? deps.getScreens() : [];
+    if (screens.length === 0) {
+      return null;
+    }
+
+    const screen = detectScreen(gl, screens, getBufferSize(canvas), deps.getScaleMode());
+    const id = screen ? screen.id : null;
+
+    if (id !== state.screen) {
+      state.screen = id;
+      state.screenName = screen ? screen.name : null;
+      report('screen', { label: screen ? screen.name || screen.id : 'unknown', screenId: id });
+    }
+
+    return screen;
   }
 
   function tick() {
@@ -149,8 +184,18 @@ export function createEngine(deps) {
       return;
     }
 
+    const screen = updateScreen(target.canvas, target.gl);
+    if (screen && screen.stopsTask) {
+      const stopped = state.activeTask;
+      const label = screen.name || screen.id;
+      report('resource', { label });
+      stop();
+      setMessage(`${stopped} stopped: ${label}`);
+      return;
+    }
+
     const task = TASKS[state.activeTask];
-    const hit = evaluateRules(task.getRules(), target.canvas, target.gl);
+    const hit = evaluateRules(task.getRules(), target.canvas, target.gl, state.screen);
 
     if (!hit) {
       setMessage(`${state.activeTask}: no match`);
@@ -239,6 +284,8 @@ export function createEngine(deps) {
 
     state.activeTask = null;
     state.phase = Phase.HUNTING;
+    state.screen = null;
+    state.screenName = null;
 
     clearInterval_(pollTimer);
     clearInterval_(autoStopTimer);

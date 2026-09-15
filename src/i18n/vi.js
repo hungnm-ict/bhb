@@ -12,6 +12,7 @@ export default {
 
   'tab.tasks': 'Hoạt động',
   'tab.rules': 'Rule',
+  'tab.screens': 'Màn hình',
   'tab.log': 'Nhật ký',
   'panel.close': 'Đóng',
 
@@ -31,13 +32,30 @@ export default {
   'rules.disable': 'Tắt rule',
   'rules.moveUp': 'Lên (ưu tiên cao hơn)',
   'rules.moveDown': 'Xuống',
+  'rules.screenGate': 'Chỉ chạy ở màn hình này',
+  'rules.anywhere': 'Mọi màn hình',
   'rules.delete': 'Xoá rule',
+
+  'screens.title': 'Màn hình',
+  'screens.empty': 'Chưa có màn hình nào. Bắt một cái để bot biết nó đang ở đâu.',
+  'screens.capture': 'Bắt vùng nhận diện',
+  'screens.captureHint':
+    'Bảng điều khiển sẽ nhường chỗ; kéo một khung quanh thứ chỉ màn hình này có. Esc để huỷ.',
+  'screens.addAnchor': 'Thêm vùng nhận diện',
+  'screens.unnamed': '(chưa đặt tên)',
+  'screens.unknown': 'chưa rõ',
+  'screens.anchors': 'Vùng',
+  'screens.stopsTask': 'Hết tài nguyên — dừng hoạt động ở màn hình này',
+  'screens.ratioHint': 'Tỉ lệ điểm mẫu đang khớp',
+  'screen.defaultName': 'Màn hình {n}',
 
   'log.title': 'Nhật ký',
   'log.empty': 'Chưa có gì. Bật một hoạt động để bắt đầu.',
   'log.clear': 'Xoá',
   'log.clicked': 'Click {label}',
   'log.busy': 'Khớp {label}, đang bận',
+  'log.screen': 'Màn hình: {label}',
+  'log.resource': 'Hết tài nguyên ở {label} — đã dừng',
   'log.taskStarted': 'Bật {task}',
   'log.taskStopped': 'Tắt {task}',
 
@@ -61,5 +79,6 @@ export default {
   'msg.noWebgl': 'không có WebGL',
   'msg.noMousePosition': 'chưa có vị trí chuột',
   'msg.outsideCanvas': 'con trỏ ngoài canvas',
+  'msg.anchorCaptured': 'đã bắt vùng {n} cho {name}',
   'msg.ruleCaptured': 'đã bắt rule tại ({x}, {y}) — {hex}',
 };

@@ -10,9 +10,10 @@
  *  3. Everything else once the DOM is ready.
  */
 
+import { SPEED_STEPS } from './core/constants.js';
 import { installCanvasPatch } from './core/canvas.js';
 import { installFocusPatch } from './core/focus.js';
-import { installSpeedHack, getSpeed, setSpeed, onSpeedChange } from './core/speed.js';
+import { installSpeedHack, getSpeed, setSpeed, onSpeedChange, speedIndex } from './core/speed.js';
 import { createEngine, TaskId } from './core/engine.js';
 import { setClickObserver } from './core/input.js';
 import {
@@ -23,6 +24,7 @@ import {
 } from './core/storage.js';
 import { RERUN_RULES, WORLD_BOSS_RULES } from './rules/builtin.js';
 import { createRuleEditor } from './rules/editor.js';
+import { createScreenEditor } from './rules/screen-editor.js';
 import { setLanguage } from './i18n/index.js';
 import { installStyles } from './ui/styles.js';
 import { createUiStore } from './ui/store.js';
@@ -51,6 +53,7 @@ function bootstrap() {
 
   const profileState = loadProfiles();
   const getRules = () => getActiveProfile(profileState).rules;
+  const getScreens = () => getActiveProfile(profileState).screens;
   const persist = () => saveProfiles(profileState);
 
   const store = createUiStore();
@@ -60,12 +63,20 @@ function bootstrap() {
     getRerunRules: () => RERUN_RULES,
     getWorldBossRules: () => WORLD_BOSS_RULES,
     getScaleMode: () => settings.scaleMode,
+    getScreens,
   });
 
   const editor = createRuleEditor({
     getRules,
     persist,
     report: engine.setMessage,
+  });
+
+  const screenEditor = createScreenEditor({
+    getScreens,
+    persist,
+    report: engine.setMessage,
+    getScaleMode: () => settings.scaleMode,
   });
 
   // One renderer for all three views: any change redraws whatever is showing.
@@ -80,7 +91,9 @@ function bootstrap() {
   const panel = createPanel({
     store,
     editor,
+    screenEditor,
     getRules,
+    getScreens,
     getEngineState: engine.getState,
     toggleTask: engine.toggle,
     getProfileName: () => getActiveProfile(profileState).name,
@@ -108,9 +121,9 @@ function bootstrap() {
     '4': () => engine.toggle(TaskId.WORLD_BOSS),
     '5': () => engine.toggle(TaskId.SCRIPT),
     '0': () => editor.captureAtCursor().then(refresh),
-    '=': () => setSpeed(getSpeed() + 1),
-    '+': () => setSpeed(getSpeed() + 1),
-    '-': () => setSpeed(getSpeed() - 1),
+    '=': () => setSpeed(nextSpeedStep(getSpeed(), 1)),
+    '+': () => setSpeed(nextSpeedStep(getSpeed(), 1)),
+    '-': () => setSpeed(nextSpeedStep(getSpeed(), -1)),
   });
 
   refresh();
@@ -166,4 +179,11 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', start, { once: true });
 } else {
   start();
+}
+
+/** The hotkeys walk the slider's stops rather than adding a fixed amount. */
+function nextSpeedStep(current, direction) {
+  const index = speedIndex(current) + direction;
+  const bounded = Math.max(0, Math.min(SPEED_STEPS.length - 1, index));
+  return SPEED_STEPS[bounded];
 }

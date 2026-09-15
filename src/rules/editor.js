@@ -148,6 +148,16 @@ export function createRuleEditor(deps) {
     deps.persist();
   }
 
+  /** A rule with no screens fires anywhere, which is the default. */
+  function setScreens(ruleId, screenIds) {
+    const rule = find(ruleId);
+    if (!rule) {
+      return;
+    }
+    rule.screens = screenIds;
+    deps.persist();
+  }
+
   function remove(ruleId) {
     const rules = deps.getRules();
     const index = rules.findIndex((rule) => rule.id === ruleId);
@@ -175,6 +185,7 @@ export function createRuleEditor(deps) {
     captureAtCursor,
     rename,
     setEnabled,
+    setScreens,
     remove,
     move,
   };
