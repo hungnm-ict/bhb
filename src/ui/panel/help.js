@@ -30,6 +30,7 @@ const SECTIONS = [
     title: 'help.sectionUi',
     entries: [
       [keyLabel(Keys.PANEL), 'help.togglePanel'],
+      [keyLabel(Keys.CLOSE_PANEL), 'help.closePanel'],
     ],
   },
   {

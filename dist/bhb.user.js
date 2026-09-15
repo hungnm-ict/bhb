@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.9.6
+// @version      0.9.7
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -14,7 +14,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.9.6" : "dev";
+  var VERSION = true ? "0.9.7" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -45,6 +45,7 @@
   // src/core/keys.js
   var Keys = Object.freeze({
     PANEL: "`",
+    CLOSE_PANEL: "Escape",
     RERUN: "r",
     WORLD_BOSS: "b",
     SCRIPT: "c",
@@ -1879,7 +1880,8 @@
     "steps.dryRunHint": "Chạy thử đi dọc danh sách và chấm điểm từng bước trên khung hình đang hiện — ✓ khớp, ✗ không khớp, ⊘ thuộc màn hình khác. Nó KHÔNG bấm gì vào game nên lúc nào cũng an toàn. Bình thường dấu chỉ hiện khi rê chuột lên một dòng.",
     "lock.title": "Khoá cỡ canvas (thử nghiệm)",
     "lock.enabled": "Ghim game ở một cỡ cố định",
-    "lock.hint": "Bật thì game luôn vẽ ở 640×400 dù cửa sổ to nhỏ thế nào — nhờ vậy màu bot đọc được giống hệt nhau trên mọi máy, và bộ bước mới chia sẻ được. Cửa sổ nhỏ hơn thì phần hiển thị tự thu lại cho vừa, toạ độ vẫn đúng. Tắt là game co giãn theo cửa sổ như bình thường."
+    "lock.hint": "Bật thì game luôn vẽ ở 640×400 dù cửa sổ to nhỏ thế nào — nhờ vậy màu bot đọc được giống hệt nhau trên mọi máy, và bộ bước mới chia sẻ được. Cửa sổ nhỏ hơn thì phần hiển thị tự thu lại cho vừa, toạ độ vẫn đúng. Tắt là game co giãn theo cửa sổ như bình thường.",
+    "help.closePanel": "Đóng bảng điều khiển"
   };
 
   // src/i18n/en.js
@@ -2046,7 +2048,8 @@
     "steps.dryRunHint": "A dry run walks the list and scores each step against the frame on screen — ✓ matches, ✗ does not, ⊘ belongs to another screen. It clicks nothing, so it is safe at any time. Otherwise a marker appears only while you hover its row.",
     "lock.title": "Canvas size lock (experimental)",
     "lock.enabled": "Pin the game to a fixed size",
-    "lock.hint": "The game then renders at 640×400 whatever the window does, so the colours the bot reads are identical on every machine — which is what makes a step set shareable. A smaller window scales the display down to fit and the coordinates still hold. Switch it off and the game resizes with the window as before."
+    "lock.hint": "The game then renders at 640×400 whatever the window does, so the colours the bot reads are identical on every machine — which is what makes a step set shareable. A smaller window scales the display down to fit and the coordinates still hold. Switch it off and the game resizes with the window as before.",
+    "help.closePanel": "Close the control panel"
   };
 
   // src/i18n/index.js
@@ -4295,7 +4298,8 @@
     {
       title: "help.sectionUi",
       entries: [
-        [keyLabel(Keys.PANEL), "help.togglePanel"]
+        [keyLabel(Keys.PANEL), "help.togglePanel"],
+        [keyLabel(Keys.CLOSE_PANEL), "help.closePanel"]
       ]
     },
     {
@@ -4613,9 +4617,11 @@
       if (!handler) {
         return;
       }
+      if (handler() === false) {
+        return;
+      }
       event.preventDefault();
       event.stopImmediatePropagation();
-      handler();
     }
     document.addEventListener("keydown", onKeyDown, true);
     return () => document.removeEventListener("keydown", onKeyDown, true);
@@ -4858,6 +4864,14 @@
     installHotkeys({
       // The keyboard reference has no key of its own; it opens from the panel.
       [Keys.PANEL]: () => store.togglePanel(),
+      [Keys.CLOSE_PANEL]: () => {
+        if (!store.get().panelOpen) {
+          return false;
+        }
+        store.closePanel();
+        refresh();
+        return true;
+      },
       [Keys.RERUN]: () => engine.toggle(TaskId.RERUN),
       [Keys.WORLD_BOSS]: () => engine.toggle(TaskId.WORLD_BOSS),
       [Keys.SCRIPT]: () => engine.toggle(TaskId.SCRIPT),

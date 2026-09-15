@@ -1,4 +1,4 @@
-# BHB <!--version-->v0.9.6<!--/version-->
+# BHB <!--version-->v0.9.7<!--/version-->
 
 > 🇬🇧 [English version](README.en.md) · [Nhật ký thay đổi](https://github.com/hungnm-ict/bhb/commits/master)
 
@@ -76,6 +76,7 @@ Muốn bot biết nó đang ở đâu thì sang tab **Màn hình**, kéo một k
 | Phím | Chức năng |
 |:---:|---|
 | `` ` `` | Mở/đóng bảng điều khiển |
+| `Esc` | Đóng bảng (lúc bảng đang đóng thì phím này vẫn thuộc về game) |
 | `R` | Re-run — tìm 3 giây/lần, click xong nghỉ 20 giây |
 | `B` | Solo WB — World Boss, 2 giây/lần |
 | `C` | Tuỳ chỉnh — chạy các bước chưa gán hoạt động, 3 giây/lần |

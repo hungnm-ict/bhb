@@ -1,4 +1,4 @@
-# BHB <!--version-->v0.9.6<!--/version-->
+# BHB <!--version-->v0.9.7<!--/version-->
 
 > 🇻🇳 [Phiên bản tiếng Việt](README.md) · [Changelog](https://github.com/hungnm-ict/bhb/commits/master)
 
@@ -74,6 +74,7 @@ To let the bot know where it is, go to the **Screens** tab and drag a box around
 | Key | Action |
 |:---:|---|
 | `` ` `` | Open/close the control panel |
+| `Esc` | Close the panel (with it closed, the key stays the game's) |
 | `R` | Re-run — polls every 3s, rests 20s after a click |
 | `B` | Solo WB — polls every 2s |
 | `C` | Custom — runs the steps not tagged to an activity, every 3s |

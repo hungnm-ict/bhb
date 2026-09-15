@@ -7,7 +7,10 @@
  */
 
 /**
- * @param {Record<string, () => void>} bindings key → handler
+ * @param {Record<string, () => boolean | void>} bindings key → handler. A
+ *   handler returning false declines the key: nothing is consumed and the game
+ *   sees it, which is how Esc closes the panel without being taken from the
+ *   game the rest of the time.
  * @returns {() => void} removes the listener
  */
 export function installHotkeys(bindings) {
@@ -34,9 +37,11 @@ export function installHotkeys(bindings) {
       return;
     }
 
+    if (handler() === false) {
+      return;
+    }
     event.preventDefault();
     event.stopImmediatePropagation();
-    handler();
   }
 
   document.addEventListener('keydown', onKeyDown, true);
