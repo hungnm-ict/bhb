@@ -4,6 +4,7 @@ import { TaskId, Phase } from '../../core/engine.js';
 import { getSpeed, setSpeed, formatSpeed, speedIndex } from '../../core/speed.js';
 import { SPEED_STEPS } from '../../core/constants.js';
 import { getCanvas } from '../../core/canvas.js';
+import { rulesForActivity } from '../../rules/activity.js';
 
 /** Hotkeys still work; showing them here is how the user learns them. */
 const TASKS = [
@@ -32,9 +33,26 @@ function describeCanvas() {
 }
 
 /**
+ * How many enabled activities Run-All could actually do something with.
+ *
+ * Run-All with nothing tagged does not fail loudly — it rotates the queue
+ * quietly, and with the watchdog on it eventually reloads the page — so the
+ * switch says no rather than letting the user start it.
+ */
+function readyActivityCount(deps) {
+  const rules = deps.getRules();
+  return deps
+    .getActivities()
+    .filter((activity) => activity.enabled && rulesForActivity(rules, activity.id).length > 0)
+    .length;
+}
+
+/**
  * @param {object} deps
  * @param {() => object} deps.getEngineState
  * @param {(taskId: string) => void} deps.toggleTask
+ * @param {() => import('../../rules/model.js').Rule[]} deps.getRules
+ * @param {() => import('../../rules/activity.js').Activity[]} deps.getActivities
  * @param {() => void} deps.refresh
  */
 export function renderTasksTab(deps) {
@@ -61,6 +79,31 @@ export function renderTasksTab(deps) {
     return button;
   });
 
+  const ready = readyActivityCount(deps);
+  const runningAll = engine.activeTask === TaskId.RUN_ALL;
+  const runAll = el(
+    'button',
+    {
+      class: `bhb-task ${runningAll ? 'is-on' : ''} ${ready === 0 ? 'is-locked' : ''}`,
+      title: ready === 0 ? t('tasks.runAllLocked') : t('tasks.runAllReady', { n: ready }),
+    },
+    [
+      el('span', { class: 'bhb-task__switch' }),
+      el('span', { class: 'bhb-task__name', text: t('task.runAll') }),
+      el('span', {
+        class: 'bhb-task__phase',
+        text: runningAll ? t('queue.round', { n: engine.round }) : '',
+      }),
+      el('span', { class: 'bhb-kbd', text: '6' }),
+    ]
+  );
+  if (ready > 0) {
+    runAll.addEventListener('click', () => {
+      deps.toggleTask(TaskId.RUN_ALL);
+      deps.refresh();
+    });
+  }
+
   const slider = el('input', { class: 'bhb-slider' });
   slider.type = 'range';
   // The stops are not evenly spaced, so the slider rides their index.
@@ -74,7 +117,10 @@ export function renderTasksTab(deps) {
   });
 
   return el('div', { class: 'bhb-tab' }, [
-    el('div', { class: 'bhb-stack' }, rows),
+    el('div', { class: 'bhb-stack' }, [...rows, runAll]),
+    ready === 0
+      ? el('p', { class: 'bhb-note bhb-note--warn', text: t('tasks.runAllLocked') })
+      : el('p', { class: 'bhb-note', text: t('queue.inSettings') }),
 
     el('div', { class: 'bhb-field' }, [
       el('div', { class: 'bhb-field__head' }, [

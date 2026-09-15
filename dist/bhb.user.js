@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.4.4
+// @version      0.4.5
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -14,7 +14,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.4.4" : "dev";
+  var VERSION = true ? "0.4.5" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -1223,10 +1223,9 @@
     "phase.hunting": "đang tìm",
     "phase.resting": "nghỉ",
     "hud.idle": "đang dừng",
-    "tab.tasks": "Hoạt động",
-    "tab.rules": "Rule",
+    "tab.tasks": "Chạy",
+    "tab.rules": "Thao tác",
     "tab.screens": "Màn hình",
-    "tab.queue": "Hàng đợi",
     "tab.settings": "Cài đặt",
     "tab.log": "Nhật ký",
     "tab.help": "?",
@@ -1234,25 +1233,25 @@
     "overlay.speed": "Tốc độ",
     "overlay.canvas": "Canvas",
     "overlay.autoStop": "Tự tắt sau",
-    "overlay.rules": "Rule",
-    "overlay.noRules": "Chưa có rule nào. Rê chuột lên nút trong game rồi bấm Bắt rule.",
-    "overlay.needsRecapture": "Rule cũ, chưa có cỡ canvas — nên bắt lại",
-    "rule.defaultLabel": "Rule {n}",
-    "rules.capture": "Bắt rule tại con trỏ",
+    "overlay.rules": "Thao tác",
+    "overlay.noRules": "Chưa có thao tác nào. Rê chuột lên nút trong game rồi bấm Bắt thao tác.",
+    "overlay.needsRecapture": "Thao tác cũ, chưa có cỡ canvas — nên bắt lại",
+    "rule.defaultLabel": "Thao tác {n}",
+    "rules.capture": "Bắt thao tác tại con trỏ",
     "rules.captureHint": "Rê chuột lên nút trong game rồi bấm. Bot tự đọc màu lúc nút không sáng — không cần di chuột đi đâu cả.",
     "rules.unnamed": "(chưa đặt tên)",
-    "rules.enable": "Bật rule",
-    "rules.disable": "Tắt rule",
+    "rules.enable": "Bật thao tác",
+    "rules.disable": "Tắt thao tác",
     "rules.moveUp": "Lên (ưu tiên cao hơn)",
     "rules.moveDown": "Xuống",
     "rules.screenGate": "Chỉ chạy ở màn hình này",
     "rules.anywhere": "Mọi màn hình",
-    "rules.activity": "Rule này thuộc hoạt động nào",
-    "rules.loose": "Chỉ rule Script",
+    "rules.activity": "Thao tác này thuộc hoạt động nào",
+    "rules.loose": "Chỉ thao tác Script",
     "rules.noActivity": "Script",
-    "rules.allRules": "Tất cả rule",
+    "rules.allRules": "Tất cả thao tác",
     "rules.filter": "Chỉ hiện một hoạt động",
-    "rules.delete": "Xoá rule",
+    "rules.delete": "Xoá thao tác",
     "screens.title": "Màn hình",
     "screens.empty": "Chưa có màn hình nào. Bắt một cái để bot biết nó đang ở đâu.",
     "screens.capture": "Bắt vùng nhận diện",
@@ -1268,11 +1267,11 @@
     "queue.start": "Chạy tất cả",
     "queue.stop": "Dừng",
     "queue.round": "vòng {n}",
-    "queue.ruleCount": "Số rule thuộc hoạt động này",
+    "queue.ruleCount": "Số thao tác thuộc hoạt động này",
     "queue.closeAfterRound": "Đóng game sau khi xong một vòng",
-    "queue.hint": "Chạy từ trên xuống, bỏ qua cái đã hết tài nguyên, rồi quay lại từ đầu. Gán rule cho hoạt động ở tab Rule.",
+    "queue.hint": "Chạy từ trên xuống, bỏ qua cái đã hết tài nguyên, rồi quay lại từ đầu. Gán thao tác cho hoạt động ở tab Thao tác.",
     "settings.profiles": "Hồ sơ",
-    "settings.profilesHint": "Mỗi hồ sơ có rule, màn hình và hàng đợi riêng — mỗi nhân vật một hồ sơ. Tài khoản khác thì chỉ cần một browser profile khác.",
+    "settings.profilesHint": "Mỗi hồ sơ có thao tác, màn hình và hàng đợi riêng — mỗi nhân vật một hồ sơ. Tài khoản khác thì chỉ cần một browser profile khác.",
     "settings.newProfile": "Tạo mới",
     "settings.newProfileName": "Hồ sơ mới",
     "settings.duplicate": "Nhân bản",
@@ -1290,6 +1289,9 @@
     "settings.export": "Xuất",
     "settings.import": "Nhập",
     "settings.importFailed": "Nhập thất bại",
+    "tasks.runAllLocked": "Chưa dùng được: chưa hoạt động nào có thao tác. Sang tab Thao tác, bắt thao tác rồi gán cho một hoạt động.",
+    "tasks.runAllReady": "Sẵn sàng: {n} hoạt động đã có thao tác",
+    "queue.inSettings": "Thứ tự và bật/tắt từng hoạt động nằm ở tab Cài đặt.",
     "log.title": "Nhật ký",
     "log.empty": "Chưa có gì. Bật một hoạt động để bắt đầu.",
     "log.clear": "Xoá",
@@ -1302,14 +1304,14 @@
     "log.taskStarted": "Bật {task}",
     "log.taskStopped": "Tắt {task}",
     "help.sectionAuto": "Tự động",
-    "help.sectionRules": "Rule",
+    "help.sectionRules": "Thao tác",
     "help.sectionUi": "Giao diện",
     "help.sectionSpeed": "Tốc độ",
     "help.rerun": "Auto Rerun (tìm 3s, nghỉ 20s)",
     "help.wb": "Auto WB Solo (2s/lần)",
     "help.script": "Auto Script (3s/lần)",
     "help.runAll": "Chạy lần lượt mọi hoạt động trong hàng đợi",
-    "help.capture": "Bắt rule tại con trỏ",
+    "help.capture": "Bắt thao tác tại con trỏ",
     "help.togglePanel": "Mở/đóng bảng điều khiển",
     "help.speedUp": "Nhanh hơn (mốc kế tiếp)",
     "help.speedDown": "Chậm lại (mốc trước đó)",
@@ -1319,7 +1321,7 @@
     "msg.noMousePosition": "chưa có vị trí chuột",
     "msg.outsideCanvas": "con trỏ ngoài canvas",
     "msg.anchorCaptured": "đã bắt vùng {n} cho {name}",
-    "msg.ruleCaptured": "đã bắt rule tại ({x}, {y}) — {hex}"
+    "msg.ruleCaptured": "đã bắt thao tác tại ({x}, {y}) — {hex}"
   };
 
   // src/i18n/en.js
@@ -1332,10 +1334,9 @@
     "phase.hunting": "hunting",
     "phase.resting": "resting",
     "hud.idle": "idle",
-    "tab.tasks": "Tasks",
-    "tab.rules": "Rules",
+    "tab.tasks": "Run",
+    "tab.rules": "Actions",
     "tab.screens": "Screens",
-    "tab.queue": "Run All",
     "tab.settings": "Settings",
     "tab.log": "Log",
     "tab.help": "?",
@@ -1343,11 +1344,11 @@
     "overlay.speed": "Speed",
     "overlay.canvas": "Canvas",
     "overlay.autoStop": "Auto-stop in",
-    "overlay.rules": "Rules",
-    "overlay.noRules": "No rules yet. Hover a button in the game, then hit Capture.",
+    "overlay.rules": "Actions",
+    "overlay.noRules": "No actions yet. Hover a button in the game, then hit Capture.",
     "overlay.needsRecapture": "Captured before sizes were recorded — recapture it",
-    "rule.defaultLabel": "Rule {n}",
-    "rules.capture": "Capture at cursor",
+    "rule.defaultLabel": "Action {n}",
+    "rules.capture": "Capture an action at the cursor",
     "rules.captureHint": "Hover a button in the game and press. The resting colour is read for you — no need to move the mouse away.",
     "rules.unnamed": "(unnamed)",
     "rules.enable": "Enable",
@@ -1356,10 +1357,10 @@
     "rules.moveDown": "Move down",
     "rules.screenGate": "Only fire on this screen",
     "rules.anywhere": "Anywhere",
-    "rules.activity": "Which activity this rule belongs to",
-    "rules.loose": "Script rules only",
+    "rules.activity": "Which activity this action belongs to",
+    "rules.loose": "Script actions only",
     "rules.noActivity": "Script",
-    "rules.allRules": "All rules",
+    "rules.allRules": "All actions",
     "rules.filter": "Show only one activity",
     "rules.delete": "Delete",
     "screens.title": "Screens",
@@ -1377,11 +1378,11 @@
     "queue.start": "Run all activities",
     "queue.stop": "Stop",
     "queue.round": "round {n}",
-    "queue.ruleCount": "Rules tagged to this activity",
+    "queue.ruleCount": "Actions tagged to this activity",
     "queue.closeAfterRound": "Close the game after a full round",
-    "queue.hint": "Runs top to bottom, skips what is out of resources, and starts again. Tag rules to an activity in the Rules tab.",
+    "queue.hint": "Runs top to bottom, skips what is out of resources, and starts again. Tag actions to an activity in the Actions tab.",
     "settings.profiles": "Profiles",
-    "settings.profilesHint": "A profile holds its own rules, screens and queue — one per character. A second account just needs a second browser profile.",
+    "settings.profilesHint": "A profile holds its own actions, screens and queue — one per character. A second account just needs a second browser profile.",
     "settings.newProfile": "New",
     "settings.newProfileName": "New profile",
     "settings.duplicate": "Duplicate",
@@ -1399,6 +1400,9 @@
     "settings.export": "Export",
     "settings.import": "Import",
     "settings.importFailed": "Import failed",
+    "tasks.runAllLocked": "Not usable yet: no activity has any actions. Capture one in the Actions tab and tag it to an activity.",
+    "tasks.runAllReady": "Ready: {n} activities have actions",
+    "queue.inSettings": "The order and the on/off switches live in the Settings tab.",
     "log.title": "Activity",
     "log.empty": "Nothing yet. Start a task to see what the bot does.",
     "log.clear": "Clear",
@@ -1411,14 +1415,14 @@
     "log.taskStarted": "Started {task}",
     "log.taskStopped": "Stopped {task}",
     "help.sectionAuto": "Automation",
-    "help.sectionRules": "Rules",
+    "help.sectionRules": "Actions",
     "help.sectionUi": "Interface",
     "help.sectionSpeed": "Speed",
     "help.rerun": "Auto Rerun (hunt 3s, rest 20s)",
     "help.wb": "Auto WB Solo (every 2s)",
     "help.script": "Auto Script (every 3s)",
     "help.runAll": "Run every activity in the queue",
-    "help.capture": "Capture a rule at the cursor",
+    "help.capture": "Capture an action at the cursor",
     "help.togglePanel": "Open/close the control panel",
     "help.speedUp": "Speed up (next stop)",
     "help.speedDown": "Slow down (previous stop)",
@@ -1428,7 +1432,7 @@
     "msg.noMousePosition": "no cursor position yet",
     "msg.outsideCanvas": "cursor is outside the canvas",
     "msg.anchorCaptured": "anchor {n} captured for {name}",
-    "msg.ruleCaptured": "captured a rule at ({x}, {y}) — {hex}"
+    "msg.ruleCaptured": "captured an action at ({x}, {y}) — {hex}"
   };
 
   // src/i18n/index.js
@@ -1845,6 +1849,7 @@
   font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
 }
 .bhb-note { margin: 0; color: var(--bhb-dim); font-size: 10.5px; line-height: 1.5; }
+.bhb-note--warn { color: var(--bhb-warn); }
 .bhb-empty { margin: 0; padding: 18px 0; color: var(--bhb-dim); font-size: 11px; text-align: center; }
 .bhb-field { display: flex; flex-direction: column; gap: 7px; }
 .bhb-field__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
@@ -1878,6 +1883,13 @@
 .bhb-task.is-on .bhb-task__switch::after { transform: translateX(12px); background: var(--bhb-live); }
 
 .bhb-task__name { flex: 1; font-weight: 700; font-size: 11.5px; letter-spacing: .05em; }
+.bhb-task__label { flex: 1; font-size: 11px; line-height: 1.4; }
+.bhb-task--wrap { align-items: flex-start; }
+.bhb-task--wrap .bhb-task__switch { margin-top: 1px; }
+
+/* A switch that cannot do anything yet says so instead of pretending. */
+.bhb-task.is-locked { opacity: .5; cursor: not-allowed; }
+.bhb-task.is-locked:hover { border-color: var(--bhb-line); }
 .bhb-task__phase { color: var(--bhb-warn); font-size: 10px; }
 
 .bhb-kbd {
@@ -2026,19 +2038,6 @@
 .bhb-textarea { height: 72px; resize: vertical; font-family: var(--bhb-mono); font-size: 10px; }
 .bhb-btnrow { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
 .bhb-btn--small { flex: 1; min-width: 64px; padding: 4px 8px; font-size: 10.5px; }
-/* A settings switch is a whole row, not a 14px dot with a label beside it. */
-.bhb-toggle {
-  display: flex; align-items: center; gap: 9px; width: 100%;
-  padding: 7px 9px;
-  background: none; border: 1px solid transparent; border-radius: 9px;
-  color: inherit; font: inherit; text-align: left; cursor: pointer;
-}
-.bhb-toggle:hover { background: var(--bhb-bg-soft); border-color: var(--bhb-line); }
-.bhb-toggle__dot { color: var(--bhb-dim); font-size: 13px; line-height: 1; }
-.bhb-toggle.is-on .bhb-toggle__dot { color: var(--bhb-live); }
-.bhb-toggle__label { flex: 1; min-width: 0; font-size: 11px; }
-.bhb-toggle__note { color: var(--bhb-dim); font-size: 10px; }
-
 .bhb-queue__row.is-active { border-color: var(--bhb-live); }
 .bhb-queue__row.is-spent { opacity: .45; }
 .bhb-queue__state { width: 14px; text-align: center; color: var(--bhb-live); font-size: 10px; }
@@ -2127,7 +2126,6 @@
     TASKS: "tasks",
     RULES: "rules",
     SCREENS: "screens",
-    QUEUE: "queue",
     SETTINGS: "settings",
     LOG: "log",
     HELP: "help"
@@ -2309,6 +2307,10 @@
       canvas.clientHeight
     )}`;
   }
+  function readyActivityCount(deps) {
+    const rules = deps.getRules();
+    return deps.getActivities().filter((activity) => activity.enabled && rulesForActivity(rules, activity.id).length > 0).length;
+  }
   function renderTasksTab(deps) {
     const engine = deps.getEngineState();
     const speed2 = getSpeed();
@@ -2327,6 +2329,30 @@
       });
       return button;
     });
+    const ready = readyActivityCount(deps);
+    const runningAll = engine.activeTask === TaskId.RUN_ALL;
+    const runAll = el(
+      "button",
+      {
+        class: `bhb-task ${runningAll ? "is-on" : ""} ${ready === 0 ? "is-locked" : ""}`,
+        title: ready === 0 ? t("tasks.runAllLocked") : t("tasks.runAllReady", { n: ready })
+      },
+      [
+        el("span", { class: "bhb-task__switch" }),
+        el("span", { class: "bhb-task__name", text: t("task.runAll") }),
+        el("span", {
+          class: "bhb-task__phase",
+          text: runningAll ? t("queue.round", { n: engine.round }) : ""
+        }),
+        el("span", { class: "bhb-kbd", text: "6" })
+      ]
+    );
+    if (ready > 0) {
+      runAll.addEventListener("click", () => {
+        deps.toggleTask(TaskId.RUN_ALL);
+        deps.refresh();
+      });
+    }
     const slider = el("input", { class: "bhb-slider" });
     slider.type = "range";
     slider.min = "0";
@@ -2338,7 +2364,8 @@
       deps.refresh();
     });
     return el("div", { class: "bhb-tab" }, [
-      el("div", { class: "bhb-stack" }, rows2),
+      el("div", { class: "bhb-stack" }, [...rows2, runAll]),
+      ready === 0 ? el("p", { class: "bhb-note bhb-note--warn", text: t("tasks.runAllLocked") }) : el("p", { class: "bhb-note", text: t("queue.inSettings") }),
       el("div", { class: "bhb-field" }, [
         el("div", { class: "bhb-field__head" }, [
           el("span", { class: "bhb-label", text: t("overlay.speed") }),
@@ -2710,41 +2737,18 @@
   }
 
   // src/ui/panel/queue.js
-  function renderQueueTab(deps) {
+  function renderQueueSection(deps) {
     const activities = deps.getActivities();
     const engine = deps.getEngineState();
     const rules = deps.getRules();
-    const running = engine.activeTask === TaskId.RUN_ALL;
+    const running = Boolean(engine.activity);
     const spent = new Set(engine.spent || []);
-    const run = el("button", { class: `bhb-btn ${running ? "is-on" : "bhb-btn--primary"}` }, [
-      el("span", { class: "bhb-btn__dot" }),
-      el("span", { text: t(running ? "queue.stop" : "queue.start") }),
-      el("span", { class: "bhb-kbd", text: "6" })
-    ]);
-    run.addEventListener("click", () => {
-      deps.toggleTask(TaskId.RUN_ALL);
-      deps.refresh();
-    });
-    const closesAfterRound = deps.getCloseAfterRound();
-    const closeAfter = el("button", { class: `bhb-toggle ${closesAfterRound ? "is-on" : ""}` }, [
-      el("span", { class: "bhb-toggle__dot", text: closesAfterRound ? "◉" : "○" }),
-      el("span", { class: "bhb-toggle__label", text: t("queue.closeAfterRound") })
-    ]);
-    closeAfter.addEventListener("click", () => {
-      deps.setCloseAfterRound(!closesAfterRound);
-      deps.refresh();
-    });
-    const head = el("div", { class: "bhb-field" }, [
-      el("div", { class: "bhb-field__head" }, [
-        el("span", { class: "bhb-label", text: t("queue.title") }),
-        el("span", {
-          class: "bhb-mono bhb-note",
-          text: running ? t("queue.round", { n: engine.round }) : ""
-        })
-      ]),
-      run,
-      closeAfter,
-      el("p", { class: "bhb-note", text: t("queue.hint") })
+    const head = el("div", { class: "bhb-field__head" }, [
+      el("span", { class: "bhb-label", text: t("queue.title") }),
+      el("span", {
+        class: "bhb-mono bhb-note",
+        text: running ? t("queue.round", { n: engine.round }) : ""
+      })
     ]);
     const rows2 = activities.map((activity, index) => {
       const count = rulesForActivity(rules, activity.id).length;
@@ -2792,10 +2796,15 @@
         el("span", { class: "bhb-rule__actions" }, [toggle, up, down])
       ]);
     });
-    return el("div", { class: "bhb-tab" }, [head, el("div", { class: "bhb-rules" }, rows2)]);
+    return el("div", { class: "bhb-field" }, [
+      head,
+      el("p", { class: "bhb-note", text: t("queue.hint") }),
+      el("div", { class: "bhb-rules" }, rows2)
+    ]);
   }
 
   // src/ui/panel/settings.js
+  var transferBox = null;
   function renderSettingsTab(deps) {
     const { profiles, settings } = deps;
     const list = profiles.list();
@@ -2819,9 +2828,12 @@
       });
       return button;
     }
-    const transfer = el("textarea", { class: "bhb-textarea" });
+    if (!transferBox) {
+      transferBox = el("textarea", { class: "bhb-textarea" });
+      transferBox.spellcheck = false;
+    }
+    const transfer = transferBox;
     transfer.placeholder = t("settings.transferHint");
-    transfer.spellcheck = false;
     const exportButton = action("settings.export", () => {
       transfer.value = profiles.exportAll();
     });
@@ -2836,10 +2848,10 @@
       }
     });
     function toggleRow(labelKey, value, onChange, note) {
-      const row = el("button", { class: `bhb-toggle ${value ? "is-on" : ""}` }, [
-        el("span", { class: "bhb-toggle__dot", text: value ? "◉" : "○" }),
-        el("span", { class: "bhb-toggle__label", text: t(labelKey) }),
-        note ? el("span", { class: "bhb-mono bhb-toggle__note", text: note }) : null
+      const row = el("button", { class: `bhb-task bhb-task--wrap ${value ? "is-on" : ""}` }, [
+        el("span", { class: "bhb-task__switch" }),
+        el("span", { class: "bhb-task__label", text: t(labelKey) }),
+        note ? el("span", { class: "bhb-mono bhb-task__phase", text: note }) : null
       ]);
       row.addEventListener("click", () => {
         onChange(!value);
@@ -2900,6 +2912,7 @@
         ),
         el("p", { class: "bhb-note", text: t("settings.watchdogHint") })
       ]),
+      renderQueueSection(deps),
       el("div", { class: "bhb-field" }, [
         el("div", { class: "bhb-field__head" }, [
           el("span", { class: "bhb-label", text: t("settings.language") })
@@ -3033,7 +3046,6 @@
     [Tab.TASKS, "tab.tasks"],
     [Tab.RULES, "tab.rules"],
     [Tab.SCREENS, "tab.screens"],
-    [Tab.QUEUE, "tab.queue"],
     [Tab.SETTINGS, "tab.settings"],
     [Tab.LOG, "tab.log"],
     [Tab.HELP, "tab.help"]
@@ -3052,9 +3064,6 @@
       }
       if (tab === Tab.SCREENS) {
         return renderScreensTab(deps);
-      }
-      if (tab === Tab.QUEUE) {
-        return renderQueueTab(deps);
       }
       if (tab === Tab.SETTINGS) {
         return renderSettingsTab(deps);
@@ -3280,7 +3289,7 @@
       panel.render();
       markers.render();
     };
-    const LIVE_TABS = /* @__PURE__ */ new Set([Tab.TASKS, Tab.SCREENS, Tab.QUEUE]);
+    const LIVE_TABS = /* @__PURE__ */ new Set([Tab.TASKS, Tab.SCREENS]);
     const refreshLive = () => {
       hud.render();
       const state = store.get();

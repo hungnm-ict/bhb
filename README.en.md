@@ -44,23 +44,24 @@ After that the script **updates itself** — no reinstalling. Tampermonkey check
 
 A small **HUD** sits in the top-right corner of the game: a status dot, the speed, and a line saying what the bot is doing. It fades after 4 seconds so it stops covering the game; hovering brings it back.
 
-Click it (or press `1`) to open the **control panel**, which has seven tabs:
+Click it (or press `1`) to open the **control panel**, which has six tabs:
 
 | Tab | Contents |
 |---|---|
-| **Tasks** | A switch per mode, the speed slider, canvas size, auto-stop countdown |
-| **Rules** | The rule table: rename, enable, tag to an activity, gate to a screen, reorder, delete |
+| **Run** | A switch per mode (Run All included), the speed slider, canvas size, auto-stop countdown |
+| **Actions** | The action table: rename, enable, tag to an activity, gate to a screen, reorder, delete |
 | **Screens** | Screen anchors, with a live ✓/✗ and the measured match ratio |
-| **Run All** | The activity queue: enable, reorder, and the round it is on |
-| **Settings** | Profiles (one per character), reload-on-hang, language, export/import |
+| **Settings** | Profiles (one per character), the activity queue, reload-on-hang, language, export/import |
 | **Log** | What the bot has actually done, newest first |
 | **?** | The keyboard reference |
 
-With the **Rules** tab open, every rule is drawn as a **marker on the canvas** at the position it watches. Hovering a row lights its marker and the other way round, so you can see which button a rule points at.
+An **action** is "when this colour is here (on this screen), click there". Order in the table is **priority**, not sequence — sequence comes from the screen column.
+
+With the **Actions** tab open, every action is drawn as a **marker on the canvas** at the position it watches. Hovering a row lights its marker and the other way round, so you can see which button a rule points at.
 
 ### Capturing a rule
 
-Hover a button in the game and press **Capture at cursor** (or the `0` key). That is the whole flow.
+Hover a button in the game and press **Capture an action at the cursor** (or the `0` key). That is the whole flow.
 
 The bot handles the hover problem for you: it parks the **synthetic** pointer in a corner of the canvas, waits for the game to repaint, reads the resting colour, and puts the synthetic pointer back. Your real cursor never moves. Both shades — lit and resting — are stored, so the rule matches either way.
 

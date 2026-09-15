@@ -13,7 +13,7 @@ describe('translations', () => {
   it('substitutes named placeholders', () => {
     setLanguage('en');
     expect(t('msg.ruleCaptured', { x: 410, y: 62, hex: '#a6d339' })).toBe(
-      'captured a rule at (410, 62) — #a6d339'
+      'captured an action at (410, 62) — #a6d339'
     );
   });
 

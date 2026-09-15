@@ -12,7 +12,6 @@ export const Tab = Object.freeze({
   TASKS: 'tasks',
   RULES: 'rules',
   SCREENS: 'screens',
-  QUEUE: 'queue',
   SETTINGS: 'settings',
   LOG: 'log',
   HELP: 'help',
