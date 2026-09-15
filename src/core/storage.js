@@ -98,18 +98,36 @@ function importLegacySteps() {
  *
  * A profile stores its own activity list, so a default added later — World Boss
  * split into solo and team — would never reach anyone who had already used the
- * bot. New entries land at the end rather than in the default order, because
- * the order is the user's.
+ * bot. A new entry lands beside the default it belongs next to rather than at
+ * the end, because "World Boss (team)" nine rows below "World Boss" is a list
+ * nobody would have written on purpose.
  */
 function mergeActivities(stored) {
   if (!Array.isArray(stored) || stored.length === 0) {
     return createDefaultActivities();
   }
-  const known = new Set(stored.map((activity) => activity && activity.id));
-  const added = DEFAULT_ACTIVITIES.filter((activity) => !known.has(activity.id)).map(
-    (activity) => ({ ...activity, enabled: false })
-  );
-  return [...stored, ...added];
+
+  const merged = [...stored];
+  const has = (id) => merged.some((activity) => activity && activity.id === id);
+
+  DEFAULT_ACTIVITIES.forEach((activity, index) => {
+    if (has(activity.id)) {
+      return;
+    }
+    // Walk back through the defaults for the nearest one the user still has;
+    // that is this entry's neighbour, wherever they moved it to.
+    let at = merged.length;
+    for (let before = index - 1; before >= 0; before -= 1) {
+      const anchor = merged.findIndex((entry) => entry && entry.id === DEFAULT_ACTIVITIES[before].id);
+      if (anchor !== -1) {
+        at = anchor + 1;
+        break;
+      }
+    }
+    merged.splice(at, 0, { ...activity, enabled: false });
+  });
+
+  return merged;
 }
 
 /** @param {unknown} candidate @returns {ProfileState} */

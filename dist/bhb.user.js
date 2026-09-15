@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.11.0
+// @version      0.12.0
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -14,7 +14,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.11.0" : "dev";
+  var VERSION = true ? "0.12.0" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -622,6 +622,12 @@
        */
       restSec: 0,
       kind: StepKind.CLICK,
+      /**
+       * For a wait step: how many of its points may still match before it lets
+       * the sequence through. Waiting on four empty party slots with this at 2
+       * is "wait until three players are here", whichever seats they took.
+       */
+      maxMatches: 0,
       /** Skip instead of waiting when it does not match — a box already ticked. */
       optional: false,
       ...overrides
@@ -635,6 +641,19 @@
   }
   function colorForPoint(step, point) {
     return point.hex || step.hex;
+  }
+  function pointsByPlace(step) {
+    const places = /* @__PURE__ */ new Map();
+    for (const point of step.points) {
+      const key = `${point.x},${point.y},${point.bw || 0},${point.bh || 0}`;
+      const group = places.get(key);
+      if (group) {
+        group.push(point);
+      } else {
+        places.set(key, [point]);
+      }
+    }
+    return [...places.values()];
   }
 
   // src/bot/screen.js
@@ -878,6 +897,28 @@
       }
       return null;
     }
+    function countPlaces(step, gl, screenId, buffer, scaleMode) {
+      if (!isStepReady(step) || !stepAllowedOn(step, screenId)) {
+        return 0;
+      }
+      let seen = 0;
+      for (const place of pointsByPlace(step)) {
+        const matched = place.some(
+          (storedPoint) => matchPoint(
+            gl,
+            storedPoint,
+            colorForPoint(step, storedPoint),
+            buffer,
+            scaleMode,
+            step.tolerance
+          ).matched
+        );
+        if (matched) {
+          seen += 1;
+        }
+      }
+      return seen;
+    }
     function tryStep(step, canvas, gl, screenId, buffer, scaleMode) {
       const point = matchStep(step, gl, screenId, buffer, scaleMode);
       if (!point) {
@@ -913,9 +954,12 @@
         state.expectedStepId = expected ? expected.id : null;
         const point = matchStep(expected, gl, screenId, buffer, scaleMode);
         if (expected.kind === StepKind.WAIT) {
-          if (point) {
+          const stillThere = countPlaces(expected, gl, screenId, buffer, scaleMode);
+          if (stillThere > (expected.maxMatches || 0)) {
             cursor.misses = 0;
-            setMessage(`${expected.label || expected.id}: waiting`);
+            setMessage(
+              `${expected.label || expected.id}: waiting (${stillThere} left)`
+            );
             return null;
           }
           cursor.index = (cursor.index + 1) % steps.length;
@@ -1296,11 +1340,23 @@
     if (!Array.isArray(stored) || stored.length === 0) {
       return createDefaultActivities();
     }
-    const known = new Set(stored.map((activity) => activity && activity.id));
-    const added = DEFAULT_ACTIVITIES.filter((activity) => !known.has(activity.id)).map(
-      (activity) => ({ ...activity, enabled: false })
-    );
-    return [...stored, ...added];
+    const merged = [...stored];
+    const has = (id) => merged.some((activity) => activity && activity.id === id);
+    DEFAULT_ACTIVITIES.forEach((activity, index) => {
+      if (has(activity.id)) {
+        return;
+      }
+      let at = merged.length;
+      for (let before = index - 1; before >= 0; before -= 1) {
+        const anchor = merged.findIndex((entry) => entry && entry.id === DEFAULT_ACTIVITIES[before].id);
+        if (anchor !== -1) {
+          at = anchor + 1;
+          break;
+        }
+      }
+      merged.splice(at, 0, { ...activity, enabled: false });
+    });
+    return merged;
   }
   function normaliseState(candidate) {
     if (!candidate || typeof candidate !== "object" || !Array.isArray(candidate.profiles) || candidate.profiles.length === 0) {
@@ -1878,7 +1934,11 @@
     "steps.kindClick": "Bấm",
     "steps.kindOptional": "Bấm nếu có",
     "steps.kindWait": "Chờ đến khi hết",
-    "steps.behaviourHint": "Bấm: thấy màu thì bấm, chưa thấy thì đợi. Bấm nếu có: không thấy thì bỏ qua luôn, sang bước sau — dùng cho ô tick sẵn như Private. Chờ đến khi hết: còn thấy màu là còn đứng chờ, mất mới đi tiếp — dùng để chờ đủ người trước khi bấm START."
+    "steps.behaviourHint": "Bấm: thấy màu thì bấm, chưa thấy thì đợi. Bấm nếu có: không thấy thì bỏ qua luôn, sang bước sau — dùng cho ô tick sẵn như Private. Chờ đến khi hết: còn thấy màu là còn đứng chờ, mất mới đi tiếp — dùng để chờ đủ người trước khi bấm START.",
+    "steps.addPlace": "Thêm một chỗ nữa vào bước này (bảng sẽ ẩn đi, rê chuột rồi bấm X)",
+    "steps.placeCount": "Số chỗ bước này nhìn vào",
+    "steps.maxMatchesHint": "Còn đứng chờ khi số chỗ vẫn thấy màu NHIỀU HƠN số này. Bốn ô mời + đặt 2 nghĩa là chờ đến khi đủ 3 người, ai ngồi ô nào cũng được.",
+    "msg.placeAdded": "đã thêm chỗ vào bước — giờ nhìn {n} chỗ"
   };
 
   // src/i18n/en.js
@@ -2053,7 +2113,11 @@
     "steps.kindClick": "Click",
     "steps.kindOptional": "Click if present",
     "steps.kindWait": "Wait until gone",
-    "steps.behaviourHint": "Click: click when the colour shows, wait otherwise. Click if present: skip straight on when it does not — for a box like Private that may already be ticked. Wait until gone: hold here while the colour is there — for waiting on a party to fill before Start."
+    "steps.behaviourHint": "Click: click when the colour shows, wait otherwise. Click if present: skip straight on when it does not — for a box like Private that may already be ticked. Wait until gone: hold here while the colour is there — for waiting on a party to fill before Start.",
+    "steps.addPlace": "Watch one more place (the panel steps aside; hover and press X)",
+    "steps.placeCount": "How many places this step watches",
+    "steps.maxMatchesHint": "Hold while MORE than this many places still show the colour. Four invite buttons with this at 2 means wait for a third player, whichever seats they take.",
+    "msg.placeAdded": "place added — the step now watches {n}"
   };
 
   // src/i18n/index.js
@@ -2112,7 +2176,7 @@
       },
       true
     );
-    async function captureAtCursor() {
+    async function captureAtCursor(intoStepId = null) {
       if (capturing) {
         return null;
       }
@@ -2152,12 +2216,19 @@
           points.push({ ...point, ...size, hex: hoveredHex });
         }
         const steps = deps.getSteps();
-        const step = createStep({
-          label: t("step.defaultLabel", { n: steps.length + 1 }),
-          points,
-          hex: restingHex
-        });
-        steps.push(step);
+        const existing = intoStepId ? find(intoStepId) : null;
+        let step;
+        if (existing) {
+          existing.points.push(...points);
+          step = existing;
+        } else {
+          step = createStep({
+            label: t("step.defaultLabel", { n: steps.length + 1 }),
+            points,
+            hex: restingHex
+          });
+          steps.push(step);
+        }
         deps.persist();
         deps.report(
           settled.isSettled ? t("msg.stepCaptured", { x: point.x, y: point.y, hex: restingHex }) : t("msg.stepUnstable", { x: point.x, y: point.y, hex: restingHex })
@@ -2206,6 +2277,27 @@
       step.optional = step.kind === StepKind.CLICK && optional === true;
       deps.persist();
     }
+    function setMaxMatches(stepId, count) {
+      const step = find(stepId);
+      if (!step) {
+        return;
+      }
+      step.maxMatches = Math.max(0, Math.min(20, Math.round(Number(count) || 0)));
+      deps.persist();
+    }
+    function removePlace(stepId, placeIndex) {
+      const step = find(stepId);
+      if (!step) {
+        return;
+      }
+      const places = pointsByPlace(step);
+      const doomed = places[placeIndex];
+      if (!doomed || places.length <= 1) {
+        return;
+      }
+      step.points = step.points.filter((point) => !doomed.includes(point));
+      deps.persist();
+    }
     function setRest(stepId, seconds) {
       const step = find(stepId);
       if (!step) {
@@ -2249,6 +2341,8 @@
       setScreens,
       setRest,
       setBehaviour,
+      setMaxMatches,
+      removePlace,
       setActivity,
       remove,
       move
@@ -3166,6 +3260,16 @@
        * `0` mid-fight that captures whatever happened to be under the cursor.
        */
       isCaptureArmed: false,
+      /**
+       * A step waiting for one more place.
+       *
+       * The ＋ button lives in the panel, and the panel covers the game — so it
+       * cannot capture on the spot. It steps aside and hands the next capture to
+       * this step instead of a new one.
+       *
+       * @type {string | null}
+       */
+      pendingPlaceStepId: null,
       /** All markers at once; off by default, so the game stays readable. */
       areMarkersPinned: false,
       /**
@@ -3209,6 +3313,7 @@
       setTab: (tab) => patch({ tab, panelOpen: true }),
       setRuleFilter: (activityId) => patch({ stepFilter: activityId }),
       armCapture: (armed) => patch({ isCaptureArmed: armed }),
+      awaitPlaceFor: (stepId) => patch({ pendingPlaceStepId: stepId }),
       pinMarkers: (pinned) => patch({ areMarkersPinned: pinned }),
       /** @param {{ index: number, scores: Record<string, string> } | null} run */
       setDryRun(run) {
@@ -3681,6 +3786,33 @@
         deps.stepEditor.setRest(step.id, rest.value);
         deps.refresh();
       });
+      const places = pointsByPlace(step);
+      const isWait = step.kind === StepKind.WAIT;
+      const addPlace = el("button", {
+        class: "bhb-icon",
+        title: t("steps.addPlace"),
+        text: "＋"
+      });
+      addPlace.addEventListener("click", () => {
+        deps.store.awaitPlaceFor(step.id);
+        deps.store.armCapture(true);
+        deps.store.closePanel();
+        deps.refresh();
+      });
+      const threshold = el("input", { class: "bhb-rest bhb-mono", title: t("steps.maxMatchesHint") });
+      threshold.type = "number";
+      threshold.min = "0";
+      threshold.max = "20";
+      threshold.value = String(step.maxMatches || 0);
+      threshold.addEventListener("change", () => {
+        deps.stepEditor.setMaxMatches(step.id, threshold.value);
+        deps.refresh();
+      });
+      const placeCount = el("span", {
+        class: "bhb-note bhb-mono",
+        title: t("steps.placeCount"),
+        text: places.length > 1 ? `×${places.length}` : ""
+      });
       const classes = ["bhb-step", "bhb-step--stacked"];
       if (step.id === expectedStepId) {
         classes.push("is-next");
@@ -3699,11 +3831,12 @@
           el("span", { class: "bhb-rule__n", text: String(index + 1) }),
           el("span", { class: "bhb-rule__swatch", style: { background: step.hex || "transparent" } }),
           name,
-          el("span", { class: "bhb-rule__actions" }, [toggle, up, down, remove])
+          el("span", { class: "bhb-rule__actions" }, [addPlace, toggle, up, down, remove])
         ]),
         el("div", { class: "bhb-rule__meta" }, [
           behaviour,
-          rest,
+          placeCount,
+          isWait ? threshold : rest,
           el("span", { class: "bhb-rule__meta-coord" }, [
             el("span", {
               class: "bhb-rule__coord bhb-mono",
@@ -5021,7 +5154,14 @@
           engine.setMessage(t("msg.captureDisarmed"));
           return;
         }
-        stepEditor.captureAtCursor().then(refresh);
+        const pending = store.get().pendingPlaceStepId;
+        stepEditor.captureAtCursor(pending).then(() => {
+          if (pending) {
+            store.awaitPlaceFor(null);
+            store.openPanel();
+          }
+          refresh();
+        });
       },
       [Keys.SPEED_RESET]: () => setSpeed(1),
       [Keys.SPEED_UP]: () => setSpeed(stepSpeed(getSpeed(), 1)),

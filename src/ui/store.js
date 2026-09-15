@@ -41,6 +41,17 @@ export function createUiStore() {
      */
     isCaptureArmed: false,
 
+    /**
+     * A step waiting for one more place.
+     *
+     * The ＋ button lives in the panel, and the panel covers the game — so it
+     * cannot capture on the spot. It steps aside and hands the next capture to
+     * this step instead of a new one.
+     *
+     * @type {string | null}
+     */
+    pendingPlaceStepId: null,
+
     /** All markers at once; off by default, so the game stays readable. */
     areMarkersPinned: false,
 
@@ -99,6 +110,8 @@ export function createUiStore() {
     setRuleFilter: (activityId) => patch({ stepFilter: activityId }),
 
     armCapture: (armed) => patch({ isCaptureArmed: armed }),
+
+    awaitPlaceFor: (stepId) => patch({ pendingPlaceStepId: stepId }),
 
     pinMarkers: (pinned) => patch({ areMarkersPinned: pinned }),
 

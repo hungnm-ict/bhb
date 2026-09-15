@@ -199,4 +199,9 @@ export default {
   'steps.kindOptional': 'Click if present',
   'steps.kindWait': 'Wait until gone',
   'steps.behaviourHint': 'Click: click when the colour shows, wait otherwise. Click if present: skip straight on when it does not — for a box like Private that may already be ticked. Wait until gone: hold here while the colour is there — for waiting on a party to fill before Start.',
+
+  'steps.addPlace': 'Watch one more place (the panel steps aside; hover and press X)',
+  'steps.placeCount': 'How many places this step watches',
+  'steps.maxMatchesHint': 'Hold while MORE than this many places still show the colour. Four invite buttons with this at 2 means wait for a third player, whichever seats they take.',
+  'msg.placeAdded': 'place added — the step now watches {n}',
 };

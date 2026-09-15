@@ -245,3 +245,58 @@ describe('waiting and optional steps', () => {
     engine.stop();
   });
 });
+
+describe('waiting on a count, not a seat', () => {
+  /** Four invite buttons, one step: the party lobby as one condition. */
+  function waitOnPlaces(xs, maxMatches) {
+    return {
+      ...stepAt(xs[0], 'empty seats'),
+      kind: 'wait',
+      maxMatches,
+      points: xs.map((x) => ({ x, y: 300, bw: 800, bh: 600 })),
+    };
+  }
+
+  it('lets the sequence through once few enough places still match', () => {
+    // Seats 4 and 5 are taken; 2 and 3 are not. Three players are here.
+    lit = new Set([100, 200, 900]);
+    const engine = build([waitOnPlaces([100, 200, 300, 400], 2), stepAt(900, 'start')]);
+
+    engine.start(TaskId.SCRIPT);
+
+    expect(clicks, 'who sat where is the game\'s business').toEqual([900]);
+    engine.stop();
+  });
+
+  it('keeps holding while too many still match', () => {
+    lit = new Set([100, 200, 300, 900]);
+    const engine = build([waitOnPlaces([100, 200, 300, 400], 2), stepAt(900, 'start')]);
+
+    engine.start(TaskId.SCRIPT);
+    engine.tick();
+
+    expect(clicks, 'only two players so far').toEqual([]);
+    engine.stop();
+  });
+
+  it('counts a place once, though a capture stores two colours for it', () => {
+    // What a capture actually writes: the resting colour and the hovered one,
+    // both at the same spot. Counted naively, one empty seat reads as two.
+    const step = {
+      ...stepAt(100, 'one seat'),
+      kind: 'wait',
+      maxMatches: 1,
+      points: [
+        { x: 100, y: 300, bw: 800, bh: 600 },
+        { x: 100, y: 300, bw: 800, bh: 600, hex: '#ff0000' },
+      ],
+    };
+    lit = new Set([100, 900]);
+    const engine = build([step, stepAt(900, 'start')]);
+
+    engine.start(TaskId.SCRIPT);
+
+    expect(clicks, 'one place matching is one, not two').toEqual([900]);
+    engine.stop();
+  });
+});

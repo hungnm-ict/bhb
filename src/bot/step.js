@@ -73,6 +73,12 @@ export function createStep(overrides = {}) {
      */
     restSec: 0,
     kind: StepKind.CLICK,
+    /**
+     * For a wait step: how many of its points may still match before it lets
+     * the sequence through. Waiting on four empty party slots with this at 2
+     * is "wait until three players are here", whichever seats they took.
+     */
+    maxMatches: 0,
     /** Skip instead of waiting when it does not match — a box already ticked. */
     optional: false,
     ...overrides,
@@ -93,4 +99,27 @@ export function isStepReady(step) {
 /** The colour to match for a given point — the point's own wins. */
 export function colorForPoint(step, point) {
   return point.hex || step.hex;
+}
+
+/**
+ * Points grouped by the place they look at.
+ *
+ * A capture stores two points at one spot — the resting colour and the hovered
+ * one — so counting points would count one party slot twice. Counting places
+ * is what the user means by "how many slots are still empty".
+ *
+ * @returns {Array<import('./step.js').StoredPoint[]>}
+ */
+export function pointsByPlace(step) {
+  const places = new Map();
+  for (const point of step.points) {
+    const key = `${point.x},${point.y},${point.bw || 0},${point.bh || 0}`;
+    const group = places.get(key);
+    if (group) {
+      group.push(point);
+    } else {
+      places.set(key, [point]);
+    }
+  }
+  return [...places.values()];
 }

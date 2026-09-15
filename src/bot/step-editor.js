@@ -10,7 +10,7 @@ import {
 } from '../core/coords.js';
 import { realRequestAnimationFrame } from '../core/timers.js';
 import { HOVER_RESET_POINT } from '../core/constants.js';
-import { createStep, StepKind } from './step.js';
+import { createStep, StepKind, pointsByPlace } from './step.js';
 import { t } from '../i18n/index.js';
 
 /**
@@ -100,7 +100,10 @@ export function createStepEditor(deps) {
    * Capture a step at the current cursor position.
    * @returns {Promise<import('./step.js').Step | null>}
    */
-  async function captureAtCursor() {
+  /**
+   * @param {string | null} intoStepId append to this step instead of making one
+   */
+  async function captureAtCursor(intoStepId = null) {
     // A second capture mid-flight would move the pointer out from under the
     // first one's colour read.
     if (capturing) {
@@ -151,12 +154,22 @@ export function createStepEditor(deps) {
       }
 
       const steps = deps.getSteps();
-      const step = createStep({
-        label: t('step.defaultLabel', { n: steps.length + 1 }),
-        points,
-        hex: restingHex,
-      });
-      steps.push(step);
+      const existing = intoStepId ? find(intoStepId) : null;
+
+      let step;
+      if (existing) {
+        // A second place for the same step — four empty party slots are one
+        // condition, not four steps that each half-say it.
+        existing.points.push(...points);
+        step = existing;
+      } else {
+        step = createStep({
+          label: t('step.defaultLabel', { n: steps.length + 1 }),
+          points,
+          hex: restingHex,
+        });
+        steps.push(step);
+      }
       deps.persist();
 
       deps.report(
@@ -220,6 +233,31 @@ export function createStepEditor(deps) {
     deps.persist();
   }
 
+  /** A wait step's threshold: how many places may still show their colour. */
+  function setMaxMatches(stepId, count) {
+    const step = find(stepId);
+    if (!step) {
+      return;
+    }
+    step.maxMatches = Math.max(0, Math.min(20, Math.round(Number(count) || 0)));
+    deps.persist();
+  }
+
+  /** Drop one place from a step, by the index `pointsByPlace` reports. */
+  function removePlace(stepId, placeIndex) {
+    const step = find(stepId);
+    if (!step) {
+      return;
+    }
+    const places = pointsByPlace(step);
+    const doomed = places[placeIndex];
+    if (!doomed || places.length <= 1) {
+      return;
+    }
+    step.points = step.points.filter((point) => !doomed.includes(point));
+    deps.persist();
+  }
+
   /** Seconds this step waits after clicking; 0 turns the wait off. */
   function setRest(stepId, seconds) {
     const step = find(stepId);
@@ -269,6 +307,8 @@ export function createStepEditor(deps) {
     setScreens,
     setRest,
     setBehaviour,
+    setMaxMatches,
+    removePlace,
     setActivity,
     remove,
     move,
