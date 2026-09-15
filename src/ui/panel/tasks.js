@@ -17,6 +17,20 @@ import { stepsForActivity } from '../../bot/activity.js';
  */
 let speedControl = null;
 
+/**
+ * Whether a finger is on the speed slider right now.
+ *
+ * Keeping the slider node across renders is not enough: the panel body is
+ * rebuilt every tick, and re-parenting a node mid-drag makes Chrome drop the
+ * pointer capture — the thumb comes off the cursor twice a second. So while the
+ * slider is held, the panel does not rebuild at all.
+ */
+let isDraggingSpeed = false;
+
+export function speedIsBeingDragged() {
+  return isDraggingSpeed;
+}
+
 /** Repaint just the speed readout and slider position. */
 export function updateSpeedDisplay() {
   if (!speedControl) {
@@ -142,6 +156,18 @@ export function renderTasksTab(deps) {
     slider.step = '1';
     slider.addEventListener('input', () => {
       setSpeed(SPEED_STEPS[Number(slider.value)]);
+    });
+
+    slider.addEventListener('pointerdown', () => {
+      isDraggingSpeed = true;
+    });
+    // On the window, not the slider: a drag very often ends with the cursor
+    // somewhere else entirely, and a flag left stuck on would freeze the panel.
+    window.addEventListener('pointerup', () => {
+      isDraggingSpeed = false;
+    });
+    window.addEventListener('pointercancel', () => {
+      isDraggingSpeed = false;
     });
 
     speedControl = { slider, readout: el('span', { class: 'bhb-speed' }) };

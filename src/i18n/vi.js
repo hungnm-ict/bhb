@@ -1,10 +1,10 @@
 export default {
   'app.name': 'BHB',
 
-  'task.rerun': 'RE-RUN',
-  'task.wb': 'SOLO WB',
-  'task.runAll': 'CHẠY TẤT CẢ',
-  'task.script': 'TUỲ CHỈNH',
+  'task.rerun': 'Re-run',
+  'task.wb': 'Solo WB',
+  'task.runAll': 'Chạy tất cả',
+  'task.script': 'Tuỳ chỉnh',
 
   'phase.hunting': 'đang chạy',
   'phase.resting': 'nghỉ',
@@ -99,6 +99,7 @@ export default {
   'log.resync': 'Lạc nhịp — bắt lại từ {label}',
   'size.same': 'Cỡ framebuffer game vẽ ra — bước lưu toạ độ theo hệ này',
   'size.scaled': 'Cỡ framebuffer → cỡ hiển thị. Khác nhau nghĩa là game đang được co giãn',
+  'steps.legacyBadge': 'bắt lại',
   'steps.legacyWarning':
     '{n} bước chưa có cỡ canvas lúc bắt nên không co giãn được — đổi cỡ cửa sổ là bấm sai chỗ. Bắt lại từng cái để sửa.',
   'log.title': 'Nhật ký',

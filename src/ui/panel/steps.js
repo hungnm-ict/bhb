@@ -180,11 +180,19 @@ export function renderStepsTab(deps) {
         el('span', { class: 'bhb-rule__actions' }, [toggle, up, down, remove]),
       ]),
       el('div', { class: 'bhb-rule__meta' }, [
-        el('span', {
-          class: 'bhb-rule__coord bhb-mono',
-          title: legacy ? t('overlay.needsRecapture') : '',
-          text: point ? `${point.x},${point.y}${legacy ? ' ⚠' : ''}` : '—',
-        }),
+        el('span', { class: 'bhb-rule__meta-coord' }, [
+          el('span', {
+            class: 'bhb-rule__coord bhb-mono',
+            text: point ? `${point.x},${point.y}` : '—',
+          }),
+          legacy
+            ? el('span', {
+                class: 'bhb-rule__legacy',
+                title: t('overlay.needsRecapture'),
+                text: `⚠ ${t('steps.legacyBadge')}`,
+              })
+            : null,
+        ]),
         activities.length > 0 ? slot : null,
         deps.getScreens().length > 0 ? gate : null,
       ]),

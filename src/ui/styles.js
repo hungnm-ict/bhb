@@ -122,7 +122,7 @@ const CSS = `
   border-bottom: 1px solid var(--bhb-line);
 }
 .bhb-panel__brand { display: flex; align-items: baseline; gap: 6px; flex: 1; }
-.bhb-panel__name { font-weight: 800; letter-spacing: .08em; font-size: var(--bhb-fs-lg); }
+.bhb-panel__name { font-weight: 800; letter-spacing: .06em; font-size: var(--bhb-fs-xl); }
 .bhb-panel__ver { color: var(--bhb-dim); font-size: var(--bhb-fs-xs); }
 .bhb-panel__profile { color: var(--bhb-dim); font-size: var(--bhb-fs-sm); }
 
@@ -138,7 +138,7 @@ const CSS = `
 .bhb-tabbtn {
   flex: none; padding: 7px 5px 9px; white-space: nowrap;
   background: none; border: 0; border-bottom: 2px solid transparent;
-  color: var(--bhb-dim); font: inherit; font-size: var(--bhb-fs-sm); font-weight: 600;
+  color: var(--bhb-dim); font: inherit; font-size: var(--bhb-fs-md); font-weight: 600;
   cursor: pointer;
 }
 .bhb-tabbtn:hover { color: var(--bhb-text); }
@@ -225,7 +225,7 @@ const CSS = `
 .bhb-task.is-on .bhb-task__switch { background: rgba(61, 220, 151, .3); }
 .bhb-task.is-on .bhb-task__switch::after { transform: translateX(12px); background: var(--bhb-live); }
 
-.bhb-task__name { flex: 1; font-weight: 700; font-size: var(--bhb-fs-md); letter-spacing: .05em; }
+.bhb-task__name { flex: 1; font-weight: 600; font-size: var(--bhb-fs-md); }
 .bhb-task__label { flex: 1; font-size: var(--bhb-fs-sm); line-height: 1.4; }
 .bhb-task--wrap { align-items: flex-start; }
 .bhb-task--wrap .bhb-task__switch { margin-top: 1px; }
@@ -238,7 +238,7 @@ const CSS = `
 /* Tile variant: switch, phase and hotkey on top, name under them. */
 .bhb-task--tile { flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 9px; }
 .bhb-task--tile .bhb-task__top { display: flex; align-items: center; gap: 7px; }
-.bhb-task--tile .bhb-task__name { flex: none; font-size: var(--bhb-fs-md); line-height: 1.2; }
+.bhb-task--tile .bhb-task__name { flex: none; font-size: var(--bhb-fs-sm); line-height: 1.2; }
 /* Pushes the hotkey to the right edge whether or not a phase is showing. */
 .bhb-task--tile .bhb-task__phase { margin-left: auto; }
 .bhb-task--tile .bhb-kbd { margin-left: auto; }
@@ -344,7 +344,17 @@ const CSS = `
 }
 .bhb-rule__name:hover { border-color: var(--bhb-line); }
 .bhb-rule__name:focus { outline: none; border-color: var(--bhb-accent); background: #0d0f16; }
+.bhb-rule__meta-coord { display: inline-flex; align-items: center; }
 .bhb-rule__coord { color: var(--bhb-cyan); font-size: var(--bhb-fs-xs); }
+/* A step that cannot be rescaled clicks the wrong place after any resize, so
+   the mark is a badge rather than a glyph hiding at the end of a number. */
+.bhb-rule__legacy {
+  display: inline-flex; align-items: center; gap: 3px;
+  margin-left: 5px; padding: 1px 5px;
+  background: rgba(255, 180, 87, .16);
+  border: 1px solid rgba(255, 180, 87, .5); border-radius: 5px;
+  color: var(--bhb-warn); font-size: var(--bhb-fs-xs); font-weight: 700;
+}
 .bhb-rule__actions { display: flex; gap: 1px; margin-left: auto; }
 
 /* A step carries a name, a place, an activity and a screen gate. On one line
