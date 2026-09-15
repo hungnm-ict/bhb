@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.7.5
+// @version      0.7.6
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -14,7 +14,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.7.5" : "dev";
+  var VERSION = true ? "0.7.6" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -2275,7 +2275,7 @@
   --bhb-bg-soft: #1a1d29;
   --bhb-line: rgba(255, 255, 255, .09);
   --bhb-text: #e6e8f0;
-  --bhb-dim: #98a0b5;
+  --bhb-dim: #b3bacd;
   --bhb-accent: #7c5cff;
   --bhb-cyan: #22d3ee;
   --bhb-live: #3ddc97;
@@ -2397,13 +2397,13 @@
 .bhb-tabbtn {
   flex: none; padding: 7px 5px 9px; white-space: nowrap;
   background: none; border: 0; border-bottom: 2px solid transparent;
-  color: var(--bhb-dim); font: inherit; font-size: var(--bhb-fs-md); font-weight: 600;
+  color: var(--bhb-text); font: inherit; font-size: var(--bhb-fs-md); font-weight: 600;
   cursor: pointer;
 }
-.bhb-tabbtn:hover { color: var(--bhb-text); }
+.bhb-tabbtn:hover { color: var(--bhb-warn); }
 /* Help is not a place to work, so it reads as a mark rather than a label. */
 .bhb-tabbtn--help { margin-left: auto; padding: 7px 8px 9px; font-size: var(--bhb-fs-md); }
-.bhb-tabbtn.is-active { color: var(--bhb-text); border-bottom-color: var(--bhb-accent); }
+.bhb-tabbtn.is-active { color: var(--bhb-warn); border-bottom-color: var(--bhb-warn); }
 
 .bhb-panel__body {
   /* min-height:0 is what lets a flex item actually scroll instead of growing. */
@@ -2494,17 +2494,14 @@
 .bhb-task.is-locked:hover { border-color: var(--bhb-line); }
 .bhb-task__phase { color: var(--bhb-warn); font-size: var(--bhb-fs-xs); }
 
-/* Tile variant: switch, phase and hotkey on top, name under them. */
-.bhb-task--tile { flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 9px; }
-.bhb-task--tile .bhb-task__top { display: flex; align-items: center; gap: 7px; }
-.bhb-task--tile .bhb-task__name { flex: none; font-size: var(--bhb-fs-sm); line-height: 1.2; }
-/* Pushes the hotkey to the right edge whether or not a phase is showing. */
-.bhb-task--tile .bhb-task__phase { margin-left: auto; }
-.bhb-task__warn { margin-left: auto; color: var(--bhb-warn); font-size: var(--bhb-fs-md); cursor: help; }
-.bhb-task--tile .bhb-task__phase + .bhb-task__warn { margin-left: 0; }
-.bhb-task--tile .bhb-task__warn + .bhb-kbd { margin-left: 0; }
-.bhb-task--tile .bhb-kbd { margin-left: auto; }
-.bhb-task--tile .bhb-task__phase + .bhb-kbd { margin-left: 0; }
+/* Tile variant: everything on one row — a tile this small needs no second. */
+.bhb-task--tile { gap: 8px; padding: 8px 9px; }
+.bhb-task--tile .bhb-task__name {
+  flex: 1; min-width: 0;
+  font-size: var(--bhb-fs-md); line-height: 1.2;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.bhb-task__warn { color: var(--bhb-warn); font-size: var(--bhb-fs-md); cursor: help; }
 
 .bhb-kbd {
   min-width: 17px; padding: 2px 4px;
@@ -2516,7 +2513,7 @@
 .bhb-slider { width: 100%; height: var(--bhb-hit); accent-color: var(--bhb-accent); cursor: pointer; }
 .bhb-speedrow { display: flex; align-items: center; gap: 8px; }
 .bhb-speedrow .bhb-slider { flex: 1; min-width: 0; }
-.bhb-icon--wide { min-width: 32px; font-size: var(--bhb-fs-lg); line-height: 1; }
+.bhb-icon--wide { min-width: 32px; font-size: var(--bhb-fs-xl); font-weight: 700; line-height: 1; }
 .bhb-speedticks {
   /* The inset clears the −/+ buttons, so a tick sits over the track it marks. */
   position: relative; height: 5px; margin-inline: calc(32px + 8px);
@@ -2528,15 +2525,15 @@
   transform: translateX(-50%);
 }
 /* 1× is the stop people aim for, so it is the one that reads as a stop. */
-.bhb-speedticks__tick.is-unity { height: 7px; background: var(--bhb-dim); width: 2px; }
+.bhb-speedticks__tick.is-major { height: 8px; width: 2px; background: var(--bhb-dim); }
 
-.bhb-speedends {
-  position: relative;
-  display: flex; justify-content: space-between;
-  margin-top: 2px; margin-inline: calc(32px + 8px);
-  color: var(--bhb-dim); font-size: var(--bhb-fs-xs);
+.bhb-speedscale {
+  position: relative; height: 15px;
+  margin-top: 1px; margin-inline: calc(32px + 8px);
+  color: var(--bhb-dim); font-size: var(--bhb-fs-sm);
 }
-.bhb-speedends__mark { position: absolute; transform: translateX(-50%); }
+.bhb-speedscale__mark { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+.bhb-speedscale__mark.is-unity { color: var(--bhb-text); font-weight: 700; }
 .bhb-speed { font-family: var(--bhb-mono); font-size: var(--bhb-fs-lg); font-weight: 700; }
 .bhb-speed.is-boosted { color: var(--bhb-cyan); }
 
@@ -2974,6 +2971,7 @@
     speedControl.readout.textContent = `${formatSpeed(speed2)}×`;
     speedControl.readout.className = `bhb-speed ${speed2 > 1 ? "is-boosted" : ""}`;
   }
+  var LABELLED_SPEEDS = [0.1, 1, 5, 10, 20];
   var TASKS = [
     [TaskId.RERUN, "task.rerun", "3"],
     [TaskId.WORLD_BOSS, "task.wb", "4"],
@@ -3008,17 +3006,13 @@
           ...title ? { title } : {}
         },
         [
-          el("div", { class: "bhb-task__top" }, [
-            el("span", { class: "bhb-task__switch" }),
-            // On the top row rather than a line of its own: a reserved line is
-            // empty most of the time, and the tile paid its height for it.
-            phase ? el("span", { class: "bhb-task__phase", text: phase }) : null,
-            // The reason a switch is locked belongs on that switch. Said under
-            // the grid instead, it read as a verdict on all four.
-            isLocked ? el("span", { class: "bhb-task__warn", title, text: "⚠" }) : null,
-            el("span", { class: "bhb-kbd", text: key })
-          ]),
-          el("span", { class: "bhb-task__name", text: t(labelKey) })
+          el("span", { class: "bhb-task__switch" }),
+          el("span", { class: "bhb-task__name", text: t(labelKey) }),
+          phase ? el("span", { class: "bhb-task__phase", text: phase }) : null,
+          // The reason a switch is locked belongs on that switch. Said under the
+          // grid instead, it read as a verdict on all four.
+          isLocked ? el("span", { class: "bhb-task__warn", title, text: "⚠" }) : null,
+          el("span", { class: "bhb-kbd", text: key })
         ]
       );
       if (!isLocked) {
@@ -3069,13 +3063,27 @@
     }
     const { slider, readout } = speedControl;
     updateSpeedDisplay();
+    function stopOffset(index) {
+      return `${index / (SPEED_STEPS.length - 1) * 100}%`;
+    }
     const ticks = el(
       "div",
       { class: "bhb-speedticks" },
       SPEED_STEPS.map(
         (stop, index) => el("span", {
-          class: `bhb-speedticks__tick ${stop === 1 ? "is-unity" : ""}`,
-          style: { left: `${index / (SPEED_STEPS.length - 1) * 100}%` }
+          class: `bhb-speedticks__tick ${LABELLED_SPEEDS.includes(stop) ? "is-major" : ""}`,
+          style: { left: stopOffset(index) }
+        })
+      )
+    );
+    const scale = el(
+      "div",
+      { class: "bhb-speedscale bhb-mono" },
+      LABELLED_SPEEDS.map(
+        (stop) => el("span", {
+          class: `bhb-speedscale__mark ${stop === 1 ? "is-unity" : ""}`,
+          text: `${formatSpeed(stop)}×`,
+          style: { left: stopOffset(speedIndex(stop)) }
         })
       )
     );
@@ -3098,17 +3106,7 @@
           nudge(1, "+")
         ]),
         ticks,
-        el("div", { class: "bhb-speedends bhb-mono" }, [
-          el("span", { text: `${formatSpeed(SPEED_STEPS[0])}×` }),
-          // The stops are uneven, so 1x is not the middle of the track; a label
-          // sitting there anyway would misread the whole scale.
-          el("span", {
-            class: "bhb-speedends__mark",
-            text: "1×",
-            style: { left: `${speedIndex(1) / (SPEED_STEPS.length - 1) * 100}%` }
-          }),
-          el("span", { text: `${formatSpeed(SPEED_STEPS[SPEED_STEPS.length - 1])}×` })
-        ])
+        scale
       ]),
       el("dl", { class: "bhb-facts" }, [
         el("dt", { text: t("overlay.canvas") }),
