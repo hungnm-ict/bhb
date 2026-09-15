@@ -270,6 +270,8 @@ export function loadSettings() {
     keepAlive: stored.keepAlive !== false,
     notify: normaliseNotifyConfig(stored.notify),
     canvasLock: normaliseCanvasLock(stored.canvasLock),
+    // Which settings section is expanded; it is usually the same one twice.
+    openSection: typeof stored.openSection === 'string' ? stored.openSection : null,
   };
 }
 

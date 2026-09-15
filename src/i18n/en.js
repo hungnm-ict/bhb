@@ -188,4 +188,9 @@ export default {
   'lock.hint': 'The game then renders at 640×400 whatever the window does, so the colours the bot reads are identical on every machine — which is what makes a step set shareable. A smaller window scales the display down to fit and the coordinates still hold. Switch it off and the game resizes with the window as before.',
 
   'help.closePanel': 'Close the control panel',
+
+  'settings.onCount': '{n}/{total} on',
+  'settings.queueCount': '{n} activities',
+  'settings.on': 'on',
+  'settings.off': 'off',
 };

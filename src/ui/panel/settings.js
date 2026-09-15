@@ -93,9 +93,6 @@ function renderAlerts(deps, toggleRow) {
   });
 
   return el('div', { class: 'bhb-field' }, [
-    el('div', { class: 'bhb-field__head' }, [
-      el('span', { class: 'bhb-label', text: t('notify.title') }),
-    ]),
     toggleRow('notify.enabled', config.enabled, (value) => update({ enabled: value })),
     field('discordWebhook', 'notify.discord'),
     field('telegramToken', 'notify.telegramToken'),
@@ -129,16 +126,52 @@ function renderCanvasLock(deps, toggleRow) {
   }
 
   return el('div', { class: 'bhb-field' }, [
-    el('div', { class: 'bhb-field__head' }, [
-      el('span', { class: 'bhb-label', text: t('lock.title') }),
-      el('span', {
-        class: 'bhb-mono bhb-note',
-        text: `${LOCK_SIZE.width}×${LOCK_SIZE.height}`,
-      }),
-    ]),
     toggleRow('lock.enabled', lock.enabled, (value) => update({ enabled: value })),
     el('p', { class: 'bhb-note', text: t('lock.hint') }),
   ]);
+}
+
+/**
+ * One collapsible section.
+ *
+ * The summary on the right is the reason this is not a plain accordion: most
+ * visits here are to check a setting rather than change one, and a row that
+ * says "tắt · 640×400" answers that without being opened at all.
+ *
+ * One section is open at a time, so the tab cannot grow back into the page it
+ * was, and which one survives a reload — it is usually the same one twice.
+ */
+function section(deps, id, titleKey, summary, build) {
+  const isOpen = deps.settings.openSection === id;
+
+  const head = el('button', { class: `bhb-fold__head ${isOpen ? 'is-open' : ''}` }, [
+    el('span', { class: 'bhb-fold__caret', text: isOpen ? '▾' : '▸' }),
+    el('span', { class: 'bhb-label', text: t(titleKey) }),
+    el('span', { class: 'bhb-fold__summary', text: summary || '' }),
+  ]);
+  head.addEventListener('click', () => {
+    deps.updateSettings({ openSection: isOpen ? null : id });
+    deps.refresh();
+  });
+
+  return el('div', { class: `bhb-fold ${isOpen ? 'is-open' : ''}` }, [
+    head,
+    // Built only when open: the alerts section alone is three inputs and five
+    // switches, and nothing is gained by constructing it to hide it.
+    isOpen ? el('div', { class: 'bhb-fold__body' }, [build()]) : null,
+  ]);
+}
+
+/** How many of the behaviour switches are on, for the summary. */
+function countBehaviour(settings) {
+  const switches = [
+    settings.watchdog,
+    settings.closeAfterRound,
+    settings.keepAlive,
+    settings.sizeBadge,
+    settings.scaleMode === ScaleMode.ABSOLUTE,
+  ];
+  return switches.filter(Boolean).length;
 }
 
 export function renderSettingsTab(deps) {
@@ -218,71 +251,90 @@ export function renderSettingsTab(deps) {
 
   const reloads = deps.getReloadCount();
 
-  return el('div', { class: 'bhb-tab' }, [
-    el('div', { class: 'bhb-field' }, [
-      el('div', { class: 'bhb-field__head' }, [
-        el('span', { class: 'bhb-label', text: t('settings.profiles') }),
-      ]),
-      picker,
-      el('div', { class: 'bhb-btnrow' }, [
-        action('settings.newProfile', () => profiles.create(t('settings.newProfileName'))),
-        action('settings.duplicate', () => profiles.duplicate()),
-        action('settings.rename', () => {
-          const name = window.prompt(t('settings.renamePrompt'), profiles.activeName());
-          if (name) {
-            profiles.rename(activeId, name.trim());
-          }
-        }),
-        action('settings.delete', () => profiles.remove(activeId)),
-      ]),
-      el('p', { class: 'bhb-note', text: t('settings.profilesHint') }),
-    ]),
+  const notify = settings.notify;
+  const channels = [
+    notify.discordWebhook ? 'Discord' : null,
+    notify.telegramToken && notify.telegramChat ? 'Telegram' : null,
+  ].filter(Boolean);
 
-    el('div', { class: 'bhb-field' }, [
-      el('div', { class: 'bhb-field__head' }, [
-        el('span', { class: 'bhb-label', text: t('settings.behaviour') }),
-      ]),
-      toggleRow(
-        'settings.watchdog',
-        settings.watchdog,
-        (value) => deps.updateSettings({ watchdog: value }),
-        reloads > 0 ? t('settings.reloads', { n: reloads }) : null
-      ),
-      toggleRow('queue.closeAfterRound', settings.closeAfterRound, (value) =>
-        deps.updateSettings({ closeAfterRound: value })
-      ),
-      toggleRow('settings.keepAlive', settings.keepAlive, (value) =>
-        deps.updateSettings({ keepAlive: value })
-      ),
-      toggleRow('settings.sizeBadge', settings.sizeBadge, (value) =>
-        deps.updateSettings({ sizeBadge: value })
-      ),
-      toggleRow('settings.absoluteCoords', settings.scaleMode === ScaleMode.ABSOLUTE, (value) =>
-        deps.updateSettings({ scaleMode: value ? ScaleMode.ABSOLUTE : ScaleMode.SCALE })
-      ),
-      el('p', { class: 'bhb-note', text: t('settings.watchdogHint') }),
-      el('p', { class: 'bhb-note', text: t('settings.keepAliveHint') }),
-    ]),
+  return el('div', { class: 'bhb-tab bhb-tab--folds' }, [
+    section(deps, 'profiles', 'settings.profiles', profiles.activeName(), () =>
+      el('div', { class: 'bhb-field' }, [
+        picker,
+        el('div', { class: 'bhb-btnrow' }, [
+          action('settings.newProfile', () => profiles.create(t('settings.newProfileName'))),
+          action('settings.duplicate', () => profiles.duplicate()),
+          action('settings.rename', () => {
+            const name = window.prompt(t('settings.renamePrompt'), profiles.activeName());
+            if (name) {
+              profiles.rename(activeId, name.trim());
+            }
+          }),
+          action('settings.delete', () => profiles.remove(activeId)),
+        ]),
+        el('p', { class: 'bhb-note', text: t('settings.profilesHint') }),
+      ])
+    ),
 
-    renderQueueSection(deps),
+    section(
+      deps,
+      'behaviour',
+      'settings.behaviour',
+      t('settings.onCount', { n: countBehaviour(settings), total: 5 }),
+      () =>
+        el('div', { class: 'bhb-field' }, [
+          toggleRow(
+            'settings.watchdog',
+            settings.watchdog,
+            (value) => deps.updateSettings({ watchdog: value }),
+            reloads > 0 ? t('settings.reloads', { n: reloads }) : null
+          ),
+          toggleRow('queue.closeAfterRound', settings.closeAfterRound, (value) =>
+            deps.updateSettings({ closeAfterRound: value })
+          ),
+          toggleRow('settings.keepAlive', settings.keepAlive, (value) =>
+            deps.updateSettings({ keepAlive: value })
+          ),
+          toggleRow('settings.sizeBadge', settings.sizeBadge, (value) =>
+            deps.updateSettings({ sizeBadge: value })
+          ),
+          toggleRow('settings.absoluteCoords', settings.scaleMode === ScaleMode.ABSOLUTE, (value) =>
+            deps.updateSettings({ scaleMode: value ? ScaleMode.ABSOLUTE : ScaleMode.SCALE })
+          ),
+          el('p', { class: 'bhb-note', text: t('settings.watchdogHint') }),
+          el('p', { class: 'bhb-note', text: t('settings.keepAliveHint') }),
+        ])
+    ),
 
-    renderCanvasLock(deps, toggleRow),
+    section(deps, 'queue', 'queue.title', t('settings.queueCount', {
+      n: deps.getActivities().filter((activity) => activity.enabled).length,
+    }), () => renderQueueSection(deps)),
 
-    renderAlerts(deps, toggleRow),
+    section(
+      deps,
+      'lock',
+      'lock.title',
+      `${t(settings.canvasLock.enabled ? 'settings.on' : 'settings.off')} · ${LOCK_SIZE.width}×${LOCK_SIZE.height}`,
+      () => renderCanvasLock(deps, toggleRow)
+    ),
 
-    el('div', { class: 'bhb-field' }, [
-      el('div', { class: 'bhb-field__head' }, [
-        el('span', { class: 'bhb-label', text: t('settings.language') }),
-      ]),
-      languagePicker,
-    ]),
+    section(
+      deps,
+      'alerts',
+      'notify.title',
+      channels.length > 0 && notify.enabled ? channels.join(' + ') : t('settings.off'),
+      () => renderAlerts(deps, toggleRow)
+    ),
 
-    el('div', { class: 'bhb-field' }, [
-      el('div', { class: 'bhb-field__head' }, [
-        el('span', { class: 'bhb-label', text: t('settings.transfer') }),
-      ]),
-      transfer,
-      el('div', { class: 'bhb-btnrow' }, [exportButton, importButton]),
-    ]),
+    section(deps, 'language', 'settings.language', getLanguage() === 'vi' ? 'Tiếng Việt' : 'English', () =>
+      el('div', { class: 'bhb-field' }, [languagePicker])
+    ),
+
+    section(deps, 'transfer', 'settings.transfer', '', () =>
+      el('div', { class: 'bhb-field' }, [
+        transfer,
+        el('div', { class: 'bhb-btnrow' }, [exportButton, importButton]),
+      ])
+    ),
   ]);
 }

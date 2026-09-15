@@ -29,13 +29,13 @@ export function renderQueueSection(deps) {
   const running = Boolean(engine.activity);
   const spent = new Set(engine.spent || []);
 
-  const head = el('div', { class: 'bhb-field__head' }, [
-    el('span', { class: 'bhb-label', text: t('queue.title') }),
-    el('span', {
-      class: 'bhb-mono bhb-note',
-      text: running ? t('queue.round', { n: engine.round }) : '',
-    }),
-  ]);
+  // The title lives on the fold that holds this now; only the live round is
+  // worth a line of its own here.
+  const head = running
+    ? el('div', { class: 'bhb-field__head' }, [
+        el('span', { class: 'bhb-mono bhb-note', text: t('queue.round', { n: engine.round }) }),
+      ])
+    : null;
 
   const rows = activities.map((activity, index) => {
     const count = stepsForActivity(steps, activity.id).length;
