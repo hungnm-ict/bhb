@@ -13,7 +13,15 @@
 import { SPEED_STEPS, RESUME_DELAY } from './core/constants.js';
 import { installCanvasPatch } from './core/canvas.js';
 import { installFocusPatch } from './core/focus.js';
-import { installSpeedHack, getSpeed, setSpeed, onSpeedChange, speedIndex } from './core/speed.js';
+import {
+  installSpeedHack,
+  getSpeed,
+  setSpeed,
+  onSpeedChange,
+  speedIndex,
+  pumpFrame,
+} from './core/speed.js';
+import { installKeepAlive } from './core/keepalive.js';
 import { createEngine, TaskId } from './core/engine.js';
 import { setClickObserver } from './core/input.js';
 import {
@@ -190,6 +198,12 @@ function bootstrap() {
   });
 
   const sizeBadge = createSizeBadge({ isVisible: () => settings.sizeBadge });
+
+  // A window covered edge to edge stops getting animation frames, and the game
+  // stops with them. This drives the loop by hand when that happens.
+  if (settings.keepAlive) {
+    installKeepAlive(() => pumpFrame());
+  }
 
   setClickObserver(showClickFlash);
   engine.on('change', () => refresh());

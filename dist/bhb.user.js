@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.5.3
+// @version      0.6.0
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -14,7 +14,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.5.3" : "dev";
+  var VERSION = true ? "0.6.0" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -136,6 +136,11 @@
   var realRequestAnimationFrame = window.requestAnimationFrame.bind(window);
 
   // src/core/speed.js
+  var STALL_MS = 250;
+  var driveStalledFrame = () => false;
+  function pumpFrame() {
+    return driveStalledFrame();
+  }
   var speed = 1;
   var listeners = [];
   function getSpeed() {
@@ -194,12 +199,39 @@
     let pending = null;
     let bursting = false;
     let owed = 0;
+    let waiting = null;
+    let lastFrameAt = realPerformanceNow();
+    let frameSeq = 0;
+    let drivenUpTo = 0;
     window.requestAnimationFrame = function(callback) {
       if (bursting) {
         pending = callback;
         return 1;
       }
-      return realRequestAnimationFrame(() => runBurst(callback));
+      const id = frameSeq += 1;
+      waiting = { id, callback };
+      return realRequestAnimationFrame(() => {
+        if (id <= drivenUpTo) {
+          return;
+        }
+        lastFrameAt = realPerformanceNow();
+        waiting = null;
+        runBurst(callback);
+      });
+    };
+    driveStalledFrame = function() {
+      if (!waiting || bursting) {
+        return false;
+      }
+      if (realPerformanceNow() - lastFrameAt < STALL_MS) {
+        return false;
+      }
+      const { id, callback } = waiting;
+      waiting = null;
+      drivenUpTo = id;
+      lastFrameAt = realPerformanceNow();
+      runBurst(callback);
+      return true;
     };
     function runBurst(callback) {
       if (speed <= 1) {
@@ -238,6 +270,37 @@
         pending = null;
         realRequestAnimationFrame(() => runBurst(next));
       }
+    }
+  }
+
+  // src/core/keepalive.js
+  var BUFFER_SIZE = 4096;
+  var FALLBACK_MS = 100;
+  function installKeepAlive(tick) {
+    realSetInterval(tick, FALLBACK_MS);
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) {
+      return { audio: false };
+    }
+    try {
+      const context = new AudioContextClass();
+      const processor = context.createScriptProcessor(BUFFER_SIZE, 1, 1);
+      const silence = context.createGain();
+      silence.gain.value = 0;
+      processor.onaudioprocess = () => tick();
+      processor.connect(silence);
+      silence.connect(context.destination);
+      if (context.state === "suspended") {
+        const resume = () => context.resume().catch(() => {
+        });
+        for (const type of ["pointerdown", "keydown"]) {
+          window.addEventListener(type, resume, { once: true, capture: true });
+        }
+      }
+      return { audio: true };
+    } catch (error) {
+      console.warn("[BHB] could not start the audio clock", error);
+      return { audio: false };
     }
   }
 
@@ -1136,7 +1199,8 @@
       // A bot that closes the game unasked is a bot that loses a session.
       closeAfterRound: stored.closeAfterRound === true,
       watchdog: stored.watchdog === true,
-      sizeBadge: stored.sizeBadge !== false
+      sizeBadge: stored.sizeBadge !== false,
+      keepAlive: stored.keepAlive !== false
     };
   }
   function saveSettings(settings) {
@@ -1342,6 +1406,8 @@
     "settings.watchdog": "Tải lại game khi game treo",
     "settings.watchdogHint": "Không bật thì bot chỉ dừng sau 3 phút không làm gì. Bật thì trang tự tải lại và chạy tiếp — tối đa 3 lần rồi mới chịu thua.",
     "settings.reloads": "đã tải lại {n}×",
+    "settings.keepAlive": "Chạy tiếp khi cửa sổ bị che kín",
+    "settings.keepAliveHint": "Trình duyệt ngừng vẽ khi cửa sổ bị cửa sổ khác phủ kín, và game đứng theo. Bật cái này thì bot tự lái vòng lặp của game. Cần tải lại trang sau khi đổi.",
     "settings.sizeBadge": "Hiện cỡ canvas ở góc màn hình",
     "settings.absoluteCoords": "Dùng toạ độ thô (không co giãn theo cỡ canvas)",
     "settings.language": "Ngôn ngữ",
@@ -1459,6 +1525,8 @@
     "settings.watchdog": "Reload the game when it stops responding",
     "settings.watchdogHint": "Without this the bot just stops after three idle minutes. With it, the page reloads and the task starts again — up to three times before it gives up.",
     "settings.reloads": "reloaded {n}×",
+    "settings.keepAlive": "Keep running when the window is covered",
+    "settings.keepAliveHint": "A window covered edge to edge stops being painted, and the game stops with it. This drives the game loop by hand instead. Takes effect after a reload.",
     "settings.sizeBadge": "Show the canvas size in the corner",
     "settings.absoluteCoords": "Use raw coordinates (do not rescale steps)",
     "settings.language": "Language",
@@ -3017,6 +3085,11 @@
           (value) => deps.updateSettings({ closeAfterRound: value })
         ),
         toggleRow(
+          "settings.keepAlive",
+          settings.keepAlive,
+          (value) => deps.updateSettings({ keepAlive: value })
+        ),
+        toggleRow(
           "settings.sizeBadge",
           settings.sizeBadge,
           (value) => deps.updateSettings({ sizeBadge: value })
@@ -3026,7 +3099,8 @@
           settings.scaleMode === ScaleMode.ABSOLUTE,
           (value) => deps.updateSettings({ scaleMode: value ? ScaleMode.ABSOLUTE : ScaleMode.SCALE })
         ),
-        el("p", { class: "bhb-note", text: t("settings.watchdogHint") })
+        el("p", { class: "bhb-note", text: t("settings.watchdogHint") }),
+        el("p", { class: "bhb-note", text: t("settings.keepAliveHint") })
       ]),
       renderQueueSection(deps),
       el("div", { class: "bhb-field" }, [
@@ -3548,6 +3622,9 @@
       store
     });
     const sizeBadge = createSizeBadge({ isVisible: () => settings.sizeBadge });
+    if (settings.keepAlive) {
+      installKeepAlive(() => pumpFrame());
+    }
     setClickObserver(showClickFlash);
     engine.on("change", () => refresh());
     engine.on("action", (entry) => {

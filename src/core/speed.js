@@ -20,6 +20,21 @@ import { SPEED_STEPS } from './constants.js';
  * backwards — which would break the game's own interpolation.
  */
 
+/**
+ * How long a frame may be outstanding before it is assumed the browser has
+ * stopped sending them. Generous: a real frame at 30fps is 33ms, and a busy
+ * tab can miss several in a row without being occluded.
+ */
+export const STALL_MS = 250;
+
+/** Set by `installFrameMultiplier`; a no-op until the hack is installed. */
+let driveStalledFrame = () => false;
+
+/** Run the game's frame callback by hand if the browser has stopped. */
+export function pumpFrame() {
+  return driveStalledFrame();
+}
+
 let speed = 1;
 /** @type {Array<(speed: number) => void>} */
 const listeners = [];
@@ -117,12 +132,66 @@ function installFrameMultiplier() {
   let bursting = false;
   let owed = 0;
 
+  /** The frame the browser owes us, and when it last paid one. */
+  let waiting = null;
+  let lastFrameAt = realPerformanceNow();
+  let frameSeq = 0;
+  /**
+   * The newest frame already run by hand.
+   *
+   * A frame driven by hand is still queued in the browser, and an occluded
+   * window delivers its whole backlog once it is uncovered. Running those would
+   * fork the game's loop into two chains re-registering each other — the game
+   * would quietly run at double speed. Ids only go up, so one watermark is
+   * enough to drop every stale delivery.
+   */
+  let drivenUpTo = 0;
+
   window.requestAnimationFrame = function (callback) {
     if (bursting) {
       pending = callback;
       return 1;
     }
-    return realRequestAnimationFrame(() => runBurst(callback));
+    const id = (frameSeq += 1);
+    waiting = { id, callback };
+    return realRequestAnimationFrame(() => {
+      if (id <= drivenUpTo) {
+        return;
+      }
+      lastFrameAt = realPerformanceNow();
+      waiting = null;
+      runBurst(callback);
+    });
+  };
+
+  /**
+   * Run the frame the browser has stopped delivering.
+   *
+   * A window covered edge to edge is marked occluded, and an occluded window
+   * stops compositing — which is what drives `requestAnimationFrame`. No amount
+   * of lying about `document.hidden` brings it back, because the decision is
+   * made below JavaScript. So when a frame is outstanding and none has arrived
+   * for a while, the callback is run from here instead.
+   *
+   * It does nothing while the browser is delivering frames normally, because
+   * then no frame is ever outstanding for that long.
+   *
+   * @returns {boolean} whether a frame had to be driven by hand
+   */
+  driveStalledFrame = function () {
+    if (!waiting || bursting) {
+      return false;
+    }
+    if (realPerformanceNow() - lastFrameAt < STALL_MS) {
+      return false;
+    }
+
+    const { id, callback } = waiting;
+    waiting = null;
+    drivenUpTo = id;
+    lastFrameAt = realPerformanceNow();
+    runBurst(callback);
+    return true;
   };
 
   function runBurst(callback) {
