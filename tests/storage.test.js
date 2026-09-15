@@ -85,7 +85,11 @@ describe('migration to the current schema', () => {
     const team = activities.find((activity) => activity.id === 'worldbossteam');
     expect(team, 'World Boss (team) was added after this profile was written').toBeTruthy();
     expect(team.enabled, 'nothing new starts running by itself').toBe(false);
-    expect(activities.indexOf(team), 'appended, never inserted into their order').toBeGreaterThan(0);
+    expect(activities.indexOf(team), 'not dropped at the end of the list').toBeGreaterThan(0);
+
+    // World Boss (team) belongs beside World Boss, not nine rows below it.
+    const solo = activities.findIndex((activity) => activity.id === 'worldboss');
+    expect(activities.indexOf(team)).toBe(solo + 1);
   });
 
   it('round-trips screens through save and load', () => {

@@ -199,4 +199,9 @@ export default {
   'steps.kindOptional': 'Bấm nếu có',
   'steps.kindWait': 'Chờ đến khi hết',
   'steps.behaviourHint': 'Bấm: thấy màu thì bấm, chưa thấy thì đợi. Bấm nếu có: không thấy thì bỏ qua luôn, sang bước sau — dùng cho ô tick sẵn như Private. Chờ đến khi hết: còn thấy màu là còn đứng chờ, mất mới đi tiếp — dùng để chờ đủ người trước khi bấm START.',
+
+  'steps.addPlace': 'Thêm một chỗ nữa vào bước này (bảng sẽ ẩn đi, rê chuột rồi bấm X)',
+  'steps.placeCount': 'Số chỗ bước này nhìn vào',
+  'steps.maxMatchesHint': 'Còn đứng chờ khi số chỗ vẫn thấy màu NHIỀU HƠN số này. Bốn ô mời + đặt 2 nghĩa là chờ đến khi đủ 3 người, ai ngồi ô nào cũng được.',
+  'msg.placeAdded': 'đã thêm chỗ vào bước — giờ nhìn {n} chỗ',
 };

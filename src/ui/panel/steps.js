@@ -1,7 +1,7 @@
 import { el } from '../dom.js';
 import { t } from '../../i18n/index.js';
 import { Keys, keyLabel } from '../../core/keys.js';
-import { StepKind } from '../../bot/step.js';
+import { StepKind, pointsByPlace } from '../../bot/step.js';
 import { isLegacyPoint } from '../../core/coords.js';
 
 /**
@@ -235,6 +235,40 @@ export function renderStepsTab(deps) {
       deps.refresh();
     });
 
+    const places = pointsByPlace(step);
+    const isWait = step.kind === StepKind.WAIT;
+
+    // A wait can watch several places at once, and then it is a count that
+    // matters: four empty party slots, at most two of them still empty.
+    const addPlace = el('button', {
+      class: 'bhb-icon',
+      title: t('steps.addPlace'),
+      text: '＋',
+    });
+    addPlace.addEventListener('click', () => {
+      // Out of the way, then the next X lands on this step.
+      deps.store.awaitPlaceFor(step.id);
+      deps.store.armCapture(true);
+      deps.store.closePanel();
+      deps.refresh();
+    });
+
+    const threshold = el('input', { class: 'bhb-rest bhb-mono', title: t('steps.maxMatchesHint') });
+    threshold.type = 'number';
+    threshold.min = '0';
+    threshold.max = '20';
+    threshold.value = String(step.maxMatches || 0);
+    threshold.addEventListener('change', () => {
+      deps.stepEditor.setMaxMatches(step.id, threshold.value);
+      deps.refresh();
+    });
+
+    const placeCount = el('span', {
+      class: 'bhb-note bhb-mono',
+      title: t('steps.placeCount'),
+      text: places.length > 1 ? `×${places.length}` : '',
+    });
+
     const classes = ['bhb-step', 'bhb-step--stacked'];
     if (step.id === expectedStepId) {
       classes.push('is-next');
@@ -254,11 +288,12 @@ export function renderStepsTab(deps) {
         el('span', { class: 'bhb-rule__n', text: String(index + 1) }),
         el('span', { class: 'bhb-rule__swatch', style: { background: step.hex || 'transparent' } }),
         name,
-        el('span', { class: 'bhb-rule__actions' }, [toggle, up, down, remove]),
+        el('span', { class: 'bhb-rule__actions' }, [addPlace, toggle, up, down, remove]),
       ]),
       el('div', { class: 'bhb-rule__meta' }, [
         behaviour,
-        rest,
+        placeCount,
+        isWait ? threshold : rest,
         el('span', { class: 'bhb-rule__meta-coord' }, [
           el('span', {
             class: 'bhb-rule__coord bhb-mono',

@@ -321,7 +321,15 @@ function bootstrap() {
         engine.setMessage(t('msg.captureDisarmed'));
         return;
       }
-      stepEditor.captureAtCursor().then(refresh);
+      // A pending ＋ means this capture belongs to a step that already exists.
+      const pending = store.get().pendingPlaceStepId;
+      stepEditor.captureAtCursor(pending).then(() => {
+        if (pending) {
+          store.awaitPlaceFor(null);
+          store.openPanel();
+        }
+        refresh();
+      });
     },
     [Keys.SPEED_RESET]: () => setSpeed(1),
     [Keys.SPEED_UP]: () => setSpeed(stepSpeed(getSpeed(), 1)),

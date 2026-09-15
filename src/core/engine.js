@@ -2,7 +2,7 @@ import { getRenderTarget } from './canvas.js';
 import { matchPoint } from './region.js';
 import { clickBufferPoint } from './input.js';
 import { getBufferSize } from './coords.js';
-import { isStepReady, colorForPoint, StepKind } from '../bot/step.js';
+import { isStepReady, colorForPoint, StepKind, pointsByPlace } from '../bot/step.js';
 import { detectScreen, stepAllowedOn } from '../bot/screen.js';
 import { stepsForActivity, looseSteps } from '../bot/activity.js';
 import { createEmitter } from './events.js';
@@ -251,6 +251,35 @@ export function createEngine(deps) {
     return null;
   }
 
+  /**
+   * How many of a step's places still show their colour.
+   *
+   * @returns {number}
+   */
+  function countPlaces(step, gl, screenId, buffer, scaleMode) {
+    if (!isStepReady(step) || !stepAllowedOn(step, screenId)) {
+      return 0;
+    }
+    let seen = 0;
+    for (const place of pointsByPlace(step)) {
+      const matched = place.some(
+        (storedPoint) =>
+          matchPoint(
+            gl,
+            storedPoint,
+            colorForPoint(step, storedPoint),
+            buffer,
+            scaleMode,
+            step.tolerance
+          ).matched
+      );
+      if (matched) {
+        seen += 1;
+      }
+    }
+    return seen;
+  }
+
   function tryStep(step, canvas, gl, screenId, buffer, scaleMode) {
     const point = matchStep(step, gl, screenId, buffer, scaleMode);
     if (!point) {
@@ -311,11 +340,14 @@ export function createEngine(deps) {
       const point = matchStep(expected, gl, screenId, buffer, scaleMode);
 
       if (expected.kind === StepKind.WAIT) {
-        // Present means the thing being waited on is still there: hold, and do
-        // not let the resync scan carry the runner past a deliberate wait.
-        if (point) {
+        // Counted, not spotted: "wait for a third player" is a count of empty
+        // seats, and which seats they are is the game's business, not ours.
+        const stillThere = countPlaces(expected, gl, screenId, buffer, scaleMode);
+        if (stillThere > (expected.maxMatches || 0)) {
           cursor.misses = 0;
-          setMessage(`${expected.label || expected.id}: waiting`);
+          setMessage(
+            `${expected.label || expected.id}: waiting (${stillThere} left)`
+          );
           return null;
         }
         cursor.index = (cursor.index + 1) % steps.length;
