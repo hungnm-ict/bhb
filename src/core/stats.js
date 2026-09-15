@@ -155,14 +155,11 @@ export function createStats(deps = {}) {
       }
     } else if (entry.kind === 'activity') {
       currentActivity = { id: entry.activityId || entry.label, name: entry.label };
-      const record_ = activityEntry(currentActivity.id, currentActivity.name);
-      record_.visits += 1;
-      if (entry.why === 'spent') {
-        // `why` describes the activity being *left*, which is the one that ran
-        // dry — never the one this event is announcing.
-        if (entry.spentId) {
-          activityEntry(entry.spentId, entry.spentName).spent += 1;
-        }
+      const visited = activityEntry(currentActivity.id, currentActivity.name);
+      visited.visits += 1;
+      // The activity that ran dry is the one being left, not the one announced.
+      if (entry.why === 'spent' && entry.spentId) {
+        activityEntry(entry.spentId, entry.spentName).spent += 1;
       }
     } else if (entry.kind === 'resource') {
       if (currentActivity) {

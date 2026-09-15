@@ -7,6 +7,7 @@ import {
 import { createStep } from '../bot/step.js';
 import { ScaleMode } from './coords.js';
 import { createDefaultActivities } from '../bot/activity.js';
+import { normaliseNotifyConfig } from './notify.js';
 
 /**
  * Persistence for step profiles and settings.
@@ -246,7 +247,8 @@ export function setActiveProfile(state, profileId) {
 
 /**
  * @returns {{ scaleMode: string, language: string, closeAfterRound: boolean,
- *   watchdog: boolean, sizeBadge: boolean, keepAlive: boolean }}
+ *   watchdog: boolean, sizeBadge: boolean, keepAlive: boolean,
+ *   notify: import('./notify.js').NotifyConfig }}
  */
 export function loadSettings() {
   const stored = readJson(STORAGE_KEY_SETTINGS) || {};
@@ -261,6 +263,7 @@ export function loadSettings() {
     watchdog: stored.watchdog === true,
     sizeBadge: stored.sizeBadge !== false,
     keepAlive: stored.keepAlive !== false,
+    notify: normaliseNotifyConfig(stored.notify),
   };
 }
 

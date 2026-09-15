@@ -1,4 +1,4 @@
-# BHB <!--version-->v0.6.4<!--/version-->
+# BHB <!--version-->v0.7.0<!--/version-->
 
 > 🇬🇧 [English version](README.en.md) · [Nhật ký thay đổi](https://github.com/hungnm-ict/bhb/commits/master)
 
@@ -51,8 +51,8 @@ Bấm vào thanh đó (hoặc phím `1`) để mở **bảng điều khiển**, 
 | **Chạy** | Công tắc bật/tắt từng chế độ (kể cả Chạy tất cả), thanh trượt tốc độ, cỡ canvas, đếm ngược tự tắt |
 | **Bước** | Bảng bước: đổi tên, bật/tắt, gán hoạt động, giới hạn theo màn hình, sắp xếp thứ tự, xoá |
 | **Màn hình** | Vùng nhận diện màn hình game, có ✓/✗ và tỉ lệ khớp trực tiếp |
-| **Cài đặt** | Hồ sơ (mỗi nhân vật một cái), hàng đợi hoạt động, tự tải lại khi treo, ngôn ngữ, xuất/nhập |
-| **Nhật ký** | Từng việc bot đã làm, mới nhất trên cùng |
+| **Cài đặt** | Hồ sơ (mỗi nhân vật một cái), hàng đợi hoạt động, tự tải lại khi treo, thông báo Discord/Telegram, ngôn ngữ, xuất/nhập |
+| **Nhật ký** | Thống kê phiên ở trên, rồi từng việc bot đã làm, mới nhất trên cùng |
 | **?** | Bảng tra phím tắt |
 
 Một **bước** là "thấy màu này ở chỗ này (trên màn hình này) thì bấm vào đó", và bot chạy các bước **theo đúng thứ tự trong bảng**: thử bước đang chờ trước, bấm xong thì sang bước kế.
@@ -67,7 +67,7 @@ Rê chuột lên nút trong game, rồi bấm **Bắt bước tại con trỏ** 
 
 Bot tự xử lý chuyện nút bị sáng lên do con trỏ đang nằm trên đó: nó gạt **con trỏ ảo** ra góc canvas, đợi game vẽ lại, đọc màu lúc nút không sáng, rồi trả con trỏ ảo về chỗ cũ. Con trỏ thật của bạn không hề nhúc nhích. Cả hai màu — lúc sáng và lúc thường — đều được lưu, nên bước khớp được ở cả hai trạng thái.
 
-Muốn bot biết nó đang ở đâu thì sang tab **Màn hình**, kéo một khung quanh thứ chỉ màn hình đó mới có. Màn hình "hết vé / hết năng lượng" thì bật thêm `stopsTask` — đó là cái làm hàng đợi tự nhảy sang hoạt động khác thay vì đứng bấm mãi.
+Muốn bot biết nó đang ở đâu thì sang tab **Màn hình**, kéo một khung quanh thứ chỉ màn hình đó mới có. Màn hình "hết vé / hết năng lượng" thì bật thêm `stopsTask` (nút ⏹) — đó là cái làm hàng đợi tự nhảy sang hoạt động khác thay vì đứng bấm mãi. Nút **★** cạnh nó là "báo tin khi thấy màn hình này": xem mục Thông báo bên dưới.
 
 ### Phím tắt
 
@@ -99,6 +99,8 @@ Muốn bot biết nó đang ở đâu thì sang tab **Màn hình**, kéo một k
 - **Tự tải lại khi game treo** — bật trong Cài đặt; không bật thì bot chỉ dừng sau 3 phút không làm gì
 - **Chạy tiếp khi cửa sổ bị che kín** — xem mục dưới
 - **Cỡ canvas ở góc màn hình** — tự mờ đi, sáng lại khi rê chuột tới gần, và không chặn click xuống game
+- **Thống kê phiên** — đầu tab Nhật ký, sống qua cả những lần watchdog tải lại trang
+- **Thông báo Discord / Telegram** — kèm ảnh chụp game, xem mục dưới
 
 ### Bước không phụ thuộc độ phân giải
 
@@ -119,6 +121,27 @@ Không có cách nào nói dối để trình duyệt bắn lại rAF: quyết �
 Nhịp gọi lấy từ **luồng âm thanh** (một `ScriptProcessorNode` im lặng), vì `setInterval` bị bóp còn 1 lần/giây đúng trong tình huống này, còn luồng âm thanh thì không. Trình duyệt chỉ cho âm thanh chạy sau khi bạn bấm gì đó trong trang, nên bấm một phím bất kỳ sau khi mở game là xong.
 
 Tắt được trong Cài đặt nếu không cần.
+
+### Thống kê phiên
+
+Đầu tab **Nhật ký** là sáu con số của phiên: thời gian chạy, lượt click, vòng hàng đợi, tin đã báo, số lần lạc nhịp, số lần game treo phải tải lại. Dưới đó là bảng theo từng hoạt động — mỗi dòng cho biết hoạt động đó đã click bao nhiêu, được ghé bao nhiêu lượt, và cạn tài nguyên mấy lần.
+
+Số liệu **không reset khi watchdog tải lại trang**. Đó là chủ ý: cày qua đêm mà mỗi lần game treo lại đếm từ đầu thì sáng ra chẳng đọc được gì. Chỉ nút **Đặt lại** mới xoá, và nó cũng đặt lại mốc thời gian phiên.
+
+### Thông báo đồ rơi hiếm
+
+Không có cơ chế thị giác riêng cho "đồ hiếm" — nó dùng lại **màn hình**. Bắt vùng popup đồ rơi (hoặc familiar legendary) thành một màn hình như bình thường, rồi bấm **★** trên dòng đó. Từ lúc ấy, mỗi lần popup xuất hiện là một tin — đúng một tin, không phải mỗi nhịp một tin, vì nó chỉ báo lúc màn hình *đổi* sang.
+
+Kênh gửi cấu hình ở tab **Cài đặt** → **Thông báo**:
+
+- **Discord**: dán webhook URL của kênh (Server Settings → Integrations → Webhooks).
+- **Telegram**: cần cả **bot token** (từ [@BotFather](https://t.me/BotFather)) và **chat ID**. Nhắn cho bot một câu rồi mở `https://api.telegram.org/bot<TOKEN>/getUpdates` là thấy chat ID.
+
+Có cả hai thì gửi cả hai. Ngoài tin đồ rơi, bật thêm được: hết tài nguyên, game treo phải tải lại, bật/tắt hoạt động. Mỗi loại tin tối đa **1 lần/phút** để một màn hình chớp tắt không làm ngập kênh.
+
+Nút **Gửi thử** có mặt vì webhook gõ sai thì hỏng lặng lẽ ngoài mạng — không có nó, thứ đầu tiên bạn biết sẽ là cái tin đáng lẽ phải đến đêm qua mà không đến.
+
+Ảnh chụp lấy thẳng từ canvas game (bot vốn đã ép `preserveDrawingBuffer`), tắt được nếu chỉ muốn chữ.
 
 ### Nhiều nhân vật, nhiều tài khoản
 

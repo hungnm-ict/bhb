@@ -184,7 +184,7 @@ export function createEngine(deps) {
    * `lastMessage` is overwritten on every tick, so a log cannot be recovered
    * from it; these events are what the log tab is built from.
    *
-   * @param {'click'|'busy'|'task'|'idle'|'screen'|'resource'|'activity'|'hang'|'resync'} kind
+   * @param {'click'|'busy'|'task'|'idle'|'screen'|'resource'|'activity'|'hang'|'resync'|'notify'} kind
    * @param {object} [detail]
    */
   function report(kind, detail = {}) {
@@ -350,6 +350,11 @@ export function createEngine(deps) {
       state.screen = id;
       state.screenName = screen ? screen.name : null;
       report('screen', { label: screen ? screen.name || screen.id : 'unknown', screenId: id });
+      // Only on the change: a drop popup sits there for several ticks, and one
+      // sighting should not become a dozen alerts.
+      if (screen && screen.notify) {
+        report('notify', { label: screen.name || screen.id, screenId: id });
+      }
     }
 
     return screen;

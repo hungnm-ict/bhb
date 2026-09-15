@@ -86,6 +86,15 @@ export function createScreenEditor(deps) {
     deps.persist();
   }
 
+  function setNotify(screenId, notify) {
+    const screen = find(screenId);
+    if (!screen) {
+      return;
+    }
+    screen.notify = notify;
+    deps.persist();
+  }
+
   function setMinRatio(screenId, minRatio) {
     const screen = find(screenId);
     if (!screen) {
@@ -140,5 +149,15 @@ export function createScreenEditor(deps) {
     return scoreScreen(target.gl, screen, getBufferSize(target.canvas), deps.getScaleMode());
   }
 
-  return { captureAnchor, rename, setStopsTask, setMinRatio, removeAnchor, remove, move, probe };
+  return {
+    captureAnchor,
+    rename,
+    setStopsTask,
+    setNotify,
+    setMinRatio,
+    removeAnchor,
+    remove,
+    move,
+    probe,
+  };
 }
