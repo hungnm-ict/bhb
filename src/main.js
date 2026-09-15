@@ -10,7 +10,7 @@
  *  3. Everything else once the DOM is ready.
  */
 
-import { SPEED_STEPS } from './core/constants.js';
+import { SPEED_STEPS, RESUME_DELAY } from './core/constants.js';
 import { installCanvasPatch } from './core/canvas.js';
 import { installFocusPatch } from './core/focus.js';
 import { installSpeedHack, getSpeed, setSpeed, onSpeedChange, speedIndex } from './core/speed.js';
@@ -22,7 +22,15 @@ import {
   getActiveProfile,
   loadSettings,
   saveSettings,
+  createProfile,
+  duplicateProfile,
+  renameProfile,
+  deleteProfile,
+  setActiveProfile,
+  exportProfiles,
+  importProfiles,
 } from './core/storage.js';
+import { createWatchdog } from './core/watchdog.js';
 import { RERUN_RULES, WORLD_BOSS_RULES } from './rules/builtin.js';
 import { createRuleEditor } from './rules/editor.js';
 import { createScreenEditor } from './rules/screen-editor.js';
@@ -36,7 +44,7 @@ import { createMarkerLayer } from './ui/markers.js';
 import { createHelpPanel } from './ui/help.js';
 import { installHotkeys } from './ui/hotkeys.js';
 import { showClickFlash } from './ui/flash.js';
-import { realSetInterval, realClearInterval, realNow } from './core/timers.js';
+import { realSetInterval, realClearInterval, realSetTimeout, realNow } from './core/timers.js';
 import { getCanvas } from './core/canvas.js';
 
 // --- Phase 1: patches that must beat the game to the punch -----------------
@@ -60,6 +68,7 @@ function bootstrap() {
   const persist = () => saveProfiles(profileState);
 
   const store = createUiStore();
+  const watchdog = createWatchdog();
 
   const engine = createEngine({
     getScriptRules: getRules,
@@ -70,6 +79,8 @@ function bootstrap() {
     getActivities,
     shouldCloseAfterRound: () => settings.closeAfterRound,
     closeGame: () => window.close(),
+    shouldRecoverFromHang: () => settings.watchdog,
+    recoverFromHang: (task) => watchdog.recover(task),
   });
 
   const editor = createRuleEditor({
@@ -96,6 +107,40 @@ function bootstrap() {
 
   const hud = createHud({ getEngineState: engine.getState, store });
 
+  const profileActions = {
+    list: () => profileState.profiles.map(({ id, name }) => ({ id, name })),
+    activeId: () => getActiveProfile(profileState).id,
+    activeName: () => getActiveProfile(profileState).name,
+    create: (name) => {
+      createProfile(profileState, name);
+      persist();
+    },
+    duplicate: () => {
+      duplicateProfile(profileState);
+      persist();
+    },
+    rename: (id, name) => {
+      renameProfile(profileState, id, name);
+      persist();
+    },
+    remove: (id) => {
+      deleteProfile(profileState, id);
+      persist();
+    },
+    setActive: (id) => {
+      setActiveProfile(profileState, id);
+      persist();
+    },
+    exportAll: () => exportProfiles(profileState),
+    importAll: (json) => {
+      const imported = importProfiles(json);
+      profileState.version = imported.version;
+      profileState.activeProfileId = imported.activeProfileId;
+      profileState.profiles = imported.profiles;
+      persist();
+    },
+  };
+
   const panel = createPanel({
     store,
     editor,
@@ -108,6 +153,16 @@ function bootstrap() {
     setCloseAfterRound: (value) => {
       settings.closeAfterRound = value;
       saveSettings(settings);
+    },
+    profiles: profileActions,
+    settings,
+    getReloadCount: () => watchdog.reloadCount(),
+    updateSettings: (changes) => {
+      Object.assign(settings, changes);
+      saveSettings(settings);
+      if (changes.language) {
+        setLanguage(changes.language);
+      }
     },
     getEngineState: engine.getState,
     toggleTask: engine.toggle,
@@ -125,7 +180,21 @@ function bootstrap() {
 
   setClickObserver(showClickFlash);
   engine.on('change', () => refresh());
-  engine.on('action', (entry) => store.log(entry));
+  engine.on('action', (entry) => {
+    store.log(entry);
+    // The watchdog only needs to know two things: what to come back to, and
+    // whether the game is still answering.
+    if (entry.kind === 'task') {
+      if (entry.started) {
+        watchdog.arm(entry.label);
+      } else {
+        watchdog.disarm();
+      }
+    }
+    if (entry.kind === 'click') {
+      watchdog.noteProgress();
+    }
+  });
   store.subscribe(() => refresh());
   onSpeedChange(() => refresh());
 
@@ -149,7 +218,29 @@ function bootstrap() {
   // Markers are positioned from the live canvas box, so a resize moves them.
   window.addEventListener('resize', () => markers.render());
 
+  resumeAfterReload(engine, watchdog);
+
   console.info('[BHB] ready — press 1 for the keyboard reference');
+}
+
+/**
+ * Pick up where a reload left off.
+ *
+ * The delay is the game's own load time plus whatever clicking through a login
+ * screen takes; starting into that would only burn the watchdog's patience.
+ */
+function resumeAfterReload(engine, watchdog) {
+  const task = watchdog.taskToResume();
+  if (!task) {
+    return;
+  }
+
+  engine.setMessage(`resuming ${task} in ${RESUME_DELAY / 1000}s`);
+  realSetTimeout(() => {
+    if (!engine.getState().activeTask) {
+      engine.start(task);
+    }
+  }, RESUME_DELAY);
 }
 
 /**

@@ -14,6 +14,7 @@ const KIND_ICON = {
   task: '⏻',
   screen: '▣',
   activity: '➜',
+  hang: '⟳',
   resource: '⛔',
 };
 
@@ -27,6 +28,9 @@ function clock(at) {
 function describe(entry) {
   if (entry.kind === 'task') {
     return t(entry.started ? 'log.taskStarted' : 'log.taskStopped', { task: entry.label });
+  }
+  if (entry.kind === 'hang') {
+    return t('log.hang', { label: entry.label });
   }
   if (entry.kind === 'activity') {
     return t('log.activity', { label: entry.label });

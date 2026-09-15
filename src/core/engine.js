@@ -57,6 +57,8 @@ export const Phase = Object.freeze({
  * @property {() => import('../rules/activity.js').Activity[]} [getActivities]
  * @property {() => boolean} [shouldCloseAfterRound]
  * @property {() => void} [closeGame]
+ * @property {() => boolean} [shouldRecoverFromHang]
+ * @property {(task: string) => boolean} [recoverFromHang] false when it has given up
  */
 
 export function createEngine(deps) {
@@ -168,7 +170,7 @@ export function createEngine(deps) {
    * `lastMessage` is overwritten on every tick, so a log cannot be recovered
    * from it; these events are what the log tab is built from.
    *
-   * @param {'click'|'busy'|'task'|'idle'|'screen'|'resource'|'activity'} kind
+   * @param {'click'|'busy'|'task'|'idle'|'screen'|'resource'|'activity'|'hang'} kind
    * @param {object} [detail]
    */
   function report(kind, detail = {}) {
@@ -353,11 +355,26 @@ export function createEngine(deps) {
     if (!state.activeTask) {
       return;
     }
-    if (realNow() - state.lastActionAt >= AUTO_STOP_TIMEOUT) {
-      const stopped = state.activeTask;
-      stop();
-      setMessage(`${stopped} auto-stopped (idle ${AUTO_STOP_TIMEOUT / 60000}m)`);
+    if (realNow() - state.lastActionAt < AUTO_STOP_TIMEOUT) {
+      return;
     }
+
+    const stalled = state.activeTask;
+
+    // The watchdog does not add a second timer; it changes what this one does.
+    if (deps.shouldRecoverFromHang && deps.shouldRecoverFromHang() && deps.recoverFromHang) {
+      report('hang', { label: stalled });
+      setMessage(`${stalled} looks stuck — reloading`);
+      if (deps.recoverFromHang(stalled)) {
+        return;
+      }
+      stop();
+      setMessage(`${stalled} stopped: reloading did not help`);
+      return;
+    }
+
+    stop();
+    setMessage(`${stalled} auto-stopped (idle ${AUTO_STOP_TIMEOUT / 60000}m)`);
   }
 
   /** @param {string} taskId */
@@ -418,5 +435,5 @@ export function createEngine(deps) {
     }
   }
 
-  return { start, stop, toggle, tick, getState, on: emitter.on, setMessage };
+  return { start, stop, toggle, tick, checkIdle: checkAutoStop, getState, on: emitter.on, setMessage };
 }

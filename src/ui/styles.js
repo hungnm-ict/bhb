@@ -283,6 +283,15 @@ const CSS = `
 
 /* --- Screens & drag capture --------------------------------------------- */
 
+.bhb-select, .bhb-textarea {
+  width: 100%; padding: 5px 7px;
+  background: var(--bhb-bg-soft); color: var(--bhb-text);
+  border: 1px solid var(--bhb-line); border-radius: 7px;
+  font-family: var(--bhb-font); font-size: 11px;
+}
+.bhb-textarea { height: 72px; resize: vertical; font-family: var(--bhb-mono); font-size: 10px; }
+.bhb-btnrow { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.bhb-btn--small { flex: 1; min-width: 64px; padding: 4px 8px; font-size: 10.5px; }
 .bhb-queue__row.is-active { border-color: var(--bhb-live); }
 .bhb-queue__row.is-spent { opacity: .45; }
 .bhb-queue__state { width: 14px; text-align: center; color: var(--bhb-live); font-size: 10px; }
