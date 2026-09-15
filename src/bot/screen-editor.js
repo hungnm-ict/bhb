@@ -7,7 +7,7 @@ import { t } from '../i18n/index.js';
 /**
  * Every mutation a screen can undergo, kept DOM-free so the panel stays a view.
  *
- * Sibling of `editor.js`: same shape, same persistence contract.
+ * Sibling of `step-editor.js`: same shape, same persistence contract.
  *
  * @param {object} deps
  * @param {() => import('./screen.js').Screen[]} deps.getScreens

@@ -1,5 +1,5 @@
 /**
- * The engine's half of the vision layer: detect once per tick, gate the rules,
+ * The engine's half of the vision layer: detect once per tick, gate the steps,
  * and stop when a `stopsTask` screen shows up.
  *
  * @vitest-environment jsdom
@@ -44,8 +44,8 @@ vi.mock('../src/core/canvas.js', () => ({
 
 const { createEngine, TaskId } = await import('../src/core/engine.js');
 const { captureFingerprint } = await import('../src/core/region.js');
-const { createScreen } = await import('../src/rules/screen.js');
-const { createRule } = await import('../src/rules/model.js');
+const { createScreen } = await import('../src/bot/screen.js');
+const { createStep } = await import('../src/bot/step.js');
 
 const RED = { r: 255, g: 0, b: 0 };
 const BLUE = { r: 0, g: 0, b: 255 };
@@ -64,11 +64,11 @@ function anchorOf(color) {
   );
 }
 
-function build({ rules = [], screens = [] }) {
+function build({ steps = [], screens = [] }) {
   return createEngine({
-    getScriptRules: () => rules,
-    getRerunRules: () => [],
-    getWorldBossRules: () => [],
+    getScriptSteps: () => steps,
+    getRerunSteps: () => [],
+    getWorldBossSteps: () => [],
     getScaleMode: () => 'scale',
     getScreens: () => screens,
   });
@@ -80,9 +80,9 @@ beforeEach(() => {
 });
 
 describe('engine screen gating', () => {
-  it('fires a gated rule only on its own screen', () => {
+  it('fires a gated step only on its own screen', () => {
     const loot = createScreen({ id: 'loot', name: 'loot', anchors: [anchorOf(RED)], tolerance: 0 });
-    const rule = createRule({
+    const step = createStep({
       label: 'yes',
       hex: '#ff0000',
       tolerance: 0,
@@ -90,14 +90,14 @@ describe('engine screen gating', () => {
       screens: ['other'],
     });
 
-    const engine = build({ rules: [rule], screens: [loot] });
+    const engine = build({ steps: [step], screens: [loot] });
     frame = () => RED;
 
     engine.start(TaskId.SCRIPT);
     expect(engine.getState().screen).toBe('loot');
-    expect(clicks, 'rule belongs to another screen').toHaveLength(0);
+    expect(clicks, 'step belongs to another screen').toHaveLength(0);
 
-    rule.screens = ['loot'];
+    step.screens = ['loot'];
     engine.tick();
     expect(clicks).toHaveLength(1);
     engine.stop();
@@ -112,7 +112,7 @@ describe('engine screen gating', () => {
       stopsTask: true,
     });
 
-    const engine = build({ rules: [], screens: [outOfTickets] });
+    const engine = build({ steps: [], screens: [outOfTickets] });
     const entries = [];
     engine.on('action', (entry) => entries.push(entry));
 
@@ -129,7 +129,7 @@ describe('engine screen gating', () => {
 
   it('logs a screen change once, not every tick', () => {
     const loot = createScreen({ id: 'loot', name: 'loot', anchors: [anchorOf(RED)], tolerance: 0 });
-    const engine = build({ rules: [], screens: [loot] });
+    const engine = build({ steps: [], screens: [loot] });
     const screenEntries = [];
     engine.on('action', (entry) => entry.kind === 'screen' && screenEntries.push(entry));
 

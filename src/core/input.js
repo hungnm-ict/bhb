@@ -137,7 +137,7 @@ export function dispatchMoveTo(canvas, clientX, clientY) {
 /**
  * Park the pointer in the canvas corner so no button keeps a hover highlight —
  * a highlighted button reads as a different colour and would break the next
- * rule match.
+ * step match.
  *
  * @param {HTMLCanvasElement} canvas
  */

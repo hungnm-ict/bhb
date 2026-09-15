@@ -19,7 +19,7 @@ const SECTIONS = [
     ],
   },
   {
-    title: 'help.sectionRules',
+    title: 'help.sectionSteps',
     entries: [
       ['0', 'help.capture'],
     ],

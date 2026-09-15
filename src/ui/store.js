@@ -10,7 +10,7 @@ import { createEmitter } from '../core/events.js';
 
 export const Tab = Object.freeze({
   TASKS: 'tasks',
-  RULES: 'rules',
+  STEPS: 'steps',
   SCREENS: 'screens',
   SETTINGS: 'settings',
   LOG: 'log',
@@ -27,11 +27,11 @@ export function createUiStore() {
     panelOpen: false,
     tab: Tab.TASKS,
     /** @type {string | null} */
-    selectedRuleId: null,
-    /** @type {string | null} rule under the cursor, in the table or on canvas */
-    hoveredRuleId: null,
-    /** @type {string | null} activity id shown in the rules table; null is all */
-    ruleFilter: null,
+    selectedStepId: null,
+    /** @type {string | null} step under the cursor, in the table or on canvas */
+    hoveredStepId: null,
+    /** @type {string | null} activity id shown in the steps table; null is all */
+    stepFilter: null,
     /** @type {object[]} newest first */
     log: [],
   };
@@ -41,7 +41,7 @@ export function createUiStore() {
    * announced separately: rebuilding the panel on every mouseenter replaced
    * the row under the cursor twice a second and felt like lag.
    */
-  const HIGHLIGHT_KEYS = new Set(['selectedRuleId', 'hoveredRuleId']);
+  const HIGHLIGHT_KEYS = new Set(['selectedStepId', 'hoveredStepId']);
 
   function emit() {
     emitter.emit('change', state);
@@ -73,20 +73,20 @@ export function createUiStore() {
     onHighlight: (handler) => emitter.on('highlight', handler),
 
     openPanel: () => patch({ panelOpen: true }),
-    closePanel: () => patch({ panelOpen: false, hoveredRuleId: null }),
+    closePanel: () => patch({ panelOpen: false, hoveredStepId: null }),
     togglePanel: () => patch({ panelOpen: !state.panelOpen }),
     setTab: (tab) => patch({ tab, panelOpen: true }),
 
-    setRuleFilter: (activityId) => patch({ ruleFilter: activityId }),
+    setRuleFilter: (activityId) => patch({ stepFilter: activityId }),
 
-    selectRule: (id) => patch({ selectedRuleId: id }),
-    hoverRule: (id) => patch({ hoveredRuleId: id }),
+    selectStep: (id) => patch({ selectedStepId: id }),
+    hoverStep: (id) => patch({ hoveredStepId: id }),
 
-    /** Drop any reference to a rule that no longer exists. */
-    forgetRule(id) {
+    /** Drop any reference to a step that no longer exists. */
+    forgetStep(id) {
       patch({
-        selectedRuleId: state.selectedRuleId === id ? null : state.selectedRuleId,
-        hoveredRuleId: state.hoveredRuleId === id ? null : state.hoveredRuleId,
+        selectedStepId: state.selectedStepId === id ? null : state.selectedStepId,
+        hoveredStepId: state.hoveredStepId === id ? null : state.hoveredStepId,
       });
     },
 
@@ -109,7 +109,7 @@ export function createUiStore() {
 
     /** Markers would swallow the game's clicks if they outlived the tab. */
     markersVisible() {
-      return state.panelOpen && state.tab === Tab.RULES;
+      return state.panelOpen && state.tab === Tab.STEPS;
     },
   };
 }

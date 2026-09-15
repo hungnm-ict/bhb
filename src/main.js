@@ -31,16 +31,17 @@ import {
   importProfiles,
 } from './core/storage.js';
 import { createWatchdog } from './core/watchdog.js';
-import { RERUN_RULES, WORLD_BOSS_RULES } from './rules/builtin.js';
-import { createRuleEditor } from './rules/editor.js';
-import { createScreenEditor } from './rules/screen-editor.js';
-import { createQueueEditor } from './rules/queue-editor.js';
+import { RERUN_STEPS, WORLD_BOSS_STEPS } from './bot/builtin.js';
+import { createStepEditor } from './bot/step-editor.js';
+import { createScreenEditor } from './bot/screen-editor.js';
+import { createQueueEditor } from './bot/queue-editor.js';
 import { setLanguage } from './i18n/index.js';
 import { installStyles } from './ui/styles.js';
 import { createUiStore, Tab } from './ui/store.js';
 import { createHud } from './ui/hud.js';
 import { createPanel } from './ui/panel/index.js';
 import { createMarkerLayer } from './ui/markers.js';
+import { createSizeBadge } from './ui/size-badge.js';
 import { installHotkeys } from './ui/hotkeys.js';
 import { showClickFlash } from './ui/flash.js';
 import { realSetInterval, realClearInterval, realSetTimeout, realNow } from './core/timers.js';
@@ -61,7 +62,7 @@ function bootstrap() {
   setLanguage(settings.language);
 
   const profileState = loadProfiles();
-  const getRules = () => getActiveProfile(profileState).rules;
+  const getSteps = () => getActiveProfile(profileState).steps;
   const getScreens = () => getActiveProfile(profileState).screens;
   const getActivities = () => getActiveProfile(profileState).activities;
   const persist = () => saveProfiles(profileState);
@@ -70,9 +71,9 @@ function bootstrap() {
   const watchdog = createWatchdog();
 
   const engine = createEngine({
-    getScriptRules: getRules,
-    getRerunRules: () => RERUN_RULES,
-    getWorldBossRules: () => WORLD_BOSS_RULES,
+    getScriptSteps: getSteps,
+    getRerunSteps: () => RERUN_STEPS,
+    getWorldBossSteps: () => WORLD_BOSS_STEPS,
     getScaleMode: () => settings.scaleMode,
     getScreens,
     getActivities,
@@ -82,8 +83,8 @@ function bootstrap() {
     recoverFromHang: (task) => watchdog.recover(task),
   });
 
-  const editor = createRuleEditor({
-    getRules,
+  const stepEditor = createStepEditor({
+    getSteps,
     persist,
     report: engine.setMessage,
   });
@@ -102,6 +103,7 @@ function bootstrap() {
     hud.render();
     panel.render();
     markers.render();
+    sizeBadge.render();
   };
 
   /** Tabs whose contents change on their own: a countdown, a live probe. */
@@ -109,6 +111,7 @@ function bootstrap() {
 
   const refreshLive = () => {
     hud.render();
+    sizeBadge.render();
     const state = store.get();
     if (state.panelOpen && LIVE_TABS.has(state.tab)) {
       panel.render();
@@ -153,10 +156,10 @@ function bootstrap() {
 
   const panel = createPanel({
     store,
-    editor,
+    stepEditor,
     screenEditor,
     queueEditor,
-    getRules,
+    getSteps,
     getScreens,
     getActivities,
     getCloseAfterRound: () => settings.closeAfterRound,
@@ -181,10 +184,12 @@ function bootstrap() {
   });
 
   const markers = createMarkerLayer({
-    getRules,
+    getSteps,
     getScaleMode: () => settings.scaleMode,
     store,
   });
+
+  const sizeBadge = createSizeBadge({ isVisible: () => settings.sizeBadge });
 
   setClickObserver(showClickFlash);
   engine.on('change', () => refresh());
@@ -218,7 +223,7 @@ function bootstrap() {
     '4': () => engine.toggle(TaskId.WORLD_BOSS),
     '5': () => engine.toggle(TaskId.SCRIPT),
     '6': () => engine.toggle(TaskId.RUN_ALL),
-    '0': () => editor.captureAtCursor().then(refresh),
+    '0': () => stepEditor.captureAtCursor().then(refresh),
     '=': () => setSpeed(nextSpeedStep(getSpeed(), 1)),
     '+': () => setSpeed(nextSpeedStep(getSpeed(), 1)),
     '-': () => setSpeed(nextSpeedStep(getSpeed(), -1)),
@@ -227,10 +232,13 @@ function bootstrap() {
   refresh();
   hud.wake();
   // Only the tabs that show live numbers are worth redrawing on a timer.
-  // Redrawing the rules table twice a second ate the caret out of its inputs.
+  // Redrawing the steps table twice a second ate the caret out of its inputs.
   realSetInterval(refreshLive, UI_REFRESH_MS);
   // Markers are positioned from the live canvas box, so a resize moves them.
-  window.addEventListener('resize', () => markers.render());
+  window.addEventListener('resize', () => {
+    markers.render();
+    sizeBadge.render();
+  });
 
   resumeAfterReload(engine, watchdog);
 

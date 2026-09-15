@@ -42,21 +42,21 @@ describe('ui store', () => {
     expect(entries[0].label).toBe(`r${LOG_LIMIT + 49}`);
   });
 
-  it('clears the selection when the selected rule goes away', () => {
+  it('clears the selection when the selected step goes away', () => {
     const store = createUiStore();
-    store.selectRule('abc');
-    expect(store.get().selectedRuleId).toBe('abc');
+    store.selectStep('abc');
+    expect(store.get().selectedStepId).toBe('abc');
 
-    store.forgetRule('abc');
-    expect(store.get().selectedRuleId).toBe(null);
+    store.forgetStep('abc');
+    expect(store.get().selectedStepId).toBe(null);
   });
 
-  it('only shows markers while the rules tab is open', () => {
+  it('only shows markers while the steps tab is open', () => {
     const store = createUiStore();
     expect(store.markersVisible()).toBe(false);
 
     store.openPanel();
-    store.setTab(Tab.RULES);
+    store.setTab(Tab.STEPS);
     expect(store.markersVisible()).toBe(true);
 
     store.closePanel();
@@ -72,12 +72,12 @@ describe('highlight is not a rebuild', () => {
     store.subscribe(() => changes.push(1));
     store.onHighlight(() => highlights.push(1));
 
-    store.hoverRule('r1');
-    store.selectRule('r1');
+    store.hoverStep('r1');
+    store.selectStep('r1');
     expect(highlights, 'hovering must not redraw the panel').toHaveLength(2);
     expect(changes).toHaveLength(0);
 
-    store.setTab('rules');
+    store.setTab('steps');
     expect(changes, 'a tab change is a real change').toHaveLength(1);
   });
 
@@ -86,8 +86,8 @@ describe('highlight is not a rebuild', () => {
     const highlights = [];
     store.onHighlight(() => highlights.push(1));
 
-    store.hoverRule('r1');
-    store.hoverRule('r1');
+    store.hoverStep('r1');
+    store.hoverStep('r1');
     expect(highlights).toHaveLength(1);
   });
 });

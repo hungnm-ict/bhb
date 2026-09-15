@@ -10,11 +10,11 @@ import {
 } from '../core/coords.js';
 import { realRequestAnimationFrame } from '../core/timers.js';
 import { HOVER_RESET_POINT } from '../core/constants.js';
-import { createRule } from './model.js';
+import { createStep } from './step.js';
 import { t } from '../i18n/index.js';
 
 /**
- * Every mutation a rule can undergo: capture, rename, enable, delete, reorder.
+ * Every mutation a step can undergo: capture, rename, enable, delete, reorder.
  *
  * Capture is one action. The old flow made the user move the mouse away before
  * sampling, because a hovered button is lit and stores the wrong colour. The
@@ -22,9 +22,9 @@ import { t } from '../i18n/index.js';
  * redraws, the resting colour is read, and the pointer goes back. The user's
  * real cursor never moves.
  *
- * Both shades are kept — resting as the rule's colour, hovered as a second
+ * Both shades are kept — resting as the step's colour, hovered as a second
  * point with its own. The bot's own click leaves a button highlighted for a
- * moment, and a rule that only knows the resting shade misses it.
+ * moment, and a step that only knows the resting shade misses it.
  */
 
 /** Frames to let the game repaint after the synthetic pointer moves. */
@@ -36,11 +36,11 @@ function nextFrame() {
 
 /**
  * @param {object} deps
- * @param {() => import('./model.js').Rule[]} deps.getRules
+ * @param {() => import('./step.js').Step[]} deps.getSteps
  * @param {() => void} deps.persist
  * @param {(message: string) => void} deps.report
  */
-export function createRuleEditor(deps) {
+export function createStepEditor(deps) {
   let cursorX = null;
   let cursorY = null;
   let capturing = false;
@@ -55,8 +55,8 @@ export function createRuleEditor(deps) {
   );
 
   /**
-   * Capture a rule at the current cursor position.
-   * @returns {Promise<import('./model.js').Rule | null>}
+   * Capture a step at the current cursor position.
+   * @returns {Promise<import('./step.js').Step | null>}
    */
   async function captureAtCursor() {
     // A second capture mid-flight would move the pointer out from under the
@@ -110,84 +110,84 @@ export function createRuleEditor(deps) {
         points.push({ ...point, ...size, hex: hoveredHex });
       }
 
-      const rules = deps.getRules();
-      const rule = createRule({
-        label: t('rule.defaultLabel', { n: rules.length + 1 }),
+      const steps = deps.getSteps();
+      const step = createStep({
+        label: t('step.defaultLabel', { n: steps.length + 1 }),
         points,
         hex: restingHex,
       });
-      rules.push(rule);
+      steps.push(step);
       deps.persist();
 
-      deps.report(t('msg.ruleCaptured', { x: point.x, y: point.y, hex: restingHex }));
-      return rule;
+      deps.report(t('msg.stepCaptured', { x: point.x, y: point.y, hex: restingHex }));
+      return step;
     } finally {
       capturing = false;
     }
   }
 
-  function find(ruleId) {
-    return deps.getRules().find((rule) => rule.id === ruleId) || null;
+  function find(stepId) {
+    return deps.getSteps().find((step) => step.id === stepId) || null;
   }
 
-  function rename(ruleId, label) {
-    const rule = find(ruleId);
-    if (!rule) {
+  function rename(stepId, label) {
+    const step = find(stepId);
+    if (!step) {
       return;
     }
-    rule.label = label;
+    step.label = label;
     deps.persist();
   }
 
-  function setEnabled(ruleId, enabled) {
-    const rule = find(ruleId);
-    if (!rule) {
+  function setEnabled(stepId, enabled) {
+    const step = find(stepId);
+    if (!step) {
       return;
     }
-    rule.enabled = enabled;
+    step.enabled = enabled;
     deps.persist();
   }
 
-  /** A rule with no screens fires anywhere, which is the default. */
-  function setScreens(ruleId, screenIds) {
-    const rule = find(ruleId);
-    if (!rule) {
+  /** A step with no screens fires anywhere, which is the default. */
+  function setScreens(stepId, screenIds) {
+    const step = find(stepId);
+    if (!step) {
       return;
     }
-    rule.screens = screenIds;
+    step.screens = screenIds;
     deps.persist();
   }
 
-  /** Which Run-All slot a rule belongs to; null leaves it in the Script set. */
-  function setActivity(ruleId, activityId) {
-    const rule = find(ruleId);
-    if (!rule) {
+  /** Which Run-All slot a step belongs to; null leaves it in the Script set. */
+  function setActivity(stepId, activityId) {
+    const step = find(stepId);
+    if (!step) {
       return;
     }
-    rule.activity = activityId;
+    step.activity = activityId;
     deps.persist();
   }
 
-  function remove(ruleId) {
-    const rules = deps.getRules();
-    const index = rules.findIndex((rule) => rule.id === ruleId);
+  function remove(stepId) {
+    const steps = deps.getSteps();
+    const index = steps.findIndex((step) => step.id === stepId);
     if (index === -1) {
       return;
     }
-    rules.splice(index, 1);
+    steps.splice(index, 1);
     deps.persist();
   }
 
-  /** Order is priority: the first matching rule wins, so moving matters. */
-  function move(ruleId, delta) {
-    const rules = deps.getRules();
-    const from = rules.findIndex((rule) => rule.id === ruleId);
+  /** Order is priority: the first matching step wins, so moving matters. */
+  function move(stepId, delta) {
+    const steps = deps.getSteps();
+    const from = steps.findIndex((step) => step.id === stepId);
     const to = from + delta;
-    if (from === -1 || to < 0 || to >= rules.length) {
+    if (from === -1 || to < 0 || to >= steps.length) {
       return;
     }
-    const [rule] = rules.splice(from, 1);
-    rules.splice(to, 0, rule);
+    const [step] = steps.splice(from, 1);
+    steps.splice(to, 0, step);
     deps.persist();
   }
 

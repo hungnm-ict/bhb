@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { captureFingerprint } from '../src/core/region.js';
-import { createScreen, detectScreen, scoreScreen, ruleAllowedOn } from '../src/rules/screen.js';
+import { createScreen, detectScreen, scoreScreen, stepAllowedOn } from '../src/bot/screen.js';
 
 function createGl(width, height, colorAt) {
   return {
@@ -64,16 +64,16 @@ describe('screen detection', () => {
   });
 });
 
-describe('rule gating', () => {
-  it('lets an ungated rule fire anywhere', () => {
-    expect(ruleAllowedOn({}, null)).toBe(true);
-    expect(ruleAllowedOn({ screens: [] }, 's1')).toBe(true);
+describe('step gating', () => {
+  it('lets an ungated step fire anywhere', () => {
+    expect(stepAllowedOn({}, null)).toBe(true);
+    expect(stepAllowedOn({ screens: [] }, 's1')).toBe(true);
   });
 
-  it('holds a gated rule to its own screens', () => {
-    const rule = { screens: ['s1'] };
-    expect(ruleAllowedOn(rule, 's1')).toBe(true);
-    expect(ruleAllowedOn(rule, 's2')).toBe(false);
-    expect(ruleAllowedOn(rule, null)).toBe(false);
+  it('holds a gated step to its own screens', () => {
+    const step = { screens: ['s1'] };
+    expect(stepAllowedOn(step, 's1')).toBe(true);
+    expect(stepAllowedOn(step, 's2')).toBe(false);
+    expect(stepAllowedOn(step, null)).toBe(false);
   });
 });

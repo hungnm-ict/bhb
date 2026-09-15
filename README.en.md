@@ -49,19 +49,21 @@ Click it (or press `1`) to open the **control panel**, which has six tabs:
 | Tab | Contents |
 |---|---|
 | **Run** | A switch per mode (Run All included), the speed slider, canvas size, auto-stop countdown |
-| **Actions** | The action table: rename, enable, tag to an activity, gate to a screen, reorder, delete |
+| **Steps** | The step table: rename, enable, tag to an activity, gate to a screen, reorder, delete |
 | **Screens** | Screen anchors, with a live ✓/✗ and the measured match ratio |
 | **Settings** | Profiles (one per character), the activity queue, reload-on-hang, language, export/import |
 | **Log** | What the bot has actually done, newest first |
 | **?** | The keyboard reference |
 
-An **action** is "when this colour is here (on this screen), click there". Order in the table is **priority**, not sequence — sequence comes from the screen column.
+A **step** is "when this colour is here (on this screen), click there", and the bot walks the table **in order**: it tries the step it is waiting for, clicks it, and moves to the next one.
 
-With the **Actions** tab open, every action is drawn as a **marker on the canvas** at the position it watches. Hovering a row lights its marker and the other way round, so you can see which button a rule points at.
+Games do not follow a script — a daily reward pops up, a connection drops, a battle ends on a screen nobody planned for. So when the expected step has not matched for three ticks, the bot gives up its place and takes whatever fits the screen in front of it, then carries on from there. The log records every time it does.
+
+With the **Steps** tab open, every step is drawn as a **marker on the canvas** at the position it watches. Hovering a row lights its marker and the other way round, so you can see which button a rule points at.
 
 ### Capturing a rule
 
-Hover a button in the game and press **Capture an action at the cursor** (or the `0` key). That is the whole flow.
+Hover a button in the game and press **Capture a step at the cursor** (or the `0` key). That is the whole flow.
 
 The bot handles the hover problem for you: it parks the **synthetic** pointer in a corner of the canvas, waits for the game to repaint, reads the resting colour, and puts the synthetic pointer back. Your real cursor never moves. Both shades — lit and resting — are stored, so the rule matches either way.
 

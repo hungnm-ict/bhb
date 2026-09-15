@@ -3,7 +3,7 @@ import { t } from '../../i18n/index.js';
 import { Tab } from '../store.js';
 import { VERSION } from '../../core/constants.js';
 import { renderTasksTab } from './tasks.js';
-import { renderRulesTab, highlightRules } from './rules.js';
+import { renderStepsTab, highlightSteps } from './steps.js';
 import { renderScreensTab } from './screens.js';
 import { renderSettingsTab } from './settings.js';
 import { renderLogTab } from './log.js';
@@ -18,7 +18,7 @@ import { renderHelpTab } from './help.js';
 
 const TABS = [
   [Tab.TASKS, 'tab.tasks'],
-  [Tab.RULES, 'tab.rules'],
+  [Tab.STEPS, 'tab.steps'],
   [Tab.SCREENS, 'tab.screens'],
   [Tab.SETTINGS, 'tab.settings'],
   [Tab.LOG, 'tab.log'],
@@ -30,10 +30,10 @@ const TABS = [
  * @param {ReturnType<import('../store.js').createUiStore>} deps.store
  * @param {() => object} deps.getEngineState
  * @param {(taskId: string) => void} deps.toggleTask
- * @param {() => import('../../rules/model.js').Rule[]} deps.getRules
- * @param {object} deps.editor
+ * @param {() => import('../../bot/step.js').Step[]} deps.getSteps
+ * @param {object} deps.stepEditor
  * @param {object} deps.screenEditor
- * @param {() => import('../../rules/screen.js').Screen[]} deps.getScreens
+ * @param {() => import('../../bot/screen.js').Screen[]} deps.getScreens
  * @param {() => string} deps.getProfileName
  * @param {() => void} deps.refresh
  */
@@ -49,8 +49,8 @@ export function createPanel(deps) {
   }
 
   function renderBody(tab) {
-    if (tab === Tab.RULES) {
-      return renderRulesTab(deps);
+    if (tab === Tab.STEPS) {
+      return renderStepsTab(deps);
     }
     if (tab === Tab.SCREENS) {
       return renderScreensTab(deps);
@@ -125,7 +125,7 @@ export function createPanel(deps) {
   }
 
   function highlight() {
-    highlightRules(deps.store.get());
+    highlightSteps(deps.store.get());
   }
 
   return { render, highlight };

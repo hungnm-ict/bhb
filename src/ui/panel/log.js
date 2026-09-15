@@ -15,6 +15,7 @@ const KIND_ICON = {
   screen: '▣',
   activity: '➜',
   hang: '⟳',
+  resync: '↻',
   resource: '⛔',
 };
 
@@ -28,6 +29,9 @@ function clock(at) {
 function describe(entry) {
   if (entry.kind === 'task') {
     return t(entry.started ? 'log.taskStarted' : 'log.taskStopped', { task: entry.label });
+  }
+  if (entry.kind === 'resync') {
+    return t('log.resync', { label: entry.label });
   }
   if (entry.kind === 'hang') {
     return t('log.hang', { label: entry.label });

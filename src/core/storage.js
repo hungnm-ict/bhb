@@ -4,29 +4,29 @@ import {
   STORAGE_KEY_LEGACY_RULES,
   DEFAULT_COLOR_TOLERANCE,
 } from './constants.js';
-import { createRule } from '../rules/model.js';
+import { createStep } from '../bot/step.js';
 import { ScaleMode } from './coords.js';
-import { createDefaultActivities } from '../rules/activity.js';
+import { createDefaultActivities } from '../bot/activity.js';
 
 /**
- * Persistence for rule profiles and settings.
+ * Persistence for step profiles and settings.
  *
  * Every read is defensive: `localStorage` can throw outright (private mode,
  * blocked site data) and its contents are user-editable via import, so a
  * malformed blob must degrade to defaults rather than take the bot down.
  *
- * @typedef {import('../rules/model.js').Rule} Rule
- * @typedef {import('../rules/screen.js').Screen} Screen
- * @typedef {import('../rules/activity.js').Activity} Activity
- * @typedef {{ id: string, name: string, rules: Rule[], screens: Screen[], activities: Activity[] }} Profile
+ * @typedef {import('../bot/step.js').Step} Step
+ * @typedef {import('../bot/screen.js').Screen} Screen
+ * @typedef {import('../bot/activity.js').Activity} Activity
+ * @typedef {{ id: string, name: string, steps: Step[], screens: Screen[], activities: Activity[] }} Profile
  * @typedef {{ version: 4, activeProfileId: string, profiles: Profile[] }} ProfileState
  *
- * Each migration only ever adds a list: v3 added `screens`, v4 adds
- * `activities`. An export from any earlier version still loads with every
- * rule it had.
+ * Migrations only ever add a list or rename one: v3 added `screens`, v4 added
+ * `activities`, and v5 renamed `rules` to `steps` along with the concept. An
+ * export from any earlier version still loads with everything it had.
  */
 
-const SCHEMA_VERSION = 4;
+const SCHEMA_VERSION = 5;
 
 /** @returns {ProfileState} */
 function createDefaultState() {
@@ -37,7 +37,7 @@ function createDefaultState() {
       {
         id: 'default',
         name: 'Default',
-        rules: [],
+        steps: [],
         screens: [],
         activities: createDefaultActivities(),
       },
@@ -66,14 +66,14 @@ function writeJson(key, value) {
 }
 
 /**
- * Pull rules across from upstream's bh-scripts, once.
+ * Pull steps across from upstream's bh-scripts, once.
  *
- * Those rules carry no capture size, so they cannot be scaled — they load as
+ * Those steps carry no capture size, so they cannot be scaled — they load as
  * legacy points and the overlay marks them for re-capture.
  *
- * @returns {Rule[]}
+ * @returns {Step[]}
  */
-function importLegacyRules() {
+function importLegacySteps() {
   const legacy = readJson(STORAGE_KEY_LEGACY_RULES);
   if (!Array.isArray(legacy)) {
     return [];
@@ -82,7 +82,7 @@ function importLegacyRules() {
   return legacy
     .filter((entry) => entry && typeof entry.x === 'number')
     .map((entry) =>
-      createRule({
+      createStep({
         label: 'imported',
         points: [{ x: entry.x, y: entry.y }],
         hex: entry.hex ?? null,
@@ -108,7 +108,12 @@ function normaliseState(candidate) {
     .map((profile) => ({
       id: profile.id,
       name: typeof profile.name === 'string' ? profile.name : profile.id,
-      rules: Array.isArray(profile.rules) ? profile.rules : [],
+      // v4 and earlier called them rules; the same objects, under the old name.
+      steps: Array.isArray(profile.steps)
+        ? profile.steps
+        : Array.isArray(profile.rules)
+          ? profile.rules
+          : [],
       screens: Array.isArray(profile.screens) ? profile.screens : [],
       activities:
         Array.isArray(profile.activities) && profile.activities.length > 0
@@ -136,10 +141,10 @@ export function loadProfiles() {
   }
 
   const state = createDefaultState();
-  const imported = importLegacyRules();
+  const imported = importLegacySteps();
   if (imported.length > 0) {
-    state.profiles[0].rules = imported;
-    console.info(`[BHB] imported ${imported.length} rule(s) from bh-scripts`);
+    state.profiles[0].steps = imported;
+    console.info(`[BHB] imported ${imported.length} step(s) from bh-scripts`);
   }
   saveProfiles(state);
   return state;
@@ -169,7 +174,7 @@ function createProfileId() {
 /**
  * Profile management.
  *
- * A profile holds everything that makes a configuration — rules, screens and
+ * A profile holds everything that makes a configuration — steps, screens and
  * the activity queue — so a character slot or a second account is a profile
  * and needs no concept of its own.
  *
@@ -181,7 +186,7 @@ export function createProfile(state, name) {
   const profile = {
     id: createProfileId(),
     name: name || `Profile ${state.profiles.length + 1}`,
-    rules: [],
+    steps: [],
     screens: [],
     activities: createDefaultActivities(),
   };
@@ -190,7 +195,7 @@ export function createProfile(state, name) {
   return profile;
 }
 
-/** A copy of the active profile, including its rules. */
+/** A copy of the active profile, including its steps. */
 export function duplicateProfile(state, name) {
   const source = getActiveProfile(state);
   const copy = JSON.parse(JSON.stringify(source));
@@ -239,7 +244,10 @@ export function setActiveProfile(state, profileId) {
   return true;
 }
 
-/** @returns {{ scaleMode: string, language: string, closeAfterRound: boolean, watchdog: boolean }} */
+/**
+ * @returns {{ scaleMode: string, language: string, closeAfterRound: boolean,
+ *   watchdog: boolean, sizeBadge: boolean }}
+ */
 export function loadSettings() {
   const stored = readJson(STORAGE_KEY_SETTINGS) || {};
   return {
@@ -251,6 +259,7 @@ export function loadSettings() {
     // A bot that closes the game unasked is a bot that loses a session.
     closeAfterRound: stored.closeAfterRound === true,
     watchdog: stored.watchdog === true,
+    sizeBadge: stored.sizeBadge !== false,
   };
 }
 
@@ -271,7 +280,7 @@ export function exportProfiles(state) {
 export function importProfiles(json) {
   const parsed = JSON.parse(json);
   const state = normaliseState(parsed);
-  if (state.profiles.every((p) => p.rules.length === 0) && !parsed.profiles) {
+  if (state.profiles.every((p) => p.steps.length === 0) && !parsed.profiles) {
     throw new Error('not a BHB profile export');
   }
   return state;

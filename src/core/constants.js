@@ -23,6 +23,12 @@ export const INTERVAL_RUN_ALL = 1500;
 /** Ticks with no match before Run-All gives up on an activity and moves on. */
 export const IDLE_ADVANCE_TICKS = 8;
 
+/**
+ * Ticks the runner waits for the step it expects before it stops trusting its
+ * place in the list and takes whatever fits the screen in front of it.
+ */
+export const RESYNC_AFTER_TICKS = 3;
+
 /** Stop automation after this long with no successful click. */
 export const AUTO_STOP_TIMEOUT = 3 * 60 * 1000;
 

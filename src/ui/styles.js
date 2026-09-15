@@ -3,7 +3,7 @@ import { Z_TOP } from '../core/constants.js';
 /**
  * One stylesheet for the whole UI.
  *
- * Everything is namespaced `.bhb-` and every rule sets what it needs
+ * Everything is namespaced `.bhb-` and every step sets what it needs
  * explicitly — the game's own stylesheet is unknown territory, and an
  * inherited font or line-height would wreck the layout silently.
  *
@@ -11,7 +11,7 @@ import { Z_TOP } from '../core/constants.js';
  * layer itself must not, or it would swallow every click meant for the game.
  */
 const CSS = `
-.bhb-hud, .bhb-panel, .bhb-markers, .bhb-flash, .bhb-drag {
+.bhb-hud, .bhb-panel, .bhb-markers, .bhb-flash, .bhb-drag, .bhb-size {
   --bhb-bg: #12141c;
   --bhb-bg-soft: #1a1d29;
   --bhb-line: rgba(255, 255, 255, .09);
@@ -230,18 +230,21 @@ const CSS = `
 .bhb-icon.is-on { color: var(--bhb-live); }
 .bhb-icon--danger:hover { background: rgba(255, 107, 129, .18); color: var(--bhb-danger); }
 
-/* --- Rules table -------------------------------------------------------- */
+/* --- Steps table -------------------------------------------------------- */
 
-.bhb-rules { display: flex; flex-direction: column; gap: 3px; }
-.bhb-rule {
+.bhb-steps { display: flex; flex-direction: column; gap: 3px; }
+.bhb-step {
   display: flex; align-items: center; gap: 7px;
   padding: 6px 7px;
   border: 1px solid transparent; border-radius: 8px;
   cursor: pointer;
 }
-.bhb-rule:hover, .bhb-rule.is-hovered { background: var(--bhb-bg-soft); }
-.bhb-rule.is-selected { border-color: rgba(124, 92, 255, .6); background: rgba(124, 92, 255, .1); }
-.bhb-rule.is-off { opacity: .45; }
+.bhb-step:hover, .bhb-step.is-hovered { background: var(--bhb-bg-soft); }
+.bhb-step.is-selected { border-color: rgba(124, 92, 255, .6); background: rgba(124, 92, 255, .1); }
+.bhb-step.is-off { opacity: .45; }
+/* The step the runner is waiting for, so a stuck sequence is visible. */
+.bhb-step.is-next { border-color: rgba(61, 220, 151, .5); }
+.bhb-step.is-next .bhb-step__n { color: var(--bhb-live); }
 
 .bhb-rule__n { width: 14px; color: var(--bhb-dim); font-family: var(--bhb-mono); font-size: 10px; }
 .bhb-rule__swatch {
@@ -258,9 +261,9 @@ const CSS = `
 .bhb-rule__coord { color: var(--bhb-cyan); font-size: 10px; }
 .bhb-rule__actions { display: flex; gap: 1px; margin-left: auto; }
 
-/* A rule carries a name, a place, an activity and a screen gate. On one line
+/* A step carries a name, a place, an activity and a screen gate. On one line
    they crush each other, so the row is two: identity above, wiring below. */
-.bhb-rule--stacked { flex-direction: column; align-items: stretch; gap: 5px; }
+.bhb-step--stacked { flex-direction: column; align-items: stretch; gap: 5px; }
 .bhb-rule__main { display: flex; align-items: center; gap: 7px; }
 .bhb-rule__meta { display: flex; align-items: center; gap: 6px; padding-left: 21px; }
 .bhb-rule__meta .bhb-rule__gate { flex: 1; min-width: 0; max-width: none; }
@@ -279,6 +282,18 @@ const CSS = `
 .bhb-log__row--task .bhb-log__icon { color: var(--bhb-accent); }
 .bhb-log__text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .bhb-log__coord { color: var(--bhb-dim); font-size: 10px; }
+
+/* --- Canvas size badge -------------------------------------------------- */
+
+.bhb-size {
+  right: 10px; bottom: 10px;
+  padding: 3px 8px;
+  background: rgba(18, 20, 28, .72);
+  border: 1px solid var(--bhb-line); border-radius: 7px;
+  color: var(--bhb-dim); font-size: 10px;
+  /* It sits over the game: taking a click here would be worse than no badge. */
+  pointer-events: none;
+}
 
 /* --- Marker layer ------------------------------------------------------- */
 

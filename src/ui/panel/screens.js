@@ -10,7 +10,7 @@ import { startDragSelect } from '../dragselect.js';
  * watching it, not by arithmetic.
  *
  * @param {object} deps
- * @param {() => import('../../rules/screen.js').Screen[]} deps.getScreens
+ * @param {() => import('../../bot/screen.js').Screen[]} deps.getScreens
  * @param {object} deps.screenEditor
  * @param {() => object} deps.getEngineState
  * @param {ReturnType<import('../store.js').createUiStore>} deps.store
@@ -82,19 +82,19 @@ export function renderScreensTab(deps) {
     const add = el('button', { class: 'bhb-icon', title: t('screens.addAnchor'), text: '＋' });
     add.addEventListener('click', () => capture(screen.id));
 
-    const up = el('button', { class: 'bhb-icon', title: t('rules.moveUp'), text: '▲' });
+    const up = el('button', { class: 'bhb-icon', title: t('steps.moveUp'), text: '▲' });
     up.addEventListener('click', () => {
       deps.screenEditor.move(screen.id, -1);
       deps.refresh();
     });
 
-    const down = el('button', { class: 'bhb-icon', title: t('rules.moveDown'), text: '▼' });
+    const down = el('button', { class: 'bhb-icon', title: t('steps.moveDown'), text: '▼' });
     down.addEventListener('click', () => {
       deps.screenEditor.move(screen.id, 1);
       deps.refresh();
     });
 
-    const remove = el('button', { class: 'bhb-icon bhb-icon--danger', title: t('rules.delete'), text: '✕' });
+    const remove = el('button', { class: 'bhb-icon bhb-icon--danger', title: t('steps.delete'), text: '✕' });
     remove.addEventListener('click', () => {
       deps.screenEditor.remove(screen.id);
       deps.refresh();
@@ -111,7 +111,7 @@ export function renderScreensTab(deps) {
       deps.refresh();
     });
 
-    const classes = ['bhb-rule', 'bhb-screen'];
+    const classes = ['bhb-step', 'bhb-screen'];
     if (active === screen.id) {
       classes.push('is-active');
     }
@@ -142,5 +142,5 @@ export function renderScreensTab(deps) {
     ]);
   });
 
-  return el('div', { class: 'bhb-tab' }, [head, el('div', { class: 'bhb-rules' }, rows)]);
+  return el('div', { class: 'bhb-tab' }, [head, el('div', { class: 'bhb-steps' }, rows)]);
 }

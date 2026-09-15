@@ -3,27 +3,27 @@ import { getCanvas } from '../core/canvas.js';
 import { bufferToClient, resolvePoint, getBufferSize, isLegacyPoint } from '../core/coords.js';
 
 /**
- * Rule markers drawn over the canvas.
+ * Step markers drawn over the canvas.
  *
- * A rule is a screen position; a list of numbers does not say which button it
- * points at. Each marker sits where its rule looks, so a rule aimed at nothing
+ * A step is a screen position; a list of numbers does not say which button it
+ * points at. Each marker sits where its step looks, so a step aimed at nothing
  * is visible as one.
  *
  * The layer itself never takes pointer events — only the markers do, and only
- * while the rules tab is open. A layer that swallowed clicks would make the
+ * while the steps tab is open. A layer that swallowed clicks would make the
  * game unplayable whenever the bot was running.
  */
 
 /**
  * @param {object} deps
- * @param {() => import('../rules/model.js').Rule[]} deps.getRules
+ * @param {() => import('../bot/step.js').Step[]} deps.getSteps
  * @param {() => string} deps.getScaleMode
  * @param {ReturnType<import('./store.js').createUiStore>} deps.store
  */
 export function createMarkerLayer(deps) {
   /** @type {HTMLElement | null} */
   let layer = null;
-  /** @type {Map<string, HTMLElement>} rule id to its marker, for highlighting */
+  /** @type {Map<string, HTMLElement>} step id to its marker, for highlighting */
   const nodes = new Map();
 
   function ensureLayer() {
@@ -33,8 +33,8 @@ export function createMarkerLayer(deps) {
     return layer;
   }
 
-  function markerFor(rule, index, canvas, buffer, rect) {
-    const stored = rule.points[0];
+  function markerFor(step, index, canvas, buffer, rect) {
+    const stored = step.points[0];
     if (!stored) {
       return null;
     }
@@ -44,16 +44,16 @@ export function createMarkerLayer(deps) {
 
     const state = deps.store.get();
     const classes = ['bhb-mark'];
-    if (!rule.enabled) {
+    if (!step.enabled) {
       classes.push('bhb-mark--off');
     }
     if (isLegacyPoint(stored)) {
       classes.push('bhb-mark--legacy');
     }
-    if (state.selectedRuleId === rule.id) {
+    if (state.selectedStepId === step.id) {
       classes.push('bhb-mark--selected');
     }
-    if (state.hoveredRuleId === rule.id) {
+    if (state.hoveredStepId === step.id) {
       classes.push('bhb-mark--hovered');
     }
 
@@ -62,22 +62,22 @@ export function createMarkerLayer(deps) {
       {
         class: classes.join(' '),
         style: { left: `${pos.clientX}px`, top: `${pos.clientY}px` },
-        title: rule.label || rule.hex || '',
+        title: step.label || step.hex || '',
       },
       [
         el('span', { class: 'bhb-mark__n', text: String(index + 1) }),
-        el('span', { class: 'bhb-mark__swatch', style: { background: rule.hex || 'transparent' } }),
+        el('span', { class: 'bhb-mark__swatch', style: { background: step.hex || 'transparent' } }),
       ]
     );
 
     node.addEventListener('click', (event) => {
       event.stopPropagation();
-      deps.store.selectRule(rule.id);
+      deps.store.selectStep(step.id);
     });
-    node.addEventListener('mouseenter', () => deps.store.hoverRule(rule.id));
-    node.addEventListener('mouseleave', () => deps.store.hoverRule(null));
+    node.addEventListener('mouseenter', () => deps.store.hoverStep(step.id));
+    node.addEventListener('mouseleave', () => deps.store.hoverStep(null));
 
-    nodes.set(rule.id, node);
+    nodes.set(step.id, node);
     return node;
   }
 
@@ -103,8 +103,8 @@ export function createMarkerLayer(deps) {
     const rect = canvas.getBoundingClientRect();
     nodes.clear();
     const marks = deps
-      .getRules()
-      .map((rule, index) => markerFor(rule, index, canvas, buffer, rect))
+      .getSteps()
+      .map((step, index) => markerFor(step, index, canvas, buffer, rect))
       .filter(Boolean);
 
     node.replaceChildren(...marks);
@@ -113,9 +113,9 @@ export function createMarkerLayer(deps) {
   /** Lighting a marker is a class change; it never needs the layer rebuilt. */
   function highlight() {
     const state = deps.store.get();
-    for (const [ruleId, marker] of nodes) {
-      marker.classList.toggle('bhb-mark--selected', state.selectedRuleId === ruleId);
-      marker.classList.toggle('bhb-mark--hovered', state.hoveredRuleId === ruleId);
+    for (const [stepId, marker] of nodes) {
+      marker.classList.toggle('bhb-mark--selected', state.selectedStepId === stepId);
+      marker.classList.toggle('bhb-mark--hovered', state.hoveredStepId === stepId);
     }
   }
 

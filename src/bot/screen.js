@@ -68,7 +68,7 @@ export function scoreScreen(gl, screen, buffer, mode) {
 
 /**
  * The first screen whose anchors all match. List order is priority, as it is
- * for rules.
+ * for steps.
  *
  * @returns {Screen | null} null when the bot does not recognise where it is
  */
@@ -82,15 +82,15 @@ export function detectScreen(gl, screens, buffer, mode) {
 }
 
 /**
- * A rule with no `screens` fires anywhere — which is every rule written before
+ * A step with no `screens` fires anywhere — which is every step written before
  * this existed.
  *
- * @param {{ screens?: string[] }} rule
+ * @param {{ screens?: string[] }} step
  * @param {string | null} screenId
  */
-export function ruleAllowedOn(rule, screenId) {
-  if (!rule.screens || rule.screens.length === 0) {
+export function stepAllowedOn(step, screenId) {
+  if (!step.screens || step.screens.length === 0) {
     return true;
   }
-  return screenId !== null && rule.screens.includes(screenId);
+  return screenId !== null && step.screens.includes(screenId);
 }

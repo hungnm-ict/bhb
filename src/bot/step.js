@@ -2,28 +2,28 @@ import { DEFAULT_COLOR_TOLERANCE } from '../core/constants.js';
 import { isRegionPoint } from '../core/region.js';
 
 /**
- * A rule is "when this colour appears at this spot, click there".
+ * A step is "when this colour appears at this spot, click there".
  *
- * Upstream had two incompatible shapes — a flat `{x, y, hex}` for script rules
- * and a `{points: [...]}` for World Boss rules — which forced every consumer to
- * branch. Here there is one shape: a rule owns a list of candidate points and
- * the first one that matches is clicked. A single-point rule is just a list of
+ * Upstream had two incompatible shapes — a flat `{x, y, hex}` for script steps
+ * and a `{points: [...]}` for World Boss steps — which forced every consumer to
+ * branch. Here there is one shape: a step owns a list of candidate points and
+ * the first one that matches is clicked. A single-point step is just a list of
  * one.
  *
- * @typedef {object} RulePoint
+ * @typedef {object} StepPoint
  * @property {number} x  buffer space, bottom-left origin
  * @property {number} y
  * @property {number} [bw] framebuffer width at capture time
  * @property {number} [bh] framebuffer height at capture time
- * @property {string} [hex] overrides the rule's colour for this point
+ * @property {string} [hex] overrides the step's colour for this point
  * @property {number} [w] region width; a point with `samples` is matched as one
  * @property {number} [h]
  * @property {import('../core/region.js').Sample[]} [samples]
  *
- * @typedef {object} Rule
+ * @typedef {object} Step
  * @property {string} id
  * @property {string} label
- * @property {RulePoint[]} points
+ * @property {StepPoint[]} points
  * @property {string | null} hex  null while awaiting colour capture
  * @property {number} tolerance
  * @property {boolean} enabled
@@ -32,17 +32,17 @@ import { isRegionPoint } from '../core/region.js';
  */
 
 /** @returns {string} */
-export function createRuleId() {
+export function createStepId() {
   return `r${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
 }
 
 /**
- * @param {Partial<Rule>} [overrides]
- * @returns {Rule}
+ * @param {Partial<Step>} [overrides]
+ * @returns {Step}
  */
-export function createRule(overrides = {}) {
+export function createStep(overrides = {}) {
   return {
-    id: createRuleId(),
+    id: createStepId(),
     label: '',
     points: [],
     hex: null,
@@ -55,17 +55,17 @@ export function createRule(overrides = {}) {
 }
 
 /**
- * A rule is only actionable once it has somewhere to look and a colour to
+ * A step is only actionable once it has somewhere to look and a colour to
  * expect there. A region point carries its own colours, so it needs no `hex`.
  */
-export function isRuleReady(rule) {
-  if (!rule.enabled || rule.points.length === 0) {
+export function isStepReady(step) {
+  if (!step.enabled || step.points.length === 0) {
     return false;
   }
-  return Boolean(rule.hex) || rule.points.every(isRegionPoint);
+  return Boolean(step.hex) || step.points.every(isRegionPoint);
 }
 
 /** The colour to match for a given point — the point's own wins. */
-export function colorForPoint(rule, point) {
-  return point.hex || rule.hex;
+export function colorForPoint(step, point) {
+  return point.hex || step.hex;
 }

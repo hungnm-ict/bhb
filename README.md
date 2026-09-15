@@ -49,19 +49,21 @@ Bấm vào thanh đó (hoặc phím `1`) để mở **bảng điều khiển**, 
 | Tab | Nội dung |
 |---|---|
 | **Chạy** | Công tắc bật/tắt từng chế độ (kể cả Chạy tất cả), thanh trượt tốc độ, cỡ canvas, đếm ngược tự tắt |
-| **Thao tác** | Bảng thao tác: đổi tên, bật/tắt, gán hoạt động, giới hạn theo màn hình, sắp xếp ưu tiên, xoá |
+| **Bước** | Bảng bước: đổi tên, bật/tắt, gán hoạt động, giới hạn theo màn hình, sắp xếp thứ tự, xoá |
 | **Màn hình** | Vùng nhận diện màn hình game, có ✓/✗ và tỉ lệ khớp trực tiếp |
 | **Cài đặt** | Hồ sơ (mỗi nhân vật một cái), hàng đợi hoạt động, tự tải lại khi treo, ngôn ngữ, xuất/nhập |
 | **Nhật ký** | Từng việc bot đã làm, mới nhất trên cùng |
 | **?** | Bảng tra phím tắt |
 
-Một **thao tác** là "thấy màu này ở chỗ này (trên màn hình này) thì bấm vào đó". Thứ tự trong bảng là **độ ưu tiên**, không phải trình tự — trình tự đến từ cột màn hình.
+Một **bước** là "thấy màu này ở chỗ này (trên màn hình này) thì bấm vào đó", và bot chạy các bước **theo đúng thứ tự trong bảng**: thử bước đang chờ trước, bấm xong thì sang bước kế.
 
-Khi mở tab **Thao tác**, mỗi thao tác được vẽ thành một **dấu ngay trên canvas** tại đúng chỗ nó nhìn vào. Rê chuột lên dòng nào thì dấu tương ứng sáng lên và ngược lại — nhìn là biết rule trỏ vào nút nào.
+Game thì không chạy theo kịch bản — popup quà ngày, mất kết nối, trận kết thúc ở màn không ai lường. Nên khi bước đang chờ không khớp trong 3 nhịp liền, bot **bỏ chỗ của mình** và lấy bước nào hợp với màn hình trước mặt, rồi đi tiếp từ đó. Nhật ký ghi lại mỗi lần như vậy.
+
+Khi mở tab **Bước**, mỗi bước được vẽ thành một **dấu ngay trên canvas** tại đúng chỗ nó nhìn vào. Rê chuột lên dòng nào thì dấu tương ứng sáng lên và ngược lại — nhìn là biết rule trỏ vào nút nào.
 
 ### Tạo rule
 
-Rê chuột lên nút trong game, rồi bấm **Bắt thao tác tại con trỏ** (hoặc phím `0`). Xong.
+Rê chuột lên nút trong game, rồi bấm **Bắt bước tại con trỏ** (hoặc phím `0`). Xong.
 
 Bot tự xử lý chuyện nút bị sáng lên do con trỏ đang nằm trên đó: nó gạt **con trỏ ảo** ra góc canvas, đợi game vẽ lại, đọc màu lúc nút không sáng, rồi trả con trỏ ảo về chỗ cũ. Con trỏ thật của bạn không hề nhúc nhích. Cả hai màu — lúc sáng và lúc thường — đều được lưu, nên rule khớp được ở cả hai trạng thái.
 
@@ -73,7 +75,7 @@ Bot tự xử lý chuyện nút bị sáng lên do con trỏ đang nằm trên �
 | `3` | Auto Rerun — tìm 3 giây/lần, click xong nghỉ 20 giây |
 | `4` | Auto World Boss Solo — 2 giây/lần |
 | `5` | Auto Script — chạy rule bạn tự tạo, 3 giây/lần |
-| `6` | Chạy tất cả — lần lượt mọi hoạt động trong hàng đợi (cần có thao tác đã gán) |
+| `6` | Chạy tất cả — lần lượt mọi hoạt động trong hàng đợi (cần có bước đã gán) |
 | `0` | Bắt rule tại con trỏ |
 | `= / +` | Tăng tốc độ game (mốc kế tiếp, tối đa 20×) |
 | `-` | Giảm tốc độ game (chậm nhất 0.1×) |

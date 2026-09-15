@@ -73,10 +73,10 @@ describe('built bundle', () => {
     expect(forwardedAttrs).toEqual({ alpha: false });
   });
 
-  it('scales the built-in rules off an 800x520 capture', async () => {
-    const { RERUN_RULES } = await import('../src/rules/builtin.js');
+  it('scales the built-in steps off an 800x520 capture', async () => {
+    const { RERUN_STEPS } = await import('../src/bot/builtin.js');
     const { resolvePoint } = await import('../src/core/coords.js');
-    const point = RERUN_RULES[0].points[0];
+    const point = RERUN_STEPS[0].points[0];
 
     expect(point).toMatchObject({ bw: 800, bh: 520 });
     // Identity at the size they were captured at...

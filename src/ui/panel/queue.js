@@ -1,6 +1,6 @@
 import { el } from '../dom.js';
 import { t } from '../../i18n/index.js';
-import { rulesForActivity } from '../../rules/activity.js';
+import { stepsForActivity } from '../../bot/activity.js';
 
 /**
  * The Run-All queue, as a section of the settings tab.
@@ -13,8 +13,8 @@ import { rulesForActivity } from '../../rules/activity.js';
  * interaction to learn, not two.
  *
  * @param {object} deps
- * @param {() => import('../../rules/activity.js').Activity[]} deps.getActivities
- * @param {() => import('../../rules/model.js').Rule[]} deps.getRules
+ * @param {() => import('../../bot/activity.js').Activity[]} deps.getActivities
+ * @param {() => import('../../bot/step.js').Step[]} deps.getSteps
  * @param {object} deps.queueEditor
  * @param {() => object} deps.getEngineState
  * @param {(taskId: string) => void} deps.toggleTask
@@ -25,7 +25,7 @@ import { rulesForActivity } from '../../rules/activity.js';
 export function renderQueueSection(deps) {
   const activities = deps.getActivities();
   const engine = deps.getEngineState();
-  const rules = deps.getRules();
+  const steps = deps.getSteps();
   const running = Boolean(engine.activity);
   const spent = new Set(engine.spent || []);
 
@@ -38,11 +38,11 @@ export function renderQueueSection(deps) {
   ]);
 
   const rows = activities.map((activity, index) => {
-    const count = rulesForActivity(rules, activity.id).length;
+    const count = stepsForActivity(steps, activity.id).length;
 
     const toggle = el('button', {
       class: `bhb-icon ${activity.enabled ? 'is-on' : ''}`,
-      title: t(activity.enabled ? 'rules.disable' : 'rules.enable'),
+      title: t(activity.enabled ? 'steps.disable' : 'steps.enable'),
       text: activity.enabled ? '◉' : '○',
     });
     toggle.addEventListener('click', () => {
@@ -50,19 +50,19 @@ export function renderQueueSection(deps) {
       deps.refresh();
     });
 
-    const up = el('button', { class: 'bhb-icon', title: t('rules.moveUp'), text: '▲' });
+    const up = el('button', { class: 'bhb-icon', title: t('steps.moveUp'), text: '▲' });
     up.addEventListener('click', () => {
       deps.queueEditor.move(activity.id, -1);
       deps.refresh();
     });
 
-    const down = el('button', { class: 'bhb-icon', title: t('rules.moveDown'), text: '▼' });
+    const down = el('button', { class: 'bhb-icon', title: t('steps.moveDown'), text: '▼' });
     down.addEventListener('click', () => {
       deps.queueEditor.move(activity.id, 1);
       deps.refresh();
     });
 
-    const classes = ['bhb-rule', 'bhb-queue__row'];
+    const classes = ['bhb-step', 'bhb-queue__row'];
     if (!activity.enabled) {
       classes.push('is-off');
     }
@@ -82,7 +82,7 @@ export function renderQueueSection(deps) {
       el('span', { class: 'bhb-queue__name', text: activity.name }),
       el('span', {
         class: 'bhb-rule__coord bhb-mono',
-        title: t('queue.ruleCount'),
+        title: t('queue.stepCount'),
         text: String(count),
       }),
       el('span', { class: 'bhb-rule__actions' }, [toggle, up, down]),
@@ -92,6 +92,6 @@ export function renderQueueSection(deps) {
   return el('div', { class: 'bhb-field' }, [
     head,
     el('p', { class: 'bhb-note', text: t('queue.hint') }),
-    el('div', { class: 'bhb-rules' }, rows),
+    el('div', { class: 'bhb-steps' }, rows),
   ]);
 }
