@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.9.7
+// @version      0.9.8
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -14,7 +14,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.9.7" : "dev";
+  var VERSION = true ? "0.9.8" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -1372,7 +1372,9 @@
       sizeBadge: stored.sizeBadge !== false,
       keepAlive: stored.keepAlive !== false,
       notify: normaliseNotifyConfig(stored.notify),
-      canvasLock: normaliseCanvasLock(stored.canvasLock)
+      canvasLock: normaliseCanvasLock(stored.canvasLock),
+      // Which settings section is expanded; it is usually the same one twice.
+      openSection: typeof stored.openSection === "string" ? stored.openSection : null
     };
   }
   function saveSettings(settings) {
@@ -1881,7 +1883,11 @@
     "lock.title": "Khoá cỡ canvas (thử nghiệm)",
     "lock.enabled": "Ghim game ở một cỡ cố định",
     "lock.hint": "Bật thì game luôn vẽ ở 640×400 dù cửa sổ to nhỏ thế nào — nhờ vậy màu bot đọc được giống hệt nhau trên mọi máy, và bộ bước mới chia sẻ được. Cửa sổ nhỏ hơn thì phần hiển thị tự thu lại cho vừa, toạ độ vẫn đúng. Tắt là game co giãn theo cửa sổ như bình thường.",
-    "help.closePanel": "Đóng bảng điều khiển"
+    "help.closePanel": "Đóng bảng điều khiển",
+    "settings.onCount": "{n}/{total} bật",
+    "settings.queueCount": "{n} hoạt động",
+    "settings.on": "bật",
+    "settings.off": "tắt"
   };
 
   // src/i18n/en.js
@@ -2049,7 +2055,11 @@
     "lock.title": "Canvas size lock (experimental)",
     "lock.enabled": "Pin the game to a fixed size",
     "lock.hint": "The game then renders at 640×400 whatever the window does, so the colours the bot reads are identical on every machine — which is what makes a step set shareable. A smaller window scales the display down to fit and the coordinates still hold. Switch it off and the game resizes with the window as before.",
-    "help.closePanel": "Close the control panel"
+    "help.closePanel": "Close the control panel",
+    "settings.onCount": "{n}/{total} on",
+    "settings.queueCount": "{n} activities",
+    "settings.on": "on",
+    "settings.off": "off"
   };
 
   // src/i18n/index.js
@@ -2625,6 +2635,38 @@
 .bhb-empty { margin: 0; padding: 18px 0; color: var(--bhb-dim); font-size: var(--bhb-fs-sm); text-align: center; }
 .bhb-field { display: flex; flex-direction: column; gap: 7px; }
 .bhb-field__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+/* --- Collapsible settings sections -------------------------------------- */
+
+.bhb-tab--folds { gap: 5px; }
+
+.bhb-fold {
+  border: 1px solid var(--bhb-line); border-radius: 10px;
+  background: var(--bhb-bg-soft);
+  overflow: hidden;
+}
+.bhb-fold.is-open { border-color: rgba(124, 92, 255, .4); }
+
+.bhb-fold__head {
+  width: 100%;
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 11px;
+  background: none; border: 0;
+  color: var(--bhb-text); font: inherit; text-align: left;
+  cursor: pointer;
+}
+.bhb-fold__head:hover { background: rgba(255, 255, 255, .04); }
+.bhb-fold__head .bhb-label { flex: none; }
+.bhb-fold__caret { color: var(--bhb-dim); font-size: var(--bhb-fs-xs); }
+
+/* The state, readable without opening the section it belongs to. */
+.bhb-fold__summary {
+  flex: 1; min-width: 0;
+  color: var(--bhb-dim); font-size: var(--bhb-fs-sm); text-align: right;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.bhb-fold__body { padding: 2px 11px 12px; }
 
 /* --- Alerts ------------------------------------------------------------- */
 
@@ -3863,13 +3905,9 @@
     const steps = deps.getSteps();
     const running = Boolean(engine.activity);
     const spent = new Set(engine.spent || []);
-    const head = el("div", { class: "bhb-field__head" }, [
-      el("span", { class: "bhb-label", text: t("queue.title") }),
-      el("span", {
-        class: "bhb-mono bhb-note",
-        text: running ? t("queue.round", { n: engine.round }) : ""
-      })
-    ]);
+    const head = running ? el("div", { class: "bhb-field__head" }, [
+      el("span", { class: "bhb-mono bhb-note", text: t("queue.round", { n: engine.round }) })
+    ]) : null;
     const rows2 = activities.map((activity, index) => {
       const count = stepsForActivity(steps, activity.id).length;
       const toggle = el("button", {
@@ -3964,9 +4002,6 @@
       });
     });
     return el("div", { class: "bhb-field" }, [
-      el("div", { class: "bhb-field__head" }, [
-        el("span", { class: "bhb-label", text: t("notify.title") })
-      ]),
       toggleRow("notify.enabled", config.enabled, (value) => update({ enabled: value })),
       field("discordWebhook", "notify.discord"),
       field("telegramToken", "notify.telegramToken"),
@@ -3988,16 +4023,37 @@
       deps.refresh();
     }
     return el("div", { class: "bhb-field" }, [
-      el("div", { class: "bhb-field__head" }, [
-        el("span", { class: "bhb-label", text: t("lock.title") }),
-        el("span", {
-          class: "bhb-mono bhb-note",
-          text: `${LOCK_SIZE.width}×${LOCK_SIZE.height}`
-        })
-      ]),
       toggleRow("lock.enabled", lock.enabled, (value) => update({ enabled: value })),
       el("p", { class: "bhb-note", text: t("lock.hint") })
     ]);
+  }
+  function section(deps, id, titleKey, summary, build) {
+    const isOpen = deps.settings.openSection === id;
+    const head = el("button", { class: `bhb-fold__head ${isOpen ? "is-open" : ""}` }, [
+      el("span", { class: "bhb-fold__caret", text: isOpen ? "▾" : "▸" }),
+      el("span", { class: "bhb-label", text: t(titleKey) }),
+      el("span", { class: "bhb-fold__summary", text: summary || "" })
+    ]);
+    head.addEventListener("click", () => {
+      deps.updateSettings({ openSection: isOpen ? null : id });
+      deps.refresh();
+    });
+    return el("div", { class: `bhb-fold ${isOpen ? "is-open" : ""}` }, [
+      head,
+      // Built only when open: the alerts section alone is three inputs and five
+      // switches, and nothing is gained by constructing it to hide it.
+      isOpen ? el("div", { class: "bhb-fold__body" }, [build()]) : null
+    ]);
+  }
+  function countBehaviour(settings) {
+    const switches = [
+      settings.watchdog,
+      settings.closeAfterRound,
+      settings.keepAlive,
+      settings.sizeBadge,
+      settings.scaleMode === ScaleMode.ABSOLUTE
+    ];
+    return switches.filter(Boolean).length;
   }
   function renderSettingsTab(deps) {
     const { profiles, settings } = deps;
@@ -4065,74 +4121,103 @@
       deps.refresh();
     });
     const reloads = deps.getReloadCount();
-    return el("div", { class: "bhb-tab" }, [
-      el("div", { class: "bhb-field" }, [
-        el("div", { class: "bhb-field__head" }, [
-          el("span", { class: "bhb-label", text: t("settings.profiles") })
-        ]),
-        picker,
-        el("div", { class: "bhb-btnrow" }, [
-          action("settings.newProfile", () => profiles.create(t("settings.newProfileName"))),
-          action("settings.duplicate", () => profiles.duplicate()),
-          action("settings.rename", () => {
-            const name = window.prompt(t("settings.renamePrompt"), profiles.activeName());
-            if (name) {
-              profiles.rename(activeId, name.trim());
-            }
-          }),
-          action("settings.delete", () => profiles.remove(activeId))
-        ]),
-        el("p", { class: "bhb-note", text: t("settings.profilesHint") })
-      ]),
-      el("div", { class: "bhb-field" }, [
-        el("div", { class: "bhb-field__head" }, [
-          el("span", { class: "bhb-label", text: t("settings.behaviour") })
-        ]),
-        toggleRow(
-          "settings.watchdog",
-          settings.watchdog,
-          (value) => deps.updateSettings({ watchdog: value }),
-          reloads > 0 ? t("settings.reloads", { n: reloads }) : null
-        ),
-        toggleRow(
-          "queue.closeAfterRound",
-          settings.closeAfterRound,
-          (value) => deps.updateSettings({ closeAfterRound: value })
-        ),
-        toggleRow(
-          "settings.keepAlive",
-          settings.keepAlive,
-          (value) => deps.updateSettings({ keepAlive: value })
-        ),
-        toggleRow(
-          "settings.sizeBadge",
-          settings.sizeBadge,
-          (value) => deps.updateSettings({ sizeBadge: value })
-        ),
-        toggleRow(
-          "settings.absoluteCoords",
-          settings.scaleMode === ScaleMode.ABSOLUTE,
-          (value) => deps.updateSettings({ scaleMode: value ? ScaleMode.ABSOLUTE : ScaleMode.SCALE })
-        ),
-        el("p", { class: "bhb-note", text: t("settings.watchdogHint") }),
-        el("p", { class: "bhb-note", text: t("settings.keepAliveHint") })
-      ]),
-      renderQueueSection(deps),
-      renderCanvasLock(deps, toggleRow),
-      renderAlerts(deps, toggleRow),
-      el("div", { class: "bhb-field" }, [
-        el("div", { class: "bhb-field__head" }, [
-          el("span", { class: "bhb-label", text: t("settings.language") })
-        ]),
-        languagePicker
-      ]),
-      el("div", { class: "bhb-field" }, [
-        el("div", { class: "bhb-field__head" }, [
-          el("span", { class: "bhb-label", text: t("settings.transfer") })
-        ]),
-        transfer,
-        el("div", { class: "bhb-btnrow" }, [exportButton, importButton])
-      ])
+    const notify = settings.notify;
+    const channels = [
+      notify.discordWebhook ? "Discord" : null,
+      notify.telegramToken && notify.telegramChat ? "Telegram" : null
+    ].filter(Boolean);
+    return el("div", { class: "bhb-tab bhb-tab--folds" }, [
+      section(
+        deps,
+        "profiles",
+        "settings.profiles",
+        profiles.activeName(),
+        () => el("div", { class: "bhb-field" }, [
+          picker,
+          el("div", { class: "bhb-btnrow" }, [
+            action("settings.newProfile", () => profiles.create(t("settings.newProfileName"))),
+            action("settings.duplicate", () => profiles.duplicate()),
+            action("settings.rename", () => {
+              const name = window.prompt(t("settings.renamePrompt"), profiles.activeName());
+              if (name) {
+                profiles.rename(activeId, name.trim());
+              }
+            }),
+            action("settings.delete", () => profiles.remove(activeId))
+          ]),
+          el("p", { class: "bhb-note", text: t("settings.profilesHint") })
+        ])
+      ),
+      section(
+        deps,
+        "behaviour",
+        "settings.behaviour",
+        t("settings.onCount", { n: countBehaviour(settings), total: 5 }),
+        () => el("div", { class: "bhb-field" }, [
+          toggleRow(
+            "settings.watchdog",
+            settings.watchdog,
+            (value) => deps.updateSettings({ watchdog: value }),
+            reloads > 0 ? t("settings.reloads", { n: reloads }) : null
+          ),
+          toggleRow(
+            "queue.closeAfterRound",
+            settings.closeAfterRound,
+            (value) => deps.updateSettings({ closeAfterRound: value })
+          ),
+          toggleRow(
+            "settings.keepAlive",
+            settings.keepAlive,
+            (value) => deps.updateSettings({ keepAlive: value })
+          ),
+          toggleRow(
+            "settings.sizeBadge",
+            settings.sizeBadge,
+            (value) => deps.updateSettings({ sizeBadge: value })
+          ),
+          toggleRow(
+            "settings.absoluteCoords",
+            settings.scaleMode === ScaleMode.ABSOLUTE,
+            (value) => deps.updateSettings({ scaleMode: value ? ScaleMode.ABSOLUTE : ScaleMode.SCALE })
+          ),
+          el("p", { class: "bhb-note", text: t("settings.watchdogHint") }),
+          el("p", { class: "bhb-note", text: t("settings.keepAliveHint") })
+        ])
+      ),
+      section(deps, "queue", "queue.title", t("settings.queueCount", {
+        n: deps.getActivities().filter((activity) => activity.enabled).length
+      }), () => renderQueueSection(deps)),
+      section(
+        deps,
+        "lock",
+        "lock.title",
+        `${t(settings.canvasLock.enabled ? "settings.on" : "settings.off")} · ${LOCK_SIZE.width}×${LOCK_SIZE.height}`,
+        () => renderCanvasLock(deps, toggleRow)
+      ),
+      section(
+        deps,
+        "alerts",
+        "notify.title",
+        channels.length > 0 && notify.enabled ? channels.join(" + ") : t("settings.off"),
+        () => renderAlerts(deps, toggleRow)
+      ),
+      section(
+        deps,
+        "language",
+        "settings.language",
+        getLanguage() === "vi" ? "Tiếng Việt" : "English",
+        () => el("div", { class: "bhb-field" }, [languagePicker])
+      ),
+      section(
+        deps,
+        "transfer",
+        "settings.transfer",
+        "",
+        () => el("div", { class: "bhb-field" }, [
+          transfer,
+          el("div", { class: "bhb-btnrow" }, [exportButton, importButton])
+        ])
+      )
     ]);
   }
 
@@ -4315,9 +4400,9 @@
       el("span", { class: "bhb-panel__name", text: t("app.name") }),
       el("span", { class: "bhb-panel__ver bhb-mono", text: `v${VERSION}` })
     ]);
-    const sections = SECTIONS.flatMap((section) => [
-      el("div", { class: "bhb-help__section", text: `▸ ${t(section.title)}` }),
-      ...section.entries.map(
+    const sections = SECTIONS.flatMap((section2) => [
+      el("div", { class: "bhb-help__section", text: `▸ ${t(section2.title)}` }),
+      ...section2.entries.map(
         ([key, labelKey]) => el("div", { class: "bhb-help__entry" }, [
           el("b", { text: key }),
           el("span", { class: "bhb-help__label", text: t(labelKey) })

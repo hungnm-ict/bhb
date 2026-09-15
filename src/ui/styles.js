@@ -172,6 +172,38 @@ const CSS = `
 .bhb-field { display: flex; flex-direction: column; gap: 7px; }
 .bhb-field__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 
+/* --- Collapsible settings sections -------------------------------------- */
+
+.bhb-tab--folds { gap: 5px; }
+
+.bhb-fold {
+  border: 1px solid var(--bhb-line); border-radius: 10px;
+  background: var(--bhb-bg-soft);
+  overflow: hidden;
+}
+.bhb-fold.is-open { border-color: rgba(124, 92, 255, .4); }
+
+.bhb-fold__head {
+  width: 100%;
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 11px;
+  background: none; border: 0;
+  color: var(--bhb-text); font: inherit; text-align: left;
+  cursor: pointer;
+}
+.bhb-fold__head:hover { background: rgba(255, 255, 255, .04); }
+.bhb-fold__head .bhb-label { flex: none; }
+.bhb-fold__caret { color: var(--bhb-dim); font-size: var(--bhb-fs-xs); }
+
+/* The state, readable without opening the section it belongs to. */
+.bhb-fold__summary {
+  flex: 1; min-width: 0;
+  color: var(--bhb-dim); font-size: var(--bhb-fs-sm); text-align: right;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.bhb-fold__body { padding: 2px 11px 12px; }
+
 /* --- Alerts ------------------------------------------------------------- */
 
 .bhb-input {
