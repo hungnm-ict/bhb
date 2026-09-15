@@ -74,8 +74,6 @@ function stepAt(x, label) {
 function build(steps) {
   return createEngine({
     getScriptSteps: () => steps,
-    getRerunSteps: () => [],
-    getWorldBossSteps: () => [],
     getScaleMode: () => 'scale',
   });
 }
@@ -156,19 +154,22 @@ describe('step cursor', () => {
     engine.stop();
   });
 
-  it('leaves the built-in tasks on first-match, since they are not a sequence', () => {
+  it('runs a single activity as a sequence, like the queue would', () => {
     lit = new Set([100, 200]);
     const engine = createEngine({
-      getScriptSteps: () => [],
-      getRerunSteps: () => [],
-      getWorldBossSteps: () => [stepAt(100, 'one'), stepAt(200, 'two')],
+      getScriptSteps: () => [
+        { ...stepAt(100, 'one'), activity: 'raid' },
+        { ...stepAt(200, 'two'), activity: 'raid' },
+      ],
+      getActivities: () => [{ id: 'raid', name: 'Raid', enabled: true }],
       getScaleMode: () => 'scale',
     });
 
-    engine.start(TaskId.WORLD_BOSS);
+    engine.start(TaskId.SOLO, 'raid');
     engine.tick();
 
-    expect(clicks, 'one click per tick, always the first match').toEqual([100, 100]);
+    expect(clicks, 'in order, as the user wrote them').toEqual([100, 200]);
+    expect(engine.getState().activity).toBe('raid');
     engine.stop();
   });
 });

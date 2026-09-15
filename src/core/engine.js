@@ -6,17 +6,8 @@ import { isStepReady, colorForPoint } from '../bot/step.js';
 import { detectScreen, stepAllowedOn } from '../bot/screen.js';
 import { stepsForActivity, looseSteps } from '../bot/activity.js';
 import { createEmitter } from './events.js';
+import { realNow, realSetInterval, realClearInterval } from './timers.js';
 import {
-  realNow,
-  realSetInterval,
-  realClearInterval,
-  realSetTimeout,
-  realClearTimeout,
-} from './timers.js';
-import {
-  INTERVAL_RERUN_HUNT,
-  INTERVAL_RERUN_REST,
-  INTERVAL_WORLD_BOSS,
   INTERVAL_SCRIPT,
   INTERVAL_AUTO_STOP_CHECK,
   INTERVAL_RUN_ALL,
@@ -37,22 +28,14 @@ import {
  */
 
 export const TaskId = Object.freeze({
-  RERUN: 'rerun',
-  WORLD_BOSS: 'wb',
   SCRIPT: 'script',
+  SOLO: 'solo',
   RUN_ALL: 'runAll',
-});
-
-export const Phase = Object.freeze({
-  HUNTING: 'hunting',
-  RESTING: 'resting',
 });
 
 /**
  * @typedef {object} EngineDeps
  * @property {() => import('../bot/step.js').Step[]} getScriptSteps
- * @property {() => import('../bot/step.js').Step[]} getRerunSteps
- * @property {() => import('../bot/step.js').Step[]} getWorldBossSteps
  * @property {() => string} getScaleMode
  * @property {() => import('../bot/screen.js').Screen[]} [getScreens]
  * @property {() => import('../bot/activity.js').Activity[]} [getActivities]
@@ -68,7 +51,6 @@ export function createEngine(deps) {
   const state = {
     /** @type {string | null} */
     activeTask: null,
-    phase: Phase.HUNTING,
     lastActionAt: 0,
     lastMessage: '',
     /** @type {string | null} id of the screen detected on the last tick */
@@ -92,16 +74,29 @@ export function createEngine(deps) {
   /** Where the runner is in the current step list. See `runSequence`. */
   const cursor = { key: null, index: 0, misses: 0 };
 
+  /** When the current rest ends; the loop reads nothing until then. */
+  let restingUntil = 0;
+
   let pollTimer = null;
   let autoStopTimer = null;
-  let restTimer = null;
+
 
   const TASKS = {
-    [TaskId.RERUN]: { interval: INTERVAL_RERUN_HUNT, getSteps: deps.getRerunSteps },
-    [TaskId.WORLD_BOSS]: { interval: INTERVAL_WORLD_BOSS, getSteps: deps.getWorldBossSteps },
     [TaskId.SCRIPT]: { interval: INTERVAL_SCRIPT, getSteps: () => looseSteps(deps.getScriptSteps()) },
+    [TaskId.SOLO]: { interval: INTERVAL_RUN_ALL, getSteps: soloSteps },
     [TaskId.RUN_ALL]: { interval: INTERVAL_RUN_ALL, getSteps: runAllRules },
   };
+
+  /**
+   * One activity on its own.
+   *
+   * This is what the hard-coded World Boss mode used to be, and it needs no
+   * mode of its own: an activity the user tagged, run by itself, off the same
+   * steps the queue would use.
+   */
+  function soloSteps() {
+    return state.activity ? stepsForActivity(deps.getScriptSteps(), state.activity) : [];
+  }
 
   function activities() {
     return (deps.getActivities ? deps.getActivities() : []).filter((a) => a.enabled);
@@ -199,7 +194,6 @@ export function createEngine(deps) {
   function getState() {
     return {
       activeTask: state.activeTask,
-      phase: state.phase,
       lastMessage: state.lastMessage,
       screen: state.screen,
       screenName: state.screenName,
@@ -207,6 +201,7 @@ export function createEngine(deps) {
       activityName: state.activityName,
       expectedStepId: state.expectedStepId,
       round: state.round,
+      restingMs: Math.max(0, restingUntil - realNow()),
       spent: [...spent],
       remainingMs: state.activeTask
         ? Math.max(0, AUTO_STOP_TIMEOUT - (realNow() - state.lastActionAt))
@@ -323,7 +318,7 @@ export function createEngine(deps) {
    * those are a handful of unordered reflexes, not a sequence.
    */
   function sequenceKey() {
-    if (state.activeTask === TaskId.RUN_ALL) {
+    if (state.activeTask === TaskId.RUN_ALL || state.activeTask === TaskId.SOLO) {
       return state.activity;
     }
     if (state.activeTask === TaskId.SCRIPT) {
@@ -364,12 +359,11 @@ export function createEngine(deps) {
     if (!state.activeTask) {
       return;
     }
-    // The rest phase deliberately reads nothing: after a Rerun click the game
-    // is mid-run, and the button's colour would otherwise retrigger.
-    if (state.activeTask === TaskId.RERUN && state.phase === Phase.RESTING) {
+    // Resting reads nothing on purpose: the fight this step started is still
+    // running, and the frame has nothing new to say until it ends.
+    if (restingUntil > realNow()) {
       return;
     }
-
     const target = getRenderTarget();
     if (!target) {
       setMessage('waiting for game canvas');
@@ -412,8 +406,10 @@ export function createEngine(deps) {
 
     if (hit.clicked) {
       state.lastActionAt = realNow();
-      if (state.activeTask === TaskId.RERUN) {
-        enterRestPhase();
+      const rest = Number(hit.step.restSec) || 0;
+      if (rest > 0) {
+        restingUntil = realNow() + rest * 1000;
+        setMessage(`${hit.step.label || hit.step.id}: resting ${rest}s`);
       }
     }
 
@@ -425,30 +421,9 @@ export function createEngine(deps) {
     setMessage(`${hit.step.label || hit.step.id} → ${hit.clicked ? 'click' : 'busy'}`);
   }
 
-  function enterRestPhase() {
-    state.phase = Phase.RESTING;
-    clearTimeout_(restTimer);
-
-    restTimer = realSetTimeout(() => {
-      restTimer = null;
-      if (state.activeTask === TaskId.RERUN) {
-        state.phase = Phase.HUNTING;
-        setMessage('rerun: running');
-      }
-    }, INTERVAL_RERUN_REST);
-
-    setMessage(`rerun: resting ${INTERVAL_RERUN_REST / 1000}s`);
-  }
-
   function clearInterval_(id) {
     if (id !== null && id !== undefined) {
       realClearInterval(id);
-    }
-  }
-
-  function clearTimeout_(id) {
-    if (id !== null && id !== undefined) {
-      realClearTimeout(id);
     }
   }
 
@@ -479,7 +454,11 @@ export function createEngine(deps) {
   }
 
   /** @param {string} taskId */
-  function start(taskId) {
+  /**
+   * @param {string} taskId
+   * @param {string} [activityId] required by TaskId.SOLO; ignored otherwise
+   */
+  function start(taskId, activityId = null) {
     if (!TASKS[taskId]) {
       throw new Error(`unknown task: ${taskId}`);
     }
@@ -488,8 +467,8 @@ export function createEngine(deps) {
     }
 
     state.activeTask = taskId;
-    state.phase = Phase.HUNTING;
     state.lastActionAt = realNow();
+    restingUntil = 0;
 
     // Starting Run-All begins a clean round, at the top of the queue.
     spent = new Set();
@@ -498,7 +477,15 @@ export function createEngine(deps) {
     cursor.key = null;
     state.expectedStepId = null;
     state.round = taskId === TaskId.RUN_ALL ? 1 : 0;
-    setActivity(taskId === TaskId.RUN_ALL ? currentActivity() : null);
+
+    if (taskId === TaskId.SOLO) {
+      const solo = (deps.getActivities ? deps.getActivities() : []).find(
+        (activity) => activity.id === activityId
+      );
+      setActivity(solo || null);
+    } else {
+      setActivity(taskId === TaskId.RUN_ALL ? currentActivity() : null);
+    }
 
     pollTimer = realSetInterval(tick, TASKS[taskId].interval);
     autoStopTimer = realSetInterval(checkAutoStop, INTERVAL_AUTO_STOP_CHECK);
@@ -515,7 +502,7 @@ export function createEngine(deps) {
     const stopped = state.activeTask;
 
     state.activeTask = null;
-    state.phase = Phase.HUNTING;
+    restingUntil = 0;
     state.screen = null;
     state.screenName = null;
     state.expectedStepId = null;
@@ -524,8 +511,7 @@ export function createEngine(deps) {
 
     clearInterval_(pollTimer);
     clearInterval_(autoStopTimer);
-    clearTimeout_(restTimer);
-    pollTimer = autoStopTimer = restTimer = null;
+    pollTimer = autoStopTimer = null;
 
     report('task', { started: false, label: stopped });
     setMessage(`${stopped} stopped`);

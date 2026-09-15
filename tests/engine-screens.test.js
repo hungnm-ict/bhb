@@ -67,8 +67,6 @@ function anchorOf(color) {
 function build({ steps = [], screens = [] }) {
   return createEngine({
     getScriptSteps: () => steps,
-    getRerunSteps: () => [],
-    getWorldBossSteps: () => [],
     getScaleMode: () => 'scale',
     getScreens: () => screens,
   });

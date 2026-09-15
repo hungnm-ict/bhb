@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.9.8
+// @version      0.10.0
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -14,16 +14,13 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.9.8" : "dev";
+  var VERSION = true ? "0.10.0" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
   var STORAGE_KEY_STATS = "bhb.stats.v1";
   var STORAGE_KEY_LEGACY_RULES = "bh_script_rules_v1";
   var DEFAULT_COLOR_TOLERANCE = 15;
-  var INTERVAL_RERUN_HUNT = 3e3;
-  var INTERVAL_RERUN_REST = 2e4;
-  var INTERVAL_WORLD_BOSS = 2e3;
   var INTERVAL_SCRIPT = 3e3;
   var INTERVAL_AUTO_STOP_CHECK = 5e3;
   var INTERVAL_RUN_ALL = 1500;
@@ -46,11 +43,10 @@
   var Keys = Object.freeze({
     PANEL: "`",
     CLOSE_PANEL: "Escape",
-    RERUN: "r",
-    WORLD_BOSS: "b",
     SCRIPT: "c",
     RUN_ALL: "a",
     CAPTURE: "x",
+    SPEED_RESET: "0",
     SPEED_UP: "=",
     SPEED_UP_ALT: "+",
     SPEED_DOWN: "-"
@@ -367,17 +363,17 @@
   function getBufferSize(canvas) {
     return { width: canvas.width, height: canvas.height };
   }
-  function resolvePoint(point2, buffer, mode = ScaleMode.SCALE) {
-    if (mode === ScaleMode.ABSOLUTE || !point2.bw || !point2.bh) {
-      return { x: point2.x, y: point2.y };
+  function resolvePoint(point, buffer, mode = ScaleMode.SCALE) {
+    if (mode === ScaleMode.ABSOLUTE || !point.bw || !point.bh) {
+      return { x: point.x, y: point.y };
     }
     return {
-      x: Math.round(point2.x / point2.bw * buffer.width),
-      y: Math.round(point2.y / point2.bh * buffer.height)
+      x: Math.round(point.x / point.bw * buffer.width),
+      y: Math.round(point.y / point.bh * buffer.height)
     };
   }
-  function isLegacyPoint(point2) {
-    return !point2.bw || !point2.bh;
+  function isLegacyPoint(point) {
+    return !point.bw || !point.bh;
   }
   function clientToBuffer(canvas, clientX, clientY) {
     const rect = canvas.getBoundingClientRect();
@@ -470,13 +466,13 @@
     const ratio = hits / samples.length;
     return { matched: ratio >= minRatio, ratio };
   }
-  function isRegionPoint(point2) {
-    return Array.isArray(point2.samples) && point2.samples.length > 0;
+  function isRegionPoint(point) {
+    return Array.isArray(point.samples) && point.samples.length > 0;
   }
-  function matchPoint(gl, point2, hex, buffer, mode, tolerance, minRatio) {
-    if (isRegionPoint(point2)) {
-      const rect = resolveRect(point2, buffer, mode);
-      const result = matchFingerprint(gl, point2, buffer, mode, tolerance, minRatio);
+  function matchPoint(gl, point, hex, buffer, mode, tolerance, minRatio) {
+    if (isRegionPoint(point)) {
+      const rect = resolveRect(point, buffer, mode);
+      const result = matchFingerprint(gl, point, buffer, mode, tolerance, minRatio);
       return {
         matched: result.matched,
         ratio: result.ratio,
@@ -484,7 +480,7 @@
         point: { x: rect.x + Math.round(rect.w / 2), y: rect.y + Math.round(rect.h / 2) }
       };
     }
-    const resolved = resolvePoint(point2, buffer, mode);
+    const resolved = resolvePoint(point, buffer, mode);
     const pixel = readPixel(gl, resolved.x, resolved.y);
     if (!pixel) {
       return { matched: false, ratio: 0, point: resolved };
@@ -580,11 +576,11 @@
     const pos = bufferToClient(canvas, HOVER_RESET_POINT.x, HOVER_RESET_POINT.y);
     dispatchMoveTo(canvas, pos.clientX, pos.clientY);
   }
-  function clickBufferPoint(canvas, point2) {
+  function clickBufferPoint(canvas, point) {
     if (locked) {
       return false;
     }
-    const pos = bufferToClient(canvas, point2.x, point2.y);
+    const pos = bufferToClient(canvas, point.x, point.y);
     if (!isInsideCanvas(canvas, pos.clientX, pos.clientY)) {
       return false;
     }
@@ -612,6 +608,15 @@
       enabled: true,
       screens: [],
       activity: null,
+      /**
+       * Seconds to sit still after this step clicks.
+       *
+       * A dungeon run takes a minute; polling three times a second through it
+       * reads the same frame over and over. This is what the hard-coded Re-run
+       * mode used to do after clicking, kept as a property of the step that
+       * starts the fight rather than a mode of its own.
+       */
+      restSec: 0,
       ...overrides
     };
   }
@@ -621,8 +626,8 @@
     }
     return Boolean(step.hex) || step.points.every(isRegionPoint);
   }
-  function colorForPoint(step, point2) {
-    return point2.hex || step.hex;
+  function colorForPoint(step, point) {
+    return point.hex || step.hex;
   }
 
   // src/bot/screen.js
@@ -724,21 +729,15 @@
 
   // src/core/engine.js
   var TaskId = Object.freeze({
-    RERUN: "rerun",
-    WORLD_BOSS: "wb",
     SCRIPT: "script",
+    SOLO: "solo",
     RUN_ALL: "runAll"
-  });
-  var Phase = Object.freeze({
-    HUNTING: "hunting",
-    RESTING: "resting"
   });
   function createEngine(deps) {
     const emitter = createEmitter();
     const state = {
       /** @type {string | null} */
       activeTask: null,
-      phase: Phase.HUNTING,
       lastActionAt: 0,
       lastMessage: "",
       /** @type {string | null} id of the screen detected on the last tick */
@@ -757,15 +756,17 @@
     let queueIndex = 0;
     let idleTicks = 0;
     const cursor = { key: null, index: 0, misses: 0 };
+    let restingUntil = 0;
     let pollTimer = null;
     let autoStopTimer = null;
-    let restTimer = null;
     const TASKS2 = {
-      [TaskId.RERUN]: { interval: INTERVAL_RERUN_HUNT, getSteps: deps.getRerunSteps },
-      [TaskId.WORLD_BOSS]: { interval: INTERVAL_WORLD_BOSS, getSteps: deps.getWorldBossSteps },
       [TaskId.SCRIPT]: { interval: INTERVAL_SCRIPT, getSteps: () => looseSteps(deps.getScriptSteps()) },
+      [TaskId.SOLO]: { interval: INTERVAL_RUN_ALL, getSteps: soloSteps },
       [TaskId.RUN_ALL]: { interval: INTERVAL_RUN_ALL, getSteps: runAllRules }
     };
+    function soloSteps() {
+      return state.activity ? stepsForActivity(deps.getScriptSteps(), state.activity) : [];
+    }
     function activities() {
       return (deps.getActivities ? deps.getActivities() : []).filter((a) => a.enabled);
     }
@@ -833,7 +834,6 @@
     function getState() {
       return {
         activeTask: state.activeTask,
-        phase: state.phase,
         lastMessage: state.lastMessage,
         screen: state.screen,
         screenName: state.screenName,
@@ -841,6 +841,7 @@
         activityName: state.activityName,
         expectedStepId: state.expectedStepId,
         round: state.round,
+        restingMs: Math.max(0, restingUntil - realNow()),
         spent: [...spent],
         remainingMs: state.activeTask ? Math.max(0, AUTO_STOP_TIMEOUT - (realNow() - state.lastActionAt)) : 0
       };
@@ -912,7 +913,7 @@
       return scan;
     }
     function sequenceKey() {
-      if (state.activeTask === TaskId.RUN_ALL) {
+      if (state.activeTask === TaskId.RUN_ALL || state.activeTask === TaskId.SOLO) {
         return state.activity;
       }
       if (state.activeTask === TaskId.SCRIPT) {
@@ -941,7 +942,7 @@
       if (!state.activeTask) {
         return;
       }
-      if (state.activeTask === TaskId.RERUN && state.phase === Phase.RESTING) {
+      if (restingUntil > realNow()) {
         return;
       }
       const target = getRenderTarget();
@@ -980,8 +981,10 @@
       idleTicks = 0;
       if (hit.clicked) {
         state.lastActionAt = realNow();
-        if (state.activeTask === TaskId.RERUN) {
-          enterRestPhase();
+        const rest = Number(hit.step.restSec) || 0;
+        if (rest > 0) {
+          restingUntil = realNow() + rest * 1e3;
+          setMessage(`${hit.step.label || hit.step.id}: resting ${rest}s`);
         }
       }
       report(hit.clicked ? "click" : "busy", {
@@ -991,26 +994,9 @@
       });
       setMessage(`${hit.step.label || hit.step.id} → ${hit.clicked ? "click" : "busy"}`);
     }
-    function enterRestPhase() {
-      state.phase = Phase.RESTING;
-      clearTimeout_(restTimer);
-      restTimer = realSetTimeout(() => {
-        restTimer = null;
-        if (state.activeTask === TaskId.RERUN) {
-          state.phase = Phase.HUNTING;
-          setMessage("rerun: running");
-        }
-      }, INTERVAL_RERUN_REST);
-      setMessage(`rerun: resting ${INTERVAL_RERUN_REST / 1e3}s`);
-    }
     function clearInterval_(id) {
       if (id !== null && id !== void 0) {
         realClearInterval(id);
-      }
-    }
-    function clearTimeout_(id) {
-      if (id !== null && id !== void 0) {
-        realClearTimeout(id);
       }
     }
     function checkAutoStop() {
@@ -1034,7 +1020,7 @@
       stop();
       setMessage(`${stalled} auto-stopped (idle ${AUTO_STOP_TIMEOUT / 6e4}m)`);
     }
-    function start2(taskId) {
+    function start2(taskId, activityId = null) {
       if (!TASKS2[taskId]) {
         throw new Error(`unknown task: ${taskId}`);
       }
@@ -1042,15 +1028,22 @@
         stop();
       }
       state.activeTask = taskId;
-      state.phase = Phase.HUNTING;
       state.lastActionAt = realNow();
+      restingUntil = 0;
       spent = /* @__PURE__ */ new Set();
       queueIndex = 0;
       idleTicks = 0;
       cursor.key = null;
       state.expectedStepId = null;
       state.round = taskId === TaskId.RUN_ALL ? 1 : 0;
-      setActivity(taskId === TaskId.RUN_ALL ? currentActivity() : null);
+      if (taskId === TaskId.SOLO) {
+        const solo = (deps.getActivities ? deps.getActivities() : []).find(
+          (activity) => activity.id === activityId
+        );
+        setActivity(solo || null);
+      } else {
+        setActivity(taskId === TaskId.RUN_ALL ? currentActivity() : null);
+      }
       pollTimer = realSetInterval(tick, TASKS2[taskId].interval);
       autoStopTimer = realSetInterval(checkAutoStop, INTERVAL_AUTO_STOP_CHECK);
       report("task", { started: true, label: taskId });
@@ -1063,7 +1056,7 @@
       }
       const stopped = state.activeTask;
       state.activeTask = null;
-      state.phase = Phase.HUNTING;
+      restingUntil = 0;
       state.screen = null;
       state.screenName = null;
       state.expectedStepId = null;
@@ -1071,8 +1064,7 @@
       setActivity(null);
       clearInterval_(pollTimer);
       clearInterval_(autoStopTimer);
-      clearTimeout_(restTimer);
-      pollTimer = autoStopTimer = restTimer = null;
+      pollTimer = autoStopTimer = null;
       report("task", { started: false, label: stopped });
       setMessage(`${stopped} stopped`);
     }
@@ -1671,62 +1663,11 @@
     return true;
   }
 
-  // src/bot/builtin.js
-  var BUILTIN_CAPTURE_BUFFER = { width: 800, height: 520 };
-  function point(p) {
-    return BUILTIN_CAPTURE_BUFFER ? { ...p, bw: BUILTIN_CAPTURE_BUFFER.width, bh: BUILTIN_CAPTURE_BUFFER.height } : { ...p };
-  }
-  var RERUN_STEPS = [
-    {
-      id: "builtin-rerun",
-      label: "Rerun",
-      points: [point({ x: 410, y: 62, hex: "#a6d339" }), point({ x: 410, y: 62, hex: "#cbf067" })],
-      hex: "#a6d339",
-      tolerance: DEFAULT_COLOR_TOLERANCE,
-      enabled: true
-    }
-  ];
-  var WORLD_BOSS_STEPS = [
-    {
-      id: "builtin-wb-start",
-      label: "Ready/Start",
-      points: [point({ x: 388, y: 66 })],
-      hex: "#0a62d0",
-      tolerance: DEFAULT_COLOR_TOLERANCE,
-      enabled: true
-    },
-    {
-      id: "builtin-wb-yes",
-      label: "Yes",
-      points: [point({ x: 356, y: 208 })],
-      hex: "#9cd01f",
-      tolerance: DEFAULT_COLOR_TOLERANCE,
-      enabled: true
-    },
-    {
-      id: "builtin-wb-regroup",
-      label: "Regroup",
-      points: [
-        point({ x: 446, y: 58 }),
-        point({ x: 442, y: 50 }),
-        point({ x: 594, y: 40, hex: "#89b516" }),
-        point({ x: 492, y: 56 })
-      ],
-      hex: "#9cd01f",
-      tolerance: DEFAULT_COLOR_TOLERANCE,
-      enabled: true
-    }
-  ];
-
   // src/i18n/vi.js
   var vi_default = {
     "app.name": "BHB",
-    "task.rerun": "Re-run",
-    "task.wb": "Solo WB",
     "task.runAll": "Chạy tất cả",
     "task.script": "Tuỳ chỉnh",
-    "phase.hunting": "đang chạy",
-    "phase.resting": "nghỉ",
     "hud.idle": "đang dừng",
     "tab.tasks": "Chạy",
     "tab.steps": "Bước",
@@ -1821,8 +1762,6 @@
     "help.sectionSteps": "Bước",
     "help.sectionUi": "Giao diện",
     "help.sectionSpeed": "Tốc độ",
-    "help.rerun": "Tự re-run (tìm 3s, nghỉ 20s)",
-    "help.wb": "Tự đánh solo World Boss (2s/lần)",
     "help.script": "Chạy các bước tuỳ chỉnh chưa gán hoạt động (3s/lần)",
     "help.runAll": "Chạy lần lượt mọi hoạt động trong hàng đợi",
     "help.capture": "Bắt bước tại con trỏ",
@@ -1887,18 +1826,19 @@
     "settings.onCount": "{n}/{total} bật",
     "settings.queueCount": "{n} hoạt động",
     "settings.on": "bật",
-    "settings.off": "tắt"
+    "settings.off": "tắt",
+    "steps.restHint": "Nghỉ bao nhiêu giây sau khi bước này bấm — dùng cho nút mở trận Dungeon/Raid, để bot khỏi dò suốt lúc đang đánh. 0 là không nghỉ.",
+    "queue.runSolo": "Chạy riêng hoạt động này",
+    "queue.stopSolo": "Dừng",
+    "queue.noSteps": "Chưa có bước nào gán cho hoạt động này",
+    "help.speedReset": "Về tốc độ thường (1×)"
   };
 
   // src/i18n/en.js
   var en_default = {
     "app.name": "BHB",
-    "task.rerun": "Re-run",
-    "task.wb": "Solo WB",
     "task.runAll": "Run all",
     "task.script": "Custom",
-    "phase.hunting": "running",
-    "phase.resting": "resting",
     "hud.idle": "idle",
     "tab.tasks": "Run",
     "tab.steps": "Steps",
@@ -1993,8 +1933,6 @@
     "help.sectionSteps": "Steps",
     "help.sectionUi": "Interface",
     "help.sectionSpeed": "Speed",
-    "help.rerun": "Auto re-run (polls 3s, rests 20s)",
-    "help.wb": "Auto solo World Boss (every 2s)",
     "help.script": "Run the custom steps not tagged to an activity (every 3s)",
     "help.runAll": "Run every activity in the queue",
     "help.capture": "Capture a step at the cursor",
@@ -2059,7 +1997,12 @@
     "settings.onCount": "{n}/{total} on",
     "settings.queueCount": "{n} activities",
     "settings.on": "on",
-    "settings.off": "off"
+    "settings.off": "off",
+    "steps.restHint": "Seconds to sit still after this step clicks — for the button that starts a Dungeon or Raid run, so the bot stops looking while the fight is on. 0 means no rest.",
+    "queue.runSolo": "Run this activity on its own",
+    "queue.stopSolo": "Stop",
+    "queue.noSteps": "No steps are tagged to this activity yet",
+    "help.speedReset": "Back to normal speed (1×)"
   };
 
   // src/i18n/index.js
@@ -2091,11 +2034,11 @@
   function nextFrame() {
     return new Promise((resolve) => realRequestAnimationFrame(() => resolve()));
   }
-  async function readSettledPixel(gl, point2) {
+  async function readSettledPixel(gl, point) {
     let previous = null;
     for (let frame = 0; frame < SETTLE_MAX_FRAMES; frame += 1) {
       await nextFrame();
-      const pixel = readPixel(gl, point2.x, point2.y);
+      const pixel = readPixel(gl, point.x, point.y);
       if (!pixel) {
         return { pixel: null, isSettled: false };
       }
@@ -2138,12 +2081,12 @@
       capturing = true;
       try {
         const { canvas, gl } = target;
-        const point2 = clientToBuffer(canvas, cursorX, cursorY);
+        const point = clientToBuffer(canvas, cursorX, cursorY);
         const buffer = getBufferSize(canvas);
-        const hovered = readPixel(gl, point2.x, point2.y);
+        const hovered = readPixel(gl, point.x, point.y);
         const corner = bufferToClient(canvas, HOVER_RESET_POINT.x, HOVER_RESET_POINT.y);
         dispatchMoveTo(canvas, corner.clientX, corner.clientY);
-        const settled = await readSettledPixel(gl, point2);
+        const settled = await readSettledPixel(gl, point);
         const resting = settled.pixel;
         dispatchMoveTo(canvas, cursorX, cursorY);
         if (!resting) {
@@ -2153,9 +2096,9 @@
         const size = { bw: buffer.width, bh: buffer.height };
         const restingHex = rgbToHex(resting);
         const hoveredHex = hovered ? rgbToHex(hovered) : null;
-        const points = [{ ...point2, ...size }];
+        const points = [{ ...point, ...size }];
         if (hoveredHex && hoveredHex !== restingHex) {
-          points.push({ ...point2, ...size, hex: hoveredHex });
+          points.push({ ...point, ...size, hex: hoveredHex });
         }
         const steps = deps.getSteps();
         const step = createStep({
@@ -2166,7 +2109,7 @@
         steps.push(step);
         deps.persist();
         deps.report(
-          settled.isSettled ? t("msg.stepCaptured", { x: point2.x, y: point2.y, hex: restingHex }) : t("msg.stepUnstable", { x: point2.x, y: point2.y, hex: restingHex })
+          settled.isSettled ? t("msg.stepCaptured", { x: point.x, y: point.y, hex: restingHex }) : t("msg.stepUnstable", { x: point.x, y: point.y, hex: restingHex })
         );
         if (deps.onCaptured) {
           deps.onCaptured({ step, clientX: cursorX, clientY: cursorY, isSettled: settled.isSettled });
@@ -2203,6 +2146,14 @@
       step.screens = screenIds;
       deps.persist();
     }
+    function setRest(stepId, seconds) {
+      const step = find(stepId);
+      if (!step) {
+        return;
+      }
+      step.restSec = Math.max(0, Math.min(600, Math.round(Number(seconds) || 0)));
+      deps.persist();
+    }
     function setActivity(stepId, activityId) {
       const step = find(stepId);
       if (!step) {
@@ -2236,6 +2187,7 @@
       rename,
       setEnabled,
       setScreens,
+      setRest,
       setActivity,
       remove,
       move
@@ -2899,6 +2851,15 @@
 .bhb-rule__name:hover { border-color: var(--bhb-line); }
 .bhb-rule__name:focus { outline: none; border-color: var(--bhb-accent); background: #0d0f16; }
 .bhb-rule__meta-coord { display: inline-flex; align-items: center; }
+/* Seconds to sit still after a click; 0 reads as off. */
+.bhb-rest {
+  width: 46px; padding: 3px 5px;
+  background: var(--bhb-bg-soft);
+  border: 1px solid var(--bhb-line); border-radius: 6px;
+  color: var(--bhb-dim); font-size: var(--bhb-fs-xs); text-align: right;
+}
+.bhb-rest:focus { outline: none; border-color: rgba(124, 92, 255, .6); color: var(--bhb-text); }
+
 .bhb-rule__coord { color: var(--bhb-cyan); font-size: var(--bhb-fs-xs); }
 /* A step that cannot be rescaled clicks the wrong place after any resize, so
    the mark is a badge rather than a glyph hiding at the end of a number. */
@@ -3344,11 +3305,7 @@
     speedControl.readout.className = `bhb-speed ${speed2 > 1 ? "is-boosted" : ""}`;
   }
   var LABELLED_SPEEDS = [0.1, 1, 5, 10, 20];
-  var TASKS = [
-    [TaskId.RERUN, "task.rerun", Keys.RERUN],
-    [TaskId.WORLD_BOSS, "task.wb", Keys.WORLD_BOSS],
-    [TaskId.SCRIPT, "task.script", Keys.SCRIPT]
-  ];
+  var TASKS = [[TaskId.SCRIPT, "task.script", Keys.SCRIPT]];
   function formatRemaining(ms) {
     const total = Math.floor(ms / 1e3);
     return `${Math.floor(total / 60)}m${String(total % 60).padStart(2, "0")}s`;
@@ -3395,15 +3352,7 @@
       }
       return tile;
     }
-    const tiles = TASKS.map(([taskId, labelKey, key]) => {
-      const isRerunRunning = engine.activeTask === taskId && taskId === TaskId.RERUN;
-      return taskTile({
-        taskId,
-        labelKey,
-        key,
-        phase: isRerunRunning ? t(engine.phase === Phase.RESTING ? "phase.resting" : "phase.hunting") : ""
-      });
-    });
+    const tiles = TASKS.map(([taskId, labelKey, key]) => taskTile({ taskId, labelKey, key }));
     const ready = readyActivityCount(deps);
     const runAll = taskTile({
       taskId: TaskId.RUN_ALL,
@@ -3582,8 +3531,8 @@
     }
     rows.clear();
     const stepRows = steps.map((step, index) => {
-      const point2 = step.points[0];
-      const legacy = point2 && isLegacyPoint(point2);
+      const point = step.points[0];
+      const legacy = point && isLegacyPoint(point);
       const name = el("input", { class: "bhb-rule__name" });
       name.value = step.label || "";
       name.placeholder = t("steps.unnamed");
@@ -3643,6 +3592,15 @@
         deps.store.forgetStep(step.id);
         deps.refresh();
       });
+      const rest = el("input", { class: "bhb-rest bhb-mono", title: t("steps.restHint") });
+      rest.type = "number";
+      rest.min = "0";
+      rest.max = "600";
+      rest.value = String(step.restSec || 0);
+      rest.addEventListener("change", () => {
+        deps.stepEditor.setRest(step.id, rest.value);
+        deps.refresh();
+      });
       const classes = ["bhb-step", "bhb-step--stacked"];
       if (step.id === expectedStepId) {
         classes.push("is-next");
@@ -3664,10 +3622,11 @@
           el("span", { class: "bhb-rule__actions" }, [toggle, up, down, remove])
         ]),
         el("div", { class: "bhb-rule__meta" }, [
+          rest,
           el("span", { class: "bhb-rule__meta-coord" }, [
             el("span", {
               class: "bhb-rule__coord bhb-mono",
-              text: point2 ? `${point2.x},${point2.y}` : "—"
+              text: point ? `${point.x},${point.y}` : "—"
             }),
             legacy ? el("span", {
               class: "bhb-rule__legacy",
@@ -3910,6 +3869,18 @@
     ]) : null;
     const rows2 = activities.map((activity, index) => {
       const count = stepsForActivity(steps, activity.id).length;
+      const isSolo = engine.activeTask === "solo" && engine.activity === activity.id;
+      const run = el("button", {
+        class: `bhb-icon ${isSolo ? "is-on" : ""} ${count === 0 ? "is-locked" : ""}`,
+        title: count === 0 ? t("queue.noSteps") : t(isSolo ? "queue.stopSolo" : "queue.runSolo"),
+        text: isSolo ? "■" : "▶"
+      });
+      if (count > 0) {
+        run.addEventListener("click", () => {
+          deps.runActivity(activity.id);
+          deps.refresh();
+        });
+      }
       const toggle = el("button", {
         class: `bhb-icon ${activity.enabled ? "is-on" : ""}`,
         title: t(activity.enabled ? "steps.disable" : "steps.enable"),
@@ -3951,7 +3922,7 @@
           title: t("queue.stepCount"),
           text: String(count)
         }),
-        el("span", { class: "bhb-rule__actions" }, [toggle, up, down])
+        el("span", { class: "bhb-rule__actions" }, [run, toggle, up, down])
       ]);
     });
     return el("div", { class: "bhb-field" }, [
@@ -4368,8 +4339,6 @@
     {
       title: "help.sectionAuto",
       entries: [
-        [keyLabel(Keys.RERUN), "help.rerun"],
-        [keyLabel(Keys.WORLD_BOSS), "help.wb"],
         [keyLabel(Keys.SCRIPT), "help.script"],
         [keyLabel(Keys.RUN_ALL), "help.runAll"]
       ]
@@ -4391,7 +4360,8 @@
       title: "help.sectionSpeed",
       entries: [
         [`${Keys.SPEED_UP} / ${Keys.SPEED_UP_ALT}`, "help.speedUp"],
-        [Keys.SPEED_DOWN, "help.speedDown"]
+        [Keys.SPEED_DOWN, "help.speedDown"],
+        [keyLabel(Keys.SPEED_RESET), "help.speedReset"]
       ]
     }
   ];
@@ -4770,8 +4740,6 @@
     });
     const engine = createEngine({
       getScriptSteps: getSteps,
-      getRerunSteps: () => RERUN_STEPS,
-      getWorldBossSteps: () => WORLD_BOSS_STEPS,
       getScaleMode: () => settings.scaleMode,
       getScreens,
       getActivities,
@@ -4897,6 +4865,14 @@
       },
       getEngineState: engine.getState,
       toggleTask: engine.toggle,
+      runActivity: (activityId) => {
+        const engineState = engine.getState();
+        if (engineState.activeTask === TaskId.SOLO && engineState.activity === activityId) {
+          engine.stop();
+          return;
+        }
+        engine.start(TaskId.SOLO, activityId);
+      },
       getProfileName: () => getActiveProfile(profileState).name,
       refresh: () => refresh()
     });
@@ -4957,8 +4933,6 @@
         refresh();
         return true;
       },
-      [Keys.RERUN]: () => engine.toggle(TaskId.RERUN),
-      [Keys.WORLD_BOSS]: () => engine.toggle(TaskId.WORLD_BOSS),
       [Keys.SCRIPT]: () => engine.toggle(TaskId.SCRIPT),
       [Keys.RUN_ALL]: () => engine.toggle(TaskId.RUN_ALL),
       [Keys.CAPTURE]: () => {
@@ -4968,6 +4942,7 @@
         }
         stepEditor.captureAtCursor().then(refresh);
       },
+      [Keys.SPEED_RESET]: () => setSpeed(1),
       [Keys.SPEED_UP]: () => setSpeed(stepSpeed(getSpeed(), 1)),
       [Keys.SPEED_UP_ALT]: () => setSpeed(stepSpeed(getSpeed(), 1)),
       [Keys.SPEED_DOWN]: () => setSpeed(stepSpeed(getSpeed(), -1))

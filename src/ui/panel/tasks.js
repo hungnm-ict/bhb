@@ -1,6 +1,6 @@
 import { el } from '../dom.js';
 import { t } from '../../i18n/index.js';
-import { TaskId, Phase } from '../../core/engine.js';
+import { TaskId } from '../../core/engine.js';
 import { getSpeed, setSpeed, formatSpeed, speedIndex, stepSpeed } from '../../core/speed.js';
 import { SPEED_STEPS } from '../../core/constants.js';
 import { getCanvas } from '../../core/canvas.js';
@@ -57,11 +57,7 @@ export function updateSpeedDisplay() {
 const LABELLED_SPEEDS = [0.1, 1, 5, 10, 20];
 
 /** Hotkeys still work; showing them here is how the user learns them. */
-const TASKS = [
-  [TaskId.RERUN, 'task.rerun', Keys.RERUN],
-  [TaskId.WORLD_BOSS, 'task.wb', Keys.WORLD_BOSS],
-  [TaskId.SCRIPT, 'task.script', Keys.SCRIPT],
-];
+const TASKS = [[TaskId.SCRIPT, 'task.script', Keys.SCRIPT]];
 
 function formatRemaining(ms) {
   const total = Math.floor(ms / 1000);
@@ -137,17 +133,7 @@ export function renderTasksTab(deps) {
     return tile;
   }
 
-  const tiles = TASKS.map(([taskId, labelKey, key]) => {
-    const isRerunRunning = engine.activeTask === taskId && taskId === TaskId.RERUN;
-    return taskTile({
-      taskId,
-      labelKey,
-      key,
-      phase: isRerunRunning
-        ? t(engine.phase === Phase.RESTING ? 'phase.resting' : 'phase.hunting')
-        : '',
-    });
-  });
+  const tiles = TASKS.map(([taskId, labelKey, key]) => taskTile({ taskId, labelKey, key }));
 
   const ready = readyActivityCount(deps);
   const runAll = taskTile({

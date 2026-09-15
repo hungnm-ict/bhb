@@ -1,13 +1,9 @@
 export default {
   'app.name': 'BHB',
 
-  'task.rerun': 'Re-run',
-  'task.wb': 'Solo WB',
   'task.runAll': 'Chạy tất cả',
   'task.script': 'Tuỳ chỉnh',
 
-  'phase.hunting': 'đang chạy',
-  'phase.resting': 'nghỉ',
 
   'hud.idle': 'đang dừng',
 
@@ -118,8 +114,6 @@ export default {
   'help.sectionSteps': 'Bước',
   'help.sectionUi': 'Giao diện',
   'help.sectionSpeed': 'Tốc độ',
-  'help.rerun': 'Tự re-run (tìm 3s, nghỉ 20s)',
-  'help.wb': 'Tự đánh solo World Boss (2s/lần)',
   'help.script': 'Chạy các bước tuỳ chỉnh chưa gán hoạt động (3s/lần)',
   'help.runAll': 'Chạy lần lượt mọi hoạt động trong hàng đợi',
   'help.capture': 'Bắt bước tại con trỏ',
@@ -193,4 +187,11 @@ export default {
   'settings.queueCount': '{n} hoạt động',
   'settings.on': 'bật',
   'settings.off': 'tắt',
+
+  'steps.restHint': 'Nghỉ bao nhiêu giây sau khi bước này bấm — dùng cho nút mở trận Dungeon/Raid, để bot khỏi dò suốt lúc đang đánh. 0 là không nghỉ.',
+  'queue.runSolo': 'Chạy riêng hoạt động này',
+  'queue.stopSolo': 'Dừng',
+  'queue.noSteps': 'Chưa có bước nào gán cho hoạt động này',
+
+  'help.speedReset': 'Về tốc độ thường (1×)',
 };

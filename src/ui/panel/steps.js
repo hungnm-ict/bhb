@@ -199,6 +199,18 @@ export function renderStepsTab(deps) {
       deps.refresh();
     });
 
+    // A dungeon run lasts a minute; the step that starts one says how long to
+    // stop looking, rather than the bot re-reading the same frame throughout.
+    const rest = el('input', { class: 'bhb-rest bhb-mono', title: t('steps.restHint') });
+    rest.type = 'number';
+    rest.min = '0';
+    rest.max = '600';
+    rest.value = String(step.restSec || 0);
+    rest.addEventListener('change', () => {
+      deps.stepEditor.setRest(step.id, rest.value);
+      deps.refresh();
+    });
+
     const classes = ['bhb-step', 'bhb-step--stacked'];
     if (step.id === expectedStepId) {
       classes.push('is-next');
@@ -221,6 +233,7 @@ export function renderStepsTab(deps) {
         el('span', { class: 'bhb-rule__actions' }, [toggle, up, down, remove]),
       ]),
       el('div', { class: 'bhb-rule__meta' }, [
+        rest,
         el('span', { class: 'bhb-rule__meta-coord' }, [
           el('span', {
             class: 'bhb-rule__coord bhb-mono',

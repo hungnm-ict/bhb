@@ -43,7 +43,6 @@ import { createWatchdog } from './core/watchdog.js';
 import { createStats } from './core/stats.js';
 import { lockCanvasSize, unlockCanvasSize } from './core/canvas-lock.js';
 import { createNotifier } from './core/notify.js';
-import { RERUN_STEPS, WORLD_BOSS_STEPS } from './bot/builtin.js';
 import { createStepEditor } from './bot/step-editor.js';
 import { createScreenEditor } from './bot/screen-editor.js';
 import { createQueueEditor } from './bot/queue-editor.js';
@@ -94,8 +93,6 @@ function bootstrap() {
 
   const engine = createEngine({
     getScriptSteps: getSteps,
-    getRerunSteps: () => RERUN_STEPS,
-    getWorldBossSteps: () => WORLD_BOSS_STEPS,
     getScaleMode: () => settings.scaleMode,
     getScreens,
     getActivities,
@@ -233,6 +230,14 @@ function bootstrap() {
     },
     getEngineState: engine.getState,
     toggleTask: engine.toggle,
+    runActivity: (activityId) => {
+      const engineState = engine.getState();
+      if (engineState.activeTask === TaskId.SOLO && engineState.activity === activityId) {
+        engine.stop();
+        return;
+      }
+      engine.start(TaskId.SOLO, activityId);
+    },
     getProfileName: () => getActiveProfile(profileState).name,
     refresh: () => refresh(),
   });
@@ -309,8 +314,6 @@ function bootstrap() {
       refresh();
       return true;
     },
-    [Keys.RERUN]: () => engine.toggle(TaskId.RERUN),
-    [Keys.WORLD_BOSS]: () => engine.toggle(TaskId.WORLD_BOSS),
     [Keys.SCRIPT]: () => engine.toggle(TaskId.SCRIPT),
     [Keys.RUN_ALL]: () => engine.toggle(TaskId.RUN_ALL),
     [Keys.CAPTURE]: () => {
@@ -320,6 +323,7 @@ function bootstrap() {
       }
       stepEditor.captureAtCursor().then(refresh);
     },
+    [Keys.SPEED_RESET]: () => setSpeed(1),
     [Keys.SPEED_UP]: () => setSpeed(stepSpeed(getSpeed(), 1)),
     [Keys.SPEED_UP_ALT]: () => setSpeed(stepSpeed(getSpeed(), 1)),
     [Keys.SPEED_DOWN]: () => setSpeed(stepSpeed(getSpeed(), -1)),
