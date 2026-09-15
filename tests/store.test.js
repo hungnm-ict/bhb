@@ -91,3 +91,23 @@ describe('highlight is not a rebuild', () => {
     expect(highlights).toHaveLength(1);
   });
 });
+
+describe('capture arming', () => {
+  it('starts disarmed, so a stray 0 cannot capture on a fresh load', () => {
+    expect(createUiStore().get().isCaptureArmed).toBe(false);
+  });
+
+  it('arms and disarms, telling views to redraw', () => {
+    const store = createUiStore();
+    const seen = [];
+    store.subscribe((state) => seen.push(state.isCaptureArmed));
+
+    store.armCapture(true);
+    expect(store.get().isCaptureArmed).toBe(true);
+
+    store.armCapture(false);
+    expect(store.get().isCaptureArmed).toBe(false);
+    expect(seen).toEqual([true, false]);
+  });
+});
+

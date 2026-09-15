@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.7.7
+// @version      0.8.0
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -14,7 +14,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.7.7" : "dev";
+  var VERSION = true ? "0.8.0" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -1790,7 +1790,12 @@
     "notify.testFailed": "Gửi thất bại — xem lại webhook/token",
     "notify.hint": "Cần ít nhất một kênh: dán Discord webhook, hoặc cả token lẫn chat ID của Telegram. Mỗi loại tin chỉ gửi tối đa 1 lần/phút.",
     "notify.noTarget": "Chưa có kênh nào — dán webhook hoặc token vào bên dưới.",
-    "msg.notify": "Đã báo tin: {label}"
+    "msg.notify": "Đã báo tin: {label}",
+    "toast.captured": "✓ đã bắt: {label}",
+    "toast.capturedUnstable": "⚠ đã bắt, nhưng màu ở đây đổi liên tục",
+    "steps.armCapture": "Bật chế độ bắt bước — cho phép phím 0",
+    "steps.armHint": "Tắt công tắc này khi bắt xong: phím 0 nằm cạnh các phím điều khiển bot, bật suốt thì dễ bấm nhầm giữa lúc đang chơi. Nút tím bên trên thì lúc nào cũng dùng được.",
+    "msg.captureDisarmed": "phím 0 đang tắt — bật chế độ bắt bước ở tab Bước"
   };
 
   // src/i18n/en.js
@@ -1945,7 +1950,12 @@
     "notify.testFailed": "Failed — check the webhook/token",
     "notify.hint": "One channel is enough: paste a Discord webhook, or both the Telegram token and chat ID. Each kind of alert goes out at most once a minute.",
     "notify.noTarget": "No channel yet — paste a webhook or token below.",
-    "msg.notify": "Alert sent: {label}"
+    "msg.notify": "Alert sent: {label}",
+    "toast.captured": "✓ captured: {label}",
+    "toast.capturedUnstable": "⚠ captured, but the colour here keeps changing",
+    "steps.armCapture": "Capture mode — enables the 0 key",
+    "steps.armHint": "Switch this off once you are done: 0 sits beside the keys that drive the bot, and leaving it live invites a stray press mid-fight. The button above always works.",
+    "msg.captureDisarmed": "the 0 key is off — switch capture mode on in the Steps tab"
   };
 
   // src/i18n/index.js
@@ -2054,6 +2064,9 @@
         deps.report(
           settled.isSettled ? t("msg.stepCaptured", { x: point2.x, y: point2.y, hex: restingHex }) : t("msg.stepUnstable", { x: point2.x, y: point2.y, hex: restingHex })
         );
+        if (deps.onCaptured) {
+          deps.onCaptured({ step, clientX: cursorX, clientY: cursorY, isSettled: settled.isSettled });
+        }
         return step;
       } finally {
         capturing = false;
@@ -2270,7 +2283,7 @@
 
   // src/ui/styles.js
   var CSS = `
-.bhb-hud, .bhb-panel, .bhb-markers, .bhb-flash, .bhb-drag, .bhb-size {
+.bhb-hud, .bhb-panel, .bhb-markers, .bhb-flash, .bhb-drag, .bhb-size, .bhb-toast {
   --bhb-bg: #12141c;
   --bhb-bg-soft: #1a1d29;
   --bhb-line: rgba(255, 255, 255, .09);
@@ -2776,6 +2789,26 @@
 }
 .bhb-flash--out { transform: translate(-50%, -50%) scale(1.9); opacity: 0; }
 
+/* --- Toast -------------------------------------------------------------- */
+
+.bhb-toast {
+  display: flex; align-items: center; gap: 7px;
+  padding: 6px 11px;
+  transform: translate(-50%, 6px);
+  background: rgba(18, 20, 28, .96);
+  border: 1px solid rgba(61, 220, 151, .55); border-radius: 999px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .5);
+  color: var(--bhb-text); font-size: var(--bhb-fs-sm); font-weight: 600;
+  white-space: nowrap; pointer-events: none; opacity: 0;
+  transition: opacity .3s ease, transform .3s cubic-bezier(.2, .8, .3, 1);
+}
+.bhb-toast--in { opacity: 1; transform: translate(-50%, 0); }
+.bhb-toast--warn { border-color: rgba(255, 180, 87, .6); color: var(--bhb-warn); }
+.bhb-toast__swatch {
+  width: 13px; height: 13px; flex: none;
+  border: 1px solid rgba(255, 255, 255, .35); border-radius: 4px;
+}
+
 @keyframes bhb-pulse {
   0% { box-shadow: 0 0 0 0 rgba(61, 220, 151, .55); }
   70% { box-shadow: 0 0 0 7px rgba(61, 220, 151, 0); }
@@ -2815,6 +2848,14 @@
       hoveredStepId: null,
       /** @type {string | null} activity id shown in the steps table; null is all */
       stepFilter: null,
+      /**
+       * Whether the capture hotkey is armed.
+       *
+       * Off on every load, and deliberately not persisted: the key sits next to
+       * the ones that drive the bot, and a session that starts armed is a stray
+       * `0` mid-fight that captures whatever happened to be under the cursor.
+       */
+      isCaptureArmed: false,
       /** @type {object[]} newest first */
       log: []
     };
@@ -2849,6 +2890,7 @@
       togglePanel: () => patch({ panelOpen: !state.panelOpen }),
       setTab: (tab) => patch({ tab, panelOpen: true }),
       setRuleFilter: (activityId) => patch({ stepFilter: activityId }),
+      armCapture: (armed) => patch({ isCaptureArmed: armed }),
       selectStep: (id) => patch({ selectedStepId: id }),
       hoverStep: (id) => patch({ hoveredStepId: id }),
       /** Drop any reference to a step that no longer exists. */
@@ -3140,10 +3182,19 @@
     const activities = deps.getActivities();
     const filter = state.stepFilter;
     const steps = filter === null ? all : all.filter((step) => (step.activity || "") === filter);
+    const isArmed = deps.store.get().isCaptureArmed;
+    const arm = el("button", { class: `bhb-task bhb-task--wrap ${isArmed ? "is-on" : ""}` }, [
+      el("span", { class: "bhb-task__switch" }),
+      el("span", { class: "bhb-task__label", text: t("steps.armCapture") }),
+      el("span", { class: "bhb-kbd", text: "0" })
+    ]);
+    arm.addEventListener("click", () => {
+      deps.store.armCapture(!isArmed);
+      deps.refresh();
+    });
     const capture = el("button", { class: "bhb-btn bhb-btn--primary" }, [
       el("span", { class: "bhb-btn__dot" }),
-      el("span", { text: t("steps.capture") }),
-      el("span", { class: "bhb-kbd", text: "0" })
+      el("span", { text: t("steps.capture") })
     ]);
     capture.addEventListener("click", async () => {
       await deps.stepEditor.captureAtCursor();
@@ -3173,8 +3224,10 @@
         el("span", { class: "bhb-label", text: `${t("overlay.steps")} · ${steps.length}` }),
         filterSelect
       ]),
+      arm,
       capture,
       el("p", { class: "bhb-note", text: t("steps.captureHint") }),
+      el("p", { class: "bhb-note", text: t("steps.armHint") }),
       legacyCount > 0 ? el("p", { class: "bhb-note bhb-note--warn", text: t("steps.legacyWarning", { n: legacyCount }) }) : null
     ]);
     if (steps.length === 0) {
@@ -4224,6 +4277,30 @@
     realSetTimeout(() => ring.remove(), LIFETIME_MS);
   }
 
+  // src/ui/toast.js
+  var LIFETIME_MS2 = 1800;
+  var FADE_MS = 300;
+  function clamp(value, min, max) {
+    return Math.min(max, Math.max(min, value));
+  }
+  function showToast({ clientX, clientY, text, hex, isWarning }) {
+    const bubble = mount(
+      el("div", { class: `bhb-toast ${isWarning ? "bhb-toast--warn" : ""}` }, [
+        hex ? el("span", { class: "bhb-toast__swatch", style: { background: hex } }) : null,
+        el("span", { text })
+      ])
+    );
+    const width = bubble.offsetWidth || 120;
+    bubble.style.left = `${clamp(clientX, width / 2 + 8, window.innerWidth - width / 2 - 8)}px`;
+    bubble.style.top = `${clamp(clientY - 34, 8, window.innerHeight - 40)}px`;
+    realRequestAnimationFrame(() => bubble.classList.add("bhb-toast--in"));
+    realSetTimeout(() => {
+      bubble.classList.remove("bhb-toast--in");
+      realSetTimeout(() => bubble.remove(), FADE_MS);
+    }, LIFETIME_MS2);
+    return bubble;
+  }
+
   // src/main.js
   installCanvasPatch();
   installFocusPatch();
@@ -4261,7 +4338,19 @@
     const stepEditor = createStepEditor({
       getSteps,
       persist,
-      report: engine.setMessage
+      report: engine.setMessage,
+      // The status line is in a corner; the user is looking at the button they
+      // just pointed at, so the confirmation goes there.
+      onCaptured: ({ step, clientX, clientY, isSettled }) => {
+        showClickFlash(clientX, clientY);
+        showToast({
+          clientX,
+          clientY,
+          text: isSettled ? t("toast.captured", { label: step.label }) : t("toast.capturedUnstable"),
+          hex: step.hex,
+          isWarning: !isSettled
+        });
+      }
     });
     const screenEditor = createScreenEditor({
       getScreens,
@@ -4397,7 +4486,13 @@
       "4": () => engine.toggle(TaskId.WORLD_BOSS),
       "5": () => engine.toggle(TaskId.SCRIPT),
       "6": () => engine.toggle(TaskId.RUN_ALL),
-      "0": () => stepEditor.captureAtCursor().then(refresh),
+      "0": () => {
+        if (!store.get().isCaptureArmed) {
+          engine.setMessage(t("msg.captureDisarmed"));
+          return;
+        }
+        stepEditor.captureAtCursor().then(refresh);
+      },
       "=": () => setSpeed(stepSpeed(getSpeed(), 1)),
       "+": () => setSpeed(stepSpeed(getSpeed(), 1)),
       "-": () => setSpeed(stepSpeed(getSpeed(), -1))

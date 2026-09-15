@@ -38,10 +38,23 @@ export function renderStepsTab(deps) {
   const filter = state.stepFilter;
   const steps = filter === null ? all : all.filter((step) => (step.activity || '') === filter);
 
+  // The hotkey is armed here rather than always live: `0` sits beside the keys
+  // that start the bot, and a stray press mid-fight captures whatever the
+  // cursor happened to be over. The button below is explicit, so it always works.
+  const isArmed = deps.store.get().isCaptureArmed;
+  const arm = el('button', { class: `bhb-task bhb-task--wrap ${isArmed ? 'is-on' : ''}` }, [
+    el('span', { class: 'bhb-task__switch' }),
+    el('span', { class: 'bhb-task__label', text: t('steps.armCapture') }),
+    el('span', { class: 'bhb-kbd', text: '0' }),
+  ]);
+  arm.addEventListener('click', () => {
+    deps.store.armCapture(!isArmed);
+    deps.refresh();
+  });
+
   const capture = el('button', { class: 'bhb-btn bhb-btn--primary' }, [
     el('span', { class: 'bhb-btn__dot' }),
     el('span', { text: t('steps.capture') }),
-    el('span', { class: 'bhb-kbd', text: '0' }),
   ]);
   capture.addEventListener('click', async () => {
     await deps.stepEditor.captureAtCursor();
@@ -76,8 +89,10 @@ export function renderStepsTab(deps) {
       el('span', { class: 'bhb-label', text: `${t('overlay.steps')} · ${steps.length}` }),
       filterSelect,
     ]),
+    arm,
     capture,
     el('p', { class: 'bhb-note', text: t('steps.captureHint') }),
+    el('p', { class: 'bhb-note', text: t('steps.armHint') }),
     legacyCount > 0
       ? el('p', { class: 'bhb-note bhb-note--warn', text: t('steps.legacyWarning', { n: legacyCount }) })
       : null,

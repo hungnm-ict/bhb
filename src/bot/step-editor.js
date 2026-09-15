@@ -78,6 +78,9 @@ async function readSettledPixel(gl, point) {
  * @param {() => import('./step.js').Step[]} deps.getSteps
  * @param {() => void} deps.persist
  * @param {(message: string) => void} deps.report
+ * @param {(captured: { step: object, clientX: number, clientY: number,
+ *   isSettled: boolean }) => void} [deps.onCaptured] so the UI can confirm the
+ *   capture where the user is looking; this module stays DOM-free
  */
 export function createStepEditor(deps) {
   let cursorX = null;
@@ -161,6 +164,9 @@ export function createStepEditor(deps) {
           ? t('msg.stepCaptured', { x: point.x, y: point.y, hex: restingHex })
           : t('msg.stepUnstable', { x: point.x, y: point.y, hex: restingHex })
       );
+      if (deps.onCaptured) {
+        deps.onCaptured({ step, clientX: cursorX, clientY: cursorY, isSettled: settled.isSettled });
+      }
       return step;
     } finally {
       capturing = false;

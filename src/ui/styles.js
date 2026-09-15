@@ -11,7 +11,7 @@ import { Z_TOP } from '../core/constants.js';
  * layer itself must not, or it would swallow every click meant for the game.
  */
 const CSS = `
-.bhb-hud, .bhb-panel, .bhb-markers, .bhb-flash, .bhb-drag, .bhb-size {
+.bhb-hud, .bhb-panel, .bhb-markers, .bhb-flash, .bhb-drag, .bhb-size, .bhb-toast {
   --bhb-bg: #12141c;
   --bhb-bg-soft: #1a1d29;
   --bhb-line: rgba(255, 255, 255, .09);
@@ -516,6 +516,26 @@ const CSS = `
   transition: transform .35s cubic-bezier(.2, .8, .3, 1), opacity .35s ease-out;
 }
 .bhb-flash--out { transform: translate(-50%, -50%) scale(1.9); opacity: 0; }
+
+/* --- Toast -------------------------------------------------------------- */
+
+.bhb-toast {
+  display: flex; align-items: center; gap: 7px;
+  padding: 6px 11px;
+  transform: translate(-50%, 6px);
+  background: rgba(18, 20, 28, .96);
+  border: 1px solid rgba(61, 220, 151, .55); border-radius: 999px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .5);
+  color: var(--bhb-text); font-size: var(--bhb-fs-sm); font-weight: 600;
+  white-space: nowrap; pointer-events: none; opacity: 0;
+  transition: opacity .3s ease, transform .3s cubic-bezier(.2, .8, .3, 1);
+}
+.bhb-toast--in { opacity: 1; transform: translate(-50%, 0); }
+.bhb-toast--warn { border-color: rgba(255, 180, 87, .6); color: var(--bhb-warn); }
+.bhb-toast__swatch {
+  width: 13px; height: 13px; flex: none;
+  border: 1px solid rgba(255, 255, 255, .35); border-radius: 4px;
+}
 
 @keyframes bhb-pulse {
   0% { box-shadow: 0 0 0 0 rgba(61, 220, 151, .55); }
