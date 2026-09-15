@@ -94,6 +94,8 @@ export default {
   'queue.inSettings': 'The order and the on/off switches live in the Settings tab.',
   'steps.next': 'The step the bot is waiting for',
   'log.resync': 'Lost the thread — picking up at {label}',
+  'size.same': 'The framebuffer the game draws into — steps store their coordinates in it',
+  'size.scaled': 'Framebuffer size → displayed size. They differ when the game is being scaled',
   'log.title': 'Activity',
   'log.empty': 'Nothing yet. Start a task to see what the bot does.',
   'log.clear': 'Clear',

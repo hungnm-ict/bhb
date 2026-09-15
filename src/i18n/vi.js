@@ -94,6 +94,8 @@ export default {
   'queue.inSettings': 'Thứ tự và bật/tắt từng hoạt động nằm ở tab Cài đặt.',
   'steps.next': 'Bước bot đang chờ',
   'log.resync': 'Lạc nhịp — bắt lại từ {label}',
+  'size.same': 'Cỡ framebuffer game vẽ ra — bước lưu toạ độ theo hệ này',
+  'size.scaled': 'Cỡ framebuffer → cỡ hiển thị. Khác nhau nghĩa là game đang được co giãn',
   'log.title': 'Nhật ký',
   'log.empty': 'Chưa có gì. Bật một hoạt động để bắt đầu.',
   'log.clear': 'Xoá',
