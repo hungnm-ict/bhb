@@ -21,6 +21,26 @@ const banner = `// ==UserScript==
 // ==/UserScript==
 `;
 
+/**
+ * Stamp the version into the READMEs.
+ *
+ * package.json is the only place a version is written by hand; anything else
+ * that names one goes stale the first time someone forgets. The badge lives
+ * between markers so the surrounding prose is never touched.
+ */
+function stampReadmeVersion() {
+  for (const file of ['README.md', 'README.en.md']) {
+    const text = readFileSync(file, 'utf8');
+    const stamped = text.replace(
+      /<!--version-->.*?<!--\/version-->/s,
+      `<!--version-->v${pkg.version}<!--/version-->`
+    );
+    if (stamped !== text) {
+      writeFileSync(file, stamped);
+    }
+  }
+}
+
 const watch = process.argv.includes('--watch');
 
 const options = {
@@ -45,6 +65,7 @@ if (watch) {
   console.log('watching src/ — rebuilding dist/bhb.user.js on change');
 } else {
   await build(options);
+  stampReadmeVersion();
   const bytes = readFileSync(options.outfile).length;
   console.log(`built dist/bhb.user.js  v${pkg.version}  ${(bytes / 1024).toFixed(1)} KB`);
 }

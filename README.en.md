@@ -1,6 +1,6 @@
-# BHB
+# BHB <!--version-->v0.6.3<!--/version-->
 
-> 🇻🇳 [Phiên bản tiếng Việt](README.md)
+> 🇻🇳 [Phiên bản tiếng Việt](README.md) · [Changelog](https://github.com/hungnm-ict/bhb/commits/master)
 
 A userscript that automates a casual Gacha + Pokemon-catching + Fashion game.
 
@@ -59,13 +59,15 @@ A **step** is "when this colour is here (on this screen), click there", and the 
 
 Games do not follow a script — a daily reward pops up, a connection drops, a battle ends on a screen nobody planned for. So when the expected step has not matched for three ticks, the bot gives up its place and takes whatever fits the screen in front of it, then carries on from there. The log records every time it does.
 
-With the **Steps** tab open, every step is drawn as a **marker on the canvas** at the position it watches. Hovering a row lights its marker and the other way round, so you can see which button a rule points at.
+With the **Steps** tab open, every step is drawn as a **marker on the canvas** at the position it watches. Hovering a row lights its marker and the other way round, so you can see which button a step points at. The step the bot is **waiting for** is marked ▶, so a stuck sequence is visible rather than merely silent.
 
-### Capturing a rule
+### Capturing a step
 
 Hover a button in the game and press **Capture a step at the cursor** (or the `0` key). That is the whole flow.
 
-The bot handles the hover problem for you: it parks the **synthetic** pointer in a corner of the canvas, waits for the game to repaint, reads the resting colour, and puts the synthetic pointer back. Your real cursor never moves. Both shades — lit and resting — are stored, so the rule matches either way.
+The bot handles the hover problem for you: it parks the **synthetic** pointer in a corner of the canvas, waits for the game to repaint, reads the resting colour, and puts the synthetic pointer back. Your real cursor never moves. Both shades — lit and resting — are stored, so the step matches either way.
+
+To let the bot know where it is, go to the **Screens** tab and drag a box around something only that screen shows. Mark an out-of-resources screen with `stopsTask` — that is what makes the queue move on instead of clicking at a wall.
 
 ### Keyboard shortcuts
 
@@ -76,7 +78,7 @@ The bot handles the hover problem for you: it parks the **synthetic** pointer in
 | `4` | Solo WB — polls every 2s |
 | `5` | Custom — runs the steps not tagged to an activity, every 3s |
 | `6` | Run All — every activity in the queue, in order |
-| `0` | Capture a rule at the cursor |
+| `0` | Capture a step at the cursor |
 | `= / +` | Increase game speed (next stop, up to 20×) |
 | `-` | Decrease game speed (down to 0.1×) |
 
@@ -87,13 +89,16 @@ The bot handles the hover problem for you: it parks the **synthetic** pointer in
 - **Game speed from 0.1× to 20×** — patches the game's clocks and frame loop, not a fake fast-forward
 - **Non-intrusive input** — events go straight to the canvas; your real cursor stays put
 - **Runs in the background** — the game keeps going when you switch tabs
-- **Your own rules** — point at a button and the bot learns its position and colour
-- **Region matching** — a rule can read a whole rectangle and score 16 samples in it, so one stray frame does not flip the match
-- **Screen awareness** — a rule fires only on the screens you allow, and an out-of-resources screen moves the queue on
+- **Steps you capture yourself** — point at a button and the bot learns its position and colour
+- **In order, and self-healing** — the bot follows the step order; when it loses the thread it picks up at whichever step fits the screen in front of it
+- **Region matching** — a step can read a whole rectangle and score 16 samples in it, so one stray frame does not flip the match
+- **Screen awareness** — a step fires only on the screens you allow, and an out-of-resources screen moves the queue on
 - **Run All** — an ordered activity queue that skips what has run dry and starts the round again
-- **Resolution-independent rules** — see below
+- **Resolution-independent steps** — see below
+- **Profiles** — one set of steps, screens and queue per character, with export and import
 - **Reload on hang** — optional; without it the bot simply stops after 3 idle minutes
 - **Keeps running when the window is covered** — see below
+- **Canvas size in the corner** — fades out, lights up as the cursor nears it, and never swallows a click
 
 ### A covered window freezes the game
 
@@ -107,19 +112,19 @@ It can be turned off in Settings.
 
 ### Several characters, several accounts
 
-Each **profile** in Settings holds its own rules, screens and queue — one per character, switched from a dropdown. Clicking through the game's own character menu is a captured rule set like anything else.
+Each **profile** in Settings holds its own steps, screens and queue — one per character, switched from a dropdown. Clicking through the game's own character menu is a captured step list like anything else.
 
 A second account needs nothing: a second browser profile is a second `localStorage`, so the script keeps a separate configuration there.
 
-### Resolution-independent rules
+### Resolution-independent steps
 
 This is the main difference from the original.
 
-Upstream stored bare pixel coordinates. On macOS the canvas is pinned to a fixed minimum size so that worked, **but on Windows the framebuffer tracks the window and the display scaling** — change zoom, resize, or move to a different-DPI monitor and every rule drifts.
+Upstream stored bare pixel coordinates. On macOS the canvas is pinned to a fixed minimum size so that worked, **but on Windows the framebuffer tracks the window and the display scaling** — change zoom, resize, or move to a different-DPI monitor and every coordinate drifts.
 
-BHB stores **the framebuffer size each rule was captured at**, so rules are rescaled onto whatever the framebuffer currently is. Resizing and zooming keep working.
+BHB stores **the framebuffer size each step was captured at**, so steps are rescaled onto whatever the framebuffer currently is. Resizing and zooming keep working.
 
-Rules imported from the original carry no such size, so the overlay marks them with an **orange ⚠**. Press `6` and re-capture them.
+Steps imported from the original carry no such size, so they **cannot be rescaled**: the Steps tab counts them and warns, and each one is marked with an **orange ⚠** beside its coordinate. Press `0` over the button to re-capture and the warning goes.
 
 ---
 
@@ -134,7 +139,11 @@ npm run watch     # rebuild on change
 npm test          # run the unit tests
 ```
 
-Edit `src/`, run `npm run build`, reload the game page. To ship an update that other browsers pick up automatically: bump `version` in `package.json`, build, commit, push.
+Edit `src/`, run `npm run build`, reload the game page. To ship an update that other browsers pick up automatically: bump `version` in `package.json`, build, commit, push — the build stamps that version into the userscript's `@version` and into these READMEs' titles.
+
+Numbering: finishing a milestone in the [roadmap](docs/ROADMAP.md) bumps the minor (`0.5.0` → `0.6.0`), anything smaller bumps the patch. `1.0.0` is when it is polished enough to share widely.
+
+> ⚠️ Tampermonkey never auto-updates **down** to a lower version. Anyone still on an old 2.x build has to remove and reinstall the script once.
 
 ### Layout
 
@@ -144,15 +153,29 @@ src/
 ├── core/
 │   ├── canvas.js    canvas lookup, preserveDrawingBuffer patch
 │   ├── coords.js    coordinate mapping — where the resolution problem is solved
-│   ├── pixel.js     WebGL pixel reads
+│   ├── pixel.js     single WebGL pixel reads
+│   ├── region.js    whole-rectangle reads scored over 16 samples
+│   ├── color.js     colour comparison
 │   ├── input.js     synthetic click dispatch
-│   ├── speed.js     game speed hack
-│   ├── engine.js    the automation loop
-│   └── storage.js   profiles and settings
-├── rules/           rule model, built-in rules, capture and editing
-├── ui/              HUD, control panel, canvas markers, hotkeys
+│   ├── focus.js     reports the page visible so the game never self-throttles
+│   ├── speed.js     speed hack, and hand-driven frames for a covered window
+│   ├── keepalive.js an audio-thread heartbeat the browser does not throttle
+│   ├── watchdog.js  what to resume after a reload, and when to stop trying
+│   ├── timers.js    the native timers, captured before the speed hack
+│   ├── engine.js    the automation loop: step cursor, queue, auto-stop
+│   └── storage.js   profiles and settings (schema v5)
+├── bot/
+│   ├── step.js          the step model
+│   ├── step-editor.js   capture, edit, reorder
+│   ├── screen.js        screen detection
+│   ├── screen-editor.js anchor capture
+│   ├── activity.js      the Run-All queue
+│   └── builtin.js       the built-in re-run and solo WB steps
+├── ui/              HUD, control panel, canvas markers, size badge
 └── i18n/            Vietnamese and English
 ```
+
+Tests live in `tests/` and run under vitest. Everything that could lose a user's work — coordinate mapping, storage migrations, the step cursor — is pinned by one.
 
 ---
 

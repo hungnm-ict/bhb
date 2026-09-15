@@ -1,6 +1,6 @@
-# BHB
+# BHB <!--version-->v0.6.3<!--/version-->
 
-> 🇬🇧 [English version](README.en.md)
+> 🇬🇧 [English version](README.en.md) · [Nhật ký thay đổi](https://github.com/hungnm-ict/bhb/commits/master)
 
 Userscript tự động hoá game giải trí Gacha + bắt Pokemon + Thời trang.
 
@@ -59,13 +59,15 @@ Một **bước** là "thấy màu này ở chỗ này (trên màn hình này) t
 
 Game thì không chạy theo kịch bản — popup quà ngày, mất kết nối, trận kết thúc ở màn không ai lường. Nên khi bước đang chờ không khớp trong 3 nhịp liền, bot **bỏ chỗ của mình** và lấy bước nào hợp với màn hình trước mặt, rồi đi tiếp từ đó. Nhật ký ghi lại mỗi lần như vậy.
 
-Khi mở tab **Bước**, mỗi bước được vẽ thành một **dấu ngay trên canvas** tại đúng chỗ nó nhìn vào. Rê chuột lên dòng nào thì dấu tương ứng sáng lên và ngược lại — nhìn là biết rule trỏ vào nút nào.
+Khi mở tab **Bước**, mỗi bước được vẽ thành một **dấu ngay trên canvas** tại đúng chỗ nó nhìn vào. Rê chuột lên dòng nào thì dấu tương ứng sáng lên và ngược lại — nhìn là biết bước đó trỏ vào nút nào. Bước bot **đang chờ** được đánh dấu ▶, nên một chuỗi bị kẹt là thấy ngay.
 
-### Tạo rule
+### Tạo bước
 
 Rê chuột lên nút trong game, rồi bấm **Bắt bước tại con trỏ** (hoặc phím `0`). Xong.
 
-Bot tự xử lý chuyện nút bị sáng lên do con trỏ đang nằm trên đó: nó gạt **con trỏ ảo** ra góc canvas, đợi game vẽ lại, đọc màu lúc nút không sáng, rồi trả con trỏ ảo về chỗ cũ. Con trỏ thật của bạn không hề nhúc nhích. Cả hai màu — lúc sáng và lúc thường — đều được lưu, nên rule khớp được ở cả hai trạng thái.
+Bot tự xử lý chuyện nút bị sáng lên do con trỏ đang nằm trên đó: nó gạt **con trỏ ảo** ra góc canvas, đợi game vẽ lại, đọc màu lúc nút không sáng, rồi trả con trỏ ảo về chỗ cũ. Con trỏ thật của bạn không hề nhúc nhích. Cả hai màu — lúc sáng và lúc thường — đều được lưu, nên bước khớp được ở cả hai trạng thái.
+
+Muốn bot biết nó đang ở đâu thì sang tab **Màn hình**, kéo một khung quanh thứ chỉ màn hình đó mới có. Màn hình "hết vé / hết năng lượng" thì bật thêm `stopsTask` — đó là cái làm hàng đợi tự nhảy sang hoạt động khác thay vì đứng bấm mãi.
 
 ### Phím tắt
 
@@ -76,7 +78,7 @@ Bot tự xử lý chuyện nút bị sáng lên do con trỏ đang nằm trên �
 | `4` | Solo WB — World Boss, 2 giây/lần |
 | `5` | Tuỳ chỉnh — chạy các bước chưa gán hoạt động, 3 giây/lần |
 | `6` | Chạy tất cả — lần lượt mọi hoạt động trong hàng đợi (cần có bước đã gán) |
-| `0` | Bắt rule tại con trỏ |
+| `0` | Bắt bước tại con trỏ |
 | `= / +` | Tăng tốc độ game (mốc kế tiếp, tối đa 20×) — hoặc bấm nút + cạnh thanh trượt |
 | `-` | Giảm tốc độ game (chậm nhất 0.1×) |
 
@@ -87,23 +89,26 @@ Bot tự xử lý chuyện nút bị sáng lên do con trỏ đang nằm trên �
 - **Chỉnh tốc độ game 0.1× – 20×** — can thiệp đồng hồ và khung hình của game, không phải tua nhanh giả
 - **Không chiếm chuột** — gửi sự kiện thẳng vào canvas, con trỏ thật đứng yên
 - **Chạy nền được** — game không bị treo khi bạn chuyển sang tab khác
-- **Rule tự tạo** — chỉ vào nút nào là bot tự học vị trí + màu nút đó
-- **So khớp cả vùng** — thay vì 1 pixel, bot đọc cả một khung và chấm 16 điểm mẫu, nên một hiệu ứng lướt qua không làm rule sai
-- **Biết đang ở màn hình nào** — rule chỉ chạy ở màn hình bạn cho phép, và màn hình "hết vé" sẽ tự chuyển sang hoạt động khác
+- **Bước tự bắt** — chỉ vào nút nào là bot tự học vị trí + màu nút đó
+- **Chạy đúng thứ tự, và tự bò dậy** — bot đi theo thứ tự bước; lạc thì bắt lại từ bước hợp với màn hình đang thấy
+- **So khớp cả vùng** — thay vì 1 pixel, bot đọc cả một khung và chấm 16 điểm mẫu, nên một hiệu ứng lướt qua không làm bước sai
+- **Biết đang ở màn hình nào** — bước chỉ chạy ở màn hình bạn cho phép, và màn hình "hết vé" sẽ tự chuyển sang hoạt động khác
 - **Chạy tất cả** — hàng đợi hoạt động chạy từ trên xuống, hết tài nguyên thì sang mục kế, hết một vòng thì quay lại từ đầu
-- **Rule không phụ thuộc độ phân giải** — xem mục dưới
+- **Bước không phụ thuộc độ phân giải** — xem mục dưới
+- **Nhiều hồ sơ** — mỗi nhân vật một bộ bước + màn hình + hàng đợi, xuất/nhập được
 - **Tự tải lại khi game treo** — bật trong Cài đặt; không bật thì bot chỉ dừng sau 3 phút không làm gì
 - **Chạy tiếp khi cửa sổ bị che kín** — xem mục dưới
+- **Cỡ canvas ở góc màn hình** — tự mờ đi, sáng lại khi rê chuột tới gần, và không chặn click xuống game
 
-### Rule không phụ thuộc độ phân giải
+### Bước không phụ thuộc độ phân giải
 
 Đây là khác biệt lớn nhất so với bản gốc.
 
-Bản gốc lưu toạ độ pixel trần. Trên macOS canvas bị ghim ở một kích thước tối thiểu nên không sao, **nhưng trên Windows framebuffer thay đổi theo cửa sổ và độ phân giải màn hình** — đổi zoom, kéo cửa sổ, hay chuyển sang màn hình khác DPI là mọi rule lệch hết.
+Bản gốc lưu toạ độ pixel trần. Trên macOS canvas bị ghim ở một kích thước tối thiểu nên không sao, **nhưng trên Windows framebuffer thay đổi theo cửa sổ và độ phân giải màn hình** — đổi zoom, kéo cửa sổ, hay chuyển sang màn hình khác DPI là mọi toạ độ lệch hết.
 
-BHB lưu kèm **kích thước framebuffer lúc chụp rule**, nên rule tự quy đổi sang khung hình hiện tại. Đổi cỡ cửa sổ hay zoom vẫn chạy đúng.
+BHB lưu kèm **kích thước framebuffer lúc bắt bước**, nên bước tự quy đổi sang khung hình hiện tại. Đổi cỡ cửa sổ hay zoom vẫn chạy đúng.
 
-Rule nhập từ bản cũ không có thông tin này, nên overlay đánh dấu **⚠ màu cam** — nên bấm `0` chụp lại cho chắc.
+Bước nhập từ bản cũ không có thông tin này nên **không quy đổi được** — tab Bước đếm và cảnh báo chúng, và cạnh toạ độ có dấu **⚠ cam**. Bắt lại bằng phím `0` là hết.
 
 ### Cửa sổ bị che kín thì game đứng
 
@@ -117,7 +122,7 @@ Tắt được trong Cài đặt nếu không cần.
 
 ### Nhiều nhân vật, nhiều tài khoản
 
-Mỗi **hồ sơ** trong tab Cài đặt giữ rule, màn hình và hàng đợi riêng — mỗi nhân vật một hồ sơ, đổi bằng dropdown. Việc bấm đổi nhân vật *trong game* thì vẫn phải bắt rule như mọi thao tác khác.
+Mỗi **hồ sơ** trong tab Cài đặt giữ bước, màn hình và hàng đợi riêng — mỗi nhân vật một hồ sơ, đổi bằng dropdown. Việc bấm đổi nhân vật *trong game* thì vẫn phải bắt bước như mọi thao tác khác.
 
 Tài khoản khác thì không cần gì thêm: mở một **browser profile** khác là có một `localStorage` khác, nên script tự có bộ cấu hình riêng ở đó.
 
@@ -134,7 +139,11 @@ npm run watch     # tự build lại khi sửa code
 npm test          # chạy unit test
 ```
 
-Sửa code trong `src/`, chạy `npm run build`, rồi reload trang game. Muốn phát hành bản mới cho các browser khác tự nhận: tăng `version` trong `package.json`, build, commit, push.
+Sửa code trong `src/`, chạy `npm run build`, rồi reload trang game. Muốn phát hành bản mới: tăng `version` trong `package.json`, build, commit, push — `npm run build` tự đóng dấu số phiên bản vào `@version` của userscript và vào tiêu đề README này.
+
+Đánh số: xong một milestone trong [ROADMAP](docs/ROADMAP.md) thì tăng minor (`0.5.0` → `0.6.0`), sửa vặt thì tăng patch. `1.0.0` là khi đủ hoàn thiện để chia sẻ rộng.
+
+> ⚠️ Tampermonkey **không bao giờ tự cập nhật xuống** số phiên bản thấp hơn. Nếu từng cài bản 2.x cũ thì phải gỡ và cài lại một lần.
 
 ### Cấu trúc
 
@@ -144,15 +153,29 @@ src/
 ├── core/
 │   ├── canvas.js    tìm canvas, ép preserveDrawingBuffer
 │   ├── coords.js    quy đổi toạ độ — chỗ xử lý vấn đề độ phân giải
-│   ├── pixel.js     đọc pixel từ WebGL
+│   ├── pixel.js     đọc 1 pixel từ WebGL
+│   ├── region.js    đọc cả vùng và chấm 16 điểm mẫu
+│   ├── color.js     so màu
 │   ├── input.js     dispatch click giả
-│   ├── speed.js     tăng tốc game
-│   ├── engine.js    vòng lặp tự động
-│   └── storage.js   profile + cài đặt
-├── rules/           model rule, rule có sẵn, bắt/sửa rule
-├── ui/              HUD, bảng điều khiển, dấu trên canvas, phím tắt
+│   ├── focus.js     nói dối về visibility để game không tự ngủ
+│   ├── speed.js     tăng tốc game + tự lái frame khi cửa sổ bị che
+│   ├── keepalive.js nhịp lấy từ luồng âm thanh, không bị trình duyệt bóp
+│   ├── watchdog.js  ghi nhớ task để chạy tiếp sau khi tải lại trang
+│   ├── timers.js    giữ timer gốc trước khi speed hack thay chúng
+│   ├── engine.js    vòng lặp tự động: con trỏ bước, hàng đợi, tự tắt
+│   └── storage.js   hồ sơ + cài đặt (schema v5)
+├── bot/
+│   ├── step.js      model bước
+│   ├── step-editor.js   bắt / sửa / sắp xếp bước
+│   ├── screen.js        nhận diện màn hình
+│   ├── screen-editor.js bắt vùng nhận diện
+│   ├── activity.js      hàng đợi hoạt động
+│   └── builtin.js       bước có sẵn cho re-run và solo WB
+├── ui/              HUD, bảng điều khiển, dấu trên canvas, badge cỡ canvas
 └── i18n/            tiếng Việt + tiếng Anh
 ```
+
+Test nằm ở `tests/`, chạy bằng vitest. Phần nào dễ làm mất công sức của người dùng — quy đổi toạ độ, migrate storage, con trỏ bước — đều có test cắm cứng.
 
 ---
 
