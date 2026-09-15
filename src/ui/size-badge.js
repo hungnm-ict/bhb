@@ -1,5 +1,6 @@
 import { el, mount } from './dom.js';
 import { getCanvas } from '../core/canvas.js';
+import { t } from '../i18n/index.js';
 
 /**
  * The live canvas size, parked in a corner.
@@ -32,8 +33,16 @@ export function createSizeBadge(deps) {
     }
 
     target.style.display = 'block';
-    const client = `${Math.round(canvas.clientWidth)}×${Math.round(canvas.clientHeight)}`;
-    target.textContent = `${canvas.width}×${canvas.height} → ${client}`;
+    const clientWidth = Math.round(canvas.clientWidth);
+    const clientHeight = Math.round(canvas.clientHeight);
+    const sameSize = clientWidth === canvas.width && clientHeight === canvas.height;
+
+    // Showing one number twice only invites the question of what the second
+    // one is; the arrow form appears when the two actually differ.
+    target.textContent = sameSize
+      ? `${canvas.width}×${canvas.height}`
+      : `${canvas.width}×${canvas.height} → ${clientWidth}×${clientHeight}`;
+    target.title = t(sameSize ? 'size.same' : 'size.scaled');
   }
 
   return { render };

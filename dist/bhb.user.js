@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.5.1
+// @version      0.5.2
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -14,7 +14,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.5.1" : "dev";
+  var VERSION = true ? "0.5.2" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -1355,6 +1355,8 @@
     "queue.inSettings": "Thứ tự và bật/tắt từng hoạt động nằm ở tab Cài đặt.",
     "steps.next": "Bước bot đang chờ",
     "log.resync": "Lạc nhịp — bắt lại từ {label}",
+    "size.same": "Cỡ framebuffer game vẽ ra — bước lưu toạ độ theo hệ này",
+    "size.scaled": "Cỡ framebuffer → cỡ hiển thị. Khác nhau nghĩa là game đang được co giãn",
     "log.title": "Nhật ký",
     "log.empty": "Chưa có gì. Bật một hoạt động để bắt đầu.",
     "log.clear": "Xoá",
@@ -1469,6 +1471,8 @@
     "queue.inSettings": "The order and the on/off switches live in the Settings tab.",
     "steps.next": "The step the bot is waiting for",
     "log.resync": "Lost the thread — picking up at {label}",
+    "size.same": "The framebuffer the game draws into — steps store their coordinates in it",
+    "size.scaled": "Framebuffer size → displayed size. They differ when the game is being scaled",
     "log.title": "Activity",
     "log.empty": "Nothing yet. Start a task to see what the bot does.",
     "log.clear": "Clear",
@@ -3330,8 +3334,11 @@
         return;
       }
       target.style.display = "block";
-      const client = `${Math.round(canvas.clientWidth)}×${Math.round(canvas.clientHeight)}`;
-      target.textContent = `${canvas.width}×${canvas.height} → ${client}`;
+      const clientWidth = Math.round(canvas.clientWidth);
+      const clientHeight = Math.round(canvas.clientHeight);
+      const sameSize = clientWidth === canvas.width && clientHeight === canvas.height;
+      target.textContent = sameSize ? `${canvas.width}×${canvas.height}` : `${canvas.width}×${canvas.height} → ${clientWidth}×${clientHeight}`;
+      target.title = t(sameSize ? "size.same" : "size.scaled");
     }
     return { render };
   }
