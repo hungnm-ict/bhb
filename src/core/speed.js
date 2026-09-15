@@ -5,7 +5,7 @@ import {
   realSetInterval,
   realRequestAnimationFrame,
 } from './timers.js';
-import { SPEED_MIN, SPEED_MAX } from './constants.js';
+import { SPEED_STEPS } from './constants.js';
 
 /**
  * Speed hack.
@@ -28,16 +28,33 @@ export function getSpeed() {
   return speed;
 }
 
-/** @param {number} next clamped into [SPEED_MIN, SPEED_MAX] */
+/** @param {number} next snapped to the nearest SPEED_STEPS stop */
 export function setSpeed(next) {
-  const clamped = Math.max(SPEED_MIN, Math.min(SPEED_MAX, Math.round(next)));
-  if (clamped === speed) {
+  const snapped = snapSpeed(next);
+  if (snapped === speed) {
     return;
   }
-  speed = clamped;
+  speed = snapped;
   for (const listener of listeners) {
     listener(speed);
   }
+}
+
+/** @param {number} value */
+export function snapSpeed(value) {
+  return SPEED_STEPS.reduce((best, stop) =>
+    Math.abs(stop - value) < Math.abs(best - value) ? stop : best
+  );
+}
+
+/** The index of a speed among the stops, for a stepped slider. */
+export function speedIndex(value) {
+  return SPEED_STEPS.indexOf(snapSpeed(value));
+}
+
+/** Whole speeds read as "2×", fractional ones keep the single decimal. */
+export function formatSpeed(value) {
+  return Number.isInteger(value) ? String(value) : value.toFixed(1);
 }
 
 /** @param {(speed: number) => void} listener */

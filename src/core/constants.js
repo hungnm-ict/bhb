@@ -28,8 +28,8 @@ export const CLICK_HOVER_RESET_MS = 100;
 /** Where the cursor is parked after a click, to clear any hover highlight. */
 export const HOVER_RESET_POINT = { x: 5, y: 5 };
 
-export const SPEED_MIN = 1;
-export const SPEED_MAX = 10;
+/** The speed slider's stops; anything set in between snaps to the nearest. */
+export const SPEED_STEPS = [0.1, 0.25, 0.5, 0.75, 1, 2, 3, 4, 5, 7, 10, 15, 20];
 
 /** Highest z-index, so overlays sit above the game canvas. */
 export const Z_TOP = '2147483647';
