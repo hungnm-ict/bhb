@@ -61,12 +61,23 @@ Tự động chạy hết các hoạt động mình chọn, theo thứ tự mìn
 
 ---
 
-## Milestone 5 — Thống kê & thông báo
+## ✅ Milestone 5 — Thống kê & thông báo *(xong)*
 
-- [ ] Thống kê phiên: số lượt chạy, thắng/thua PVP, cá câu được
-- [ ] Bảng hoạt động cuộn, mới nhất trên cùng
-- [ ] Phát hiện đồ rơi hiếm + familiar legendary
-- [ ] Thông báo Discord / Telegram kèm ảnh chụp canvas
+- [x] **Thống kê phiên** — thời gian chạy, lượt click, vòng hàng đợi, lần lạc
+      nhịp, lần treo phải tải lại, và bảng theo từng hoạt động (click / lượt /
+      cạn). Nằm đầu tab Nhật ký, có nút đặt lại
+- [x] Số liệu **sống qua lần tải lại của watchdog** — một đêm cày không bị chia
+      vụn mỗi lần game treo
+- [x] Bảng hoạt động cuộn, mới nhất trên cùng *(đã có từ Milestone 3)*
+- [x] **Phát hiện đồ rơi hiếm** — không phải cơ chế riêng: bật cờ `notify` cho
+      một *màn hình*, y như `stopsTask`. Bắt khung popup đồ rơi thành màn hình
+      rồi tick ★ là xong; đúng một tin mỗi lần popup xuất hiện
+- [x] **Thông báo Discord / Telegram kèm ảnh chụp canvas** — `fetch` thẳng (script
+      vẫn `@grant none`), chọn loại tin muốn nhận, nút Gửi thử, mỗi loại tối đa
+      1 tin/phút
+
+**Còn nợ:** thắng/thua PVP và cá câu được — hai con số đó phải đọc từ màn hình
+kết quả, nên chúng là màn hình cần bắt trực tiếp trên game, không viết sẵn được.
 
 ---
 
@@ -77,4 +88,6 @@ detection — the reliability layer everything else needs. Milestone 3 is **auto
 per-activity runners plus a reorderable priority queue (PVP → GVG → Invasion →
 Expedition → Trials/Gauntlet → World Boss → Raid → Dungeon) looping until resources
 run out. Milestone 4 covers lag detection with auto-restart and character-slot
-switching. Milestone 5 adds session stats and Discord/Telegram drop alerts.
+switching. Milestone 5 adds session stats that survive a watchdog reload, and
+Discord/Telegram alerts with a canvas screenshot — a rare drop is just a screen
+with its `notify` flag set, so it needs no vision code of its own.

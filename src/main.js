@@ -39,15 +39,18 @@ import {
   importProfiles,
 } from './core/storage.js';
 import { createWatchdog } from './core/watchdog.js';
+import { createStats } from './core/stats.js';
+import { createNotifier } from './core/notify.js';
 import { RERUN_STEPS, WORLD_BOSS_STEPS } from './bot/builtin.js';
 import { createStepEditor } from './bot/step-editor.js';
 import { createScreenEditor } from './bot/screen-editor.js';
 import { createQueueEditor } from './bot/queue-editor.js';
-import { setLanguage } from './i18n/index.js';
+import { setLanguage, t } from './i18n/index.js';
 import { installStyles } from './ui/styles.js';
 import { createUiStore, Tab } from './ui/store.js';
 import { createHud } from './ui/hud.js';
 import { createPanel } from './ui/panel/index.js';
+import { describeEntry } from './ui/panel/log.js';
 import { createMarkerLayer } from './ui/markers.js';
 import { createSizeBadge } from './ui/size-badge.js';
 import { installHotkeys } from './ui/hotkeys.js';
@@ -77,6 +80,13 @@ function bootstrap() {
 
   const store = createUiStore();
   const watchdog = createWatchdog();
+  const stats = createStats();
+
+  const notifier = createNotifier({
+    getConfig: () => settings.notify,
+    getCanvas,
+    report: (message) => engine.setMessage(message),
+  });
 
   const engine = createEngine({
     getScriptSteps: getSteps,
@@ -178,6 +188,12 @@ function bootstrap() {
     profiles: profileActions,
     settings,
     getReloadCount: () => watchdog.reloadCount(),
+    getStats: () => stats.snapshot(),
+    resetStats: () => stats.reset(),
+    sendTestAlert: () => {
+      notifier.clearCooldown();
+      return notifier.notify(t('notify.testText'), 'manual', { force: true });
+    },
     updateSettings: (changes) => {
       Object.assign(settings, changes);
       saveSettings(settings);
@@ -209,6 +225,10 @@ function bootstrap() {
   engine.on('change', () => refresh());
   engine.on('action', (entry) => {
     store.log(entry);
+    stats.record(entry);
+    if (settings.notify.events.includes(entry.kind)) {
+      notifier.notify(`${t('app.name')} · ${describeEntry(entry)}`, entry.kind);
+    }
     // The watchdog only needs to know two things: what to come back to, and
     // whether the game is still answering.
     if (entry.kind === 'task') {

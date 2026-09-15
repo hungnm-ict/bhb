@@ -152,6 +152,38 @@ const CSS = `
 .bhb-field { display: flex; flex-direction: column; gap: 7px; }
 .bhb-field__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 
+/* --- Alerts ------------------------------------------------------------- */
+
+.bhb-input {
+  width: 100%; padding: 6px 8px;
+  background: var(--bhb-bg-soft);
+  border: 1px solid var(--bhb-line); border-radius: 7px;
+  color: var(--bhb-text); font-family: var(--bhb-mono); font-size: 10.5px;
+}
+.bhb-input:focus { outline: none; border-color: rgba(124, 92, 255, .6); }
+
+/* --- Session stats ------------------------------------------------------ */
+
+.bhb-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.bhb-stats__cell {
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 7px 9px;
+  background: var(--bhb-bg-soft);
+  border: 1px solid var(--bhb-line); border-radius: 9px;
+}
+.bhb-stats__value { font-size: 14px; font-weight: 700; }
+.bhb-stats__label { color: var(--bhb-dim); font-size: 9.5px; line-height: 1.3; }
+
+.bhb-stats__rows { display: flex; flex-direction: column; gap: 1px; }
+.bhb-stats__row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 2px; border-bottom: 1px solid var(--bhb-line);
+  font-size: 10.5px;
+}
+.bhb-stats__name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bhb-stats__num { color: var(--bhb-dim); font-size: 10px; }
+.bhb-stats__num.is-spent { color: var(--bhb-warn); }
+
 /* --- Task switches ------------------------------------------------------ */
 
 .bhb-taskgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
@@ -402,6 +434,7 @@ const CSS = `
 .bhb-screen__tune { display: flex; align-items: center; gap: 8px; padding: 0 8px 6px; }
 .bhb-slider--thin { flex: 1; }
 .bhb-icon.is-danger-on { color: var(--bhb-danger); }
+.bhb-icon.is-notify-on { color: var(--bhb-warn); }
 
 /* The drag layer is alive only while a capture is running. */
 .bhb-drag { inset: 0; cursor: crosshair; pointer-events: auto; background: rgba(12, 14, 20, .25); }

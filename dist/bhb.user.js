@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.6.4
+// @version      0.7.0
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -14,10 +14,11 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.6.4" : "dev";
+  var VERSION = true ? "0.7.0" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
+  var STORAGE_KEY_STATS = "bhb.stats.v1";
   var STORAGE_KEY_LEGACY_RULES = "bh_script_rules_v1";
   var DEFAULT_COLOR_TOLERANCE = 15;
   var INTERVAL_RERUN_HUNT = 3e3;
@@ -36,6 +37,8 @@
   var CLICK_HOVER_RESET_MS = 100;
   var HOVER_RESET_POINT = { x: 5, y: 5 };
   var SPEED_STEPS = [0.1, 0.25, 0.5, 0.75, 1, 2, 3, 4, 5, 7, 10, 15, 20];
+  var NOTIFY_COOLDOWN_MS = 60 * 1e3;
+  var NOTIFY_SHOT_QUALITY = 0.7;
   var Z_TOP = "2147483647";
 
   // src/core/canvas.js
@@ -616,6 +619,7 @@
       minRatio: DEFAULT_MIN_RATIO,
       tolerance: DEFAULT_COLOR_TOLERANCE,
       stopsTask: false,
+      notify: false,
       ...overrides
     };
   }
@@ -909,6 +913,9 @@
         state.screen = id;
         state.screenName = screen ? screen.name : null;
         report("screen", { label: screen ? screen.name || screen.id : "unknown", screenId: id });
+        if (screen && screen.notify) {
+          report("notify", { label: screen.name || screen.id, screenId: id });
+        }
       }
       return screen;
     }
@@ -1061,6 +1068,137 @@
     return { start: start2, stop, toggle, tick, checkIdle: checkAutoStop, getState, on: emitter.on, setMessage };
   }
 
+  // src/core/notify.js
+  var NOTIFY_EVENTS = Object.freeze(["notify", "resource", "hang", "task"]);
+  function createDefaultNotifyConfig() {
+    return {
+      enabled: false,
+      discordWebhook: "",
+      telegramToken: "",
+      telegramChat: "",
+      withShot: true,
+      events: ["notify"]
+    };
+  }
+  function normaliseNotifyConfig(candidate) {
+    const base = createDefaultNotifyConfig();
+    if (!candidate || typeof candidate !== "object") {
+      return base;
+    }
+    for (const key of ["discordWebhook", "telegramToken", "telegramChat"]) {
+      if (typeof candidate[key] === "string") {
+        base[key] = candidate[key].trim();
+      }
+    }
+    base.enabled = candidate.enabled === true;
+    base.withShot = candidate.withShot !== false;
+    if (Array.isArray(candidate.events)) {
+      base.events = candidate.events.filter((kind) => NOTIFY_EVENTS.includes(kind));
+    }
+    return base;
+  }
+  function hasNotifyTarget(config) {
+    return Boolean(
+      config && (config.discordWebhook || config.telegramToken && config.telegramChat)
+    );
+  }
+  function captureShot(canvas) {
+    return new Promise((resolve) => {
+      if (!canvas || typeof canvas.toBlob !== "function") {
+        resolve(null);
+        return;
+      }
+      try {
+        canvas.toBlob((blob) => resolve(blob), "image/jpeg", NOTIFY_SHOT_QUALITY);
+      } catch (error) {
+        console.warn("[BHB] could not capture the canvas", error);
+        resolve(null);
+      }
+    });
+  }
+  function discordRequest(config, text, shot) {
+    if (!shot) {
+      return {
+        url: config.discordWebhook,
+        body: JSON.stringify({ content: text }),
+        headers: { "Content-Type": "application/json" }
+      };
+    }
+    const form = new FormData();
+    form.append("payload_json", JSON.stringify({ content: text }));
+    form.append("files[0]", shot, "bhb.jpg");
+    return { url: config.discordWebhook, body: form };
+  }
+  function telegramRequest(config, text, shot) {
+    const base = `https://api.telegram.org/bot${config.telegramToken}`;
+    if (!shot) {
+      return {
+        url: `${base}/sendMessage`,
+        body: JSON.stringify({ chat_id: config.telegramChat, text }),
+        headers: { "Content-Type": "application/json" }
+      };
+    }
+    const form = new FormData();
+    form.append("chat_id", config.telegramChat);
+    form.append("caption", text);
+    form.append("photo", shot, "bhb.jpg");
+    return { url: `${base}/sendPhoto`, body: form };
+  }
+  function createNotifier(deps) {
+    const send = deps.fetch || ((...args) => fetch(...args));
+    const now = deps.now || realNow;
+    const report = deps.report || (() => {
+    });
+    const lastSentAt = /* @__PURE__ */ new Map();
+    function post(request) {
+      return send(request.url, {
+        method: "POST",
+        body: request.body,
+        ...request.headers ? { headers: request.headers } : {}
+      });
+    }
+    async function notify(text, kind = "manual", options = {}) {
+      const config = deps.getConfig();
+      if (!config || !config.enabled && !options.force || !hasNotifyTarget(config)) {
+        return false;
+      }
+      const at = now();
+      const previous = lastSentAt.get(kind);
+      if (previous !== void 0 && at - previous < NOTIFY_COOLDOWN_MS) {
+        return false;
+      }
+      lastSentAt.set(kind, at);
+      const shot = config.withShot ? await captureShot(deps.getCanvas()) : null;
+      const requests = [];
+      if (config.discordWebhook) {
+        requests.push(discordRequest(config, text, shot));
+      }
+      if (config.telegramToken && config.telegramChat) {
+        requests.push(telegramRequest(config, text, shot));
+      }
+      const results = await Promise.all(
+        requests.map(
+          (request) => post(request).then(
+            (response) => response && response.ok !== false,
+            (error) => {
+              console.warn("[BHB] alert failed", error);
+              return false;
+            }
+          )
+        )
+      );
+      const sent = results.some(Boolean);
+      if (!sent) {
+        report("alert failed — check the webhook");
+      }
+      return sent;
+    }
+    function clearCooldown() {
+      lastSentAt.clear();
+    }
+    return { notify, clearCooldown };
+  }
+
   // src/core/storage.js
   var SCHEMA_VERSION = 5;
   function createDefaultState() {
@@ -1211,7 +1349,8 @@
       closeAfterRound: stored.closeAfterRound === true,
       watchdog: stored.watchdog === true,
       sizeBadge: stored.sizeBadge !== false,
-      keepAlive: stored.keepAlive !== false
+      keepAlive: stored.keepAlive !== false,
+      notify: normaliseNotifyConfig(stored.notify)
     };
   }
   function saveSettings(settings) {
@@ -1299,6 +1438,157 @@
       return true;
     }
     return { arm, disarm, noteProgress, taskToResume, reloadCount, recover };
+  }
+
+  // src/core/stats.js
+  function emptyStats(at) {
+    return {
+      startedAt: at,
+      clicks: 0,
+      rounds: 0,
+      resyncs: 0,
+      hangs: 0,
+      drops: 0,
+      runningMs: 0,
+      activities: {}
+    };
+  }
+  function normalise(candidate, at) {
+    const base = emptyStats(at);
+    if (!candidate || typeof candidate !== "object") {
+      return base;
+    }
+    for (const key of Object.keys(base)) {
+      if (key === "activities") {
+        continue;
+      }
+      if (typeof candidate[key] === "number" && Number.isFinite(candidate[key])) {
+        base[key] = candidate[key];
+      }
+    }
+    if (candidate.activities && typeof candidate.activities === "object") {
+      for (const [id, entry] of Object.entries(candidate.activities)) {
+        if (!entry || typeof entry !== "object") {
+          continue;
+        }
+        base.activities[id] = {
+          name: typeof entry.name === "string" ? entry.name : id,
+          clicks: Number(entry.clicks) || 0,
+          visits: Number(entry.visits) || 0,
+          spent: Number(entry.spent) || 0
+        };
+      }
+    }
+    return base;
+  }
+  function readStored() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY_STATS);
+      return raw ? JSON.parse(raw) : null;
+    } catch (error) {
+      console.warn("[BHB] could not read stats", error);
+      return null;
+    }
+  }
+  function createStats(deps = {}) {
+    const now = deps.now || realNow;
+    const shouldPersist = deps.persist !== false;
+    let stats = normalise(shouldPersist ? readStored() : null, now());
+    let runningSince = null;
+    let currentActivity = null;
+    function save() {
+      if (!shouldPersist) {
+        return;
+      }
+      try {
+        localStorage.setItem(STORAGE_KEY_STATS, JSON.stringify(stats));
+      } catch (error) {
+        console.warn("[BHB] could not write stats", error);
+      }
+    }
+    function activityEntry(id, name) {
+      if (!stats.activities[id]) {
+        stats.activities[id] = { name: name || id, clicks: 0, visits: 0, spent: 0 };
+      } else if (name) {
+        stats.activities[id].name = name;
+      }
+      return stats.activities[id];
+    }
+    function settleRunning(at) {
+      if (runningSince === null) {
+        return;
+      }
+      stats.runningMs += Math.max(0, at - runningSince);
+      runningSince = null;
+    }
+    function record(entry) {
+      if (!entry || typeof entry.kind !== "string") {
+        return;
+      }
+      const at = typeof entry.at === "number" ? entry.at : now();
+      if (entry.kind === "task") {
+        if (entry.started) {
+          runningSince = at;
+        } else {
+          settleRunning(at);
+          currentActivity = null;
+        }
+      } else if (entry.kind === "click") {
+        stats.clicks += 1;
+        if (currentActivity) {
+          activityEntry(currentActivity.id, currentActivity.name).clicks += 1;
+        }
+      } else if (entry.kind === "activity") {
+        currentActivity = { id: entry.activityId || entry.label, name: entry.label };
+        const visited = activityEntry(currentActivity.id, currentActivity.name);
+        visited.visits += 1;
+        if (entry.why === "spent" && entry.spentId) {
+          activityEntry(entry.spentId, entry.spentName).spent += 1;
+        }
+      } else if (entry.kind === "resource") {
+        if (currentActivity) {
+          activityEntry(currentActivity.id, currentActivity.name).spent += 1;
+        }
+      } else if (entry.kind === "resync") {
+        stats.resyncs += 1;
+      } else if (entry.kind === "hang") {
+        stats.hangs += 1;
+      } else if (entry.kind === "notify") {
+        stats.drops += 1;
+      }
+      if (typeof entry.round === "number" && entry.round > stats.rounds) {
+        stats.rounds = entry.round;
+      }
+      save();
+    }
+    function snapshot() {
+      const live = runningSince === null ? 0 : Math.max(0, now() - runningSince);
+      return {
+        ...stats,
+        runningMs: stats.runningMs + live,
+        activities: { ...stats.activities }
+      };
+    }
+    function reset() {
+      stats = emptyStats(now());
+      runningSince = runningSince === null ? null : now();
+      currentActivity = null;
+      save();
+    }
+    return { record, snapshot, reset };
+  }
+  function formatDuration(ms) {
+    const total = Math.max(0, Math.floor(ms / 1e3));
+    const hours = Math.floor(total / 3600);
+    const minutes = Math.floor(total % 3600 / 60);
+    const seconds = total % 60;
+    if (hours > 0) {
+      return `${hours}h ${String(minutes).padStart(2, "0")}m`;
+    }
+    if (minutes > 0) {
+      return `${minutes}m ${String(seconds).padStart(2, "0")}s`;
+    }
+    return `${seconds}s`;
   }
 
   // src/bot/builtin.js
@@ -1464,7 +1754,41 @@
     "msg.noMousePosition": "chưa có vị trí chuột",
     "msg.outsideCanvas": "con trỏ ngoài canvas",
     "msg.anchorCaptured": "đã bắt vùng {n} cho {name}",
-    "msg.stepCaptured": "đã bắt bước tại ({x}, {y}) — {hex}"
+    "msg.stepCaptured": "đã bắt bước tại ({x}, {y}) — {hex}",
+    "screens.notify": "Báo tin khi thấy màn hình này (đồ rơi hiếm, familiar xịn)",
+    "log.notify": "Thấy {label} — đã báo tin",
+    "stats.title": "Thống kê phiên",
+    "stats.reset": "Đặt lại",
+    "stats.since": "Từ {time}",
+    "stats.running": "Thời gian chạy",
+    "stats.clicks": "Lượt click",
+    "stats.rounds": "Vòng hàng đợi",
+    "stats.drops": "Tin đã báo",
+    "stats.resyncs": "Lần lạc nhịp",
+    "stats.hangs": "Lần treo phải tải lại",
+    "stats.byActivity": "Theo hoạt động",
+    "stats.colClicks": "click",
+    "stats.colVisits": "lượt",
+    "stats.colSpent": "cạn",
+    "stats.empty": "Chưa chạy hoạt động nào.",
+    "notify.title": "Thông báo",
+    "notify.enabled": "Gửi thông báo ra Discord / Telegram",
+    "notify.withShot": "Kèm ảnh chụp màn hình game",
+    "notify.discord": "Discord webhook URL",
+    "notify.telegramToken": "Telegram bot token",
+    "notify.telegramChat": "Telegram chat ID",
+    "notify.events": "Báo khi",
+    "notify.event.notify": "Thấy màn hình đã đánh dấu báo tin",
+    "notify.event.resource": "Hết tài nguyên",
+    "notify.event.hang": "Game treo, phải tải lại",
+    "notify.event.task": "Bật / tắt hoạt động",
+    "notify.test": "Gửi thử",
+    "notify.testText": "BHB: thử thông báo",
+    "notify.testSent": "Đã gửi — kiểm tra kênh của bạn",
+    "notify.testFailed": "Gửi thất bại — xem lại webhook/token",
+    "notify.hint": "Cần ít nhất một kênh: dán Discord webhook, hoặc cả token lẫn chat ID của Telegram. Mỗi loại tin chỉ gửi tối đa 1 lần/phút.",
+    "notify.noTarget": "Chưa có kênh nào — dán webhook hoặc token vào bên dưới.",
+    "msg.notify": "Đã báo tin: {label}"
   };
 
   // src/i18n/en.js
@@ -1583,7 +1907,41 @@
     "msg.noMousePosition": "no cursor position yet",
     "msg.outsideCanvas": "cursor is outside the canvas",
     "msg.anchorCaptured": "anchor {n} captured for {name}",
-    "msg.stepCaptured": "captured a step at ({x}, {y}) — {hex}"
+    "msg.stepCaptured": "captured a step at ({x}, {y}) — {hex}",
+    "screens.notify": "Send an alert when this screen appears (rare drop, legendary familiar)",
+    "log.notify": "Saw {label} — alert sent",
+    "stats.title": "Session stats",
+    "stats.reset": "Reset",
+    "stats.since": "Since {time}",
+    "stats.running": "Running time",
+    "stats.clicks": "Clicks",
+    "stats.rounds": "Queue rounds",
+    "stats.drops": "Alerts sent",
+    "stats.resyncs": "Resyncs",
+    "stats.hangs": "Hangs reloaded",
+    "stats.byActivity": "By activity",
+    "stats.colClicks": "clicks",
+    "stats.colVisits": "visits",
+    "stats.colSpent": "spent",
+    "stats.empty": "No activity has run yet.",
+    "notify.title": "Alerts",
+    "notify.enabled": "Send alerts to Discord / Telegram",
+    "notify.withShot": "Attach a screenshot of the game",
+    "notify.discord": "Discord webhook URL",
+    "notify.telegramToken": "Telegram bot token",
+    "notify.telegramChat": "Telegram chat ID",
+    "notify.events": "Alert on",
+    "notify.event.notify": "A screen flagged for alerts is seen",
+    "notify.event.resource": "Out of resources",
+    "notify.event.hang": "The game hangs and is reloaded",
+    "notify.event.task": "A task starts or stops",
+    "notify.test": "Send a test",
+    "notify.testText": "BHB: test alert",
+    "notify.testSent": "Sent — check your channel",
+    "notify.testFailed": "Failed — check the webhook/token",
+    "notify.hint": "One channel is enough: paste a Discord webhook, or both the Telegram token and chat ID. Each kind of alert goes out at most once a minute.",
+    "notify.noTarget": "No channel yet — paste a webhook or token below.",
+    "msg.notify": "Alert sent: {label}"
   };
 
   // src/i18n/index.js
@@ -1800,6 +2158,14 @@
       screen.stopsTask = stopsTask;
       deps.persist();
     }
+    function setNotify(screenId, notify) {
+      const screen = find(screenId);
+      if (!screen) {
+        return;
+      }
+      screen.notify = notify;
+      deps.persist();
+    }
     function setMinRatio(screenId, minRatio) {
       const screen = find(screenId);
       if (!screen) {
@@ -1844,7 +2210,17 @@
       }
       return scoreScreen(target.gl, screen, getBufferSize(target.canvas), deps.getScaleMode());
     }
-    return { captureAnchor, rename, setStopsTask, setMinRatio, removeAnchor, remove, move, probe };
+    return {
+      captureAnchor,
+      rename,
+      setStopsTask,
+      setNotify,
+      setMinRatio,
+      removeAnchor,
+      remove,
+      move,
+      probe
+    };
   }
 
   // src/bot/queue-editor.js
@@ -2013,6 +2389,38 @@
 .bhb-empty { margin: 0; padding: 18px 0; color: var(--bhb-dim); font-size: 11px; text-align: center; }
 .bhb-field { display: flex; flex-direction: column; gap: 7px; }
 .bhb-field__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+/* --- Alerts ------------------------------------------------------------- */
+
+.bhb-input {
+  width: 100%; padding: 6px 8px;
+  background: var(--bhb-bg-soft);
+  border: 1px solid var(--bhb-line); border-radius: 7px;
+  color: var(--bhb-text); font-family: var(--bhb-mono); font-size: 10.5px;
+}
+.bhb-input:focus { outline: none; border-color: rgba(124, 92, 255, .6); }
+
+/* --- Session stats ------------------------------------------------------ */
+
+.bhb-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.bhb-stats__cell {
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 7px 9px;
+  background: var(--bhb-bg-soft);
+  border: 1px solid var(--bhb-line); border-radius: 9px;
+}
+.bhb-stats__value { font-size: 14px; font-weight: 700; }
+.bhb-stats__label { color: var(--bhb-dim); font-size: 9.5px; line-height: 1.3; }
+
+.bhb-stats__rows { display: flex; flex-direction: column; gap: 1px; }
+.bhb-stats__row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 2px; border-bottom: 1px solid var(--bhb-line);
+  font-size: 10.5px;
+}
+.bhb-stats__name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bhb-stats__num { color: var(--bhb-dim); font-size: 10px; }
+.bhb-stats__num.is-spent { color: var(--bhb-warn); }
 
 /* --- Task switches ------------------------------------------------------ */
 
@@ -2264,6 +2672,7 @@
 .bhb-screen__tune { display: flex; align-items: center; gap: 8px; padding: 0 8px 6px; }
 .bhb-slider--thin { flex: 1; }
 .bhb-icon.is-danger-on { color: var(--bhb-danger); }
+.bhb-icon.is-notify-on { color: var(--bhb-warn); }
 
 /* The drag layer is alive only while a capture is running. */
 .bhb-drag { inset: 0; cursor: crosshair; pointer-events: auto; background: rgba(12, 14, 20, .25); }
@@ -2932,6 +3341,15 @@
         deps.screenEditor.setStopsTask(screen.id, !screen.stopsTask);
         deps.refresh();
       });
+      const alertToggle = el("button", {
+        class: `bhb-icon ${screen.notify ? "is-notify-on" : ""}`,
+        title: t("screens.notify"),
+        text: "★"
+      });
+      alertToggle.addEventListener("click", () => {
+        deps.screenEditor.setNotify(screen.id, !screen.notify);
+        deps.refresh();
+      });
       const add = el("button", { class: "bhb-icon", title: t("screens.addAnchor"), text: "＋" });
       add.addEventListener("click", () => capture(screen.id));
       const up = el("button", { class: "bhb-icon", title: t("steps.moveUp"), text: "▲" });
@@ -2979,7 +3397,7 @@
             title: t("screens.ratioHint"),
             text: probe ? probe.ratio.toFixed(2) : "—"
           }),
-          el("span", { class: "bhb-rule__actions" }, [stops, add, up, down, remove])
+          el("span", { class: "bhb-rule__actions" }, [stops, alertToggle, add, up, down, remove])
         ]),
         el("div", { class: "bhb-screen__tune" }, [
           el("span", { class: "bhb-note", text: `${t("screens.anchors")} ${screen.anchors.length}` }),
@@ -3060,6 +3478,62 @@
 
   // src/ui/panel/settings.js
   var transferBox = null;
+  var alertBoxes = {};
+  function renderAlerts(deps, toggleRow) {
+    const config = deps.settings.notify;
+    function update(changes) {
+      deps.updateSettings({ notify: { ...config, ...changes } });
+      deps.refresh();
+    }
+    function field(key, labelKey) {
+      if (!alertBoxes[key]) {
+        const input2 = el("input", { class: "bhb-input" });
+        input2.type = "text";
+        input2.spellcheck = false;
+        input2.addEventListener("change", () => {
+          update({ [key]: input2.value.trim() });
+        });
+        alertBoxes[key] = input2;
+      }
+      const input = alertBoxes[key];
+      input.placeholder = t(labelKey);
+      if (document.activeElement !== input) {
+        input.value = config[key] || "";
+      }
+      return input;
+    }
+    const eventRows = NOTIFY_EVENTS.map(
+      (kind) => toggleRow(`notify.event.${kind}`, config.events.includes(kind), (value) => {
+        const events = value ? [...config.events, kind] : config.events.filter((entry) => entry !== kind);
+        update({ events });
+      })
+    );
+    const test = el("button", { class: "bhb-btn bhb-btn--small", text: t("notify.test") });
+    const testResult = el("span", { class: "bhb-note" });
+    test.addEventListener("click", () => {
+      testResult.textContent = "…";
+      deps.sendTestAlert().then((sent) => {
+        testResult.textContent = t(sent ? "notify.testSent" : "notify.testFailed");
+      });
+    });
+    return el("div", { class: "bhb-field" }, [
+      el("div", { class: "bhb-field__head" }, [
+        el("span", { class: "bhb-label", text: t("notify.title") })
+      ]),
+      toggleRow("notify.enabled", config.enabled, (value) => update({ enabled: value })),
+      field("discordWebhook", "notify.discord"),
+      field("telegramToken", "notify.telegramToken"),
+      field("telegramChat", "notify.telegramChat"),
+      hasNotifyTarget(config) ? null : el("p", { class: "bhb-note bhb-note--warn", text: t("notify.noTarget") }),
+      el("div", { class: "bhb-field__head" }, [
+        el("span", { class: "bhb-label", text: t("notify.events") })
+      ]),
+      ...eventRows,
+      toggleRow("notify.withShot", config.withShot, (value) => update({ withShot: value })),
+      el("div", { class: "bhb-btnrow" }, [test, testResult]),
+      el("p", { class: "bhb-note", text: t("notify.hint") })
+    ]);
+  }
   function renderSettingsTab(deps) {
     const { profiles, settings } = deps;
     const list = profiles.list();
@@ -3179,6 +3653,7 @@
         el("p", { class: "bhb-note", text: t("settings.keepAliveHint") })
       ]),
       renderQueueSection(deps),
+      renderAlerts(deps, toggleRow),
       el("div", { class: "bhb-field" }, [
         el("div", { class: "bhb-field__head" }, [
           el("span", { class: "bhb-label", text: t("settings.language") })
@@ -3204,13 +3679,14 @@
     activity: "➜",
     hang: "⟳",
     resync: "↻",
-    resource: "⛔"
+    resource: "⛔",
+    notify: "★"
   };
   function clock(at) {
     const date = new Date(at);
     return [date.getHours(), date.getMinutes(), date.getSeconds()].map((part) => String(part).padStart(2, "0")).join(":");
   }
-  function describe(entry) {
+  function describeEntry(entry) {
     if (entry.kind === "task") {
       return t(entry.started ? "log.taskStarted" : "log.taskStopped", { task: entry.label });
     }
@@ -3229,26 +3705,97 @@
     if (entry.kind === "resource") {
       return t("log.resource", { label: entry.label });
     }
+    if (entry.kind === "notify") {
+      return t("log.notify", { label: entry.label });
+    }
     if (entry.kind === "busy") {
       return t("log.busy", { label: entry.label });
     }
     return t("log.clicked", { label: entry.label });
   }
+  function shortClock(at) {
+    const date = new Date(at);
+    return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+  }
+  function renderStats(deps) {
+    const stats = deps.getStats();
+    const reset = el("button", { class: "bhb-btn bhb-btn--small", text: t("stats.reset") });
+    reset.addEventListener("click", () => {
+      deps.resetStats();
+      deps.refresh();
+    });
+    const facts = [
+      [t("stats.running"), formatDuration(stats.runningMs)],
+      [t("stats.clicks"), String(stats.clicks)],
+      [t("stats.rounds"), String(stats.rounds)],
+      [t("stats.drops"), String(stats.drops)],
+      [t("stats.resyncs"), String(stats.resyncs)],
+      [t("stats.hangs"), String(stats.hangs)]
+    ];
+    const activities = Object.values(stats.activities).filter(
+      (entry) => entry.clicks > 0 || entry.visits > 0
+    );
+    return el("div", { class: "bhb-field" }, [
+      el("div", { class: "bhb-field__head" }, [
+        el("span", { class: "bhb-label", text: t("stats.title") }),
+        el("span", {
+          class: "bhb-note bhb-mono",
+          text: t("stats.since", { time: shortClock(stats.startedAt) })
+        }),
+        reset
+      ]),
+      el(
+        "div",
+        { class: "bhb-stats" },
+        facts.map(
+          ([label, value]) => el("div", { class: "bhb-stats__cell" }, [
+            el("span", { class: "bhb-stats__value bhb-mono", text: value }),
+            el("span", { class: "bhb-stats__label", text: label })
+          ])
+        )
+      ),
+      activities.length === 0 ? el("p", { class: "bhb-note", text: t("stats.empty") }) : el(
+        "div",
+        { class: "bhb-stats__rows" },
+        activities.map(
+          (entry) => el("div", { class: "bhb-stats__row" }, [
+            el("span", { class: "bhb-stats__name", text: entry.name }),
+            el("span", {
+              class: "bhb-mono bhb-stats__num",
+              text: `${entry.clicks} ${t("stats.colClicks")}`
+            }),
+            el("span", {
+              class: "bhb-mono bhb-stats__num",
+              text: `${entry.visits} ${t("stats.colVisits")}`
+            }),
+            el("span", {
+              class: `bhb-mono bhb-stats__num ${entry.spent > 0 ? "is-spent" : ""}`,
+              text: `${entry.spent} ${t("stats.colSpent")}`
+            })
+          ])
+        )
+      )
+    ]);
+  }
   function renderLogTab(deps) {
     const entries = deps.store.get().log;
+    const stats = renderStats(deps);
     const clear = el("button", { class: "bhb-btn", text: t("log.clear") });
     clear.addEventListener("click", () => {
       deps.store.clearLog();
       deps.refresh();
     });
     if (entries.length === 0) {
-      return el("div", { class: "bhb-tab" }, [el("p", { class: "bhb-empty", text: t("log.empty") })]);
+      return el("div", { class: "bhb-tab" }, [
+        stats,
+        el("p", { class: "bhb-empty", text: t("log.empty") })
+      ]);
     }
     const rows2 = entries.map(
       (entry) => el("div", { class: `bhb-log__row bhb-log__row--${entry.kind}` }, [
         el("span", { class: "bhb-log__time bhb-mono", text: clock(entry.at) }),
         el("span", { class: "bhb-log__icon", text: KIND_ICON[entry.kind] || "·" }),
-        el("span", { class: "bhb-log__text", text: describe(entry) }),
+        el("span", { class: "bhb-log__text", text: describeEntry(entry) }),
         el("span", {
           class: "bhb-log__coord bhb-mono",
           text: entry.point ? `${entry.point.x},${entry.point.y}` : ""
@@ -3256,6 +3803,7 @@
       ])
     );
     return el("div", { class: "bhb-tab" }, [
+      stats,
       el("div", { class: "bhb-field__head" }, [
         el("span", { class: "bhb-label", text: `${t("log.title")} · ${entries.length}` }),
         clear
@@ -3594,6 +4142,12 @@
     const persist = () => saveProfiles(profileState);
     const store = createUiStore();
     const watchdog = createWatchdog();
+    const stats = createStats();
+    const notifier = createNotifier({
+      getConfig: () => settings.notify,
+      getCanvas,
+      report: (message) => engine.setMessage(message)
+    });
     const engine = createEngine({
       getScriptSteps: getSteps,
       getRerunSteps: () => RERUN_STEPS,
@@ -3683,6 +4237,12 @@
       profiles: profileActions,
       settings,
       getReloadCount: () => watchdog.reloadCount(),
+      getStats: () => stats.snapshot(),
+      resetStats: () => stats.reset(),
+      sendTestAlert: () => {
+        notifier.clearCooldown();
+        return notifier.notify(t("notify.testText"), "manual", { force: true });
+      },
       updateSettings: (changes) => {
         Object.assign(settings, changes);
         saveSettings(settings);
@@ -3708,6 +4268,10 @@
     engine.on("change", () => refresh());
     engine.on("action", (entry) => {
       store.log(entry);
+      stats.record(entry);
+      if (settings.notify.events.includes(entry.kind)) {
+        notifier.notify(`${t("app.name")} · ${describeEntry(entry)}`, entry.kind);
+      }
       if (entry.kind === "task") {
         if (entry.started) {
           watchdog.arm(entry.label);

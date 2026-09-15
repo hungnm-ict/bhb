@@ -7,6 +7,7 @@ export const STORAGE_KEY_PROFILES = 'bhb.profiles.v2';
 export const STORAGE_KEY_SETTINGS = 'bhb.settings.v2';
 /** Upstream's key, read once to migrate a user coming from bh-scripts. */
 export const STORAGE_KEY_RESUME = 'bhb.resume.v1';
+export const STORAGE_KEY_STATS = 'bhb.stats.v1';
 export const STORAGE_KEY_LEGACY_RULES = 'bh_script_rules_v1';
 
 /** Default per-channel RGB distance allowed when matching a colour. */
@@ -50,6 +51,12 @@ export const HOVER_RESET_POINT = { x: 5, y: 5 };
 
 /** The speed slider's stops; anything set in between snaps to the nearest. */
 export const SPEED_STEPS = [0.1, 0.25, 0.5, 0.75, 1, 2, 3, 4, 5, 7, 10, 15, 20];
+
+/** Quiet window per alert kind, so a flapping screen cannot spam a channel. */
+export const NOTIFY_COOLDOWN_MS = 60 * 1000;
+
+/** JPEG quality for the attached canvas shot; a drop popup needs no more. */
+export const NOTIFY_SHOT_QUALITY = 0.7;
 
 /** Highest z-index, so overlays sit above the game canvas. */
 export const Z_TOP = '2147483647';

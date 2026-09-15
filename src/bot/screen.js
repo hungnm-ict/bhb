@@ -21,6 +21,7 @@ import { DEFAULT_COLOR_TOLERANCE } from '../core/constants.js';
  * @property {number} minRatio
  * @property {number} tolerance
  * @property {boolean} stopsTask
+ * @property {boolean} notify announce it to Discord/Telegram when it appears
  */
 
 export function createScreenId() {
@@ -36,6 +37,7 @@ export function createScreen(overrides = {}) {
     minRatio: DEFAULT_MIN_RATIO,
     tolerance: DEFAULT_COLOR_TOLERANCE,
     stopsTask: false,
+    notify: false,
     ...overrides,
   };
 }

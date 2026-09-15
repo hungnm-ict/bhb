@@ -145,4 +145,36 @@ describe('engine screen gating', () => {
     expect(engine.getState().screen).toBeNull();
     engine.stop();
   });
+
+  it('announces a screen flagged for alerts once per appearance', () => {
+    const drop = createScreen({
+      id: 'drop',
+      name: 'legendary',
+      anchors: [anchorOf(BLUE)],
+      tolerance: 0,
+      notify: true,
+    });
+
+    const engine = build({ steps: [], screens: [drop] });
+    const alerts = [];
+    engine.on('action', (entry) => entry.kind === 'notify' && alerts.push(entry));
+
+    frame = () => RED;
+    engine.start(TaskId.SCRIPT);
+    expect(alerts).toHaveLength(0);
+
+    // The popup sits there for several ticks; one sighting is one alert.
+    frame = () => BLUE;
+    engine.tick();
+    engine.tick();
+    expect(alerts).toHaveLength(1);
+    expect(alerts[0].label).toBe('legendary');
+
+    frame = () => RED;
+    engine.tick();
+    frame = () => BLUE;
+    engine.tick();
+    expect(alerts, 'it came back, so it is news again').toHaveLength(2);
+    engine.stop();
+  });
 });

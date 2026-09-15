@@ -79,6 +79,16 @@ export function renderScreensTab(deps) {
       deps.refresh();
     });
 
+    const alertToggle = el('button', {
+      class: `bhb-icon ${screen.notify ? 'is-notify-on' : ''}`,
+      title: t('screens.notify'),
+      text: '★',
+    });
+    alertToggle.addEventListener('click', () => {
+      deps.screenEditor.setNotify(screen.id, !screen.notify);
+      deps.refresh();
+    });
+
     const add = el('button', { class: 'bhb-icon', title: t('screens.addAnchor'), text: '＋' });
     add.addEventListener('click', () => capture(screen.id));
 
@@ -132,7 +142,7 @@ export function renderScreensTab(deps) {
           title: t('screens.ratioHint'),
           text: probe ? probe.ratio.toFixed(2) : '—',
         }),
-        el('span', { class: 'bhb-rule__actions' }, [stops, add, up, down, remove]),
+        el('span', { class: 'bhb-rule__actions' }, [stops, alertToggle, add, up, down, remove]),
       ]),
       el('div', { class: 'bhb-screen__tune' }, [
         el('span', { class: 'bhb-note', text: `${t('screens.anchors')} ${screen.anchors.length}` }),

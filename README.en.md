@@ -1,4 +1,4 @@
-# BHB <!--version-->v0.6.4<!--/version-->
+# BHB <!--version-->v0.7.0<!--/version-->
 
 > 🇻🇳 [Phiên bản tiếng Việt](README.md) · [Changelog](https://github.com/hungnm-ict/bhb/commits/master)
 
@@ -51,8 +51,8 @@ Click it (or press `1`) to open the **control panel**, which has six tabs:
 | **Run** | A switch per mode (Run All included), the speed slider, canvas size, auto-stop countdown |
 | **Steps** | The step table: rename, enable, tag to an activity, gate to a screen, reorder, delete |
 | **Screens** | Screen anchors, with a live ✓/✗ and the measured match ratio |
-| **Settings** | Profiles (one per character), the activity queue, reload-on-hang, language, export/import |
-| **Log** | What the bot has actually done, newest first |
+| **Settings** | Profiles (one per character), the activity queue, reload-on-hang, Discord/Telegram alerts, language, export/import |
+| **Log** | Session stats, then what the bot has actually done, newest first |
 | **?** | The keyboard reference |
 
 A **step** is "when this colour is here (on this screen), click there", and the bot walks the table **in order**: it tries the step it is waiting for, clicks it, and moves to the next one.
@@ -67,7 +67,7 @@ Hover a button in the game and press **Capture a step at the cursor** (or the `0
 
 The bot handles the hover problem for you: it parks the **synthetic** pointer in a corner of the canvas, waits for the game to repaint, reads the resting colour, and puts the synthetic pointer back. Your real cursor never moves. Both shades — lit and resting — are stored, so the step matches either way.
 
-To let the bot know where it is, go to the **Screens** tab and drag a box around something only that screen shows. Mark an out-of-resources screen with `stopsTask` — that is what makes the queue move on instead of clicking at a wall.
+To let the bot know where it is, go to the **Screens** tab and drag a box around something only that screen shows. Mark an out-of-resources screen with `stopsTask` (the ⏹ button) — that is what makes the queue move on instead of clicking at a wall. The **★** next to it means "alert me when this screen appears"; see Alerts below.
 
 ### Keyboard shortcuts
 
@@ -99,6 +99,8 @@ To let the bot know where it is, go to the **Screens** tab and drag a box around
 - **Reload on hang** — optional; without it the bot simply stops after 3 idle minutes
 - **Keeps running when the window is covered** — see below
 - **Canvas size in the corner** — fades out, lights up as the cursor nears it, and never swallows a click
+- **Session stats** — at the top of the Log tab, and they survive the watchdog's reloads
+- **Discord / Telegram alerts** — with a screenshot of the game; see below
 
 ### A covered window freezes the game
 
@@ -109,6 +111,27 @@ No amount of lying about `document.hidden` brings the frames back; that decision
 The heartbeat comes from the **audio thread** (a silent `ScriptProcessorNode`), because `setInterval` is clamped to once a second in exactly this situation and the audio thread is not. Browsers only start audio after a user gesture, so press any key in the page once after loading the game.
 
 It can be turned off in Settings.
+
+### Session stats
+
+The **Log** tab opens on six numbers for the session: running time, clicks, queue rounds, alerts sent, resyncs, and hangs that forced a reload. Under them is a row per activity — how many clicks it took, how many times the queue visited it, and how often it ran dry.
+
+They **do not reset when the watchdog reloads the page**. That is deliberate: farming overnight is worth nothing to read if every hang starts the count again. Only **Reset** clears them, and it moves the session's start time with it.
+
+### Rare drop alerts
+
+There is no separate vision for "rare loot" — it reuses **screens**. Capture the drop popup (or the legendary familiar) as a screen like any other, then press **★** on its row. From then on each appearance is one alert — exactly one, not one per tick, because it fires when the screen *changes*.
+
+Channels live in **Settings → Alerts**:
+
+- **Discord**: paste a channel webhook URL (Server Settings → Integrations → Webhooks).
+- **Telegram**: both a **bot token** (from [@BotFather](https://t.me/BotFather)) and a **chat ID**. Message the bot once, then open `https://api.telegram.org/bot<TOKEN>/getUpdates` to read the chat ID.
+
+Configure both and both get the alert. Besides drops you can subscribe to: out of resources, a hang that forced a reload, and a task starting or stopping. Each kind goes out at most **once a minute**, so a flickering screen cannot flood a channel.
+
+**Send a test** is there because a mistyped webhook fails silently out on the network — without it, the first thing you learn is that last night's alert never arrived.
+
+The screenshot is read straight off the game canvas (the bot already forces `preserveDrawingBuffer`), and can be turned off if you only want the text.
 
 ### Several characters, several accounts
 
