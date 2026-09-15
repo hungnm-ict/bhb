@@ -52,6 +52,10 @@ export const HOVER_RESET_POINT = { x: 5, y: 5 };
 /** The speed slider's stops; anything set in between snaps to the nearest. */
 export const SPEED_STEPS = [0.1, 0.25, 0.5, 0.75, 1, 2, 3, 4, 5, 7, 10, 15, 20];
 
+/** How long a dry run lingers on each step — fast enough not to bore, slow
+ *  enough to follow. */
+export const DRY_RUN_STEP_MS = 700;
+
 /** Quiet window per alert kind, so a flapping screen cannot spam a channel. */
 export const NOTIFY_COOLDOWN_MS = 60 * 1000;
 

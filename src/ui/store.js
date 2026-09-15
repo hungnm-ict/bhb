@@ -41,6 +41,16 @@ export function createUiStore() {
      */
     isCaptureArmed: false,
 
+    /** All markers at once; off by default, so the game stays readable. */
+    areMarkersPinned: false,
+
+    /**
+     * A dry run in progress: which step it is on, and what it found.
+     *
+     * @type {{ index: number, scores: Record<string, string> } | null}
+     */
+    dryRun: null,
+
     /** @type {object[]} newest first */
     log: [],
   };
@@ -90,6 +100,14 @@ export function createUiStore() {
 
     armCapture: (armed) => patch({ isCaptureArmed: armed }),
 
+    pinMarkers: (pinned) => patch({ areMarkersPinned: pinned }),
+
+    /** @param {{ index: number, scores: Record<string, string> } | null} run */
+    setDryRun(run) {
+      state.dryRun = run;
+      emit();
+    },
+
     selectStep: (id) => patch({ selectedStepId: id }),
     hoverStep: (id) => patch({ hoveredStepId: id }),
 
@@ -118,9 +136,26 @@ export function createUiStore() {
       emit();
     },
 
-    /** Markers would swallow the game's clicks if they outlived the tab. */
+    /**
+     * Markers would swallow the game's clicks if they outlived the tab, and
+     * drawing all of them all the time buried the game under numbers. They are
+     * shown on demand: pinned, during a dry run, or under the cursor.
+     */
     markersVisible() {
-      return state.panelOpen && state.tab === Tab.STEPS;
+      if (!state.panelOpen || state.tab !== Tab.STEPS) {
+        return false;
+      }
+      return (
+        state.areMarkersPinned || state.dryRun !== null || state.hoveredStepId !== null
+      );
+    },
+
+    /** Which steps the marker layer should draw, of the ones it could. */
+    markerFilter() {
+      if (state.areMarkersPinned || state.dryRun !== null) {
+        return null;
+      }
+      return state.hoveredStepId;
     },
   };
 }

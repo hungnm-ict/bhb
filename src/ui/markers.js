@@ -12,6 +12,10 @@ import { bufferToClient, resolvePoint, getBufferSize, isLegacyPoint } from '../c
  * The layer itself never takes pointer events — only the markers do, and only
  * while the steps tab is open. A layer that swallowed clicks would make the
  * game unplayable whenever the bot was running.
+ *
+ * Drawing every marker at once buried the game under numbers, so they appear on
+ * demand: the one under the cursor, all of them while pinned, or the list in
+ * turn during a dry run, where each carries what the matcher just found.
  */
 
 /**
@@ -25,6 +29,9 @@ export function createMarkerLayer(deps) {
   let layer = null;
   /** @type {Map<string, HTMLElement>} step id to its marker, for highlighting */
   const nodes = new Map();
+  /** What the last render drew, so a hover can tell a repaint from a relight. */
+  let drawnFilter = null;
+  let drawnVisible = false;
 
   function ensureLayer() {
     if (!layer) {
@@ -55,6 +62,15 @@ export function createMarkerLayer(deps) {
     }
     if (state.hoveredStepId === step.id) {
       classes.push('bhb-mark--hovered');
+    }
+    if (state.dryRun) {
+      const verdict = state.dryRun.scores[step.id];
+      if (verdict) {
+        classes.push(`bhb-mark--${verdict}`);
+      }
+      if (deps.getSteps()[state.dryRun.index] === step) {
+        classes.push('bhb-mark--testing');
+      }
     }
 
     const node = el(
@@ -88,6 +104,8 @@ export function createMarkerLayer(deps) {
       node.style.display = 'none';
       node.replaceChildren();
       nodes.clear();
+      drawnVisible = false;
+      drawnFilter = null;
       return;
     }
 
@@ -101,17 +119,29 @@ export function createMarkerLayer(deps) {
     const buffer = getBufferSize(canvas);
     // One layout query for the whole layer, not one per marker.
     const rect = canvas.getBoundingClientRect();
+    const only = deps.store.markerFilter();
     nodes.clear();
     const marks = deps
       .getSteps()
-      .map((step, index) => markerFor(step, index, canvas, buffer, rect))
+      .map((step, index) =>
+        only !== null && step.id !== only ? null : markerFor(step, index, canvas, buffer, rect)
+      )
       .filter(Boolean);
 
     node.replaceChildren(...marks);
+    drawnFilter = only;
+    drawnVisible = true;
   }
 
-  /** Lighting a marker is a class change; it never needs the layer rebuilt. */
+  /**
+   * Lighting a marker is a class change; it never needs the layer rebuilt —
+   * unless the hover is what decides which markers exist, in which case it does.
+   */
   function highlight() {
+    if (deps.store.markersVisible() !== drawnVisible || deps.store.markerFilter() !== drawnFilter) {
+      render();
+      return;
+    }
     const state = deps.store.get();
     for (const [stepId, marker] of nodes) {
       marker.classList.toggle('bhb-mark--selected', state.selectedStepId === stepId);

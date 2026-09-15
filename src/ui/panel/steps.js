@@ -41,7 +41,7 @@ export function renderStepsTab(deps) {
   // The hotkey is armed here rather than always live: `0` sits beside the keys
   // that start the bot, and a stray press mid-fight captures whatever the
   // cursor happened to be over. The button below is explicit, so it always works.
-  const isArmed = deps.store.get().isCaptureArmed;
+  const isArmed = state.isCaptureArmed;
   const arm = el('button', { class: `bhb-task bhb-task--wrap ${isArmed ? 'is-on' : ''}` }, [
     el('span', { class: 'bhb-task__switch' }),
     el('span', { class: 'bhb-task__label', text: t('steps.armCapture') }),
@@ -49,6 +49,29 @@ export function renderStepsTab(deps) {
   ]);
   arm.addEventListener('click', () => {
     deps.store.armCapture(!isArmed);
+    deps.refresh();
+  });
+
+  const isDryRunning = state.dryRun !== null;
+
+  const dryRun = el('button', { class: `bhb-btn ${isDryRunning ? 'is-busy' : ''}` }, [
+    el('span', { text: isDryRunning ? t('steps.dryRunStop') : t('steps.dryRun') }),
+  ]);
+  dryRun.addEventListener('click', () => {
+    if (isDryRunning) {
+      deps.dryRunner.stop();
+    } else {
+      deps.dryRunner.start();
+    }
+    deps.refresh();
+  });
+
+  const pin = el('button', {
+    class: `bhb-btn ${state.areMarkersPinned ? 'is-busy' : ''}`,
+    text: t('steps.pinMarkers'),
+  });
+  pin.addEventListener('click', () => {
+    deps.store.pinMarkers(!state.areMarkersPinned);
     deps.refresh();
   });
 
@@ -91,8 +114,10 @@ export function renderStepsTab(deps) {
     ]),
     arm,
     capture,
+    el('div', { class: 'bhb-btnrow' }, [dryRun, pin]),
     el('p', { class: 'bhb-note', text: t('steps.captureHint') }),
     el('p', { class: 'bhb-note', text: t('steps.armHint') }),
+    el('p', { class: 'bhb-note', text: t('steps.dryRunHint') }),
     legacyCount > 0
       ? el('p', { class: 'bhb-note bhb-note--warn', text: t('steps.legacyWarning', { n: legacyCount }) })
       : null,

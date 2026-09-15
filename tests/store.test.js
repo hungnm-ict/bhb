@@ -51,13 +51,50 @@ describe('ui store', () => {
     expect(store.get().selectedStepId).toBe(null);
   });
 
-  it('only shows markers while the steps tab is open', () => {
+  it('shows no markers just for opening the steps tab', () => {
     const store = createUiStore();
-    expect(store.markersVisible()).toBe(false);
-
     store.openPanel();
     store.setTab(Tab.STEPS);
+
+    // Drawing all of them unasked buried the game under numbers.
+    expect(store.markersVisible()).toBe(false);
+  });
+
+  it('shows one marker under the cursor, all of them when pinned', () => {
+    const store = createUiStore();
+    store.openPanel();
+    store.setTab(Tab.STEPS);
+
+    store.hoverStep('abc');
     expect(store.markersVisible()).toBe(true);
+    expect(store.markerFilter(), 'only the hovered one').toBe('abc');
+
+    store.hoverStep(null);
+    expect(store.markersVisible()).toBe(false);
+
+    store.pinMarkers(true);
+    expect(store.markersVisible()).toBe(true);
+    expect(store.markerFilter(), 'no filter means every marker').toBe(null);
+  });
+
+  it('shows every marker during a dry run, whatever the cursor is on', () => {
+    const store = createUiStore();
+    store.openPanel();
+    store.setTab(Tab.STEPS);
+    store.hoverStep('abc');
+
+    store.setDryRun({ index: 0, scores: { abc: 'match' } });
+    expect(store.markerFilter()).toBe(null);
+
+    store.setDryRun(null);
+    expect(store.markerFilter()).toBe('abc');
+  });
+
+  it('keeps markers off the game once the panel closes', () => {
+    const store = createUiStore();
+    store.openPanel();
+    store.setTab(Tab.STEPS);
+    store.pinMarkers(true);
 
     store.closePanel();
     expect(store.markersVisible()).toBe(false);
