@@ -112,19 +112,21 @@ const CSS = `
 .bhb-panel__profile { color: var(--bhb-dim); font-size: 10.5px; }
 
 .bhb-tabs {
-  display: flex; gap: 1px; padding: 8px 8px 0;
+  display: flex; gap: 0; padding: 8px 7px 0;
   /* Six tabs will not fit at every width, and a wrapped tab strip looks
      broken — so it scrolls sideways instead, with no visible scrollbar. */
   overflow-x: auto; scrollbar-width: none;
 }
 .bhb-tabs::-webkit-scrollbar { display: none; }
 .bhb-tabbtn {
-  flex: none; padding: 7px 6px 9px; white-space: nowrap;
+  flex: none; padding: 7px 5px 9px; white-space: nowrap;
   background: none; border: 0; border-bottom: 2px solid transparent;
   color: var(--bhb-dim); font: inherit; font-size: 11px; font-weight: 600;
   cursor: pointer;
 }
 .bhb-tabbtn:hover { color: var(--bhb-text); }
+/* Help is not a place to work, so it reads as a mark rather than a label. */
+.bhb-tabbtn--help { margin-left: auto; padding: 7px 8px 9px; font-size: 12px; }
 .bhb-tabbtn.is-active { color: var(--bhb-text); border-bottom-color: var(--bhb-accent); }
 
 .bhb-panel__body { padding: 12px 13px 14px; overflow-y: auto; }

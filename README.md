@@ -54,7 +54,7 @@ Bấm vào thanh đó (hoặc phím `1`) để mở **bảng điều khiển**, 
 | **Chạy tất cả** | Hàng đợi hoạt động: bật/tắt, sắp xếp, số vòng đang chạy |
 | **Cài đặt** | Hồ sơ (mỗi nhân vật một cái), tự tải lại khi treo, ngôn ngữ, xuất/nhập |
 | **Nhật ký** | Từng việc bot đã làm, mới nhất trên cùng |
-| **Phím tắt** | Bảng tra phím tắt |
+| **?** | Bảng tra phím tắt |
 
 Khi mở tab **Rule**, mỗi rule được vẽ thành một **dấu ngay trên canvas** tại đúng chỗ nó nhìn vào. Rê chuột lên dòng nào thì dấu tương ứng sáng lên và ngược lại — nhìn là biết rule trỏ vào nút nào.
 

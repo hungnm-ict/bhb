@@ -94,7 +94,9 @@ export function createPanel(deps) {
 
     const tabs = TABS.map(([id, labelKey]) => {
       const button = el('button', {
-        class: `bhb-tabbtn ${state.tab === id ? 'is-active' : ''}`,
+        class: `bhb-tabbtn ${id === Tab.HELP ? 'bhb-tabbtn--help' : ''} ${
+          state.tab === id ? 'is-active' : ''
+        }`,
         text: t(labelKey),
       });
       button.addEventListener('click', () => {

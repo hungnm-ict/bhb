@@ -17,7 +17,7 @@ export default {
   'tab.queue': 'Hàng đợi',
   'tab.settings': 'Cài đặt',
   'tab.log': 'Nhật ký',
-  'tab.help': 'Phím tắt',
+  'tab.help': '?',
   'panel.close': 'Đóng',
 
   'overlay.speed': 'Tốc độ',

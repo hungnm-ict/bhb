@@ -54,7 +54,7 @@ Click it (or press `1`) to open the **control panel**, which has seven tabs:
 | **Run All** | The activity queue: enable, reorder, and the round it is on |
 | **Settings** | Profiles (one per character), reload-on-hang, language, export/import |
 | **Log** | What the bot has actually done, newest first |
-| **Keys** | The keyboard reference |
+| **?** | The keyboard reference |
 
 With the **Rules** tab open, every rule is drawn as a **marker on the canvas** at the position it watches. Hovering a row lights its marker and the other way round, so you can see which button a rule points at.
 
