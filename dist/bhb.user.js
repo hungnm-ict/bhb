@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.5.0
+// @version      0.5.1
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -14,7 +14,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.5.0" : "dev";
+  var VERSION = true ? "0.5.1" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -1878,8 +1878,12 @@
 }
 
 .bhb-panel__head {
+  /* Never let the column squeeze these two: a shrunk box does not clip its
+     text, it spills it over whatever is below. */
+  flex: none;
   display: flex; align-items: center; gap: 8px;
   padding: 11px 13px;
+  background-color: var(--bhb-bg);
   background: linear-gradient(90deg, rgba(124, 92, 255, .16), transparent 70%);
   border-bottom: 1px solid var(--bhb-line);
 }
@@ -1889,7 +1893,9 @@
 .bhb-panel__profile { color: var(--bhb-dim); font-size: 10.5px; }
 
 .bhb-tabs {
+  flex: none;
   display: flex; gap: 0; padding: 8px 7px 0;
+  background-color: var(--bhb-bg);
   /* Six tabs will not fit at every width, and a wrapped tab strip looks
      broken — so it scrolls sideways instead, with no visible scrollbar. */
   overflow-x: auto; scrollbar-width: none;
@@ -1906,7 +1912,11 @@
 .bhb-tabbtn--help { margin-left: auto; padding: 7px 8px 9px; font-size: 12px; }
 .bhb-tabbtn.is-active { color: var(--bhb-text); border-bottom-color: var(--bhb-accent); }
 
-.bhb-panel__body { padding: 12px 13px 14px; overflow-y: auto; }
+.bhb-panel__body {
+  /* min-height:0 is what lets a flex item actually scroll instead of growing. */
+  flex: 1 1 auto; min-height: 0;
+  padding: 12px 13px 14px; overflow-y: auto;
+}
 .bhb-tab { display: flex; flex-direction: column; gap: 13px; }
 .bhb-stack { display: flex; flex-direction: column; gap: 6px; }
 
