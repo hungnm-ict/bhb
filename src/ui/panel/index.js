@@ -2,7 +2,7 @@ import { el, mount } from '../dom.js';
 import { t } from '../../i18n/index.js';
 import { Tab } from '../store.js';
 import { VERSION } from '../../core/constants.js';
-import { renderTasksTab } from './tasks.js';
+import { renderTasksTab, updateSpeedDisplay } from './tasks.js';
 import { renderStepsTab, highlightSteps } from './steps.js';
 import { renderScreensTab } from './screens.js';
 import { renderSettingsTab } from './settings.js';
@@ -124,9 +124,14 @@ export function createPanel(deps) {
     }
   }
 
+  /** Speed changes touch two numbers; they never need the panel rebuilt. */
+  function updateSpeed() {
+    updateSpeedDisplay();
+  }
+
   function highlight() {
     highlightSteps(deps.store.get());
   }
 
-  return { render, highlight };
+  return { render, highlight, updateSpeed };
 }

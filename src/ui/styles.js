@@ -199,6 +199,16 @@ const CSS = `
 }
 
 .bhb-slider { width: 100%; accent-color: var(--bhb-accent); cursor: pointer; }
+.bhb-speedrow { display: flex; align-items: center; gap: 8px; }
+.bhb-speedrow .bhb-slider { flex: 1; min-width: 0; }
+.bhb-icon--wide { min-width: 26px; font-size: 14px; line-height: 1; }
+.bhb-speedends {
+  position: relative;
+  display: flex; justify-content: space-between;
+  margin-top: 2px; margin-inline: 34px;
+  color: var(--bhb-dim); font-size: 9.5px;
+}
+.bhb-speedends__mark { position: absolute; transform: translateX(-50%); }
 .bhb-speed { font-family: var(--bhb-mono); font-size: 13px; font-weight: 700; }
 .bhb-speed.is-boosted { color: var(--bhb-cyan); }
 

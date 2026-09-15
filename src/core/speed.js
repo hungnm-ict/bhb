@@ -62,6 +62,12 @@ export function snapSpeed(value) {
   );
 }
 
+/** The neighbouring stop in a direction, for the hotkeys and the +/- buttons. */
+export function stepSpeed(current, direction) {
+  const index = speedIndex(current) + direction;
+  return SPEED_STEPS[Math.max(0, Math.min(SPEED_STEPS.length - 1, index))];
+}
+
 /** The index of a speed among the stops, for a stepped slider. */
 export function speedIndex(value) {
   return SPEED_STEPS.indexOf(snapSpeed(value));
