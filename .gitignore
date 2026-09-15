@@ -5,3 +5,8 @@ Thumbs.db
 .vscode/
 .idea/
 coverage/
+
+# Local tooling and reference material, not part of the userscript
+.claude/
+.planning/
+Other Bots/
