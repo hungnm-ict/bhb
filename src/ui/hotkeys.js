@@ -20,7 +20,11 @@ export function installHotkeys(bindings) {
     if (target instanceof HTMLElement && target.isContentEditable) {
       return;
     }
-    if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
+    if (
+      target instanceof HTMLInputElement ||
+      target instanceof HTMLTextAreaElement ||
+      target instanceof HTMLSelectElement
+    ) {
       return;
     }
 

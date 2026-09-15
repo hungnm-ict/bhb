@@ -3,7 +3,7 @@ import { t } from '../../i18n/index.js';
 import { Tab } from '../store.js';
 import { VERSION } from '../../core/constants.js';
 import { renderTasksTab } from './tasks.js';
-import { renderRulesTab } from './rules.js';
+import { renderRulesTab, highlightRules } from './rules.js';
 import { renderScreensTab } from './screens.js';
 import { renderQueueTab } from './queue.js';
 import { renderSettingsTab } from './settings.js';
@@ -35,6 +35,7 @@ const TABS = [
  * @param {object} deps.screenEditor
  * @param {() => import('../../rules/screen.js').Screen[]} deps.getScreens
  * @param {() => string} deps.getProfileName
+ * @param {() => void} deps.toggleHelp
  * @param {() => void} deps.refresh
  */
 export function createPanel(deps) {
@@ -78,6 +79,9 @@ export function createPanel(deps) {
     }
     target.style.display = 'flex';
 
+    const help = el('button', { class: 'bhb-icon', title: t('help.title'), text: '?' });
+    help.addEventListener('click', () => deps.toggleHelp());
+
     const close = el('button', { class: 'bhb-icon', title: t('panel.close'), text: '✕' });
     close.addEventListener('click', () => {
       deps.store.closePanel();
@@ -103,6 +107,7 @@ export function createPanel(deps) {
           el('span', { class: 'bhb-panel__ver', text: `v${VERSION}` }),
         ]),
         el('span', { class: 'bhb-panel__profile', text: deps.getProfileName() }),
+        help,
         close,
       ]),
       el('nav', { class: 'bhb-tabs' }, tabs),
@@ -110,5 +115,9 @@ export function createPanel(deps) {
     );
   }
 
-  return { render };
+  function highlight() {
+    highlightRules(deps.store.get());
+  }
+
+  return { render, highlight };
 }
