@@ -303,6 +303,14 @@ const CSS = `
   color: var(--bhb-dim); font-size: 10px;
   /* It sits over the game: taking a click here would be worse than no badge. */
   pointer-events: none;
+  transition: opacity .25s ease, color .25s ease, border-color .25s ease;
+}
+.bhb-size--dim { opacity: .28; }
+.bhb-size--near {
+  opacity: 1;
+  background: rgba(18, 20, 28, .92);
+  border-color: rgba(124, 92, 255, .5);
+  color: var(--bhb-text);
 }
 
 /* --- Marker layer ------------------------------------------------------- */
