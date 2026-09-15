@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.8.0
+// @version      0.8.1
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -14,7 +14,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.8.0" : "dev";
+  var VERSION = true ? "0.8.1" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -980,7 +980,7 @@
         restTimer = null;
         if (state.activeTask === TaskId.RERUN) {
           state.phase = Phase.HUNTING;
-          setMessage("rerun: hunting");
+          setMessage("rerun: running");
         }
       }, INTERVAL_RERUN_REST);
       setMessage(`rerun: resting ${INTERVAL_RERUN_REST / 1e3}s`);
@@ -1805,7 +1805,7 @@
     "task.wb": "Solo WB",
     "task.runAll": "Run all",
     "task.script": "Custom",
-    "phase.hunting": "hunting",
+    "phase.hunting": "running",
     "phase.resting": "resting",
     "hud.idle": "idle",
     "tab.tasks": "Run",
