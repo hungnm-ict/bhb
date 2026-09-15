@@ -12,8 +12,8 @@ describe('translations', () => {
 
   it('substitutes named placeholders', () => {
     setLanguage('en');
-    expect(t('msg.ruleCaptured', { x: 410, y: 62, hex: '#a6d339' })).toBe(
-      'captured an action at (410, 62) — #a6d339'
+    expect(t('msg.stepCaptured', { x: 410, y: 62, hex: '#a6d339' })).toBe(
+      'captured a step at (410, 62) — #a6d339'
     );
   });
 

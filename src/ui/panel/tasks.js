@@ -4,7 +4,7 @@ import { TaskId, Phase } from '../../core/engine.js';
 import { getSpeed, setSpeed, formatSpeed, speedIndex } from '../../core/speed.js';
 import { SPEED_STEPS } from '../../core/constants.js';
 import { getCanvas } from '../../core/canvas.js';
-import { rulesForActivity } from '../../rules/activity.js';
+import { stepsForActivity } from '../../bot/activity.js';
 
 /** Hotkeys still work; showing them here is how the user learns them. */
 const TASKS = [
@@ -19,7 +19,7 @@ function formatRemaining(ms) {
 }
 
 /**
- * Live framebuffer size next to the displayed size — when rules start missing,
+ * Live framebuffer size next to the displayed size — when steps start missing,
  * this line says whether the framebuffer moved under them.
  */
 function describeCanvas() {
@@ -40,10 +40,10 @@ function describeCanvas() {
  * switch says no rather than letting the user start it.
  */
 function readyActivityCount(deps) {
-  const rules = deps.getRules();
+  const steps = deps.getSteps();
   return deps
     .getActivities()
-    .filter((activity) => activity.enabled && rulesForActivity(rules, activity.id).length > 0)
+    .filter((activity) => activity.enabled && stepsForActivity(steps, activity.id).length > 0)
     .length;
 }
 
@@ -51,8 +51,8 @@ function readyActivityCount(deps) {
  * @param {object} deps
  * @param {() => object} deps.getEngineState
  * @param {(taskId: string) => void} deps.toggleTask
- * @param {() => import('../../rules/model.js').Rule[]} deps.getRules
- * @param {() => import('../../rules/activity.js').Activity[]} deps.getActivities
+ * @param {() => import('../../bot/step.js').Step[]} deps.getSteps
+ * @param {() => import('../../bot/activity.js').Activity[]} deps.getActivities
  * @param {() => void} deps.refresh
  */
 export function renderTasksTab(deps) {

@@ -1,6 +1,6 @@
 /**
  * Storage is the one place a user's work can be lost, so the migration is
- * pinned: a v2 profile must come back with every rule it went in with.
+ * pinned: a v2 profile must come back with every step it went in with.
  *
  * @vitest-environment jsdom
  */
@@ -17,7 +17,7 @@ import {
   getActiveProfile,
 } from '../src/core/storage.js';
 import { STORAGE_KEY_PROFILES } from '../src/core/constants.js';
-import { DEFAULT_ACTIVITIES } from '../src/rules/activity.js';
+import { DEFAULT_ACTIVITIES } from '../src/bot/activity.js';
 
 const V2 = {
   version: 2,
@@ -26,6 +26,7 @@ const V2 = {
     {
       id: 'main',
       name: 'Main',
+      // v2 called them rules, and that spelling is what has to keep loading.
       rules: [{ id: 'r1', label: 'rerun', points: [{ x: 4, y: 5, bw: 800, bh: 600 }], hex: '#ff0000', tolerance: 10, enabled: true }],
     },
   ],
@@ -36,13 +37,13 @@ beforeEach(() => {
 });
 
 describe('migration to the current schema', () => {
-  it('keeps a v2 profile\'s rules and adds the new lists', () => {
+  it('keeps a v2 profile\'s steps and adds the new lists', () => {
     localStorage.setItem(STORAGE_KEY_PROFILES, JSON.stringify(V2));
 
     const state = loadProfiles();
-    expect(state.version).toBe(4);
+    expect(state.version).toBe(5);
     expect(state.activeProfileId).toBe('main');
-    expect(state.profiles[0].rules).toEqual(V2.profiles[0].rules);
+    expect(state.profiles[0].steps).toEqual(V2.profiles[0].rules);
     expect(state.profiles[0].screens).toEqual([]);
     expect(state.profiles[0].activities.map((a) => a.id)).toEqual(
       DEFAULT_ACTIVITIES.map((a) => a.id)
@@ -51,8 +52,8 @@ describe('migration to the current schema', () => {
 
   it('migrates an imported v2 export the same way', () => {
     const state = importProfiles(JSON.stringify(V2));
-    expect(state.version).toBe(4);
-    expect(state.profiles[0].rules).toHaveLength(1);
+    expect(state.version).toBe(5);
+    expect(state.profiles[0].steps).toHaveLength(1);
     expect(state.profiles[0].screens).toEqual([]);
     expect(state.profiles[0].activities).toHaveLength(DEFAULT_ACTIVITIES.length);
   });
@@ -103,14 +104,14 @@ describe('profiles', () => {
     expect(setActiveProfile(state, 'nope')).toBe(false);
   });
 
-  it('duplicates the active profile without sharing its rules', () => {
+  it('duplicates the active profile without sharing its steps', () => {
     const state = loadProfiles();
-    getActiveProfile(state).rules.push({ id: 'r1', label: 'one', points: [], hex: null, tolerance: 10, enabled: true });
+    getActiveProfile(state).steps.push({ id: 'r1', label: 'one', points: [], hex: null, tolerance: 10, enabled: true });
 
     const copy = duplicateProfile(state, 'Copy');
-    copy.rules[0].label = 'changed';
+    copy.steps[0].label = 'changed';
 
-    expect(state.profiles[0].rules[0].label, 'the original is untouched').toBe('one');
+    expect(state.profiles[0].steps[0].label, 'the original is untouched').toBe('one');
     expect(copy.activities).toHaveLength(DEFAULT_ACTIVITIES.length);
   });
 

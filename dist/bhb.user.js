@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.4.5
+// @version      0.5.0
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -14,7 +14,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.4.5" : "dev";
+  var VERSION = true ? "0.5.0" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -27,6 +27,7 @@
   var INTERVAL_AUTO_STOP_CHECK = 5e3;
   var INTERVAL_RUN_ALL = 1500;
   var IDLE_ADVANCE_TICKS = 8;
+  var RESYNC_AFTER_TICKS = 3;
   var AUTO_STOP_TIMEOUT = 3 * 60 * 1e3;
   var RESUME_MAX_AGE = 15 * 60 * 1e3;
   var RESUME_DELAY = 45 * 1e3;
@@ -509,13 +510,13 @@
     return true;
   }
 
-  // src/rules/model.js
-  function createRuleId() {
+  // src/bot/step.js
+  function createStepId() {
     return `r${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
   }
-  function createRule(overrides = {}) {
+  function createStep(overrides = {}) {
     return {
-      id: createRuleId(),
+      id: createStepId(),
       label: "",
       points: [],
       hex: null,
@@ -526,17 +527,17 @@
       ...overrides
     };
   }
-  function isRuleReady(rule) {
-    if (!rule.enabled || rule.points.length === 0) {
+  function isStepReady(step) {
+    if (!step.enabled || step.points.length === 0) {
       return false;
     }
-    return Boolean(rule.hex) || rule.points.every(isRegionPoint);
+    return Boolean(step.hex) || step.points.every(isRegionPoint);
   }
-  function colorForPoint(rule, point2) {
-    return point2.hex || rule.hex;
+  function colorForPoint(step, point2) {
+    return point2.hex || step.hex;
   }
 
-  // src/rules/screen.js
+  // src/bot/screen.js
   function createScreenId() {
     return `s${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
   }
@@ -576,14 +577,14 @@
     }
     return null;
   }
-  function ruleAllowedOn(rule, screenId) {
-    if (!rule.screens || rule.screens.length === 0) {
+  function stepAllowedOn(step, screenId) {
+    if (!step.screens || step.screens.length === 0) {
       return true;
     }
-    return screenId !== null && rule.screens.includes(screenId);
+    return screenId !== null && step.screens.includes(screenId);
   }
 
-  // src/rules/activity.js
+  // src/bot/activity.js
   var DEFAULT_ACTIVITIES = Object.freeze([
     { id: "pvp", name: "PVP", enabled: true },
     { id: "gvg", name: "GVG", enabled: true },
@@ -597,11 +598,11 @@
   function createDefaultActivities() {
     return DEFAULT_ACTIVITIES.map((activity) => ({ ...activity }));
   }
-  function rulesForActivity(rules, activityId) {
-    return rules.filter((rule) => rule.activity === activityId);
+  function stepsForActivity(steps, activityId) {
+    return steps.filter((step) => step.activity === activityId);
   }
-  function looseRules(rules) {
-    return rules.filter((rule) => !rule.activity);
+  function looseSteps(steps) {
+    return steps.filter((step) => !step.activity);
   }
 
   // src/core/events.js
@@ -659,26 +660,29 @@
       activity: null,
       /** @type {string | null} */
       activityName: null,
+      /** @type {string | null} id of the step the runner is waiting for */
+      expectedStepId: null,
       round: 0
     };
     let spent = /* @__PURE__ */ new Set();
     let queueIndex = 0;
     let idleTicks = 0;
+    const cursor = { key: null, index: 0, misses: 0 };
     let pollTimer = null;
     let autoStopTimer = null;
     let restTimer = null;
     const TASKS2 = {
-      [TaskId.RERUN]: { interval: INTERVAL_RERUN_HUNT, getRules: deps.getRerunRules },
-      [TaskId.WORLD_BOSS]: { interval: INTERVAL_WORLD_BOSS, getRules: deps.getWorldBossRules },
-      [TaskId.SCRIPT]: { interval: INTERVAL_SCRIPT, getRules: () => looseRules(deps.getScriptRules()) },
-      [TaskId.RUN_ALL]: { interval: INTERVAL_RUN_ALL, getRules: runAllRules }
+      [TaskId.RERUN]: { interval: INTERVAL_RERUN_HUNT, getSteps: deps.getRerunSteps },
+      [TaskId.WORLD_BOSS]: { interval: INTERVAL_WORLD_BOSS, getSteps: deps.getWorldBossSteps },
+      [TaskId.SCRIPT]: { interval: INTERVAL_SCRIPT, getSteps: () => looseSteps(deps.getScriptSteps()) },
+      [TaskId.RUN_ALL]: { interval: INTERVAL_RUN_ALL, getSteps: runAllRules }
     };
     function activities() {
       return (deps.getActivities ? deps.getActivities() : []).filter((a) => a.enabled);
     }
     function runAllRules() {
       const current = currentActivity();
-      return current ? rulesForActivity(deps.getScriptRules(), current.id) : [];
+      return current ? stepsForActivity(deps.getScriptSteps(), current.id) : [];
     }
     function currentActivity() {
       const queue = activities();
@@ -698,6 +702,7 @@
         spent.add(leaving.id);
       }
       idleTicks = 0;
+      cursor.key = null;
       for (let step = 1; step <= queue.length; step += 1) {
         const index = (queueIndex + step) % queue.length;
         if (index === 0) {
@@ -738,35 +743,84 @@
         screenName: state.screenName,
         activity: state.activity,
         activityName: state.activityName,
+        expectedStepId: state.expectedStepId,
         round: state.round,
         spent: [...spent],
         remainingMs: state.activeTask ? Math.max(0, AUTO_STOP_TIMEOUT - (realNow() - state.lastActionAt)) : 0
       };
     }
-    function evaluateRules(rules, canvas, gl, screenId) {
+    function tryStep(step, canvas, gl, screenId, buffer, scaleMode) {
+      if (!isStepReady(step)) {
+        return null;
+      }
+      if (!stepAllowedOn(step, screenId)) {
+        return null;
+      }
+      for (const storedPoint of step.points) {
+        const hit = matchPoint(
+          gl,
+          storedPoint,
+          colorForPoint(step, storedPoint),
+          buffer,
+          scaleMode,
+          step.tolerance
+        );
+        if (hit.matched) {
+          return { step, point: hit.point, clicked: clickBufferPoint(canvas, hit.point) };
+        }
+      }
+      return null;
+    }
+    function runSteps(steps, canvas, gl, screenId) {
       const buffer = getBufferSize(canvas);
       const scaleMode = deps.getScaleMode();
-      for (const rule of rules) {
-        if (!isRuleReady(rule)) {
-          continue;
+      for (let index = 0; index < steps.length; index += 1) {
+        const hit = tryStep(steps[index], canvas, gl, screenId, buffer, scaleMode);
+        if (hit) {
+          return { ...hit, index };
         }
-        if (!ruleAllowedOn(rule, screenId)) {
-          continue;
-        }
-        for (const storedPoint of rule.points) {
-          const hit = matchPoint(
-            gl,
-            storedPoint,
-            colorForPoint(rule, storedPoint),
-            buffer,
-            scaleMode,
-            rule.tolerance
-          );
-          if (!hit.matched) {
-            continue;
-          }
-          return { rule, point: hit.point, clicked: clickBufferPoint(canvas, hit.point) };
-        }
+      }
+      return null;
+    }
+    function runSequence(steps, canvas, gl, screenId) {
+      const key = sequenceKey();
+      if (key === null || steps.length === 0) {
+        return runSteps(steps, canvas, gl, screenId);
+      }
+      if (cursor.key !== key) {
+        cursor.key = key;
+        cursor.index = 0;
+        cursor.misses = 0;
+      }
+      const buffer = getBufferSize(canvas);
+      const scaleMode = deps.getScaleMode();
+      const expected = steps[cursor.index % steps.length];
+      state.expectedStepId = expected ? expected.id : null;
+      const hit = tryStep(expected, canvas, gl, screenId, buffer, scaleMode);
+      if (hit) {
+        cursor.index = (cursor.index + 1) % steps.length;
+        cursor.misses = 0;
+        return hit;
+      }
+      cursor.misses += 1;
+      if (cursor.misses < RESYNC_AFTER_TICKS) {
+        return null;
+      }
+      const scan = runSteps(steps, canvas, gl, screenId);
+      if (!scan) {
+        return null;
+      }
+      report("resync", { label: scan.step.label || scan.step.id });
+      cursor.index = (scan.index + 1) % steps.length;
+      cursor.misses = 0;
+      return scan;
+    }
+    function sequenceKey() {
+      if (state.activeTask === TaskId.RUN_ALL) {
+        return state.activity;
+      }
+      if (state.activeTask === TaskId.SCRIPT) {
+        return "script";
       }
       return null;
     }
@@ -810,7 +864,7 @@
         return;
       }
       const task = TASKS2[state.activeTask];
-      const hit = evaluateRules(task.getRules(), target.canvas, target.gl, state.screen);
+      const hit = runSequence(task.getSteps(), target.canvas, target.gl, state.screen);
       if (!hit) {
         if (state.activeTask === TaskId.RUN_ALL) {
           idleTicks += 1;
@@ -832,11 +886,11 @@
         }
       }
       report(hit.clicked ? "click" : "busy", {
-        ruleId: hit.rule.id,
-        label: hit.rule.label || hit.rule.id,
+        stepId: hit.step.id,
+        label: hit.step.label || hit.step.id,
         point: hit.point
       });
-      setMessage(`${hit.rule.label || hit.rule.id} → ${hit.clicked ? "click" : "busy"}`);
+      setMessage(`${hit.step.label || hit.step.id} → ${hit.clicked ? "click" : "busy"}`);
     }
     function enterRestPhase() {
       state.phase = Phase.RESTING;
@@ -894,6 +948,8 @@
       spent = /* @__PURE__ */ new Set();
       queueIndex = 0;
       idleTicks = 0;
+      cursor.key = null;
+      state.expectedStepId = null;
       state.round = taskId === TaskId.RUN_ALL ? 1 : 0;
       setActivity(taskId === TaskId.RUN_ALL ? currentActivity() : null);
       pollTimer = realSetInterval(tick, TASKS2[taskId].interval);
@@ -911,6 +967,8 @@
       state.phase = Phase.HUNTING;
       state.screen = null;
       state.screenName = null;
+      state.expectedStepId = null;
+      cursor.key = null;
       setActivity(null);
       clearInterval_(pollTimer);
       clearInterval_(autoStopTimer);
@@ -930,7 +988,7 @@
   }
 
   // src/core/storage.js
-  var SCHEMA_VERSION = 4;
+  var SCHEMA_VERSION = 5;
   function createDefaultState() {
     return {
       version: SCHEMA_VERSION,
@@ -939,7 +997,7 @@
         {
           id: "default",
           name: "Default",
-          rules: [],
+          steps: [],
           screens: [],
           activities: createDefaultActivities()
         }
@@ -964,13 +1022,13 @@
       return false;
     }
   }
-  function importLegacyRules() {
+  function importLegacySteps() {
     const legacy = readJson(STORAGE_KEY_LEGACY_RULES);
     if (!Array.isArray(legacy)) {
       return [];
     }
     return legacy.filter((entry) => entry && typeof entry.x === "number").map(
-      (entry) => createRule({
+      (entry) => createStep({
         label: "imported",
         points: [{ x: entry.x, y: entry.y }],
         hex: entry.hex ?? null,
@@ -986,7 +1044,8 @@
     const profiles = candidate.profiles.filter((profile) => profile && typeof profile.id === "string").map((profile) => ({
       id: profile.id,
       name: typeof profile.name === "string" ? profile.name : profile.id,
-      rules: Array.isArray(profile.rules) ? profile.rules : [],
+      // v4 and earlier called them rules; the same objects, under the old name.
+      steps: Array.isArray(profile.steps) ? profile.steps : Array.isArray(profile.rules) ? profile.rules : [],
       screens: Array.isArray(profile.screens) ? profile.screens : [],
       activities: Array.isArray(profile.activities) && profile.activities.length > 0 ? profile.activities : createDefaultActivities()
     }));
@@ -1002,10 +1061,10 @@
       return normaliseState(stored);
     }
     const state = createDefaultState();
-    const imported = importLegacyRules();
+    const imported = importLegacySteps();
     if (imported.length > 0) {
-      state.profiles[0].rules = imported;
-      console.info(`[BHB] imported ${imported.length} rule(s) from bh-scripts`);
+      state.profiles[0].steps = imported;
+      console.info(`[BHB] imported ${imported.length} step(s) from bh-scripts`);
     }
     saveProfiles(state);
     return state;
@@ -1023,7 +1082,7 @@
     const profile = {
       id: createProfileId(),
       name: name || `Profile ${state.profiles.length + 1}`,
-      rules: [],
+      steps: [],
       screens: [],
       activities: createDefaultActivities()
     };
@@ -1076,7 +1135,8 @@
       language: stored.language === "en" ? "en" : "vi",
       // A bot that closes the game unasked is a bot that loses a session.
       closeAfterRound: stored.closeAfterRound === true,
-      watchdog: stored.watchdog === true
+      watchdog: stored.watchdog === true,
+      sizeBadge: stored.sizeBadge !== false
     };
   }
   function saveSettings(settings) {
@@ -1088,7 +1148,7 @@
   function importProfiles(json) {
     const parsed = JSON.parse(json);
     const state = normaliseState(parsed);
-    if (state.profiles.every((p) => p.rules.length === 0) && !parsed.profiles) {
+    if (state.profiles.every((p) => p.steps.length === 0) && !parsed.profiles) {
       throw new Error("not a BHB profile export");
     }
     return state;
@@ -1166,12 +1226,12 @@
     return { arm, disarm, noteProgress, taskToResume, reloadCount, recover };
   }
 
-  // src/rules/builtin.js
+  // src/bot/builtin.js
   var BUILTIN_CAPTURE_BUFFER = { width: 800, height: 520 };
   function point(p) {
     return BUILTIN_CAPTURE_BUFFER ? { ...p, bw: BUILTIN_CAPTURE_BUFFER.width, bh: BUILTIN_CAPTURE_BUFFER.height } : { ...p };
   }
-  var RERUN_RULES = [
+  var RERUN_STEPS = [
     {
       id: "builtin-rerun",
       label: "Rerun",
@@ -1181,7 +1241,7 @@
       enabled: true
     }
   ];
-  var WORLD_BOSS_RULES = [
+  var WORLD_BOSS_STEPS = [
     {
       id: "builtin-wb-start",
       label: "Ready/Start",
@@ -1224,7 +1284,7 @@
     "phase.resting": "nghỉ",
     "hud.idle": "đang dừng",
     "tab.tasks": "Chạy",
-    "tab.rules": "Thao tác",
+    "tab.steps": "Bước",
     "tab.screens": "Màn hình",
     "tab.settings": "Cài đặt",
     "tab.log": "Nhật ký",
@@ -1233,25 +1293,25 @@
     "overlay.speed": "Tốc độ",
     "overlay.canvas": "Canvas",
     "overlay.autoStop": "Tự tắt sau",
-    "overlay.rules": "Thao tác",
-    "overlay.noRules": "Chưa có thao tác nào. Rê chuột lên nút trong game rồi bấm Bắt thao tác.",
-    "overlay.needsRecapture": "Thao tác cũ, chưa có cỡ canvas — nên bắt lại",
-    "rule.defaultLabel": "Thao tác {n}",
-    "rules.capture": "Bắt thao tác tại con trỏ",
-    "rules.captureHint": "Rê chuột lên nút trong game rồi bấm. Bot tự đọc màu lúc nút không sáng — không cần di chuột đi đâu cả.",
-    "rules.unnamed": "(chưa đặt tên)",
-    "rules.enable": "Bật thao tác",
-    "rules.disable": "Tắt thao tác",
-    "rules.moveUp": "Lên (ưu tiên cao hơn)",
-    "rules.moveDown": "Xuống",
-    "rules.screenGate": "Chỉ chạy ở màn hình này",
-    "rules.anywhere": "Mọi màn hình",
-    "rules.activity": "Thao tác này thuộc hoạt động nào",
-    "rules.loose": "Chỉ thao tác Script",
-    "rules.noActivity": "Script",
-    "rules.allRules": "Tất cả thao tác",
-    "rules.filter": "Chỉ hiện một hoạt động",
-    "rules.delete": "Xoá thao tác",
+    "overlay.steps": "Bước",
+    "overlay.noSteps": "Chưa có bước nào. Rê chuột lên nút trong game rồi bấm Bắt bước.",
+    "overlay.needsRecapture": "Bước cũ, chưa có cỡ canvas — nên bắt lại",
+    "step.defaultLabel": "Bước {n}",
+    "steps.capture": "Bắt bước tại con trỏ",
+    "steps.captureHint": "Rê chuột lên nút trong game rồi bấm. Bot tự đọc màu lúc nút không sáng — không cần di chuột đi đâu cả.",
+    "steps.unnamed": "(chưa đặt tên)",
+    "steps.enable": "Bật bước",
+    "steps.disable": "Tắt bước",
+    "steps.moveUp": "Lên (chạy sớm hơn)",
+    "steps.moveDown": "Xuống",
+    "steps.screenGate": "Chỉ chạy ở màn hình này",
+    "steps.anywhere": "Mọi màn hình",
+    "steps.activity": "Bước này thuộc hoạt động nào",
+    "steps.loose": "Chỉ bước Script",
+    "steps.noActivity": "Script",
+    "steps.allSteps": "Tất cả bước",
+    "steps.filter": "Chỉ hiện một hoạt động",
+    "steps.delete": "Xoá bước",
     "screens.title": "Màn hình",
     "screens.empty": "Chưa có màn hình nào. Bắt một cái để bot biết nó đang ở đâu.",
     "screens.capture": "Bắt vùng nhận diện",
@@ -1267,11 +1327,11 @@
     "queue.start": "Chạy tất cả",
     "queue.stop": "Dừng",
     "queue.round": "vòng {n}",
-    "queue.ruleCount": "Số thao tác thuộc hoạt động này",
+    "queue.stepCount": "Số bước thuộc hoạt động này",
     "queue.closeAfterRound": "Đóng game sau khi xong một vòng",
-    "queue.hint": "Chạy từ trên xuống, bỏ qua cái đã hết tài nguyên, rồi quay lại từ đầu. Gán thao tác cho hoạt động ở tab Thao tác.",
+    "queue.hint": "Chạy từ trên xuống, bỏ qua cái đã hết tài nguyên, rồi quay lại từ đầu. Gán bước cho hoạt động ở tab Bước.",
     "settings.profiles": "Hồ sơ",
-    "settings.profilesHint": "Mỗi hồ sơ có thao tác, màn hình và hàng đợi riêng — mỗi nhân vật một hồ sơ. Tài khoản khác thì chỉ cần một browser profile khác.",
+    "settings.profilesHint": "Mỗi hồ sơ có bước, màn hình và hàng đợi riêng — mỗi nhân vật một hồ sơ. Tài khoản khác thì chỉ cần một browser profile khác.",
     "settings.newProfile": "Tạo mới",
     "settings.newProfileName": "Hồ sơ mới",
     "settings.duplicate": "Nhân bản",
@@ -1282,6 +1342,7 @@
     "settings.watchdog": "Tải lại game khi game treo",
     "settings.watchdogHint": "Không bật thì bot chỉ dừng sau 3 phút không làm gì. Bật thì trang tự tải lại và chạy tiếp — tối đa 3 lần rồi mới chịu thua.",
     "settings.reloads": "đã tải lại {n}×",
+    "settings.sizeBadge": "Hiện cỡ canvas ở góc màn hình",
     "settings.absoluteCoords": "Dùng toạ độ thô (không co giãn theo cỡ canvas)",
     "settings.language": "Ngôn ngữ",
     "settings.transfer": "Xuất / nhập",
@@ -1289,9 +1350,11 @@
     "settings.export": "Xuất",
     "settings.import": "Nhập",
     "settings.importFailed": "Nhập thất bại",
-    "tasks.runAllLocked": "Chưa dùng được: chưa hoạt động nào có thao tác. Sang tab Thao tác, bắt thao tác rồi gán cho một hoạt động.",
-    "tasks.runAllReady": "Sẵn sàng: {n} hoạt động đã có thao tác",
+    "tasks.runAllLocked": "Chưa dùng được: chưa hoạt động nào có bước. Sang tab Bước, bắt bước rồi gán cho một hoạt động.",
+    "tasks.runAllReady": "Sẵn sàng: {n} hoạt động đã có bước",
     "queue.inSettings": "Thứ tự và bật/tắt từng hoạt động nằm ở tab Cài đặt.",
+    "steps.next": "Bước bot đang chờ",
+    "log.resync": "Lạc nhịp — bắt lại từ {label}",
     "log.title": "Nhật ký",
     "log.empty": "Chưa có gì. Bật một hoạt động để bắt đầu.",
     "log.clear": "Xoá",
@@ -1304,14 +1367,14 @@
     "log.taskStarted": "Bật {task}",
     "log.taskStopped": "Tắt {task}",
     "help.sectionAuto": "Tự động",
-    "help.sectionRules": "Thao tác",
+    "help.sectionSteps": "Bước",
     "help.sectionUi": "Giao diện",
     "help.sectionSpeed": "Tốc độ",
     "help.rerun": "Auto Rerun (tìm 3s, nghỉ 20s)",
     "help.wb": "Auto WB Solo (2s/lần)",
     "help.script": "Auto Script (3s/lần)",
     "help.runAll": "Chạy lần lượt mọi hoạt động trong hàng đợi",
-    "help.capture": "Bắt thao tác tại con trỏ",
+    "help.capture": "Bắt bước tại con trỏ",
     "help.togglePanel": "Mở/đóng bảng điều khiển",
     "help.speedUp": "Nhanh hơn (mốc kế tiếp)",
     "help.speedDown": "Chậm lại (mốc trước đó)",
@@ -1321,7 +1384,7 @@
     "msg.noMousePosition": "chưa có vị trí chuột",
     "msg.outsideCanvas": "con trỏ ngoài canvas",
     "msg.anchorCaptured": "đã bắt vùng {n} cho {name}",
-    "msg.ruleCaptured": "đã bắt thao tác tại ({x}, {y}) — {hex}"
+    "msg.stepCaptured": "đã bắt bước tại ({x}, {y}) — {hex}"
   };
 
   // src/i18n/en.js
@@ -1335,7 +1398,7 @@
     "phase.resting": "resting",
     "hud.idle": "idle",
     "tab.tasks": "Run",
-    "tab.rules": "Actions",
+    "tab.steps": "Steps",
     "tab.screens": "Screens",
     "tab.settings": "Settings",
     "tab.log": "Log",
@@ -1344,25 +1407,25 @@
     "overlay.speed": "Speed",
     "overlay.canvas": "Canvas",
     "overlay.autoStop": "Auto-stop in",
-    "overlay.rules": "Actions",
-    "overlay.noRules": "No actions yet. Hover a button in the game, then hit Capture.",
+    "overlay.steps": "Steps",
+    "overlay.noSteps": "No steps yet. Hover a button in the game, then hit Capture.",
     "overlay.needsRecapture": "Captured before sizes were recorded — recapture it",
-    "rule.defaultLabel": "Action {n}",
-    "rules.capture": "Capture an action at the cursor",
-    "rules.captureHint": "Hover a button in the game and press. The resting colour is read for you — no need to move the mouse away.",
-    "rules.unnamed": "(unnamed)",
-    "rules.enable": "Enable",
-    "rules.disable": "Disable",
-    "rules.moveUp": "Move up (higher priority)",
-    "rules.moveDown": "Move down",
-    "rules.screenGate": "Only fire on this screen",
-    "rules.anywhere": "Anywhere",
-    "rules.activity": "Which activity this action belongs to",
-    "rules.loose": "Script actions only",
-    "rules.noActivity": "Script",
-    "rules.allRules": "All actions",
-    "rules.filter": "Show only one activity",
-    "rules.delete": "Delete",
+    "step.defaultLabel": "Step {n}",
+    "steps.capture": "Capture a step at the cursor",
+    "steps.captureHint": "Hover a button in the game and press. The resting colour is read for you — no need to move the mouse away.",
+    "steps.unnamed": "(unnamed)",
+    "steps.enable": "Enable",
+    "steps.disable": "Disable",
+    "steps.moveUp": "Move up (runs earlier)",
+    "steps.moveDown": "Move down",
+    "steps.screenGate": "Only fire on this screen",
+    "steps.anywhere": "Anywhere",
+    "steps.activity": "Which activity this step belongs to",
+    "steps.loose": "Script steps only",
+    "steps.noActivity": "Script",
+    "steps.allSteps": "All steps",
+    "steps.filter": "Show only one activity",
+    "steps.delete": "Delete",
     "screens.title": "Screens",
     "screens.empty": "No screens yet. Capture one so the bot knows where it is.",
     "screens.capture": "Capture a screen anchor",
@@ -1378,11 +1441,11 @@
     "queue.start": "Run all activities",
     "queue.stop": "Stop",
     "queue.round": "round {n}",
-    "queue.ruleCount": "Actions tagged to this activity",
+    "queue.stepCount": "Steps tagged to this activity",
     "queue.closeAfterRound": "Close the game after a full round",
-    "queue.hint": "Runs top to bottom, skips what is out of resources, and starts again. Tag actions to an activity in the Actions tab.",
+    "queue.hint": "Runs top to bottom, skips what is out of resources, and starts again. Tag steps to an activity in the Steps tab.",
     "settings.profiles": "Profiles",
-    "settings.profilesHint": "A profile holds its own actions, screens and queue — one per character. A second account just needs a second browser profile.",
+    "settings.profilesHint": "A profile holds its own steps, screens and queue — one per character. A second account just needs a second browser profile.",
     "settings.newProfile": "New",
     "settings.newProfileName": "New profile",
     "settings.duplicate": "Duplicate",
@@ -1393,16 +1456,19 @@
     "settings.watchdog": "Reload the game when it stops responding",
     "settings.watchdogHint": "Without this the bot just stops after three idle minutes. With it, the page reloads and the task starts again — up to three times before it gives up.",
     "settings.reloads": "reloaded {n}×",
-    "settings.absoluteCoords": "Use raw coordinates (do not rescale rules)",
+    "settings.sizeBadge": "Show the canvas size in the corner",
+    "settings.absoluteCoords": "Use raw coordinates (do not rescale steps)",
     "settings.language": "Language",
     "settings.transfer": "Export / import",
     "settings.transferHint": "Paste a profile export here, then press Import.",
     "settings.export": "Export",
     "settings.import": "Import",
     "settings.importFailed": "Import failed",
-    "tasks.runAllLocked": "Not usable yet: no activity has any actions. Capture one in the Actions tab and tag it to an activity.",
-    "tasks.runAllReady": "Ready: {n} activities have actions",
+    "tasks.runAllLocked": "Not usable yet: no activity has any steps. Capture one in the Steps tab and tag it to an activity.",
+    "tasks.runAllReady": "Ready: {n} activities have steps",
     "queue.inSettings": "The order and the on/off switches live in the Settings tab.",
+    "steps.next": "The step the bot is waiting for",
+    "log.resync": "Lost the thread — picking up at {label}",
     "log.title": "Activity",
     "log.empty": "Nothing yet. Start a task to see what the bot does.",
     "log.clear": "Clear",
@@ -1415,14 +1481,14 @@
     "log.taskStarted": "Started {task}",
     "log.taskStopped": "Stopped {task}",
     "help.sectionAuto": "Automation",
-    "help.sectionRules": "Actions",
+    "help.sectionSteps": "Steps",
     "help.sectionUi": "Interface",
     "help.sectionSpeed": "Speed",
     "help.rerun": "Auto Rerun (hunt 3s, rest 20s)",
     "help.wb": "Auto WB Solo (every 2s)",
     "help.script": "Auto Script (every 3s)",
     "help.runAll": "Run every activity in the queue",
-    "help.capture": "Capture an action at the cursor",
+    "help.capture": "Capture a step at the cursor",
     "help.togglePanel": "Open/close the control panel",
     "help.speedUp": "Speed up (next stop)",
     "help.speedDown": "Slow down (previous stop)",
@@ -1432,7 +1498,7 @@
     "msg.noMousePosition": "no cursor position yet",
     "msg.outsideCanvas": "cursor is outside the canvas",
     "msg.anchorCaptured": "anchor {n} captured for {name}",
-    "msg.ruleCaptured": "captured an action at ({x}, {y}) — {hex}"
+    "msg.stepCaptured": "captured a step at ({x}, {y}) — {hex}"
   };
 
   // src/i18n/index.js
@@ -1457,12 +1523,12 @@
     );
   }
 
-  // src/rules/editor.js
+  // src/bot/step-editor.js
   var REPAINT_FRAMES = 2;
   function nextFrame() {
     return new Promise((resolve) => realRequestAnimationFrame(() => resolve()));
   }
-  function createRuleEditor(deps) {
+  function createStepEditor(deps) {
     let cursorX = null;
     let cursorY = null;
     let capturing = false;
@@ -1515,73 +1581,73 @@
         if (hoveredHex && hoveredHex !== restingHex) {
           points.push({ ...point2, ...size, hex: hoveredHex });
         }
-        const rules = deps.getRules();
-        const rule = createRule({
-          label: t("rule.defaultLabel", { n: rules.length + 1 }),
+        const steps = deps.getSteps();
+        const step = createStep({
+          label: t("step.defaultLabel", { n: steps.length + 1 }),
           points,
           hex: restingHex
         });
-        rules.push(rule);
+        steps.push(step);
         deps.persist();
-        deps.report(t("msg.ruleCaptured", { x: point2.x, y: point2.y, hex: restingHex }));
-        return rule;
+        deps.report(t("msg.stepCaptured", { x: point2.x, y: point2.y, hex: restingHex }));
+        return step;
       } finally {
         capturing = false;
       }
     }
-    function find(ruleId) {
-      return deps.getRules().find((rule) => rule.id === ruleId) || null;
+    function find(stepId) {
+      return deps.getSteps().find((step) => step.id === stepId) || null;
     }
-    function rename(ruleId, label) {
-      const rule = find(ruleId);
-      if (!rule) {
+    function rename(stepId, label) {
+      const step = find(stepId);
+      if (!step) {
         return;
       }
-      rule.label = label;
+      step.label = label;
       deps.persist();
     }
-    function setEnabled(ruleId, enabled) {
-      const rule = find(ruleId);
-      if (!rule) {
+    function setEnabled(stepId, enabled) {
+      const step = find(stepId);
+      if (!step) {
         return;
       }
-      rule.enabled = enabled;
+      step.enabled = enabled;
       deps.persist();
     }
-    function setScreens(ruleId, screenIds) {
-      const rule = find(ruleId);
-      if (!rule) {
+    function setScreens(stepId, screenIds) {
+      const step = find(stepId);
+      if (!step) {
         return;
       }
-      rule.screens = screenIds;
+      step.screens = screenIds;
       deps.persist();
     }
-    function setActivity(ruleId, activityId) {
-      const rule = find(ruleId);
-      if (!rule) {
+    function setActivity(stepId, activityId) {
+      const step = find(stepId);
+      if (!step) {
         return;
       }
-      rule.activity = activityId;
+      step.activity = activityId;
       deps.persist();
     }
-    function remove(ruleId) {
-      const rules = deps.getRules();
-      const index = rules.findIndex((rule) => rule.id === ruleId);
+    function remove(stepId) {
+      const steps = deps.getSteps();
+      const index = steps.findIndex((step) => step.id === stepId);
       if (index === -1) {
         return;
       }
-      rules.splice(index, 1);
+      steps.splice(index, 1);
       deps.persist();
     }
-    function move(ruleId, delta) {
-      const rules = deps.getRules();
-      const from = rules.findIndex((rule2) => rule2.id === ruleId);
+    function move(stepId, delta) {
+      const steps = deps.getSteps();
+      const from = steps.findIndex((step2) => step2.id === stepId);
       const to = from + delta;
-      if (from === -1 || to < 0 || to >= rules.length) {
+      if (from === -1 || to < 0 || to >= steps.length) {
         return;
       }
-      const [rule] = rules.splice(from, 1);
-      rules.splice(to, 0, rule);
+      const [step] = steps.splice(from, 1);
+      steps.splice(to, 0, step);
       deps.persist();
     }
     return {
@@ -1595,7 +1661,7 @@
     };
   }
 
-  // src/rules/screen-editor.js
+  // src/bot/screen-editor.js
   function createScreenEditor(deps) {
     function find(screenId) {
       return deps.getScreens().find((screen) => screen.id === screenId) || null;
@@ -1696,7 +1762,7 @@
     return { captureAnchor, rename, setStopsTask, setMinRatio, removeAnchor, remove, move, probe };
   }
 
-  // src/rules/queue-editor.js
+  // src/bot/queue-editor.js
   function createQueueEditor(deps) {
     function setEnabled(activityId, enabled) {
       const activity = deps.getActivities().find((entry) => entry.id === activityId);
@@ -1722,7 +1788,7 @@
 
   // src/ui/styles.js
   var CSS = `
-.bhb-hud, .bhb-panel, .bhb-markers, .bhb-flash, .bhb-drag {
+.bhb-hud, .bhb-panel, .bhb-markers, .bhb-flash, .bhb-drag, .bhb-size {
   --bhb-bg: #12141c;
   --bhb-bg-soft: #1a1d29;
   --bhb-line: rgba(255, 255, 255, .09);
@@ -1941,18 +2007,21 @@
 .bhb-icon.is-on { color: var(--bhb-live); }
 .bhb-icon--danger:hover { background: rgba(255, 107, 129, .18); color: var(--bhb-danger); }
 
-/* --- Rules table -------------------------------------------------------- */
+/* --- Steps table -------------------------------------------------------- */
 
-.bhb-rules { display: flex; flex-direction: column; gap: 3px; }
-.bhb-rule {
+.bhb-steps { display: flex; flex-direction: column; gap: 3px; }
+.bhb-step {
   display: flex; align-items: center; gap: 7px;
   padding: 6px 7px;
   border: 1px solid transparent; border-radius: 8px;
   cursor: pointer;
 }
-.bhb-rule:hover, .bhb-rule.is-hovered { background: var(--bhb-bg-soft); }
-.bhb-rule.is-selected { border-color: rgba(124, 92, 255, .6); background: rgba(124, 92, 255, .1); }
-.bhb-rule.is-off { opacity: .45; }
+.bhb-step:hover, .bhb-step.is-hovered { background: var(--bhb-bg-soft); }
+.bhb-step.is-selected { border-color: rgba(124, 92, 255, .6); background: rgba(124, 92, 255, .1); }
+.bhb-step.is-off { opacity: .45; }
+/* The step the runner is waiting for, so a stuck sequence is visible. */
+.bhb-step.is-next { border-color: rgba(61, 220, 151, .5); }
+.bhb-step.is-next .bhb-step__n { color: var(--bhb-live); }
 
 .bhb-rule__n { width: 14px; color: var(--bhb-dim); font-family: var(--bhb-mono); font-size: 10px; }
 .bhb-rule__swatch {
@@ -1969,9 +2038,9 @@
 .bhb-rule__coord { color: var(--bhb-cyan); font-size: 10px; }
 .bhb-rule__actions { display: flex; gap: 1px; margin-left: auto; }
 
-/* A rule carries a name, a place, an activity and a screen gate. On one line
+/* A step carries a name, a place, an activity and a screen gate. On one line
    they crush each other, so the row is two: identity above, wiring below. */
-.bhb-rule--stacked { flex-direction: column; align-items: stretch; gap: 5px; }
+.bhb-step--stacked { flex-direction: column; align-items: stretch; gap: 5px; }
 .bhb-rule__main { display: flex; align-items: center; gap: 7px; }
 .bhb-rule__meta { display: flex; align-items: center; gap: 6px; padding-left: 21px; }
 .bhb-rule__meta .bhb-rule__gate { flex: 1; min-width: 0; max-width: none; }
@@ -1990,6 +2059,18 @@
 .bhb-log__row--task .bhb-log__icon { color: var(--bhb-accent); }
 .bhb-log__text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .bhb-log__coord { color: var(--bhb-dim); font-size: 10px; }
+
+/* --- Canvas size badge -------------------------------------------------- */
+
+.bhb-size {
+  right: 10px; bottom: 10px;
+  padding: 3px 8px;
+  background: rgba(18, 20, 28, .72);
+  border: 1px solid var(--bhb-line); border-radius: 7px;
+  color: var(--bhb-dim); font-size: 10px;
+  /* It sits over the game: taking a click here would be worse than no badge. */
+  pointer-events: none;
+}
 
 /* --- Marker layer ------------------------------------------------------- */
 
@@ -2124,7 +2205,7 @@
   // src/ui/store.js
   var Tab = Object.freeze({
     TASKS: "tasks",
-    RULES: "rules",
+    STEPS: "steps",
     SCREENS: "screens",
     SETTINGS: "settings",
     LOG: "log",
@@ -2137,15 +2218,15 @@
       panelOpen: false,
       tab: Tab.TASKS,
       /** @type {string | null} */
-      selectedRuleId: null,
-      /** @type {string | null} rule under the cursor, in the table or on canvas */
-      hoveredRuleId: null,
-      /** @type {string | null} activity id shown in the rules table; null is all */
-      ruleFilter: null,
+      selectedStepId: null,
+      /** @type {string | null} step under the cursor, in the table or on canvas */
+      hoveredStepId: null,
+      /** @type {string | null} activity id shown in the steps table; null is all */
+      stepFilter: null,
       /** @type {object[]} newest first */
       log: []
     };
-    const HIGHLIGHT_KEYS = /* @__PURE__ */ new Set(["selectedRuleId", "hoveredRuleId"]);
+    const HIGHLIGHT_KEYS = /* @__PURE__ */ new Set(["selectedStepId", "hoveredStepId"]);
     function emit() {
       emitter.emit("change", state);
     }
@@ -2172,17 +2253,17 @@
       subscribe: (handler) => emitter.on("change", handler),
       onHighlight: (handler) => emitter.on("highlight", handler),
       openPanel: () => patch({ panelOpen: true }),
-      closePanel: () => patch({ panelOpen: false, hoveredRuleId: null }),
+      closePanel: () => patch({ panelOpen: false, hoveredStepId: null }),
       togglePanel: () => patch({ panelOpen: !state.panelOpen }),
       setTab: (tab) => patch({ tab, panelOpen: true }),
-      setRuleFilter: (activityId) => patch({ ruleFilter: activityId }),
-      selectRule: (id) => patch({ selectedRuleId: id }),
-      hoverRule: (id) => patch({ hoveredRuleId: id }),
-      /** Drop any reference to a rule that no longer exists. */
-      forgetRule(id) {
+      setRuleFilter: (activityId) => patch({ stepFilter: activityId }),
+      selectStep: (id) => patch({ selectedStepId: id }),
+      hoverStep: (id) => patch({ hoveredStepId: id }),
+      /** Drop any reference to a step that no longer exists. */
+      forgetStep(id) {
         patch({
-          selectedRuleId: state.selectedRuleId === id ? null : state.selectedRuleId,
-          hoveredRuleId: state.hoveredRuleId === id ? null : state.hoveredRuleId
+          selectedStepId: state.selectedStepId === id ? null : state.selectedStepId,
+          hoveredStepId: state.hoveredStepId === id ? null : state.hoveredStepId
         });
       },
       /** @param {object} entry an engine action event */
@@ -2202,7 +2283,7 @@
       },
       /** Markers would swallow the game's clicks if they outlived the tab. */
       markersVisible() {
-        return state.panelOpen && state.tab === Tab.RULES;
+        return state.panelOpen && state.tab === Tab.STEPS;
       }
     };
   }
@@ -2308,8 +2389,8 @@
     )}`;
   }
   function readyActivityCount(deps) {
-    const rules = deps.getRules();
-    return deps.getActivities().filter((activity) => activity.enabled && rulesForActivity(rules, activity.id).length > 0).length;
+    const steps = deps.getSteps();
+    return deps.getActivities().filter((activity) => activity.enabled && stepsForActivity(steps, activity.id).length > 0).length;
   }
   function renderTasksTab(deps) {
     const engine = deps.getEngineState();
@@ -2385,31 +2466,32 @@
     ]);
   }
 
-  // src/ui/panel/rules.js
+  // src/ui/panel/steps.js
   var rows = /* @__PURE__ */ new Map();
-  function highlightRules(state) {
-    for (const [ruleId, row] of rows) {
-      row.classList.toggle("is-selected", state.selectedRuleId === ruleId);
-      row.classList.toggle("is-hovered", state.hoveredRuleId === ruleId);
+  function highlightSteps(state) {
+    for (const [stepId, row] of rows) {
+      row.classList.toggle("is-selected", state.selectedStepId === stepId);
+      row.classList.toggle("is-hovered", state.hoveredStepId === stepId);
     }
   }
-  function renderRulesTab(deps) {
-    const all = deps.getRules();
+  function renderStepsTab(deps) {
+    const all = deps.getSteps();
+    const expectedStepId = deps.getEngineState().expectedStepId;
     const state = deps.store.get();
     const activities = deps.getActivities();
-    const filter = state.ruleFilter;
-    const rules = filter === null ? all : all.filter((rule) => (rule.activity || "") === filter);
+    const filter = state.stepFilter;
+    const steps = filter === null ? all : all.filter((step) => (step.activity || "") === filter);
     const capture = el("button", { class: "bhb-btn bhb-btn--primary" }, [
       el("span", { class: "bhb-btn__dot" }),
-      el("span", { text: t("rules.capture") }),
+      el("span", { text: t("steps.capture") }),
       el("span", { class: "bhb-kbd", text: "0" })
     ]);
     capture.addEventListener("click", async () => {
-      await deps.editor.captureAtCursor();
+      await deps.stepEditor.captureAtCursor();
       deps.refresh();
     });
-    const filterSelect = el("select", { class: "bhb-rule__gate", title: t("rules.filter") });
-    const filterOptions = [["", t("rules.allRules")], ["", t("rules.loose")]];
+    const filterSelect = el("select", { class: "bhb-rule__gate", title: t("steps.filter") });
+    const filterOptions = [["", t("steps.allSteps")], ["", t("steps.loose")]];
     filterOptions[0][0] = "__all__";
     for (const [value, label] of filterOptions) {
       const option = el("option", { text: label });
@@ -2428,28 +2510,28 @@
     });
     const head = el("div", { class: "bhb-field" }, [
       el("div", { class: "bhb-field__head" }, [
-        el("span", { class: "bhb-label", text: `${t("overlay.rules")} · ${rules.length}` }),
+        el("span", { class: "bhb-label", text: `${t("overlay.steps")} · ${steps.length}` }),
         filterSelect
       ]),
       capture,
-      el("p", { class: "bhb-note", text: t("rules.captureHint") })
+      el("p", { class: "bhb-note", text: t("steps.captureHint") })
     ]);
-    if (rules.length === 0) {
-      return el("div", { class: "bhb-tab" }, [head, el("p", { class: "bhb-empty", text: t("overlay.noRules") })]);
+    if (steps.length === 0) {
+      return el("div", { class: "bhb-tab" }, [head, el("p", { class: "bhb-empty", text: t("overlay.noSteps") })]);
     }
     rows.clear();
-    const ruleRows = rules.map((rule, index) => {
-      const point2 = rule.points[0];
+    const stepRows = steps.map((step, index) => {
+      const point2 = step.points[0];
       const legacy = point2 && isLegacyPoint(point2);
       const name = el("input", { class: "bhb-rule__name" });
-      name.value = rule.label || "";
-      name.placeholder = t("rules.unnamed");
+      name.value = step.label || "";
+      name.placeholder = t("steps.unnamed");
       name.addEventListener("change", () => {
-        deps.editor.rename(rule.id, name.value.trim());
+        deps.stepEditor.rename(step.id, name.value.trim());
         deps.refresh();
       });
-      const slot = el("select", { class: "bhb-rule__gate", title: t("rules.activity") });
-      const loose = el("option", { text: t("rules.noActivity") });
+      const slot = el("select", { class: "bhb-rule__gate", title: t("steps.activity") });
+      const loose = el("option", { text: t("steps.noActivity") });
       loose.value = "";
       slot.append(loose);
       for (const activity of activities) {
@@ -2457,63 +2539,66 @@
         option.value = activity.id;
         slot.append(option);
       }
-      slot.value = rule.activity || "";
+      slot.value = step.activity || "";
       slot.addEventListener("change", () => {
-        deps.editor.setActivity(rule.id, slot.value || null);
+        deps.stepEditor.setActivity(step.id, slot.value || null);
         deps.refresh();
       });
-      const gate = el("select", { class: "bhb-rule__gate", title: t("rules.screenGate") });
-      gate.append(el("option", { text: t("rules.anywhere") }));
+      const gate = el("select", { class: "bhb-rule__gate", title: t("steps.screenGate") });
+      gate.append(el("option", { text: t("steps.anywhere") }));
       gate.options[0].value = "";
       for (const screen of deps.getScreens()) {
         const option = el("option", { text: screen.name || screen.id });
         option.value = screen.id;
         gate.append(option);
       }
-      gate.value = rule.screens && rule.screens[0] || "";
+      gate.value = step.screens && step.screens[0] || "";
       gate.addEventListener("change", () => {
-        deps.editor.setScreens(rule.id, gate.value ? [gate.value] : []);
+        deps.stepEditor.setScreens(step.id, gate.value ? [gate.value] : []);
         deps.refresh();
       });
       const toggle = el("button", {
-        class: `bhb-icon ${rule.enabled ? "is-on" : ""}`,
-        title: t(rule.enabled ? "rules.disable" : "rules.enable"),
-        text: rule.enabled ? "◉" : "○"
+        class: `bhb-icon ${step.enabled ? "is-on" : ""}`,
+        title: t(step.enabled ? "steps.disable" : "steps.enable"),
+        text: step.enabled ? "◉" : "○"
       });
       toggle.addEventListener("click", () => {
-        deps.editor.setEnabled(rule.id, !rule.enabled);
+        deps.stepEditor.setEnabled(step.id, !step.enabled);
         deps.refresh();
       });
-      const up = el("button", { class: "bhb-icon", title: t("rules.moveUp"), text: "▲" });
+      const up = el("button", { class: "bhb-icon", title: t("steps.moveUp"), text: "▲" });
       up.addEventListener("click", () => {
-        deps.editor.move(rule.id, -1);
+        deps.stepEditor.move(step.id, -1);
         deps.refresh();
       });
-      const down = el("button", { class: "bhb-icon", title: t("rules.moveDown"), text: "▼" });
+      const down = el("button", { class: "bhb-icon", title: t("steps.moveDown"), text: "▼" });
       down.addEventListener("click", () => {
-        deps.editor.move(rule.id, 1);
+        deps.stepEditor.move(step.id, 1);
         deps.refresh();
       });
-      const remove = el("button", { class: "bhb-icon bhb-icon--danger", title: t("rules.delete"), text: "✕" });
+      const remove = el("button", { class: "bhb-icon bhb-icon--danger", title: t("steps.delete"), text: "✕" });
       remove.addEventListener("click", () => {
-        deps.editor.remove(rule.id);
-        deps.store.forgetRule(rule.id);
+        deps.stepEditor.remove(step.id);
+        deps.store.forgetStep(step.id);
         deps.refresh();
       });
-      const classes = ["bhb-rule", "bhb-rule--stacked"];
-      if (!rule.enabled) {
+      const classes = ["bhb-step", "bhb-step--stacked"];
+      if (step.id === expectedStepId) {
+        classes.push("is-next");
+      }
+      if (!step.enabled) {
         classes.push("is-off");
       }
-      if (state.selectedRuleId === rule.id) {
+      if (state.selectedStepId === step.id) {
         classes.push("is-selected");
       }
-      if (state.hoveredRuleId === rule.id) {
+      if (state.hoveredStepId === step.id) {
         classes.push("is-hovered");
       }
       const row = el("div", { class: classes.join(" ") }, [
         el("div", { class: "bhb-rule__main" }, [
           el("span", { class: "bhb-rule__n", text: String(index + 1) }),
-          el("span", { class: "bhb-rule__swatch", style: { background: rule.hex || "transparent" } }),
+          el("span", { class: "bhb-rule__swatch", style: { background: step.hex || "transparent" } }),
           name,
           el("span", { class: "bhb-rule__actions" }, [toggle, up, down, remove])
         ]),
@@ -2527,13 +2612,13 @@
           deps.getScreens().length > 0 ? gate : null
         ])
       ]);
-      row.addEventListener("mouseenter", () => deps.store.hoverRule(rule.id));
-      row.addEventListener("mouseleave", () => deps.store.hoverRule(null));
-      row.addEventListener("click", () => deps.store.selectRule(rule.id));
-      rows.set(rule.id, row);
+      row.addEventListener("mouseenter", () => deps.store.hoverStep(step.id));
+      row.addEventListener("mouseleave", () => deps.store.hoverStep(null));
+      row.addEventListener("click", () => deps.store.selectStep(step.id));
+      rows.set(step.id, row);
       return row;
     });
-    return el("div", { class: "bhb-tab" }, [head, el("div", { class: "bhb-rules" }, ruleRows)]);
+    return el("div", { class: "bhb-tab" }, [head, el("div", { class: "bhb-steps" }, stepRows)]);
   }
 
   // src/ui/dragselect.js
@@ -2679,17 +2764,17 @@
       });
       const add = el("button", { class: "bhb-icon", title: t("screens.addAnchor"), text: "＋" });
       add.addEventListener("click", () => capture(screen.id));
-      const up = el("button", { class: "bhb-icon", title: t("rules.moveUp"), text: "▲" });
+      const up = el("button", { class: "bhb-icon", title: t("steps.moveUp"), text: "▲" });
       up.addEventListener("click", () => {
         deps.screenEditor.move(screen.id, -1);
         deps.refresh();
       });
-      const down = el("button", { class: "bhb-icon", title: t("rules.moveDown"), text: "▼" });
+      const down = el("button", { class: "bhb-icon", title: t("steps.moveDown"), text: "▼" });
       down.addEventListener("click", () => {
         deps.screenEditor.move(screen.id, 1);
         deps.refresh();
       });
-      const remove = el("button", { class: "bhb-icon bhb-icon--danger", title: t("rules.delete"), text: "✕" });
+      const remove = el("button", { class: "bhb-icon bhb-icon--danger", title: t("steps.delete"), text: "✕" });
       remove.addEventListener("click", () => {
         deps.screenEditor.remove(screen.id);
         deps.refresh();
@@ -2704,7 +2789,7 @@
         deps.screenEditor.setMinRatio(screen.id, Number(ratio.value));
         deps.refresh();
       });
-      const classes = ["bhb-rule", "bhb-screen"];
+      const classes = ["bhb-step", "bhb-screen"];
       if (active2 === screen.id) {
         classes.push("is-active");
       }
@@ -2733,14 +2818,14 @@
         ])
       ]);
     });
-    return el("div", { class: "bhb-tab" }, [head, el("div", { class: "bhb-rules" }, rows2)]);
+    return el("div", { class: "bhb-tab" }, [head, el("div", { class: "bhb-steps" }, rows2)]);
   }
 
   // src/ui/panel/queue.js
   function renderQueueSection(deps) {
     const activities = deps.getActivities();
     const engine = deps.getEngineState();
-    const rules = deps.getRules();
+    const steps = deps.getSteps();
     const running = Boolean(engine.activity);
     const spent = new Set(engine.spent || []);
     const head = el("div", { class: "bhb-field__head" }, [
@@ -2751,27 +2836,27 @@
       })
     ]);
     const rows2 = activities.map((activity, index) => {
-      const count = rulesForActivity(rules, activity.id).length;
+      const count = stepsForActivity(steps, activity.id).length;
       const toggle = el("button", {
         class: `bhb-icon ${activity.enabled ? "is-on" : ""}`,
-        title: t(activity.enabled ? "rules.disable" : "rules.enable"),
+        title: t(activity.enabled ? "steps.disable" : "steps.enable"),
         text: activity.enabled ? "◉" : "○"
       });
       toggle.addEventListener("click", () => {
         deps.queueEditor.setEnabled(activity.id, !activity.enabled);
         deps.refresh();
       });
-      const up = el("button", { class: "bhb-icon", title: t("rules.moveUp"), text: "▲" });
+      const up = el("button", { class: "bhb-icon", title: t("steps.moveUp"), text: "▲" });
       up.addEventListener("click", () => {
         deps.queueEditor.move(activity.id, -1);
         deps.refresh();
       });
-      const down = el("button", { class: "bhb-icon", title: t("rules.moveDown"), text: "▼" });
+      const down = el("button", { class: "bhb-icon", title: t("steps.moveDown"), text: "▼" });
       down.addEventListener("click", () => {
         deps.queueEditor.move(activity.id, 1);
         deps.refresh();
       });
-      const classes = ["bhb-rule", "bhb-queue__row"];
+      const classes = ["bhb-step", "bhb-queue__row"];
       if (!activity.enabled) {
         classes.push("is-off");
       }
@@ -2790,7 +2875,7 @@
         el("span", { class: "bhb-queue__name", text: activity.name }),
         el("span", {
           class: "bhb-rule__coord bhb-mono",
-          title: t("queue.ruleCount"),
+          title: t("queue.stepCount"),
           text: String(count)
         }),
         el("span", { class: "bhb-rule__actions" }, [toggle, up, down])
@@ -2799,7 +2884,7 @@
     return el("div", { class: "bhb-field" }, [
       head,
       el("p", { class: "bhb-note", text: t("queue.hint") }),
-      el("div", { class: "bhb-rules" }, rows2)
+      el("div", { class: "bhb-steps" }, rows2)
     ]);
   }
 
@@ -2906,6 +2991,11 @@
           (value) => deps.updateSettings({ closeAfterRound: value })
         ),
         toggleRow(
+          "settings.sizeBadge",
+          settings.sizeBadge,
+          (value) => deps.updateSettings({ sizeBadge: value })
+        ),
+        toggleRow(
           "settings.absoluteCoords",
           settings.scaleMode === ScaleMode.ABSOLUTE,
           (value) => deps.updateSettings({ scaleMode: value ? ScaleMode.ABSOLUTE : ScaleMode.SCALE })
@@ -2937,6 +3027,7 @@
     screen: "▣",
     activity: "➜",
     hang: "⟳",
+    resync: "↻",
     resource: "⛔"
   };
   function clock(at) {
@@ -2946,6 +3037,9 @@
   function describe(entry) {
     if (entry.kind === "task") {
       return t(entry.started ? "log.taskStarted" : "log.taskStopped", { task: entry.label });
+    }
+    if (entry.kind === "resync") {
+      return t("log.resync", { label: entry.label });
     }
     if (entry.kind === "hang") {
       return t("log.hang", { label: entry.label });
@@ -3006,7 +3100,7 @@
       ]
     },
     {
-      title: "help.sectionRules",
+      title: "help.sectionSteps",
       entries: [
         ["0", "help.capture"]
       ]
@@ -3044,7 +3138,7 @@
   // src/ui/panel/index.js
   var TABS = [
     [Tab.TASKS, "tab.tasks"],
-    [Tab.RULES, "tab.rules"],
+    [Tab.STEPS, "tab.steps"],
     [Tab.SCREENS, "tab.screens"],
     [Tab.SETTINGS, "tab.settings"],
     [Tab.LOG, "tab.log"],
@@ -3059,8 +3153,8 @@
       return node;
     }
     function renderBody(tab) {
-      if (tab === Tab.RULES) {
-        return renderRulesTab(deps);
+      if (tab === Tab.STEPS) {
+        return renderStepsTab(deps);
       }
       if (tab === Tab.SCREENS) {
         return renderScreensTab(deps);
@@ -3122,7 +3216,7 @@
       }
     }
     function highlight() {
-      highlightRules(deps.store.get());
+      highlightSteps(deps.store.get());
     }
     return { render, highlight };
   }
@@ -3137,8 +3231,8 @@
       }
       return layer;
     }
-    function markerFor(rule, index, canvas, buffer, rect) {
-      const stored = rule.points[0];
+    function markerFor(step, index, canvas, buffer, rect) {
+      const stored = step.points[0];
       if (!stored) {
         return null;
       }
@@ -3146,16 +3240,16 @@
       const pos = bufferToClient(canvas, resolved.x, resolved.y, rect);
       const state = deps.store.get();
       const classes = ["bhb-mark"];
-      if (!rule.enabled) {
+      if (!step.enabled) {
         classes.push("bhb-mark--off");
       }
       if (isLegacyPoint(stored)) {
         classes.push("bhb-mark--legacy");
       }
-      if (state.selectedRuleId === rule.id) {
+      if (state.selectedStepId === step.id) {
         classes.push("bhb-mark--selected");
       }
-      if (state.hoveredRuleId === rule.id) {
+      if (state.hoveredStepId === step.id) {
         classes.push("bhb-mark--hovered");
       }
       const node = el(
@@ -3163,20 +3257,20 @@
         {
           class: classes.join(" "),
           style: { left: `${pos.clientX}px`, top: `${pos.clientY}px` },
-          title: rule.label || rule.hex || ""
+          title: step.label || step.hex || ""
         },
         [
           el("span", { class: "bhb-mark__n", text: String(index + 1) }),
-          el("span", { class: "bhb-mark__swatch", style: { background: rule.hex || "transparent" } })
+          el("span", { class: "bhb-mark__swatch", style: { background: step.hex || "transparent" } })
         ]
       );
       node.addEventListener("click", (event) => {
         event.stopPropagation();
-        deps.store.selectRule(rule.id);
+        deps.store.selectStep(step.id);
       });
-      node.addEventListener("mouseenter", () => deps.store.hoverRule(rule.id));
-      node.addEventListener("mouseleave", () => deps.store.hoverRule(null));
-      nodes.set(rule.id, node);
+      node.addEventListener("mouseenter", () => deps.store.hoverStep(step.id));
+      node.addEventListener("mouseleave", () => deps.store.hoverStep(null));
+      nodes.set(step.id, node);
       return node;
     }
     function render() {
@@ -3196,17 +3290,40 @@
       const buffer = getBufferSize(canvas);
       const rect = canvas.getBoundingClientRect();
       nodes.clear();
-      const marks = deps.getRules().map((rule, index) => markerFor(rule, index, canvas, buffer, rect)).filter(Boolean);
+      const marks = deps.getSteps().map((step, index) => markerFor(step, index, canvas, buffer, rect)).filter(Boolean);
       node.replaceChildren(...marks);
     }
     function highlight() {
       const state = deps.store.get();
-      for (const [ruleId, marker] of nodes) {
-        marker.classList.toggle("bhb-mark--selected", state.selectedRuleId === ruleId);
-        marker.classList.toggle("bhb-mark--hovered", state.hoveredRuleId === ruleId);
+      for (const [stepId, marker] of nodes) {
+        marker.classList.toggle("bhb-mark--selected", state.selectedStepId === stepId);
+        marker.classList.toggle("bhb-mark--hovered", state.hoveredStepId === stepId);
       }
     }
     return { render, highlight };
+  }
+
+  // src/ui/size-badge.js
+  function createSizeBadge(deps) {
+    let node = null;
+    function ensureNode() {
+      if (!node) {
+        node = mount(el("div", { class: "bhb-size bhb-mono" }));
+      }
+      return node;
+    }
+    function render() {
+      const target = ensureNode();
+      const canvas = getCanvas();
+      if (!deps.isVisible() || !canvas) {
+        target.style.display = "none";
+        return;
+      }
+      target.style.display = "block";
+      const client = `${Math.round(canvas.clientWidth)}×${Math.round(canvas.clientHeight)}`;
+      target.textContent = `${canvas.width}×${canvas.height} → ${client}`;
+    }
+    return { render };
   }
 
   // src/ui/hotkeys.js
@@ -3254,16 +3371,16 @@
     const settings = loadSettings();
     setLanguage(settings.language);
     const profileState = loadProfiles();
-    const getRules = () => getActiveProfile(profileState).rules;
+    const getSteps = () => getActiveProfile(profileState).steps;
     const getScreens = () => getActiveProfile(profileState).screens;
     const getActivities = () => getActiveProfile(profileState).activities;
     const persist = () => saveProfiles(profileState);
     const store = createUiStore();
     const watchdog = createWatchdog();
     const engine = createEngine({
-      getScriptRules: getRules,
-      getRerunRules: () => RERUN_RULES,
-      getWorldBossRules: () => WORLD_BOSS_RULES,
+      getScriptSteps: getSteps,
+      getRerunSteps: () => RERUN_STEPS,
+      getWorldBossSteps: () => WORLD_BOSS_STEPS,
       getScaleMode: () => settings.scaleMode,
       getScreens,
       getActivities,
@@ -3272,8 +3389,8 @@
       shouldRecoverFromHang: () => settings.watchdog,
       recoverFromHang: (task) => watchdog.recover(task)
     });
-    const editor = createRuleEditor({
-      getRules,
+    const stepEditor = createStepEditor({
+      getSteps,
       persist,
       report: engine.setMessage
     });
@@ -3288,10 +3405,12 @@
       hud.render();
       panel.render();
       markers.render();
+      sizeBadge.render();
     };
     const LIVE_TABS = /* @__PURE__ */ new Set([Tab.TASKS, Tab.SCREENS]);
     const refreshLive = () => {
       hud.render();
+      sizeBadge.render();
       const state = store.get();
       if (state.panelOpen && LIVE_TABS.has(state.tab)) {
         panel.render();
@@ -3333,10 +3452,10 @@
     };
     const panel = createPanel({
       store,
-      editor,
+      stepEditor,
       screenEditor,
       queueEditor,
-      getRules,
+      getSteps,
       getScreens,
       getActivities,
       getCloseAfterRound: () => settings.closeAfterRound,
@@ -3360,10 +3479,11 @@
       refresh: () => refresh()
     });
     const markers = createMarkerLayer({
-      getRules,
+      getSteps,
       getScaleMode: () => settings.scaleMode,
       store
     });
+    const sizeBadge = createSizeBadge({ isVisible: () => settings.sizeBadge });
     setClickObserver(showClickFlash);
     engine.on("change", () => refresh());
     engine.on("action", (entry) => {
@@ -3392,7 +3512,7 @@
       "4": () => engine.toggle(TaskId.WORLD_BOSS),
       "5": () => engine.toggle(TaskId.SCRIPT),
       "6": () => engine.toggle(TaskId.RUN_ALL),
-      "0": () => editor.captureAtCursor().then(refresh),
+      "0": () => stepEditor.captureAtCursor().then(refresh),
       "=": () => setSpeed(nextSpeedStep(getSpeed(), 1)),
       "+": () => setSpeed(nextSpeedStep(getSpeed(), 1)),
       "-": () => setSpeed(nextSpeedStep(getSpeed(), -1))
@@ -3400,7 +3520,10 @@
     refresh();
     hud.wake();
     realSetInterval(refreshLive, UI_REFRESH_MS);
-    window.addEventListener("resize", () => markers.render());
+    window.addEventListener("resize", () => {
+      markers.render();
+      sizeBadge.render();
+    });
     resumeAfterReload(engine, watchdog);
     console.info("[BHB] ready — press 1 for the keyboard reference");
   }

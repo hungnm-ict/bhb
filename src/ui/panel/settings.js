@@ -137,6 +137,9 @@ export function renderSettingsTab(deps) {
       toggleRow('queue.closeAfterRound', settings.closeAfterRound, (value) =>
         deps.updateSettings({ closeAfterRound: value })
       ),
+      toggleRow('settings.sizeBadge', settings.sizeBadge, (value) =>
+        deps.updateSettings({ sizeBadge: value })
+      ),
       toggleRow('settings.absoluteCoords', settings.scaleMode === ScaleMode.ABSOLUTE, (value) =>
         deps.updateSettings({ scaleMode: value ? ScaleMode.ABSOLUTE : ScaleMode.SCALE })
       ),

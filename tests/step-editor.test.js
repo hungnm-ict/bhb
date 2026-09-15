@@ -32,18 +32,18 @@ vi.mock('../src/core/input.js', () => ({
   }),
 }));
 
-describe('rule editor capture', () => {
-  let rules;
+describe('step editor capture', () => {
+  let steps;
   let editor;
   let report;
 
   beforeEach(async () => {
     vi.resetModules();
     pointerOnButton = true;
-    rules = [];
+    steps = [];
     report = vi.fn();
-    const { createRuleEditor } = await import('../src/rules/editor.js');
-    editor = createRuleEditor({ getRules: () => rules, persist: () => {}, report });
+    const { createStepEditor } = await import('../src/bot/step-editor.js');
+    editor = createStepEditor({ getSteps: () => steps, persist: () => {}, report });
 
     // Put the cursor on a button at (400, 260) client space.
     window.dispatchEvent(new MouseEvent('mousemove', { clientX: 400, clientY: 260 }));
@@ -52,21 +52,21 @@ describe('rule editor capture', () => {
   it('stores the resting colour, not the hovered one', async () => {
     await editor.captureAtCursor();
 
-    expect(rules).toHaveLength(1);
-    expect(rules[0].hex).toBe('#a6d339');
+    expect(steps).toHaveLength(1);
+    expect(steps[0].hex).toBe('#a6d339');
   });
 
   it('keeps the hovered shade as a second point', async () => {
     await editor.captureAtCursor();
 
-    expect(rules[0].points).toHaveLength(2);
-    expect(rules[0].points[1].hex).toBe('#cbf067');
+    expect(steps[0].points).toHaveLength(2);
+    expect(steps[0].points[1].hex).toBe('#cbf067');
   });
 
   it('records the framebuffer size so the point can rescale', async () => {
     await editor.captureAtCursor();
 
-    expect(rules[0].points[0]).toMatchObject({ bw: 800, bh: 520 });
+    expect(steps[0].points[0]).toMatchObject({ bw: 800, bh: 520 });
   });
 
   it('puts the synthetic pointer back where the user left it', async () => {
@@ -84,6 +84,6 @@ describe('rule editor capture', () => {
 
     await first;
     expect(second).toBe(null);
-    expect(rules).toHaveLength(1);
+    expect(steps).toHaveLength(1);
   });
 });

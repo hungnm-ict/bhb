@@ -1,12 +1,12 @@
 import { DEFAULT_COLOR_TOLERANCE } from '../core/constants.js';
 
 /**
- * Rules carried over from bh-scripts, where they were proven in play.
+ * Steps carried over from bh-scripts, where they were proven in play.
  *
  * The host embed pins `#unity-canvas` to a 800x520 framebuffer and
  * stretches it with CSS, which is the space these coordinates were captured
  * in — every one of them falls inside it. Recording that here makes the
- * built-ins rescale like any captured rule, so they survive a build that
+ * built-ins rescale like any captured step, so they survive a build that
  * stops pinning the framebuffer.
  *
  * @type {{ width: number, height: number } | null}
@@ -21,7 +21,7 @@ function point(p) {
 }
 
 /** Green "Rerun" button; two shades cover the idle and hover states. */
-export const RERUN_RULES = [
+export const RERUN_STEPS = [
   {
     id: 'builtin-rerun',
     label: 'Rerun',
@@ -32,7 +32,7 @@ export const RERUN_RULES = [
   },
 ];
 
-export const WORLD_BOSS_RULES = [
+export const WORLD_BOSS_STEPS = [
   {
     id: 'builtin-wb-start',
     label: 'Ready/Start',

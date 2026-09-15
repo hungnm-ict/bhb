@@ -11,7 +11,7 @@ import { resolvePoint } from './coords.js';
  * scores a sparse grid of samples inside it: the match survives a particle, a
  * tooltip edge or a frame of animation dirtying a few of them.
  *
- * `pixel.js` is left alone — a rule without `samples` is still a pixel rule.
+ * `pixel.js` is left alone — a step without `samples` is still a pixel step.
  *
  * @typedef {import('./color.js').Rgb} Rgb
  * @typedef {{ dx: number, dy: number, hex: string }} Sample dx/dy in 0..1
@@ -88,8 +88,8 @@ export function captureFingerprint(gl, rect) {
 /**
  * Where a stored fingerprint sits on the live framebuffer.
  *
- * The origin rides the existing `resolvePoint` path, so region rules rescale
- * exactly like pixel rules; only the size needs its own ratio.
+ * The origin rides the existing `resolvePoint` path, so region steps rescale
+ * exactly like pixel steps; only the size needs its own ratio.
  *
  * @param {Fingerprint} fp
  * @param {{ width: number, height: number }} buffer
@@ -156,7 +156,7 @@ export function isRegionPoint(point) {
 }
 
 /**
- * Match one of a rule's points, whichever kind it is.
+ * Match one of a step's points, whichever kind it is.
  *
  * This is the whole of the engine's change: a point with `samples` is scored
  * as a region, a point without is read as a pixel, exactly as before.

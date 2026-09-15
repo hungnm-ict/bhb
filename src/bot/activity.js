@@ -1,9 +1,9 @@
 /**
  * The Run-All queue.
  *
- * An activity owns nothing — it is a name that rules point at. Splitting the
- * rule list eight ways would fork the table, the storage and the export, and
- * would make moving a rule between activities a re-capture. A tag keeps one
+ * An activity owns nothing — it is a name that steps point at. Splitting the
+ * step list eight ways would fork the table, the storage and the export, and
+ * would make moving a step between activities a re-capture. A tag keeps one
  * of each and turns "move this to GVG" into a dropdown.
  *
  * @typedef {object} Activity
@@ -30,14 +30,14 @@ export function createDefaultActivities() {
 }
 
 /**
- * @param {import('./model.js').Rule[]} rules
+ * @param {import('./step.js').Step[]} steps
  * @param {string} activityId
  */
-export function rulesForActivity(rules, activityId) {
-  return rules.filter((rule) => rule.activity === activityId);
+export function stepsForActivity(steps, activityId) {
+  return steps.filter((step) => step.activity === activityId);
 }
 
-/** Rules with no activity are the loose Script set they have always been. */
-export function looseRules(rules) {
-  return rules.filter((rule) => !rule.activity);
+/** Steps with no activity are the loose Script set they have always been. */
+export function looseSteps(steps) {
+  return steps.filter((step) => !step.activity);
 }

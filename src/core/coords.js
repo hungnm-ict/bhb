@@ -7,8 +7,8 @@
  * - **buffer space** — WebGL framebuffer pixels, origin **bottom-left**.
  *   What `gl.readPixels` uses. This is why every conversion flips Y.
  *
- * Rules are stored in buffer space together with the buffer size they were
- * captured at (`bw`/`bh`). That extra pair is what makes a rule portable:
+ * Steps are stored in buffer space together with the buffer size they were
+ * captured at (`bw`/`bh`). That extra pair is what makes a step portable:
  * upstream stored bare pixels, which only worked because macOS pinned the
  * canvas to a fixed minimum size. On Windows the framebuffer tracks the
  * window and device pixel ratio, so a bare pixel points somewhere else the
@@ -26,7 +26,7 @@
  *
  * `SCALE` is correct when the game stretches to fill the canvas. If the game
  * turns out to letterbox, or to anchor UI to screen edges, that becomes a new
- * mode here — stored rules keep working, because `bw`/`bh` records enough to
+ * mode here — stored steps keep working, because `bw`/`bh` records enough to
  * re-derive the position under any model.
  */
 export const ScaleMode = Object.freeze({

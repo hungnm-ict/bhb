@@ -25,7 +25,7 @@ function makeCanvas(bufferW, bufferH, cssW, cssH) {
 
 describe('marker layer', () => {
   let store;
-  let rules;
+  let steps;
   let layer;
 
   beforeEach(async () => {
@@ -37,18 +37,18 @@ describe('marker layer', () => {
     const { createMarkerLayer } = await import('../src/ui/markers.js');
 
     store = createUiStore();
-    rules = [{ id: 'a', label: 'Rerun', enabled: true, hex: '#a6d339', points: [{ x: 400, y: 260, bw: 800, bh: 520 }] }];
-    layer = createMarkerLayer({ getRules: () => rules, getScaleMode: () => 'scale', store });
+    steps = [{ id: 'a', label: 'Rerun', enabled: true, hex: '#a6d339', points: [{ x: 400, y: 260, bw: 800, bh: 520 }] }];
+    layer = createMarkerLayer({ getSteps: () => steps, getScaleMode: () => 'scale', store });
 
     store.openPanel();
-    store.setTab(Tab.RULES);
+    store.setTab(Tab.STEPS);
   });
 
   function marks() {
     return [...document.querySelectorAll('.bhb-mark')];
   }
 
-  it('places a marker at the rule position, with y flipped to client space', () => {
+  it('places a marker at the step position, with y flipped to client space', () => {
     layer.render();
 
     expect(marks()).toHaveLength(1);
@@ -64,7 +64,7 @@ describe('marker layer', () => {
     expect(marks()[0].style.top).toBe('130px');
   });
 
-  it('hides itself when the rules tab is not open', () => {
+  it('hides itself when the steps tab is not open', () => {
     layer.render();
     store.closePanel();
     layer.render();
@@ -73,10 +73,10 @@ describe('marker layer', () => {
     expect(document.querySelector('.bhb-markers').style.display).toBe('none');
   });
 
-  it('selects a rule when its marker is clicked', () => {
+  it('selects a step when its marker is clicked', () => {
     layer.render();
     marks()[0].dispatchEvent(new MouseEvent('click', { bubbles: true }));
 
-    expect(store.get().selectedRuleId).toBe('a');
+    expect(store.get().selectedStepId).toBe('a');
   });
 });

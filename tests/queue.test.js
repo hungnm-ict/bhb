@@ -59,14 +59,14 @@ vi.mock('../src/core/canvas.js', () => ({
 }));
 
 const { createEngine, TaskId } = await import('../src/core/engine.js');
-const { createRule } = await import('../src/rules/model.js');
-const { createScreen } = await import('../src/rules/screen.js');
+const { createStep } = await import('../src/bot/step.js');
+const { createScreen } = await import('../src/bot/screen.js');
 const { captureFingerprint } = await import('../src/core/region.js');
 const { IDLE_ADVANCE_TICKS, AUTO_STOP_TIMEOUT } = await import('../src/core/constants.js');
 
 const RED = { r: 255, g: 0, b: 0 };
 const BLUE = { r: 0, g: 0, b: 255 };
-/** Neither a rule colour nor an anchor: on screen, but nothing to do. */
+/** Neither a step colour nor an anchor: on screen, but nothing to do. */
 const GREEN = { r: 0, g: 255, b: 0 };
 
 function anchorOf(color) {
@@ -87,7 +87,7 @@ function anchorOf(color) {
 }
 
 function ruleFor(activity) {
-  return createRule({
+  return createStep({
     label: activity,
     activity,
     hex: '#ff0000',
@@ -96,11 +96,11 @@ function ruleFor(activity) {
   });
 }
 
-function build({ rules = [], screens = [], activities, closeAfterRound = false, closeGame } = {}) {
+function build({ steps = [], screens = [], activities, closeAfterRound = false, closeGame } = {}) {
   return createEngine({
-    getScriptRules: () => rules,
-    getRerunRules: () => [],
-    getWorldBossRules: () => [],
+    getScriptSteps: () => steps,
+    getRerunSteps: () => [],
+    getWorldBossSteps: () => [],
     getScaleMode: () => 'scale',
     getScreens: () => screens,
     getActivities: () => activities,
@@ -121,13 +121,13 @@ beforeEach(() => {
 });
 
 describe('run-all queue', () => {
-  it('starts at the top of the queue and runs only that activity\'s rules', () => {
-    const engine = build({ rules: [ruleFor('pvp'), ruleFor('raid')], activities: [...QUEUE] });
+  it('starts at the top of the queue and runs only that activity\'s steps', () => {
+    const engine = build({ steps: [ruleFor('pvp'), ruleFor('raid')], activities: [...QUEUE] });
 
     engine.start(TaskId.RUN_ALL);
     expect(engine.getState().activity).toBe('pvp');
     expect(engine.getState().round).toBe(1);
-    // One click per tick, from PVP's rule only — both rules point at the
+    // One click per tick, from PVP's step only — both steps point at the
     // same colour, so two clicks would mean the queue is not filtering.
     expect(clicks).toHaveLength(1);
     engine.stop();
@@ -141,7 +141,7 @@ describe('run-all queue', () => {
       tolerance: 0,
       stopsTask: true,
     });
-    const engine = build({ rules: [ruleFor('pvp')], screens: [dry], activities: [...QUEUE] });
+    const engine = build({ steps: [ruleFor('pvp')], screens: [dry], activities: [...QUEUE] });
 
     engine.start(TaskId.RUN_ALL);
     expect(engine.getState().activity).toBe('pvp');
@@ -156,7 +156,7 @@ describe('run-all queue', () => {
   });
 
   it('advances after enough ticks with nothing to click, and a match resets the count', () => {
-    const engine = build({ rules: [ruleFor('pvp')], activities: [...QUEUE] });
+    const engine = build({ steps: [ruleFor('pvp')], activities: [...QUEUE] });
 
     engine.start(TaskId.RUN_ALL);
     frame = () => BLUE; // nothing matches now
@@ -188,7 +188,7 @@ describe('run-all queue', () => {
       tolerance: 0,
       stopsTask: true,
     });
-    const engine = build({ rules: [], screens: [dry], activities: queue });
+    const engine = build({ steps: [], screens: [dry], activities: queue });
 
     engine.start(TaskId.RUN_ALL);
     frame = () => BLUE;
@@ -206,7 +206,7 @@ describe('run-all queue', () => {
       tolerance: 0,
       stopsTask: true,
     });
-    const engine = build({ rules: [], screens: [dry], activities: [...QUEUE] });
+    const engine = build({ steps: [], screens: [dry], activities: [...QUEUE] });
     const entries = [];
     engine.on('action', (entry) => entries.push(entry));
 
@@ -229,7 +229,7 @@ describe('run-all queue', () => {
       tolerance: 0,
       stopsTask: true,
     });
-    const engine = build({ rules: [ruleFor('raid')], screens: [dry], activities: [...QUEUE] });
+    const engine = build({ steps: [ruleFor('raid')], screens: [dry], activities: [...QUEUE] });
 
     engine.start(TaskId.RUN_ALL);
     frame = () => BLUE;
@@ -250,7 +250,7 @@ describe('run-all queue', () => {
 
   it('closes the game after a round only when asked', () => {
     const closeGame = vi.fn();
-    const engine = build({ rules: [], activities: [...QUEUE], closeAfterRound: true, closeGame });
+    const engine = build({ steps: [], activities: [...QUEUE], closeAfterRound: true, closeGame });
 
     engine.start(TaskId.RUN_ALL);
     frame = () => BLUE;
@@ -267,9 +267,9 @@ describe('hang recovery', () => {
   it('reloads instead of stopping when the watchdog is on', () => {
     const recoverFromHang = vi.fn(() => true);
     const engine = createEngine({
-      getScriptRules: () => [],
-      getRerunRules: () => [],
-      getWorldBossRules: () => [],
+      getScriptSteps: () => [],
+      getRerunSteps: () => [],
+      getWorldBossSteps: () => [],
       getScaleMode: () => 'scale',
       getActivities: () => [...QUEUE],
       shouldRecoverFromHang: () => true,
@@ -292,9 +292,9 @@ describe('hang recovery', () => {
 
   it('stops once reloading has stopped helping', () => {
     const engine = createEngine({
-      getScriptRules: () => [],
-      getRerunRules: () => [],
-      getWorldBossRules: () => [],
+      getScriptSteps: () => [],
+      getRerunSteps: () => [],
+      getWorldBossSteps: () => [],
       getScaleMode: () => 'scale',
       getActivities: () => [...QUEUE],
       shouldRecoverFromHang: () => true,
@@ -309,7 +309,7 @@ describe('hang recovery', () => {
   });
 
   it('stops, as it always did, when the watchdog is off', () => {
-    const engine = build({ rules: [], activities: [...QUEUE] });
+    const engine = build({ steps: [], activities: [...QUEUE] });
 
     engine.start(TaskId.RUN_ALL);
     clock += AUTO_STOP_TIMEOUT + 1000;
