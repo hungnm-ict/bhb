@@ -164,7 +164,14 @@ export function createEngine(deps) {
       if (!spent.has(queue[index].id)) {
         queueIndex = index;
         setActivity(queue[index]);
-        report('activity', { label: queue[index].name, activityId: queue[index].id, why });
+        report('activity', {
+          label: queue[index].name,
+          activityId: queue[index].id,
+          why,
+          round: state.round,
+          // Who ran dry is the activity being left, never the one announced.
+          ...(why === 'spent' && leaving ? { spentId: leaving.id, spentName: leaving.name } : {}),
+        });
         setMessage(`${queue[index].name}: ${why === 'spent' ? 'next' : 'nothing to do, next'}`);
         return;
       }

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.6.3
+// @version      0.6.4
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -14,7 +14,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.6.3" : "dev";
+  var VERSION = true ? "0.6.4" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -788,7 +788,14 @@
         if (!spent.has(queue[index].id)) {
           queueIndex = index;
           setActivity(queue[index]);
-          report("activity", { label: queue[index].name, activityId: queue[index].id, why });
+          report("activity", {
+            label: queue[index].name,
+            activityId: queue[index].id,
+            why,
+            round: state.round,
+            // Who ran dry is the activity being left, never the one announced.
+            ...why === "spent" && leaving ? { spentId: leaving.id, spentName: leaving.name } : {}
+          });
           setMessage(`${queue[index].name}: ${why === "spent" ? "next" : "nothing to do, next"}`);
           return;
         }
