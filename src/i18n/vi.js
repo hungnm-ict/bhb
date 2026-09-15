@@ -6,7 +6,7 @@ export default {
   'task.runAll': 'CHẠY TẤT CẢ',
   'task.script': 'TUỲ CHỈNH',
 
-  'phase.hunting': 'đang tìm',
+  'phase.hunting': 'đang chạy',
   'phase.resting': 'nghỉ',
 
   'hud.idle': 'đang dừng',
