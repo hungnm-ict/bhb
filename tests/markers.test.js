@@ -42,6 +42,8 @@ describe('marker layer', () => {
 
     store.openPanel();
     store.setTab(Tab.STEPS);
+    // Markers are on demand now; these tests are about where they land.
+    store.pinMarkers(true);
   });
 
   function marks() {

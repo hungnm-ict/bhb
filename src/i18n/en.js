@@ -177,4 +177,9 @@ export default {
   'steps.armCapture': 'Capture mode — enables the 0 key',
   'steps.armHint': 'Switch this off once you are done: 0 sits beside the keys that drive the bot, and leaving it live invites a stray press mid-fight. The button above always works.',
   'msg.captureDisarmed': 'the 0 key is off — switch capture mode on in the Steps tab',
+
+  'steps.dryRun': '▷ Dry run',
+  'steps.dryRunStop': '■ Stop the dry run',
+  'steps.pinMarkers': 'Show every marker',
+  'steps.dryRunHint': 'A dry run walks the list and scores each step against the frame on screen — ✓ matches, ✗ does not, ⊘ belongs to another screen. It clicks nothing, so it is safe at any time. Otherwise a marker appears only while you hover its row.',
 };

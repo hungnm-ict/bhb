@@ -340,6 +340,7 @@ const CSS = `
   cursor: pointer;
 }
 .bhb-btn:hover { border-color: rgba(124, 92, 255, .55); }
+.bhb-btn.is-busy { border-color: rgba(124, 92, 255, .6); color: var(--bhb-text); }
 .bhb-btn--primary {
   background: linear-gradient(180deg, rgba(124, 92, 255, .9), rgba(98, 70, 230, .9));
   border-color: transparent;
@@ -470,6 +471,12 @@ const CSS = `
 .bhb-mark--selected { border-color: var(--bhb-cyan); box-shadow: 0 0 16px rgba(34, 211, 238, .8); }
 .bhb-mark--off { opacity: .4; border-color: var(--bhb-dim); }
 .bhb-mark--legacy { border-color: var(--bhb-warn); }
+
+/* Dry-run verdicts: what the matcher found, on the marker it found it on. */
+.bhb-mark--match { border-color: var(--bhb-live); box-shadow: 0 0 0 2px rgba(61, 220, 151, .35); }
+.bhb-mark--miss { border-color: var(--bhb-danger); opacity: .75; }
+.bhb-mark--gated { border-color: var(--bhb-dim); opacity: .45; }
+.bhb-mark--testing { transform: translate(-50%, -50%) scale(1.45); z-index: 1; }
 .bhb-mark__n { color: var(--bhb-text); font-family: var(--bhb-mono); font-size: var(--bhb-fs-xs); font-weight: 700; }
 .bhb-mark__swatch {
   width: 9px; height: 9px; border-radius: 50%;

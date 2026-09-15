@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.8.2
+// @version      0.9.0
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -14,7 +14,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.8.2" : "dev";
+  var VERSION = true ? "0.9.0" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -37,6 +37,7 @@
   var CLICK_HOVER_RESET_MS = 100;
   var HOVER_RESET_POINT = { x: 5, y: 5 };
   var SPEED_STEPS = [0.1, 0.25, 0.5, 0.75, 1, 2, 3, 4, 5, 7, 10, 15, 20];
+  var DRY_RUN_STEP_MS = 700;
   var NOTIFY_COOLDOWN_MS = 60 * 1e3;
   var NOTIFY_SHOT_QUALITY = 0.7;
   var Z_TOP = "2147483647";
@@ -1795,7 +1796,11 @@
     "toast.capturedUnstable": "⚠ đã bắt, nhưng màu ở đây đổi liên tục",
     "steps.armCapture": "Bật chế độ bắt bước — cho phép phím 0",
     "steps.armHint": "Tắt công tắc này khi bắt xong: phím 0 nằm cạnh các phím điều khiển bot, bật suốt thì dễ bấm nhầm giữa lúc đang chơi. Nút tím bên trên thì lúc nào cũng dùng được.",
-    "msg.captureDisarmed": "phím 0 đang tắt — bật chế độ bắt bước ở tab Bước"
+    "msg.captureDisarmed": "phím 0 đang tắt — bật chế độ bắt bước ở tab Bước",
+    "steps.dryRun": "▷ Chạy thử",
+    "steps.dryRunStop": "■ Dừng chạy thử",
+    "steps.pinMarkers": "Hiện hết dấu",
+    "steps.dryRunHint": "Chạy thử đi dọc danh sách và chấm điểm từng bước trên khung hình đang hiện — ✓ khớp, ✗ không khớp, ⊘ thuộc màn hình khác. Nó KHÔNG bấm gì vào game nên lúc nào cũng an toàn. Bình thường dấu chỉ hiện khi rê chuột lên một dòng."
   };
 
   // src/i18n/en.js
@@ -1955,7 +1960,11 @@
     "toast.capturedUnstable": "⚠ captured, but the colour here keeps changing",
     "steps.armCapture": "Capture mode — enables the 0 key",
     "steps.armHint": "Switch this off once you are done: 0 sits beside the keys that drive the bot, and leaving it live invites a stray press mid-fight. The button above always works.",
-    "msg.captureDisarmed": "the 0 key is off — switch capture mode on in the Steps tab"
+    "msg.captureDisarmed": "the 0 key is off — switch capture mode on in the Steps tab",
+    "steps.dryRun": "▷ Dry run",
+    "steps.dryRunStop": "■ Stop the dry run",
+    "steps.pinMarkers": "Show every marker",
+    "steps.dryRunHint": "A dry run walks the list and scores each step against the frame on screen — ✓ matches, ✗ does not, ⊘ belongs to another screen. It clicks nothing, so it is safe at any time. Otherwise a marker appears only while you hover its row."
   };
 
   // src/i18n/index.js
@@ -2279,6 +2288,94 @@
       deps.persist();
     }
     return { setEnabled, move };
+  }
+
+  // src/bot/dry-run.js
+  function scoreStep(step, gl, buffer, scaleMode, screenId) {
+    if (!step.enabled) {
+      return "off";
+    }
+    if (!isStepReady(step)) {
+      return "empty";
+    }
+    if (!stepAllowedOn(step, screenId)) {
+      return "gated";
+    }
+    for (const storedPoint of step.points) {
+      const hit = matchPoint(
+        gl,
+        storedPoint,
+        colorForPoint(step, storedPoint),
+        buffer,
+        scaleMode,
+        step.tolerance
+      );
+      if (hit.matched) {
+        return "match";
+      }
+    }
+    return "miss";
+  }
+  function scoreSteps(steps, target, scaleMode, screenId) {
+    if (!target) {
+      return [];
+    }
+    const buffer = getBufferSize(target.canvas);
+    return steps.map((step) => ({
+      stepId: step.id,
+      verdict: scoreStep(step, target.gl, buffer, scaleMode, screenId)
+    }));
+  }
+
+  // src/bot/dry-run-runner.js
+  function createDryRunner(deps) {
+    let timer = null;
+    function clear() {
+      if (timer !== null) {
+        realClearTimeout(timer);
+        timer = null;
+      }
+    }
+    function isRunning() {
+      return timer !== null;
+    }
+    function start2() {
+      clear();
+      const steps = deps.getSteps();
+      const target = getRenderTarget();
+      if (steps.length === 0 || !target) {
+        deps.onTick(null);
+        return false;
+      }
+      const screen = detectScreen(
+        target.gl,
+        deps.getScreens(),
+        getBufferSize(target.canvas),
+        deps.getScaleMode()
+      );
+      const scored = scoreSteps(steps, target, deps.getScaleMode(), screen ? screen.id : null);
+      const scores = {};
+      for (const entry of scored) {
+        scores[entry.stepId] = entry.verdict;
+      }
+      let index = 0;
+      const advance = () => {
+        if (index >= steps.length) {
+          stop();
+          return;
+        }
+        deps.onTick({ index, scores });
+        index += 1;
+        timer = realSetTimeout(advance, DRY_RUN_STEP_MS);
+      };
+      advance();
+      return true;
+    }
+    function stop() {
+      clear();
+      deps.onTick(null);
+    }
+    return { start: start2, stop, isRunning };
   }
 
   // src/ui/styles.js
@@ -2612,6 +2709,7 @@
   cursor: pointer;
 }
 .bhb-btn:hover { border-color: rgba(124, 92, 255, .55); }
+.bhb-btn.is-busy { border-color: rgba(124, 92, 255, .6); color: var(--bhb-text); }
 .bhb-btn--primary {
   background: linear-gradient(180deg, rgba(124, 92, 255, .9), rgba(98, 70, 230, .9));
   border-color: transparent;
@@ -2742,6 +2840,12 @@
 .bhb-mark--selected { border-color: var(--bhb-cyan); box-shadow: 0 0 16px rgba(34, 211, 238, .8); }
 .bhb-mark--off { opacity: .4; border-color: var(--bhb-dim); }
 .bhb-mark--legacy { border-color: var(--bhb-warn); }
+
+/* Dry-run verdicts: what the matcher found, on the marker it found it on. */
+.bhb-mark--match { border-color: var(--bhb-live); box-shadow: 0 0 0 2px rgba(61, 220, 151, .35); }
+.bhb-mark--miss { border-color: var(--bhb-danger); opacity: .75; }
+.bhb-mark--gated { border-color: var(--bhb-dim); opacity: .45; }
+.bhb-mark--testing { transform: translate(-50%, -50%) scale(1.45); z-index: 1; }
 .bhb-mark__n { color: var(--bhb-text); font-family: var(--bhb-mono); font-size: var(--bhb-fs-xs); font-weight: 700; }
 .bhb-mark__swatch {
   width: 9px; height: 9px; border-radius: 50%;
@@ -2904,6 +3008,14 @@
        * `0` mid-fight that captures whatever happened to be under the cursor.
        */
       isCaptureArmed: false,
+      /** All markers at once; off by default, so the game stays readable. */
+      areMarkersPinned: false,
+      /**
+       * A dry run in progress: which step it is on, and what it found.
+       *
+       * @type {{ index: number, scores: Record<string, string> } | null}
+       */
+      dryRun: null,
       /** @type {object[]} newest first */
       log: []
     };
@@ -2939,6 +3051,12 @@
       setTab: (tab) => patch({ tab, panelOpen: true }),
       setRuleFilter: (activityId) => patch({ stepFilter: activityId }),
       armCapture: (armed) => patch({ isCaptureArmed: armed }),
+      pinMarkers: (pinned) => patch({ areMarkersPinned: pinned }),
+      /** @param {{ index: number, scores: Record<string, string> } | null} run */
+      setDryRun(run) {
+        state.dryRun = run;
+        emit();
+      },
       selectStep: (id) => patch({ selectedStepId: id }),
       hoverStep: (id) => patch({ hoveredStepId: id }),
       /** Drop any reference to a step that no longer exists. */
@@ -2963,9 +3081,23 @@
         state.log = [];
         emit();
       },
-      /** Markers would swallow the game's clicks if they outlived the tab. */
+      /**
+       * Markers would swallow the game's clicks if they outlived the tab, and
+       * drawing all of them all the time buried the game under numbers. They are
+       * shown on demand: pinned, during a dry run, or under the cursor.
+       */
       markersVisible() {
-        return state.panelOpen && state.tab === Tab.STEPS;
+        if (!state.panelOpen || state.tab !== Tab.STEPS) {
+          return false;
+        }
+        return state.areMarkersPinned || state.dryRun !== null || state.hoveredStepId !== null;
+      },
+      /** Which steps the marker layer should draw, of the ones it could. */
+      markerFilter() {
+        if (state.areMarkersPinned || state.dryRun !== null) {
+          return null;
+        }
+        return state.hoveredStepId;
       }
     };
   }
@@ -3235,7 +3367,7 @@
     const activities = deps.getActivities();
     const filter = state.stepFilter;
     const steps = filter === null ? all : all.filter((step) => (step.activity || "") === filter);
-    const isArmed = deps.store.get().isCaptureArmed;
+    const isArmed = state.isCaptureArmed;
     const arm = el("button", { class: `bhb-task bhb-task--wrap ${isArmed ? "is-on" : ""}` }, [
       el("span", { class: "bhb-task__switch" }),
       el("span", { class: "bhb-task__label", text: t("steps.armCapture") }),
@@ -3243,6 +3375,26 @@
     ]);
     arm.addEventListener("click", () => {
       deps.store.armCapture(!isArmed);
+      deps.refresh();
+    });
+    const isDryRunning = state.dryRun !== null;
+    const dryRun = el("button", { class: `bhb-btn ${isDryRunning ? "is-busy" : ""}` }, [
+      el("span", { text: isDryRunning ? t("steps.dryRunStop") : t("steps.dryRun") })
+    ]);
+    dryRun.addEventListener("click", () => {
+      if (isDryRunning) {
+        deps.dryRunner.stop();
+      } else {
+        deps.dryRunner.start();
+      }
+      deps.refresh();
+    });
+    const pin = el("button", {
+      class: `bhb-btn ${state.areMarkersPinned ? "is-busy" : ""}`,
+      text: t("steps.pinMarkers")
+    });
+    pin.addEventListener("click", () => {
+      deps.store.pinMarkers(!state.areMarkersPinned);
       deps.refresh();
     });
     const capture = el("button", { class: "bhb-btn bhb-btn--primary" }, [
@@ -3279,8 +3431,10 @@
       ]),
       arm,
       capture,
+      el("div", { class: "bhb-btnrow" }, [dryRun, pin]),
       el("p", { class: "bhb-note", text: t("steps.captureHint") }),
       el("p", { class: "bhb-note", text: t("steps.armHint") }),
+      el("p", { class: "bhb-note", text: t("steps.dryRunHint") }),
       legacyCount > 0 ? el("p", { class: "bhb-note bhb-note--warn", text: t("steps.legacyWarning", { n: legacyCount }) }) : null
     ]);
     if (steps.length === 0) {
@@ -4157,6 +4311,8 @@
   function createMarkerLayer(deps) {
     let layer = null;
     const nodes = /* @__PURE__ */ new Map();
+    let drawnFilter = null;
+    let drawnVisible = false;
     function ensureLayer() {
       if (!layer) {
         layer = mount(el("div", { class: "bhb-markers" }));
@@ -4183,6 +4339,15 @@
       }
       if (state.hoveredStepId === step.id) {
         classes.push("bhb-mark--hovered");
+      }
+      if (state.dryRun) {
+        const verdict = state.dryRun.scores[step.id];
+        if (verdict) {
+          classes.push(`bhb-mark--${verdict}`);
+        }
+        if (deps.getSteps()[state.dryRun.index] === step) {
+          classes.push("bhb-mark--testing");
+        }
       }
       const node = el(
         "div",
@@ -4211,6 +4376,8 @@
         node.style.display = "none";
         node.replaceChildren();
         nodes.clear();
+        drawnVisible = false;
+        drawnFilter = null;
         return;
       }
       const canvas = getCanvas();
@@ -4221,11 +4388,20 @@
       node.style.display = "block";
       const buffer = getBufferSize(canvas);
       const rect = canvas.getBoundingClientRect();
+      const only = deps.store.markerFilter();
       nodes.clear();
-      const marks = deps.getSteps().map((step, index) => markerFor(step, index, canvas, buffer, rect)).filter(Boolean);
+      const marks = deps.getSteps().map(
+        (step, index) => only !== null && step.id !== only ? null : markerFor(step, index, canvas, buffer, rect)
+      ).filter(Boolean);
       node.replaceChildren(...marks);
+      drawnFilter = only;
+      drawnVisible = true;
     }
     function highlight() {
+      if (deps.store.markersVisible() !== drawnVisible || deps.store.markerFilter() !== drawnFilter) {
+        render();
+        return;
+      }
       const state = deps.store.get();
       for (const [stepId, marker] of nodes) {
         marker.classList.toggle("bhb-mark--selected", state.selectedStepId === stepId);
@@ -4413,6 +4589,15 @@
       getScaleMode: () => settings.scaleMode
     });
     const queueEditor = createQueueEditor({ getActivities, persist });
+    const dryRunner = createDryRunner({
+      getSteps,
+      getScreens,
+      getScaleMode: () => settings.scaleMode,
+      onTick: (run) => {
+        store.setDryRun(run);
+        markers.render();
+      }
+    });
     const refresh = () => {
       hud.render();
       panel.render();
@@ -4467,6 +4652,7 @@
       stepEditor,
       screenEditor,
       queueEditor,
+      dryRunner,
       getSteps,
       getScreens,
       getActivities,

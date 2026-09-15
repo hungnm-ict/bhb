@@ -45,6 +45,7 @@ import { RERUN_STEPS, WORLD_BOSS_STEPS } from './bot/builtin.js';
 import { createStepEditor } from './bot/step-editor.js';
 import { createScreenEditor } from './bot/screen-editor.js';
 import { createQueueEditor } from './bot/queue-editor.js';
+import { createDryRunner } from './bot/dry-run-runner.js';
 import { setLanguage, t } from './i18n/index.js';
 import { installStyles } from './ui/styles.js';
 import { createUiStore, Tab } from './ui/store.js';
@@ -129,6 +130,16 @@ function bootstrap() {
 
   const queueEditor = createQueueEditor({ getActivities, persist });
 
+  const dryRunner = createDryRunner({
+    getSteps,
+    getScreens,
+    getScaleMode: () => settings.scaleMode,
+    onTick: (run) => {
+      store.setDryRun(run);
+      markers.render();
+    },
+  });
+
   // One renderer for all three views: any change redraws whatever is showing.
   const refresh = () => {
     hud.render();
@@ -190,6 +201,7 @@ function bootstrap() {
     stepEditor,
     screenEditor,
     queueEditor,
+    dryRunner,
     getSteps,
     getScreens,
     getActivities,

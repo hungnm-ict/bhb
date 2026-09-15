@@ -177,4 +177,9 @@ export default {
   'steps.armCapture': 'Bật chế độ bắt bước — cho phép phím 0',
   'steps.armHint': 'Tắt công tắc này khi bắt xong: phím 0 nằm cạnh các phím điều khiển bot, bật suốt thì dễ bấm nhầm giữa lúc đang chơi. Nút tím bên trên thì lúc nào cũng dùng được.',
   'msg.captureDisarmed': 'phím 0 đang tắt — bật chế độ bắt bước ở tab Bước',
+
+  'steps.dryRun': '▷ Chạy thử',
+  'steps.dryRunStop': '■ Dừng chạy thử',
+  'steps.pinMarkers': 'Hiện hết dấu',
+  'steps.dryRunHint': 'Chạy thử đi dọc danh sách và chấm điểm từng bước trên khung hình đang hiện — ✓ khớp, ✗ không khớp, ⊘ thuộc màn hình khác. Nó KHÔNG bấm gì vào game nên lúc nào cũng an toàn. Bình thường dấu chỉ hiện khi rê chuột lên một dòng.',
 };
