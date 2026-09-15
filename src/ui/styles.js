@@ -16,7 +16,7 @@ const CSS = `
   --bhb-bg-soft: #1a1d29;
   --bhb-line: rgba(255, 255, 255, .09);
   --bhb-text: #e6e8f0;
-  --bhb-dim: #98a0b5;
+  --bhb-dim: #b3bacd;
   --bhb-accent: #7c5cff;
   --bhb-cyan: #22d3ee;
   --bhb-live: #3ddc97;
@@ -138,13 +138,13 @@ const CSS = `
 .bhb-tabbtn {
   flex: none; padding: 7px 5px 9px; white-space: nowrap;
   background: none; border: 0; border-bottom: 2px solid transparent;
-  color: var(--bhb-dim); font: inherit; font-size: var(--bhb-fs-md); font-weight: 600;
+  color: var(--bhb-text); font: inherit; font-size: var(--bhb-fs-md); font-weight: 600;
   cursor: pointer;
 }
-.bhb-tabbtn:hover { color: var(--bhb-text); }
+.bhb-tabbtn:hover { color: var(--bhb-warn); }
 /* Help is not a place to work, so it reads as a mark rather than a label. */
 .bhb-tabbtn--help { margin-left: auto; padding: 7px 8px 9px; font-size: var(--bhb-fs-md); }
-.bhb-tabbtn.is-active { color: var(--bhb-text); border-bottom-color: var(--bhb-accent); }
+.bhb-tabbtn.is-active { color: var(--bhb-warn); border-bottom-color: var(--bhb-warn); }
 
 .bhb-panel__body {
   /* min-height:0 is what lets a flex item actually scroll instead of growing. */
@@ -235,17 +235,14 @@ const CSS = `
 .bhb-task.is-locked:hover { border-color: var(--bhb-line); }
 .bhb-task__phase { color: var(--bhb-warn); font-size: var(--bhb-fs-xs); }
 
-/* Tile variant: switch, phase and hotkey on top, name under them. */
-.bhb-task--tile { flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 9px; }
-.bhb-task--tile .bhb-task__top { display: flex; align-items: center; gap: 7px; }
-.bhb-task--tile .bhb-task__name { flex: none; font-size: var(--bhb-fs-sm); line-height: 1.2; }
-/* Pushes the hotkey to the right edge whether or not a phase is showing. */
-.bhb-task--tile .bhb-task__phase { margin-left: auto; }
-.bhb-task__warn { margin-left: auto; color: var(--bhb-warn); font-size: var(--bhb-fs-md); cursor: help; }
-.bhb-task--tile .bhb-task__phase + .bhb-task__warn { margin-left: 0; }
-.bhb-task--tile .bhb-task__warn + .bhb-kbd { margin-left: 0; }
-.bhb-task--tile .bhb-kbd { margin-left: auto; }
-.bhb-task--tile .bhb-task__phase + .bhb-kbd { margin-left: 0; }
+/* Tile variant: everything on one row — a tile this small needs no second. */
+.bhb-task--tile { gap: 8px; padding: 8px 9px; }
+.bhb-task--tile .bhb-task__name {
+  flex: 1; min-width: 0;
+  font-size: var(--bhb-fs-md); line-height: 1.2;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.bhb-task__warn { color: var(--bhb-warn); font-size: var(--bhb-fs-md); cursor: help; }
 
 .bhb-kbd {
   min-width: 17px; padding: 2px 4px;
@@ -257,7 +254,7 @@ const CSS = `
 .bhb-slider { width: 100%; height: var(--bhb-hit); accent-color: var(--bhb-accent); cursor: pointer; }
 .bhb-speedrow { display: flex; align-items: center; gap: 8px; }
 .bhb-speedrow .bhb-slider { flex: 1; min-width: 0; }
-.bhb-icon--wide { min-width: 32px; font-size: var(--bhb-fs-lg); line-height: 1; }
+.bhb-icon--wide { min-width: 32px; font-size: var(--bhb-fs-xl); font-weight: 700; line-height: 1; }
 .bhb-speedticks {
   /* The inset clears the −/+ buttons, so a tick sits over the track it marks. */
   position: relative; height: 5px; margin-inline: calc(32px + 8px);
@@ -269,15 +266,15 @@ const CSS = `
   transform: translateX(-50%);
 }
 /* 1× is the stop people aim for, so it is the one that reads as a stop. */
-.bhb-speedticks__tick.is-unity { height: 7px; background: var(--bhb-dim); width: 2px; }
+.bhb-speedticks__tick.is-major { height: 8px; width: 2px; background: var(--bhb-dim); }
 
-.bhb-speedends {
-  position: relative;
-  display: flex; justify-content: space-between;
-  margin-top: 2px; margin-inline: calc(32px + 8px);
-  color: var(--bhb-dim); font-size: var(--bhb-fs-xs);
+.bhb-speedscale {
+  position: relative; height: 15px;
+  margin-top: 1px; margin-inline: calc(32px + 8px);
+  color: var(--bhb-dim); font-size: var(--bhb-fs-sm);
 }
-.bhb-speedends__mark { position: absolute; transform: translateX(-50%); }
+.bhb-speedscale__mark { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+.bhb-speedscale__mark.is-unity { color: var(--bhb-text); font-weight: 700; }
 .bhb-speed { font-family: var(--bhb-mono); font-size: var(--bhb-fs-lg); font-weight: 700; }
 .bhb-speed.is-boosted { color: var(--bhb-cyan); }
 

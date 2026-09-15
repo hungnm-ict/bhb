@@ -42,6 +42,14 @@ export function updateSpeedDisplay() {
   speedControl.readout.className = `bhb-speed ${speed > 1 ? 'is-boosted' : ''}`;
 }
 
+/**
+ * Stops worth a label under the track.
+ *
+ * The scale is uneven, so a label has to sit over the stop it names rather than
+ * at a share of the width — 1× is nowhere near the middle.
+ */
+const LABELLED_SPEEDS = [0.1, 1, 5, 10, 20];
+
 /** Hotkeys still work; showing them here is how the user learns them. */
 const TASKS = [
   [TaskId.RERUN, 'task.rerun', '3'],
@@ -105,17 +113,13 @@ export function renderTasksTab(deps) {
         ...(title ? { title } : {}),
       },
       [
-        el('div', { class: 'bhb-task__top' }, [
-          el('span', { class: 'bhb-task__switch' }),
-          // On the top row rather than a line of its own: a reserved line is
-          // empty most of the time, and the tile paid its height for it.
-          phase ? el('span', { class: 'bhb-task__phase', text: phase }) : null,
-          // The reason a switch is locked belongs on that switch. Said under
-          // the grid instead, it read as a verdict on all four.
-          isLocked ? el('span', { class: 'bhb-task__warn', title, text: '⚠' }) : null,
-          el('span', { class: 'bhb-kbd', text: key }),
-        ]),
+        el('span', { class: 'bhb-task__switch' }),
         el('span', { class: 'bhb-task__name', text: t(labelKey) }),
+        phase ? el('span', { class: 'bhb-task__phase', text: phase }) : null,
+        // The reason a switch is locked belongs on that switch. Said under the
+        // grid instead, it read as a verdict on all four.
+        isLocked ? el('span', { class: 'bhb-task__warn', title, text: '⚠' }) : null,
+        el('span', { class: 'bhb-kbd', text: key }),
       ]
     );
     if (!isLocked) {
@@ -179,6 +183,11 @@ export function renderTasksTab(deps) {
   const { slider, readout } = speedControl;
   updateSpeedDisplay();
 
+  /** Where the track is, as a percentage, for a stop's tick and its label. */
+  function stopOffset(index) {
+    return `${(index / (SPEED_STEPS.length - 1)) * 100}%`;
+  }
+
   // Drawn by hand: Chrome renders a `<datalist>`'s marks so faintly that the
   // stops were invisible, which made an uneven scale look like a linear one.
   const ticks = el(
@@ -186,8 +195,20 @@ export function renderTasksTab(deps) {
     { class: 'bhb-speedticks' },
     SPEED_STEPS.map((stop, index) =>
       el('span', {
-        class: `bhb-speedticks__tick ${stop === 1 ? 'is-unity' : ''}`,
-        style: { left: `${(index / (SPEED_STEPS.length - 1)) * 100}%` },
+        class: `bhb-speedticks__tick ${LABELLED_SPEEDS.includes(stop) ? 'is-major' : ''}`,
+        style: { left: stopOffset(index) },
+      })
+    )
+  );
+
+  const scale = el(
+    'div',
+    { class: 'bhb-speedscale bhb-mono' },
+    LABELLED_SPEEDS.map((stop) =>
+      el('span', {
+        class: `bhb-speedscale__mark ${stop === 1 ? 'is-unity' : ''}`,
+        text: `${formatSpeed(stop)}×`,
+        style: { left: stopOffset(speedIndex(stop)) },
       })
     )
   );
@@ -213,17 +234,7 @@ export function renderTasksTab(deps) {
         nudge(1, '+'),
       ]),
       ticks,
-      el('div', { class: 'bhb-speedends bhb-mono' }, [
-        el('span', { text: `${formatSpeed(SPEED_STEPS[0])}×` }),
-        // The stops are uneven, so 1x is not the middle of the track; a label
-        // sitting there anyway would misread the whole scale.
-        el('span', {
-          class: 'bhb-speedends__mark',
-          text: '1×',
-          style: { left: `${(speedIndex(1) / (SPEED_STEPS.length - 1)) * 100}%` },
-        }),
-        el('span', { text: `${formatSpeed(SPEED_STEPS[SPEED_STEPS.length - 1])}×` }),
-      ]),
+      scale,
     ]),
 
     el('dl', { class: 'bhb-facts' }, [
