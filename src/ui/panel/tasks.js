@@ -1,8 +1,8 @@
 import { el } from '../dom.js';
 import { t } from '../../i18n/index.js';
 import { TaskId, Phase } from '../../core/engine.js';
-import { getSpeed, setSpeed } from '../../core/speed.js';
-import { SPEED_MIN, SPEED_MAX } from '../../core/constants.js';
+import { getSpeed, setSpeed, formatSpeed, speedIndex } from '../../core/speed.js';
+import { SPEED_STEPS } from '../../core/constants.js';
 import { getCanvas } from '../../core/canvas.js';
 
 /** Hotkeys still work; showing them here is how the user learns them. */
@@ -63,11 +63,13 @@ export function renderTasksTab(deps) {
 
   const slider = el('input', { class: 'bhb-slider' });
   slider.type = 'range';
-  slider.min = String(SPEED_MIN);
-  slider.max = String(SPEED_MAX);
-  slider.value = String(speed);
+  // The stops are not evenly spaced, so the slider rides their index.
+  slider.min = '0';
+  slider.max = String(SPEED_STEPS.length - 1);
+  slider.step = '1';
+  slider.value = String(speedIndex(speed));
   slider.addEventListener('input', () => {
-    setSpeed(Number(slider.value));
+    setSpeed(SPEED_STEPS[Number(slider.value)]);
     deps.refresh();
   });
 
@@ -77,7 +79,7 @@ export function renderTasksTab(deps) {
     el('div', { class: 'bhb-field' }, [
       el('div', { class: 'bhb-field__head' }, [
         el('span', { class: 'bhb-label', text: t('overlay.speed') }),
-        el('span', { class: `bhb-speed ${speed > 1 ? 'is-boosted' : ''}`, text: `${speed}×` }),
+        el('span', { class: `bhb-speed ${speed > 1 ? 'is-boosted' : ''}`, text: `${formatSpeed(speed)}×` }),
       ]),
       slider,
     ]),

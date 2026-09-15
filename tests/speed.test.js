@@ -59,3 +59,28 @@ describe('speed hack frame multiplier', () => {
     expect(ticks, 'fresh-closure loop never speeds up').toBeGreaterThan(5);
   });
 });
+
+describe('speed range', () => {
+  beforeEach(() => {
+    vi.resetModules();
+  });
+
+  it('snaps to the nearest stop and clamps to [0.1, 20]', async () => {
+    const speed = await import('../src/core/speed.js');
+
+    speed.setSpeed(0.3);
+    expect(speed.getSpeed()).toBe(0.25);
+
+    speed.setSpeed(6);
+    expect(speed.getSpeed()).toBe(5);
+
+    speed.setSpeed(-5);
+    expect(speed.getSpeed()).toBe(0.1);
+
+    speed.setSpeed(999);
+    expect(speed.getSpeed()).toBe(20);
+
+    expect(speed.formatSpeed(20)).toBe('20');
+    expect(speed.formatSpeed(0.5)).toBe('0.5');
+  });
+});
