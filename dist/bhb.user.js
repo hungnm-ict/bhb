@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.12.1
+// @version      0.13.0
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -14,7 +14,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.12.1" : "dev";
+  var VERSION = true ? "0.13.0" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -1938,7 +1938,18 @@
     "steps.addPlace": "Thêm một chỗ nữa vào bước này (bảng sẽ ẩn đi, rê chuột rồi bấm X)",
     "steps.placeCount": "Số chỗ bước này nhìn vào",
     "steps.maxMatchesHint": "Còn đứng chờ khi số chỗ vẫn thấy màu NHIỀU HƠN số này. Bốn ô mời + đặt 2 nghĩa là chờ đến khi đủ 3 người, ai ngồi ô nào cũng được.",
-    "msg.placeAdded": "đã thêm chỗ vào bước — giờ nhìn {n} chỗ"
+    "msg.placeAdded": "đã thêm chỗ vào bước — giờ nhìn {n} chỗ",
+    "update.title": "Phiên bản",
+    "update.check": "Kiểm tra bản mới",
+    "update.checking": "Đang kiểm tra…",
+    "update.current": "Đang dùng bản mới nhất.",
+    "update.newer": "Có bản {version} — bấm Cài bản mới, Tampermonkey sẽ hiện trang cài.",
+    "update.badge": "có {version}",
+    "update.failed": "Không kiểm tra được — có thể mất mạng.",
+    "update.install": "Cài bản mới",
+    "update.hint": "Đọc thẳng bản đã phát hành trên GitHub, không qua bộ đếm giờ của Tampermonkey — nên vừa phát hành là thấy ngay. Cài xong nhớ tải lại trang game.",
+    "update.reload": "Tải lại trang game",
+    "update.installing": "Cài xong trong tab Tampermonkey rồi thì bấm Tải lại trang game — script chỉ đổi khi trang nạp lại."
   };
 
   // src/i18n/en.js
@@ -2117,7 +2128,18 @@
     "steps.addPlace": "Watch one more place (the panel steps aside; hover and press X)",
     "steps.placeCount": "How many places this step watches",
     "steps.maxMatchesHint": "Hold while MORE than this many places still show the colour. Four invite buttons with this at 2 means wait for a third player, whichever seats they take.",
-    "msg.placeAdded": "place added — the step now watches {n}"
+    "msg.placeAdded": "place added — the step now watches {n}",
+    "update.title": "Version",
+    "update.check": "Check for a new build",
+    "update.checking": "Checking…",
+    "update.current": "This is the latest build.",
+    "update.newer": "{version} is out — press Install and Tampermonkey takes it from there.",
+    "update.badge": "{version} out",
+    "update.failed": "Could not check — the network, most likely.",
+    "update.install": "Install it",
+    "update.hint": "Reads the published build on GitHub directly rather than waiting on Tampermonkey's own timer, so a release shows up the moment it lands. Reload the game page after installing.",
+    "update.reload": "Reload the game",
+    "update.installing": "Once Tampermonkey has installed it, press Reload — a userscript only swaps in on a fresh page load."
   };
 
   // src/i18n/index.js
@@ -4146,6 +4168,46 @@
     ]);
   }
 
+  // src/core/update.js
+  var SCRIPT_URL = "https://raw.githubusercontent.com/hungnm-ict/bhb/master/dist/bhb.user.js";
+  var HEADER_BYTES = 2048;
+  function parseVersion(source) {
+    const match = /^\/\/\s*@version\s+(\S+)/m.exec(source || "");
+    return match ? match[1] : null;
+  }
+  function compareVersions(a, b) {
+    const left = String(a).split(".").map((part) => parseInt(part, 10) || 0);
+    const right = String(b).split(".").map((part) => parseInt(part, 10) || 0);
+    for (let index = 0; index < Math.max(left.length, right.length); index += 1) {
+      const difference = (left[index] || 0) - (right[index] || 0);
+      if (difference !== 0) {
+        return difference > 0 ? 1 : -1;
+      }
+    }
+    return 0;
+  }
+  async function checkForUpdate(deps = {}) {
+    const send = deps.fetch || ((...args) => fetch(...args));
+    const current = deps.current || VERSION;
+    try {
+      const response = await send(`${SCRIPT_URL}?at=${Date.now()}`, {
+        cache: "no-store",
+        headers: { Range: `bytes=0-${HEADER_BYTES}` }
+      });
+      if (!response || response.ok === false) {
+        return { ok: false, latest: null, hasUpdate: false };
+      }
+      const latest = parseVersion(await response.text());
+      if (!latest) {
+        return { ok: false, latest: null, hasUpdate: false };
+      }
+      return { ok: true, latest, hasUpdate: compareVersions(latest, current) > 0 };
+    } catch (error) {
+      console.warn("[BHB] update check failed", error);
+      return { ok: false, latest: null, hasUpdate: false };
+    }
+  }
+
   // src/ui/panel/settings.js
   var transferBox = null;
   var alertBoxes = {};
@@ -4210,6 +4272,52 @@
     return el("div", { class: "bhb-field" }, [
       toggleRow("lock.enabled", lock.enabled, (value) => update({ enabled: value })),
       el("p", { class: "bhb-note", text: t("lock.hint") })
+    ]);
+  }
+  var updateResult = { state: "idle", latest: null };
+  function renderVersion(deps) {
+    const check = el("button", { class: "bhb-btn bhb-btn--small", text: t("update.check") });
+    check.addEventListener("click", () => {
+      updateResult = { state: "checking", latest: null };
+      deps.refresh();
+      checkForUpdate().then((result) => {
+        if (!result.ok) {
+          updateResult = { state: "failed", latest: null };
+        } else {
+          updateResult = { state: result.hasUpdate ? "newer" : "current", latest: result.latest };
+        }
+        deps.refresh();
+      });
+    });
+    const messages = {
+      idle: "",
+      checking: t("update.checking"),
+      current: t("update.current"),
+      newer: t("update.newer", { version: updateResult.latest || "" }),
+      installing: t("update.installing"),
+      failed: t("update.failed")
+    };
+    const install = el("button", { class: "bhb-btn bhb-btn--small", text: t("update.install") });
+    install.addEventListener("click", () => {
+      window.open(`${SCRIPT_URL}?at=${Date.now()}`, "_blank", "noopener");
+      updateResult = { ...updateResult, state: "installing" };
+      deps.refresh();
+    });
+    const reload = el("button", { class: "bhb-btn bhb-btn--small", text: t("update.reload") });
+    reload.addEventListener("click", () => {
+      window.location.reload();
+    });
+    return el("div", { class: "bhb-field" }, [
+      el("div", { class: "bhb-btnrow" }, [
+        check,
+        updateResult.state === "newer" ? install : null,
+        updateResult.state === "installing" ? reload : null
+      ]),
+      el("p", {
+        class: `bhb-note ${updateResult.state === "newer" || updateResult.state === "installing" ? "bhb-note--warn" : ""}`,
+        text: messages[updateResult.state]
+      }),
+      el("p", { class: "bhb-note", text: t("update.hint") })
     ]);
   }
   function section(deps, id, titleKey, summary, build) {
@@ -4392,6 +4500,13 @@
         "settings.language",
         getLanguage() === "vi" ? "Tiếng Việt" : "English",
         () => el("div", { class: "bhb-field" }, [languagePicker])
+      ),
+      section(
+        deps,
+        "version",
+        "update.title",
+        updateResult.state === "newer" ? t("update.badge", { version: updateResult.latest }) : `v${VERSION}`,
+        () => renderVersion(deps)
       ),
       section(
         deps,

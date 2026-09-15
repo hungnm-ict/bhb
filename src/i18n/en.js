@@ -204,4 +204,17 @@ export default {
   'steps.placeCount': 'How many places this step watches',
   'steps.maxMatchesHint': 'Hold while MORE than this many places still show the colour. Four invite buttons with this at 2 means wait for a third player, whichever seats they take.',
   'msg.placeAdded': 'place added — the step now watches {n}',
+
+  'update.title': 'Version',
+  'update.check': 'Check for a new build',
+  'update.checking': 'Checking…',
+  'update.current': 'This is the latest build.',
+  'update.newer': '{version} is out — press Install and Tampermonkey takes it from there.',
+  'update.badge': '{version} out',
+  'update.failed': 'Could not check — the network, most likely.',
+  'update.install': 'Install it',
+  "update.hint": "Reads the published build on GitHub directly rather than waiting on Tampermonkey's own timer, so a release shows up the moment it lands. Reload the game page after installing.",
+
+  'update.reload': 'Reload the game',
+  'update.installing': 'Once Tampermonkey has installed it, press Reload — a userscript only swaps in on a fresh page load.',
 };

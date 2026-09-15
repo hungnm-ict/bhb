@@ -4,6 +4,8 @@ import { ScaleMode } from '../../core/coords.js';
 import { renderQueueSection } from './queue.js';
 import { NOTIFY_EVENTS, hasNotifyTarget } from '../../core/notify.js';
 import { LOCK_SIZE } from '../../core/canvas-lock.js';
+import { VERSION } from '../../core/constants.js';
+import { checkForUpdate, SCRIPT_URL } from '../../core/update.js';
 
 /**
  * Settings, and the first home for the profile list.
@@ -128,6 +130,71 @@ function renderCanvasLock(deps, toggleRow) {
   return el('div', { class: 'bhb-field' }, [
     toggleRow('lock.enabled', lock.enabled, (value) => update({ enabled: value })),
     el('p', { class: 'bhb-note', text: t('lock.hint') }),
+  ]);
+}
+
+/**
+ * The update check's answer, kept across renders.
+ *
+ * The panel rebuilds on every tick, and a result that vanished a second after
+ * the user pressed the button would be no answer at all.
+ *
+ * @type {{ state: 'idle'|'checking'|'current'|'newer'|'failed'|'installing', latest: string | null }}
+ */
+let updateResult = { state: 'idle', latest: null };
+
+function renderVersion(deps) {
+  const check = el('button', { class: 'bhb-btn bhb-btn--small', text: t('update.check') });
+  check.addEventListener('click', () => {
+    updateResult = { state: 'checking', latest: null };
+    deps.refresh();
+    checkForUpdate().then((result) => {
+      if (!result.ok) {
+        updateResult = { state: 'failed', latest: null };
+      } else {
+        updateResult = { state: result.hasUpdate ? 'newer' : 'current', latest: result.latest };
+      }
+      deps.refresh();
+    });
+  });
+
+  const messages = {
+    idle: '',
+    checking: t('update.checking'),
+    current: t('update.current'),
+    newer: t('update.newer', { version: updateResult.latest || '' }),
+    installing: t('update.installing'),
+    failed: t('update.failed'),
+  };
+
+  // Opening the raw URL is what hands the new build to Tampermonkey; its own
+  // scheduled check often will not have run yet.
+  const install = el('button', { class: 'bhb-btn bhb-btn--small', text: t('update.install') });
+  install.addEventListener('click', () => {
+    window.open(`${SCRIPT_URL}?at=${Date.now()}`, '_blank', 'noopener');
+    // A userscript is only swapped in on the next page load, so the reload is
+    // the second half of installing — offered rather than done, because it
+    // would otherwise interrupt whatever the bot is in the middle of.
+    updateResult = { ...updateResult, state: 'installing' };
+    deps.refresh();
+  });
+
+  const reload = el('button', { class: 'bhb-btn bhb-btn--small', text: t('update.reload') });
+  reload.addEventListener('click', () => {
+    window.location.reload();
+  });
+
+  return el('div', { class: 'bhb-field' }, [
+    el('div', { class: 'bhb-btnrow' }, [
+      check,
+      updateResult.state === 'newer' ? install : null,
+      updateResult.state === 'installing' ? reload : null,
+    ]),
+    el('p', {
+      class: `bhb-note ${updateResult.state === 'newer' || updateResult.state === 'installing' ? 'bhb-note--warn' : ''}`,
+      text: messages[updateResult.state],
+    }),
+    el('p', { class: 'bhb-note', text: t('update.hint') }),
   ]);
 }
 
@@ -328,6 +395,14 @@ export function renderSettingsTab(deps) {
 
     section(deps, 'language', 'settings.language', getLanguage() === 'vi' ? 'Tiếng Việt' : 'English', () =>
       el('div', { class: 'bhb-field' }, [languagePicker])
+    ),
+
+    section(
+      deps,
+      'version',
+      'update.title',
+      updateResult.state === 'newer' ? t('update.badge', { version: updateResult.latest }) : `v${VERSION}`,
+      () => renderVersion(deps)
     ),
 
     section(deps, 'transfer', 'settings.transfer', '', () =>

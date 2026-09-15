@@ -204,4 +204,17 @@ export default {
   'steps.placeCount': 'Số chỗ bước này nhìn vào',
   'steps.maxMatchesHint': 'Còn đứng chờ khi số chỗ vẫn thấy màu NHIỀU HƠN số này. Bốn ô mời + đặt 2 nghĩa là chờ đến khi đủ 3 người, ai ngồi ô nào cũng được.',
   'msg.placeAdded': 'đã thêm chỗ vào bước — giờ nhìn {n} chỗ',
+
+  'update.title': 'Phiên bản',
+  'update.check': 'Kiểm tra bản mới',
+  'update.checking': 'Đang kiểm tra…',
+  'update.current': 'Đang dùng bản mới nhất.',
+  'update.newer': 'Có bản {version} — bấm Cài bản mới, Tampermonkey sẽ hiện trang cài.',
+  'update.badge': 'có {version}',
+  'update.failed': 'Không kiểm tra được — có thể mất mạng.',
+  'update.install': 'Cài bản mới',
+  'update.hint': 'Đọc thẳng bản đã phát hành trên GitHub, không qua bộ đếm giờ của Tampermonkey — nên vừa phát hành là thấy ngay. Cài xong nhớ tải lại trang game.',
+
+  'update.reload': 'Tải lại trang game',
+  'update.installing': 'Cài xong trong tab Tampermonkey rồi thì bấm Tải lại trang game — script chỉ đổi khi trang nạp lại.',
 };
