@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.9.4
+// @version      0.9.5
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -14,7 +14,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.9.4" : "dev";
+  var VERSION = true ? "0.9.5" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -1615,6 +1615,7 @@
   // src/core/canvas-lock.js
   var LOCK_SIZE = Object.freeze({ width: 640, height: 400 });
   var original = null;
+  var held = null;
   var applied = null;
   function styleTargets() {
     const canvas = getCanvas();
@@ -1654,6 +1655,7 @@
       width: window.innerWidth,
       height: window.innerHeight
     });
+    holdFramebuffer(target.canvas, pinned);
     const scaled = target.box || target.canvas;
     if (applied && applied.width === pinned.width && applied.height === pinned.height && applied.scale === scale) {
       return true;
@@ -1664,6 +1666,35 @@
     window.dispatchEvent(new Event("resize"));
     return true;
   }
+  function holdFramebuffer(canvas, pinned) {
+    if (held === canvas) {
+      return;
+    }
+    const proto = HTMLCanvasElement.prototype;
+    const descriptors = {
+      width: Object.getOwnPropertyDescriptor(proto, "width"),
+      height: Object.getOwnPropertyDescriptor(proto, "height")
+    };
+    descriptors.width.set.call(canvas, pinned.width);
+    descriptors.height.set.call(canvas, pinned.height);
+    for (const name of ["width", "height"]) {
+      Object.defineProperty(canvas, name, {
+        configurable: true,
+        get: () => descriptors[name].get.call(canvas),
+        set: () => {
+        }
+      });
+    }
+    held = canvas;
+  }
+  function releaseFramebuffer() {
+    if (!held) {
+      return;
+    }
+    delete held.width;
+    delete held.height;
+    held = null;
+  }
   function unlockCanvasSize() {
     const target = styleTargets();
     if (!target || !original) {
@@ -1673,6 +1704,7 @@
     if (target.box) {
       target.box.style.cssText = original.box;
     }
+    releaseFramebuffer();
     original = null;
     applied = null;
     window.dispatchEvent(new Event("resize"));
@@ -2574,24 +2606,26 @@
   backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
 }
 
-.bhb-panel__head {
-  /* Never let the column squeeze these two: a shrunk box does not clip its
-     text, it spills it over whatever is below. */
-  flex: none;
-  display: flex; align-items: center; gap: 8px;
-  padding: 11px 13px;
-  background-color: var(--bhb-bg);
-  background: linear-gradient(90deg, rgba(124, 92, 255, .16), transparent 70%);
-  border-bottom: 1px solid var(--bhb-line);
-}
-.bhb-panel__brand { display: flex; align-items: baseline; gap: 6px; flex: 1; }
 .bhb-panel__name { font-weight: 800; letter-spacing: .06em; font-size: var(--bhb-fs-xl); }
-.bhb-panel__ver { color: var(--bhb-dim); font-size: var(--bhb-fs-xs); }
-.bhb-panel__profile { color: var(--bhb-dim); font-size: var(--bhb-fs-sm); }
+.bhb-panel__ver { color: var(--bhb-dim); font-size: var(--bhb-fs-sm); }
+
+/* The tab strip is the title bar now, so it carries the frame's rounded top. */
+.bhb-panel__profile {
+  flex: none; max-width: 96px;
+  padding: 3px 8px;
+  background: rgba(255, 255, 255, .06);
+  border: 1px solid var(--bhb-line); border-radius: 999px;
+  color: var(--bhb-dim); font: inherit; font-size: var(--bhb-fs-xs);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  cursor: pointer;
+}
+.bhb-panel__profile:hover { color: var(--bhb-text); border-color: rgba(124, 92, 255, .5); }
 
 .bhb-tabs {
   flex: none;
-  display: flex; gap: 0; padding: 8px 7px 0;
+  display: flex; align-items: center; gap: 0; padding: 7px 9px 0;
+  border-radius: 14px 14px 0 0;
+  background: linear-gradient(90deg, rgba(124, 92, 255, .14), transparent 70%);
   background-color: var(--bhb-bg);
   /* Six tabs will not fit at every width, and a wrapped tab strip looks
      broken — so it scrolls sideways instead, with no visible scrollbar. */
@@ -2606,7 +2640,12 @@
 }
 .bhb-tabbtn:hover { color: var(--bhb-warn); }
 /* Help is not a place to work, so it reads as a mark rather than a label. */
-.bhb-tabbtn--help { margin-left: auto; padding: 7px 8px 9px; font-size: var(--bhb-fs-md); }
+.bhb-tabbtn--help { padding: 7px 7px 9px; font-size: var(--bhb-fs-md); }
+/* Pushed to the far end: these are not places to go, they are the way out. */
+.bhb-tabs__end {
+  margin-left: auto; padding-bottom: 2px;
+  display: flex; align-items: center; gap: 5px;
+}
 .bhb-tabbtn.is-active { color: var(--bhb-warn); border-bottom-color: var(--bhb-warn); }
 
 .bhb-panel__body {
@@ -4305,6 +4344,10 @@
     }
   ];
   function renderHelpTab() {
+    const stamp = el("div", { class: "bhb-field__head" }, [
+      el("span", { class: "bhb-panel__name", text: t("app.name") }),
+      el("span", { class: "bhb-panel__ver bhb-mono", text: `v${VERSION}` })
+    ]);
     const sections = SECTIONS.flatMap((section) => [
       el("div", { class: "bhb-help__section", text: `▸ ${t(section.title)}` }),
       ...section.entries.map(
@@ -4315,6 +4358,7 @@
       )
     ]);
     return el("div", { class: "bhb-tab bhb-help" }, [
+      stamp,
       ...sections,
       el("p", { class: "bhb-note bhb-help__footer", text: t("help.footer") })
     ]);
@@ -4374,6 +4418,15 @@
         deps.store.closePanel();
         deps.refresh();
       });
+      const profile = el("button", {
+        class: "bhb-panel__profile",
+        title: t("settings.profiles"),
+        text: deps.getProfileName()
+      });
+      profile.addEventListener("click", () => {
+        deps.store.setTab(Tab.SETTINGS);
+        deps.refresh();
+      });
       let activeTab = null;
       const tabs = TABS.map(([id, labelKey]) => {
         const button = el("button", {
@@ -4392,16 +4445,12 @@
       const previousBody = target.querySelector(".bhb-panel__body");
       const keptScroll = previousBody && renderedTab === state.tab ? previousBody.scrollTop : 0;
       const body = el("div", { class: "bhb-panel__body" }, [renderBody(state.tab)]);
+      const help = tabs.pop();
       target.replaceChildren(
-        el("header", { class: "bhb-panel__head" }, [
-          el("span", { class: "bhb-panel__brand" }, [
-            el("span", { class: "bhb-panel__name", text: t("app.name") }),
-            el("span", { class: "bhb-panel__ver", text: `v${VERSION}` })
-          ]),
-          el("span", { class: "bhb-panel__profile", text: deps.getProfileName() }),
-          close
+        el("nav", { class: "bhb-tabs" }, [
+          ...tabs,
+          el("span", { class: "bhb-tabs__end" }, [profile, help, close])
         ]),
-        el("nav", { class: "bhb-tabs" }, tabs),
         body
       );
       body.scrollTop = keptScroll;

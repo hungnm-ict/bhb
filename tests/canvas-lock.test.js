@@ -6,7 +6,7 @@
  * @vitest-environment jsdom
  */
 import { describe, it, expect } from 'vitest';
-import { fitScale, LOCK_SIZE } from '../src/core/canvas-lock.js';
+import { fitScale, lockCanvasSize, unlockCanvasSize, LOCK_SIZE } from '../src/core/canvas-lock.js';
 
 const PINNED = LOCK_SIZE;
 
@@ -41,4 +41,59 @@ describe('fitting a pinned size into a window', () => {
   });
 
 
+});
+
+describe('holding the framebuffer', () => {
+  function gameCanvas() {
+    document.body.replaceChildren();
+    const box = document.createElement('div');
+    const canvas = document.createElement('canvas');
+    canvas.width = 917;
+    canvas.height = 484;
+    box.append(canvas);
+    document.body.append(box);
+    return canvas;
+  }
+
+  it('pins the drawing buffer to the locked size', () => {
+    const canvas = gameCanvas();
+    lockCanvasSize();
+
+    expect(canvas.width).toBe(LOCK_SIZE.width);
+    expect(canvas.height).toBe(LOCK_SIZE.height);
+    unlockCanvasSize();
+  });
+
+  it('refuses the size the game asks for while locked', () => {
+    const canvas = gameCanvas();
+    lockCanvasSize();
+
+    // What Unity does on every layout change — and what, before this, left the
+    // buffer at the size of the shrunken box instead of the pinned one.
+    canvas.width = 330;
+    canvas.height = 206;
+
+    expect(canvas.width).toBe(LOCK_SIZE.width);
+    expect(canvas.height).toBe(LOCK_SIZE.height);
+    unlockCanvasSize();
+  });
+
+  it('hands the size back when unlocked', () => {
+    const canvas = gameCanvas();
+    lockCanvasSize();
+    unlockCanvasSize();
+
+    canvas.width = 917;
+    expect(canvas.width).toBe(917);
+  });
+
+  it('restores the styles it found, leaving no trace', () => {
+    const canvas = gameCanvas();
+    const before = canvas.style.cssText;
+
+    lockCanvasSize();
+    unlockCanvasSize();
+
+    expect(canvas.style.cssText).toBe(before);
+  });
 });

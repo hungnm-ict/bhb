@@ -14,6 +14,11 @@ import { renderHelpTab } from './help.js';
  *
  * Opens over the game, because configuring and farming never happen at once.
  * It owns the frame and the tab strip only; each tab renders itself.
+ *
+ * There is no title bar: a row that only repeated the app's own name cost as
+ * much height as two switches. What was in it that carries meaning — which
+ * profile is live, and the way out — sits at the end of the tab strip, and the
+ * version moved to the reference tab, where someone reporting a bug looks.
  */
 
 const TABS = [
@@ -104,6 +109,18 @@ export function createPanel(deps) {
       deps.refresh();
     });
 
+    // The profile name is also the way to the profile list, which is the only
+    // thing anyone wants after reading it.
+    const profile = el('button', {
+      class: 'bhb-panel__profile',
+      title: t('settings.profiles'),
+      text: deps.getProfileName(),
+    });
+    profile.addEventListener('click', () => {
+      deps.store.setTab(Tab.SETTINGS);
+      deps.refresh();
+    });
+
     /** @type {HTMLElement | null} */
     let activeTab = null;
 
@@ -129,16 +146,13 @@ export function createPanel(deps) {
 
     const body = el('div', { class: 'bhb-panel__body' }, [renderBody(state.tab)]);
 
+    const help = tabs.pop();
+
     target.replaceChildren(
-      el('header', { class: 'bhb-panel__head' }, [
-        el('span', { class: 'bhb-panel__brand' }, [
-          el('span', { class: 'bhb-panel__name', text: t('app.name') }),
-          el('span', { class: 'bhb-panel__ver', text: `v${VERSION}` }),
-        ]),
-        el('span', { class: 'bhb-panel__profile', text: deps.getProfileName() }),
-        close,
+      el('nav', { class: 'bhb-tabs' }, [
+        ...tabs,
+        el('span', { class: 'bhb-tabs__end' }, [profile, help, close]),
       ]),
-      el('nav', { class: 'bhb-tabs' }, tabs),
       body
     );
 

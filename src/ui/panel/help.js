@@ -1,6 +1,7 @@
 import { el } from '../dom.js';
 import { t } from '../../i18n/index.js';
 import { Keys, keyLabel } from '../../core/keys.js';
+import { VERSION } from '../../core/constants.js';
 
 /**
  * Keyboard reference.
@@ -41,6 +42,13 @@ const SECTIONS = [
 ];
 
 export function renderHelpTab() {
+  // The version lives here now: this is where someone looks before reporting
+  // that something is broken.
+  const stamp = el('div', { class: 'bhb-field__head' }, [
+    el('span', { class: 'bhb-panel__name', text: t('app.name') }),
+    el('span', { class: 'bhb-panel__ver bhb-mono', text: `v${VERSION}` }),
+  ]);
+
   const sections = SECTIONS.flatMap((section) => [
     el('div', { class: 'bhb-help__section', text: `▸ ${t(section.title)}` }),
     ...section.entries.map(([key, labelKey]) =>
@@ -52,6 +60,7 @@ export function renderHelpTab() {
   ]);
 
   return el('div', { class: 'bhb-tab bhb-help' }, [
+    stamp,
     ...sections,
     el('p', { class: 'bhb-note bhb-help__footer', text: t('help.footer') }),
   ]);
