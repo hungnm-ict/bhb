@@ -41,6 +41,7 @@ import {
 } from './core/storage.js';
 import { createWatchdog } from './core/watchdog.js';
 import { createStats } from './core/stats.js';
+import { lockCanvasSize, unlockCanvasSize } from './core/canvas-lock.js';
 import { createNotifier } from './core/notify.js';
 import { RERUN_STEPS, WORLD_BOSS_STEPS } from './bot/builtin.js';
 import { createStepEditor } from './bot/step-editor.js';
@@ -226,6 +227,9 @@ function bootstrap() {
       if (changes.language) {
         setLanguage(changes.language);
       }
+      if (changes.canvasLock) {
+        applyCanvasLock();
+      }
     },
     getEngineState: engine.getState,
     toggleTask: engine.toggle,
@@ -240,6 +244,18 @@ function bootstrap() {
   });
 
   const sizeBadge = createSizeBadge({ isVisible: () => settings.sizeBadge });
+
+  /** The game rewrites its own layout, so the lock is re-asserted, not set once. */
+  function applyCanvasLock() {
+    if (settings.canvasLock.enabled) {
+      lockCanvasSize(settings.canvasLock);
+    } else {
+      unlockCanvasSize();
+    }
+    sizeBadge.render();
+  }
+
+  applyCanvasLock();
 
   // A window covered edge to edge stops getting animation frames, and the game
   // stops with them. This drives the loop by hand when that happens.

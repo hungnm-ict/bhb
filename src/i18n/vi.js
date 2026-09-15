@@ -182,4 +182,8 @@ export default {
   'steps.dryRunStop': '■ Dừng chạy thử',
   'steps.pinMarkers': 'Hiện hết dấu',
   'steps.dryRunHint': 'Chạy thử đi dọc danh sách và chấm điểm từng bước trên khung hình đang hiện — ✓ khớp, ✗ không khớp, ⊘ thuộc màn hình khác. Nó KHÔNG bấm gì vào game nên lúc nào cũng an toàn. Bình thường dấu chỉ hiện khi rê chuột lên một dòng.',
+
+  'lock.title': 'Khoá cỡ canvas (thử nghiệm)',
+  'lock.enabled': 'Ghim game ở một cỡ cố định',
+  'lock.hint': 'Bật thì game luôn vẽ ở đúng cỡ này dù cửa sổ to nhỏ thế nào — nhờ vậy màu bot đọc được giống hệt nhau trên mọi máy, và bộ bước mới chia sẻ được. Đổi lại: cửa sổ to thì hình hơi mờ vì bị phóng lên. Thấy hình méo hoặc game vẽ sai thì tắt đi, không hỏng gì cả.',
 };
