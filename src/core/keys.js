@@ -12,6 +12,7 @@
  */
 export const Keys = Object.freeze({
   PANEL: '`',
+  CLOSE_PANEL: 'Escape',
   RERUN: 'r',
   WORLD_BOSS: 'b',
   SCRIPT: 'c',
