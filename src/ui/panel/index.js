@@ -2,7 +2,7 @@ import { el, mount } from '../dom.js';
 import { t } from '../../i18n/index.js';
 import { Tab } from '../store.js';
 import { VERSION } from '../../core/constants.js';
-import { renderTasksTab, updateSpeedDisplay } from './tasks.js';
+import { renderTasksTab, updateSpeedDisplay, speedIsBeingDragged } from './tasks.js';
 import { renderStepsTab, highlightSteps } from './steps.js';
 import { renderScreensTab } from './screens.js';
 import { renderSettingsTab } from './settings.js';
@@ -83,6 +83,12 @@ export function createPanel(deps) {
   function render() {
     const target = ensureNode();
     const state = deps.store.get();
+
+    // Rebuilding under a held slider is what tore the drag apart; the numbers
+    // it would have refreshed are exactly the ones the drag is changing anyway.
+    if (renderedTab !== null && speedIsBeingDragged()) {
+      return;
+    }
 
     if (!state.panelOpen) {
       target.style.display = 'none';

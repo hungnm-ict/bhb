@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.7.2
+// @version      0.7.3
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -14,7 +14,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.7.2" : "dev";
+  var VERSION = true ? "0.7.3" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -1641,10 +1641,10 @@
   // src/i18n/vi.js
   var vi_default = {
     "app.name": "BHB",
-    "task.rerun": "RE-RUN",
-    "task.wb": "SOLO WB",
-    "task.runAll": "CHẠY TẤT CẢ",
-    "task.script": "TUỲ CHỈNH",
+    "task.rerun": "Re-run",
+    "task.wb": "Solo WB",
+    "task.runAll": "Chạy tất cả",
+    "task.script": "Tuỳ chỉnh",
     "phase.hunting": "đang chạy",
     "phase.resting": "nghỉ",
     "hud.idle": "đang dừng",
@@ -1724,6 +1724,7 @@
     "log.resync": "Lạc nhịp — bắt lại từ {label}",
     "size.same": "Cỡ framebuffer game vẽ ra — bước lưu toạ độ theo hệ này",
     "size.scaled": "Cỡ framebuffer → cỡ hiển thị. Khác nhau nghĩa là game đang được co giãn",
+    "steps.legacyBadge": "bắt lại",
     "steps.legacyWarning": "{n} bước chưa có cỡ canvas lúc bắt nên không co giãn được — đổi cỡ cửa sổ là bấm sai chỗ. Bắt lại từng cái để sửa.",
     "log.title": "Nhật ký",
     "log.empty": "Chưa có gì. Bật một hoạt động để bắt đầu.",
@@ -1794,10 +1795,10 @@
   // src/i18n/en.js
   var en_default = {
     "app.name": "BHB",
-    "task.rerun": "RE-RUN",
-    "task.wb": "SOLO WB",
-    "task.runAll": "RUN ALL",
-    "task.script": "CUSTOM",
+    "task.rerun": "Re-run",
+    "task.wb": "Solo WB",
+    "task.runAll": "Run all",
+    "task.script": "Custom",
     "phase.hunting": "hunting",
     "phase.resting": "resting",
     "hud.idle": "idle",
@@ -1877,6 +1878,7 @@
     "log.resync": "Lost the thread — picking up at {label}",
     "size.same": "The framebuffer the game draws into — steps store their coordinates in it",
     "size.scaled": "Framebuffer size → displayed size. They differ when the game is being scaled",
+    "steps.legacyBadge": "recapture",
     "steps.legacyWarning": "{n} steps were captured without a canvas size, so they cannot be rescaled — resize the window and they click the wrong place. Recapture each one to fix it.",
     "log.title": "Activity",
     "log.empty": "Nothing yet. Start a task to see what the bot does.",
@@ -2360,7 +2362,7 @@
   border-bottom: 1px solid var(--bhb-line);
 }
 .bhb-panel__brand { display: flex; align-items: baseline; gap: 6px; flex: 1; }
-.bhb-panel__name { font-weight: 800; letter-spacing: .08em; font-size: var(--bhb-fs-lg); }
+.bhb-panel__name { font-weight: 800; letter-spacing: .06em; font-size: var(--bhb-fs-xl); }
 .bhb-panel__ver { color: var(--bhb-dim); font-size: var(--bhb-fs-xs); }
 .bhb-panel__profile { color: var(--bhb-dim); font-size: var(--bhb-fs-sm); }
 
@@ -2376,7 +2378,7 @@
 .bhb-tabbtn {
   flex: none; padding: 7px 5px 9px; white-space: nowrap;
   background: none; border: 0; border-bottom: 2px solid transparent;
-  color: var(--bhb-dim); font: inherit; font-size: var(--bhb-fs-sm); font-weight: 600;
+  color: var(--bhb-dim); font: inherit; font-size: var(--bhb-fs-md); font-weight: 600;
   cursor: pointer;
 }
 .bhb-tabbtn:hover { color: var(--bhb-text); }
@@ -2463,7 +2465,7 @@
 .bhb-task.is-on .bhb-task__switch { background: rgba(61, 220, 151, .3); }
 .bhb-task.is-on .bhb-task__switch::after { transform: translateX(12px); background: var(--bhb-live); }
 
-.bhb-task__name { flex: 1; font-weight: 700; font-size: var(--bhb-fs-md); letter-spacing: .05em; }
+.bhb-task__name { flex: 1; font-weight: 600; font-size: var(--bhb-fs-md); }
 .bhb-task__label { flex: 1; font-size: var(--bhb-fs-sm); line-height: 1.4; }
 .bhb-task--wrap { align-items: flex-start; }
 .bhb-task--wrap .bhb-task__switch { margin-top: 1px; }
@@ -2476,7 +2478,7 @@
 /* Tile variant: switch, phase and hotkey on top, name under them. */
 .bhb-task--tile { flex-direction: column; align-items: stretch; gap: 4px; padding: 7px 9px; }
 .bhb-task--tile .bhb-task__top { display: flex; align-items: center; gap: 7px; }
-.bhb-task--tile .bhb-task__name { flex: none; font-size: var(--bhb-fs-md); line-height: 1.2; }
+.bhb-task--tile .bhb-task__name { flex: none; font-size: var(--bhb-fs-sm); line-height: 1.2; }
 /* Pushes the hotkey to the right edge whether or not a phase is showing. */
 .bhb-task--tile .bhb-task__phase { margin-left: auto; }
 .bhb-task--tile .bhb-kbd { margin-left: auto; }
@@ -2582,7 +2584,17 @@
 }
 .bhb-rule__name:hover { border-color: var(--bhb-line); }
 .bhb-rule__name:focus { outline: none; border-color: var(--bhb-accent); background: #0d0f16; }
+.bhb-rule__meta-coord { display: inline-flex; align-items: center; }
 .bhb-rule__coord { color: var(--bhb-cyan); font-size: var(--bhb-fs-xs); }
+/* A step that cannot be rescaled clicks the wrong place after any resize, so
+   the mark is a badge rather than a glyph hiding at the end of a number. */
+.bhb-rule__legacy {
+  display: inline-flex; align-items: center; gap: 3px;
+  margin-left: 5px; padding: 1px 5px;
+  background: rgba(255, 180, 87, .16);
+  border: 1px solid rgba(255, 180, 87, .5); border-radius: 5px;
+  color: var(--bhb-warn); font-size: var(--bhb-fs-xs); font-weight: 700;
+}
 .bhb-rule__actions { display: flex; gap: 1px; margin-left: auto; }
 
 /* A step carries a name, a place, an activity and a screen gate. On one line
@@ -2927,6 +2939,10 @@
 
   // src/ui/panel/tasks.js
   var speedControl = null;
+  var isDraggingSpeed = false;
+  function speedIsBeingDragged() {
+    return isDraggingSpeed;
+  }
   function updateSpeedDisplay() {
     if (!speedControl) {
       return;
@@ -3014,6 +3030,15 @@
       slider2.step = "1";
       slider2.addEventListener("input", () => {
         setSpeed(SPEED_STEPS[Number(slider2.value)]);
+      });
+      slider2.addEventListener("pointerdown", () => {
+        isDraggingSpeed = true;
+      });
+      window.addEventListener("pointerup", () => {
+        isDraggingSpeed = false;
+      });
+      window.addEventListener("pointercancel", () => {
+        isDraggingSpeed = false;
       });
       speedControl = { slider: slider2, readout: el("span", { class: "bhb-speed" }) };
     }
@@ -3211,11 +3236,17 @@
           el("span", { class: "bhb-rule__actions" }, [toggle, up, down, remove])
         ]),
         el("div", { class: "bhb-rule__meta" }, [
-          el("span", {
-            class: "bhb-rule__coord bhb-mono",
-            title: legacy ? t("overlay.needsRecapture") : "",
-            text: point2 ? `${point2.x},${point2.y}${legacy ? " ⚠" : ""}` : "—"
-          }),
+          el("span", { class: "bhb-rule__meta-coord" }, [
+            el("span", {
+              class: "bhb-rule__coord bhb-mono",
+              text: point2 ? `${point2.x},${point2.y}` : "—"
+            }),
+            legacy ? el("span", {
+              class: "bhb-rule__legacy",
+              title: t("overlay.needsRecapture"),
+              text: `⚠ ${t("steps.legacyBadge")}`
+            }) : null
+          ]),
           activities.length > 0 ? slot : null,
           deps.getScreens().length > 0 ? gate : null
         ])
@@ -3927,6 +3958,9 @@
     function render() {
       const target = ensureNode();
       const state = deps.store.get();
+      if (renderedTab !== null && speedIsBeingDragged()) {
+        return;
+      }
       if (!state.panelOpen) {
         target.style.display = "none";
         target.replaceChildren();
