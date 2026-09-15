@@ -17,6 +17,7 @@ export default {
   'tab.queue': 'Hàng đợi',
   'tab.settings': 'Cài đặt',
   'tab.log': 'Nhật ký',
+  'tab.help': 'Phím tắt',
   'panel.close': 'Đóng',
 
   'overlay.speed': 'Tốc độ',
@@ -97,8 +98,6 @@ export default {
   'log.taskStarted': 'Bật {task}',
   'log.taskStopped': 'Tắt {task}',
 
-  'help.title': 'PHÍM TẮT',
-  'help.close': 'Bấm lại dấu ? để đóng',
   'help.sectionAuto': 'Tự động',
   'help.sectionRules': 'Rule',
   'help.sectionUi': 'Giao diện',

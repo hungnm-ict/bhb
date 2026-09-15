@@ -17,6 +17,7 @@ export default {
   'tab.queue': 'Run All',
   'tab.settings': 'Settings',
   'tab.log': 'Log',
+  'tab.help': 'Keys',
   'panel.close': 'Close',
 
   'overlay.speed': 'Speed',
@@ -97,8 +98,6 @@ export default {
   'log.taskStarted': 'Started {task}',
   'log.taskStopped': 'Stopped {task}',
 
-  'help.title': 'KEYBOARD',
-  'help.close': 'Click the ? again to close',
   'help.sectionAuto': 'Automation',
   'help.sectionRules': 'Rules',
   'help.sectionUi': 'Interface',

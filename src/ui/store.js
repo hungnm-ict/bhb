@@ -15,6 +15,7 @@ export const Tab = Object.freeze({
   QUEUE: 'queue',
   SETTINGS: 'settings',
   LOG: 'log',
+  HELP: 'help',
 });
 
 /** Entries beyond this are dropped. The log describes a session, not history. */

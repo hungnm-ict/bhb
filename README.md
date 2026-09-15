@@ -44,7 +44,7 @@ Từ lần sau **script tự cập nhật** — không phải cài lại. Tamper
 
 Bot hiện một **thanh nhỏ** ở góc phải trên mặt game: chấm trạng thái, tốc độ, và dòng mô tả bot đang làm gì. Không đụng vào 4 giây thì nó tự mờ đi để khỏi che game; rê chuột vào là rõ lại.
 
-Bấm vào thanh đó (hoặc phím `1`) để mở **bảng điều khiển**, gồm 6 tab:
+Bấm vào thanh đó (hoặc phím `1`) để mở **bảng điều khiển**, gồm 7 tab:
 
 | Tab | Nội dung |
 |---|---|
@@ -54,8 +54,7 @@ Bấm vào thanh đó (hoặc phím `1`) để mở **bảng điều khiển**, 
 | **Chạy tất cả** | Hàng đợi hoạt động: bật/tắt, sắp xếp, số vòng đang chạy |
 | **Cài đặt** | Hồ sơ (mỗi nhân vật một cái), tự tải lại khi treo, ngôn ngữ, xuất/nhập |
 | **Nhật ký** | Từng việc bot đã làm, mới nhất trên cùng |
-
-Bảng phím tắt nằm ở dấu **?** trên đầu bảng điều khiển — nó không chiếm phím tắt nào, vì một bảng giải thích phím tắt là thứ cuối cùng nên giữ một phím riêng.
+| **Phím tắt** | Bảng tra phím tắt |
 
 Khi mở tab **Rule**, mỗi rule được vẽ thành một **dấu ngay trên canvas** tại đúng chỗ nó nhìn vào. Rê chuột lên dòng nào thì dấu tương ứng sáng lên và ngược lại — nhìn là biết rule trỏ vào nút nào.
 

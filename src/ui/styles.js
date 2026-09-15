@@ -11,7 +11,7 @@ import { Z_TOP } from '../core/constants.js';
  * layer itself must not, or it would swallow every click meant for the game.
  */
 const CSS = `
-.bhb-hud, .bhb-panel, .bhb-markers, .bhb-help, .bhb-flash, .bhb-drag {
+.bhb-hud, .bhb-panel, .bhb-markers, .bhb-flash, .bhb-drag {
   --bhb-bg: #12141c;
   --bhb-bg-soft: #1a1d29;
   --bhb-line: rgba(255, 255, 255, .09);
@@ -35,7 +35,7 @@ const CSS = `
   font-family: var(--bhb-font);
   user-select: none;
 }
-.bhb-hud *, .bhb-panel *, .bhb-markers *, .bhb-help *, .bhb-drag * { box-sizing: border-box; }
+.bhb-hud *, .bhb-panel *, .bhb-markers *, .bhb-drag * { box-sizing: border-box; }
 .bhb-mono { font-family: var(--bhb-mono); font-variant-numeric: tabular-nums; }
 
 /* --- HUD ---------------------------------------------------------------- */
@@ -369,24 +369,11 @@ const CSS = `
   font-family: var(--bhb-mono); font-size: 11px;
 }
 
-/* --- Help & flash ------------------------------------------------------- */
+/* --- Help tab & flash --------------------------------------------------- */
 
-.bhb-help {
-  top: 50%; left: 50%; transform: translate(-50%, -50%);
-  width: 330px; padding: 16px 18px;
-  background: var(--bhb-bg);
-  border: 1px solid var(--bhb-line); border-radius: 14px;
-  box-shadow: 0 18px 50px rgba(0, 0, 0, .7);
-  font-size: 11.5px; line-height: 1.75;
-  pointer-events: none;
-}
-.bhb-help__header {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 9px; padding-bottom: 8px; border-bottom: 1px solid var(--bhb-line);
-}
-.bhb-help__title { font-size: 13px; font-weight: 800; letter-spacing: .08em; }
+.bhb-help { gap: 0; font-size: 11.5px; line-height: 1.8; }
 .bhb-help__section {
-  margin: 11px 0 3px;
+  margin: 13px 0 3px;
   color: var(--bhb-accent); font-size: 10px;
   font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
 }
