@@ -72,9 +72,9 @@ Bot tự xử lý chuyện nút bị sáng lên do con trỏ đang nằm trên �
 | Phím | Chức năng |
 |:---:|---|
 | `1` | Mở/đóng bảng điều khiển |
-| `3` | Chạy lại — tìm 3 giây/lần, click xong nghỉ 20 giây |
-| `4` | Boss solo — World Boss, 2 giây/lần |
-| `5` | Bước tự tạo — chạy các bước chưa gán hoạt động, 3 giây/lần |
+| `3` | Re-run — tìm 3 giây/lần, click xong nghỉ 20 giây |
+| `4` | Solo WB — World Boss, 2 giây/lần |
+| `5` | Tuỳ chỉnh — chạy các bước chưa gán hoạt động, 3 giây/lần |
 | `6` | Chạy tất cả — lần lượt mọi hoạt động trong hàng đợi (cần có bước đã gán) |
 | `0` | Bắt rule tại con trỏ |
 | `= / +` | Tăng tốc độ game (mốc kế tiếp, tối đa 20×) — hoặc bấm nút + cạnh thanh trượt |
