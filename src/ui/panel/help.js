@@ -14,8 +14,6 @@ const SECTIONS = [
   {
     title: 'help.sectionAuto',
     entries: [
-      [keyLabel(Keys.RERUN), 'help.rerun'],
-      [keyLabel(Keys.WORLD_BOSS), 'help.wb'],
       [keyLabel(Keys.SCRIPT), 'help.script'],
       [keyLabel(Keys.RUN_ALL), 'help.runAll'],
     ],
@@ -38,6 +36,7 @@ const SECTIONS = [
     entries: [
       [`${Keys.SPEED_UP} / ${Keys.SPEED_UP_ALT}`, 'help.speedUp'],
       [Keys.SPEED_DOWN, 'help.speedDown'],
+      [keyLabel(Keys.SPEED_RESET), 'help.speedReset'],
     ],
   },
 ];

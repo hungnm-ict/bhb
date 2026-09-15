@@ -99,8 +99,6 @@ function ruleFor(activity) {
 function build({ steps = [], screens = [], activities, closeAfterRound = false, closeGame } = {}) {
   return createEngine({
     getScriptSteps: () => steps,
-    getRerunSteps: () => [],
-    getWorldBossSteps: () => [],
     getScaleMode: () => 'scale',
     getScreens: () => screens,
     getActivities: () => activities,
@@ -268,9 +266,7 @@ describe('hang recovery', () => {
     const recoverFromHang = vi.fn(() => true);
     const engine = createEngine({
       getScriptSteps: () => [],
-      getRerunSteps: () => [],
-      getWorldBossSteps: () => [],
-      getScaleMode: () => 'scale',
+          getScaleMode: () => 'scale',
       getActivities: () => [...QUEUE],
       shouldRecoverFromHang: () => true,
       recoverFromHang,
@@ -293,9 +289,7 @@ describe('hang recovery', () => {
   it('stops once reloading has stopped helping', () => {
     const engine = createEngine({
       getScriptSteps: () => [],
-      getRerunSteps: () => [],
-      getWorldBossSteps: () => [],
-      getScaleMode: () => 'scale',
+          getScaleMode: () => 'scale',
       getActivities: () => [...QUEUE],
       shouldRecoverFromHang: () => true,
       recoverFromHang: () => false,

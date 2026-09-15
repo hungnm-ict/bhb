@@ -50,6 +50,15 @@ export function createStep(overrides = {}) {
     enabled: true,
     screens: [],
     activity: null,
+    /**
+     * Seconds to sit still after this step clicks.
+     *
+     * A dungeon run takes a minute; polling three times a second through it
+     * reads the same frame over and over. This is what the hard-coded Re-run
+     * mode used to do after clicking, kept as a property of the step that
+     * starts the fight rather than a mode of its own.
+     */
+    restSec: 0,
     ...overrides,
   };
 }

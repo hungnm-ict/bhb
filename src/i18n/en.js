@@ -1,13 +1,9 @@
 export default {
   'app.name': 'BHB',
 
-  'task.rerun': 'Re-run',
-  'task.wb': 'Solo WB',
   'task.runAll': 'Run all',
   'task.script': 'Custom',
 
-  'phase.hunting': 'running',
-  'phase.resting': 'resting',
 
   'hud.idle': 'idle',
 
@@ -118,8 +114,6 @@ export default {
   'help.sectionSteps': 'Steps',
   'help.sectionUi': 'Interface',
   'help.sectionSpeed': 'Speed',
-  'help.rerun': 'Auto re-run (polls 3s, rests 20s)',
-  'help.wb': 'Auto solo World Boss (every 2s)',
   'help.script': 'Run the custom steps not tagged to an activity (every 3s)',
   'help.runAll': 'Run every activity in the queue',
   'help.capture': 'Capture a step at the cursor',
@@ -193,4 +187,11 @@ export default {
   'settings.queueCount': '{n} activities',
   'settings.on': 'on',
   'settings.off': 'off',
+
+  'steps.restHint': 'Seconds to sit still after this step clicks — for the button that starts a Dungeon or Raid run, so the bot stops looking while the fight is on. 0 means no rest.',
+  'queue.runSolo': 'Run this activity on its own',
+  'queue.stopSolo': 'Stop',
+  'queue.noSteps': 'No steps are tagged to this activity yet',
+
+  'help.speedReset': 'Back to normal speed (1×)',
 };

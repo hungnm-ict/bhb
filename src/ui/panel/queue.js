@@ -40,6 +40,21 @@ export function renderQueueSection(deps) {
   const rows = activities.map((activity, index) => {
     const count = stepsForActivity(steps, activity.id).length;
 
+    // What the hard-coded Solo WB mode was, for every activity and off the
+    // steps the user captured.
+    const isSolo = engine.activeTask === 'solo' && engine.activity === activity.id;
+    const run = el('button', {
+      class: `bhb-icon ${isSolo ? 'is-on' : ''} ${count === 0 ? 'is-locked' : ''}`,
+      title: count === 0 ? t('queue.noSteps') : t(isSolo ? 'queue.stopSolo' : 'queue.runSolo'),
+      text: isSolo ? '■' : '▶',
+    });
+    if (count > 0) {
+      run.addEventListener('click', () => {
+        deps.runActivity(activity.id);
+        deps.refresh();
+      });
+    }
+
     const toggle = el('button', {
       class: `bhb-icon ${activity.enabled ? 'is-on' : ''}`,
       title: t(activity.enabled ? 'steps.disable' : 'steps.enable'),
@@ -85,7 +100,7 @@ export function renderQueueSection(deps) {
         title: t('queue.stepCount'),
         text: String(count),
       }),
-      el('span', { class: 'bhb-rule__actions' }, [toggle, up, down]),
+      el('span', { class: 'bhb-rule__actions' }, [run, toggle, up, down]),
     ]);
   });
 

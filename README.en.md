@@ -1,4 +1,4 @@
-# BHB <!--version-->v0.9.8<!--/version-->
+# BHB <!--version-->v0.10.0<!--/version-->
 
 > 🇻🇳 [Phiên bản tiếng Việt](README.md) · [Changelog](https://github.com/hungnm-ict/bhb/commits/master)
 
@@ -48,7 +48,7 @@ Click it (or press `` ` ``) to open the **control panel**, which has six tabs:
 
 | Tab | Contents |
 |---|---|
-| **Run** | A switch per mode (Run All included), the speed slider, canvas size, auto-stop countdown |
+| **Run** | The Custom and Run All switches, the speed slider, canvas size, auto-stop countdown |
 | **Steps** | The step table: rename, enable, tag to an activity, gate to a screen, reorder, delete |
 | **Screens** | Screen anchors, with a live ✓/✗ and the measured match ratio |
 | **Settings** | Profiles (one per character), the activity queue, reload-on-hang, Discord/Telegram alerts, language, export/import |
@@ -75,13 +75,12 @@ To let the bot know where it is, go to the **Screens** tab and drag a box around
 |:---:|---|
 | `` ` `` | Open/close the control panel |
 | `Esc` | Close the panel (with it closed, the key stays the game's) |
-| `R` | Re-run — polls every 3s, rests 20s after a click |
-| `B` | Solo WB — polls every 2s |
 | `C` | Custom — runs the steps not tagged to an activity, every 3s |
 | `A` | Run All — every activity in the queue, in order |
 | `X` | Capture a step at the cursor (capture mode must be on) |
 | `= / +` | Increase game speed (next stop, up to 20×) |
 | `-` | Decrease game speed (down to 0.1×) |
+| `0` | Back to normal speed (1×) |
 
 ---
 

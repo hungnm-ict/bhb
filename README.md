@@ -1,4 +1,4 @@
-# BHB <!--version-->v0.9.8<!--/version-->
+# BHB <!--version-->v0.10.0<!--/version-->
 
 > 🇬🇧 [English version](README.en.md) · [Nhật ký thay đổi](https://github.com/hungnm-ict/bhb/commits/master)
 
@@ -48,7 +48,7 @@ Bấm vào thanh đó (hoặc phím `` ` ``) để mở **bảng điều khiển
 
 | Tab | Nội dung |
 |---|---|
-| **Chạy** | Công tắc bật/tắt từng chế độ (kể cả Chạy tất cả), thanh trượt tốc độ, cỡ canvas, đếm ngược tự tắt |
+| **Chạy** | Công tắc Tuỳ chỉnh và Chạy tất cả, thanh trượt tốc độ, cỡ canvas, đếm ngược tự tắt |
 | **Bước** | Bảng bước: đổi tên, bật/tắt, gán hoạt động, giới hạn theo màn hình, sắp xếp thứ tự, xoá |
 | **Màn hình** | Vùng nhận diện màn hình game, có ✓/✗ và tỉ lệ khớp trực tiếp |
 | **Cài đặt** | Hồ sơ (mỗi nhân vật một cái), hàng đợi hoạt động, tự tải lại khi treo, thông báo Discord/Telegram, ngôn ngữ, xuất/nhập |
@@ -77,13 +77,12 @@ Muốn bot biết nó đang ở đâu thì sang tab **Màn hình**, kéo một k
 |:---:|---|
 | `` ` `` | Mở/đóng bảng điều khiển |
 | `Esc` | Đóng bảng (lúc bảng đang đóng thì phím này vẫn thuộc về game) |
-| `R` | Re-run — tìm 3 giây/lần, click xong nghỉ 20 giây |
-| `B` | Solo WB — World Boss, 2 giây/lần |
 | `C` | Tuỳ chỉnh — chạy các bước chưa gán hoạt động, 3 giây/lần |
 | `A` | Chạy tất cả — lần lượt mọi hoạt động trong hàng đợi (cần có bước đã gán) |
 | `X` | Bắt bước tại con trỏ (phải bật chế độ bắt bước trước) |
 | `= / +` | Tăng tốc độ game (mốc kế tiếp, tối đa 20×) — hoặc bấm nút + cạnh thanh trượt |
 | `-` | Giảm tốc độ game (chậm nhất 0.1×) |
+| `0` | Về tốc độ thường (1×) |
 
 ---
 

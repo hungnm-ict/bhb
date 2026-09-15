@@ -435,6 +435,15 @@ const CSS = `
 .bhb-rule__name:hover { border-color: var(--bhb-line); }
 .bhb-rule__name:focus { outline: none; border-color: var(--bhb-accent); background: #0d0f16; }
 .bhb-rule__meta-coord { display: inline-flex; align-items: center; }
+/* Seconds to sit still after a click; 0 reads as off. */
+.bhb-rest {
+  width: 46px; padding: 3px 5px;
+  background: var(--bhb-bg-soft);
+  border: 1px solid var(--bhb-line); border-radius: 6px;
+  color: var(--bhb-dim); font-size: var(--bhb-fs-xs); text-align: right;
+}
+.bhb-rest:focus { outline: none; border-color: rgba(124, 92, 255, .6); color: var(--bhb-text); }
+
 .bhb-rule__coord { color: var(--bhb-cyan); font-size: var(--bhb-fs-xs); }
 /* A step that cannot be rescaled clicks the wrong place after any resize, so
    the mark is a badge rather than a glyph hiding at the end of a number. */

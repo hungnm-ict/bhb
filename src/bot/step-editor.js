@@ -206,6 +206,16 @@ export function createStepEditor(deps) {
   }
 
   /** Which Run-All slot a step belongs to; null leaves it in the Script set. */
+  /** Seconds this step waits after clicking; 0 turns the wait off. */
+  function setRest(stepId, seconds) {
+    const step = find(stepId);
+    if (!step) {
+      return;
+    }
+    step.restSec = Math.max(0, Math.min(600, Math.round(Number(seconds) || 0)));
+    deps.persist();
+  }
+
   function setActivity(stepId, activityId) {
     const step = find(stepId);
     if (!step) {
@@ -243,6 +253,7 @@ export function createStepEditor(deps) {
     rename,
     setEnabled,
     setScreens,
+    setRest,
     setActivity,
     remove,
     move,
