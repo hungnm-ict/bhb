@@ -2,8 +2,8 @@
  * Keyboard bindings.
  *
  * Every handled key is consumed in the capture phase: the game listens for
- * number keys too, and an unconsumed `4` would both toggle World Boss and
- * trigger whatever the game binds it to.
+ * keys too, and an unconsumed one would both drive the bot and trigger
+ * whatever the game binds it to.
  */
 
 /**
@@ -28,7 +28,8 @@ export function installHotkeys(bindings) {
       return;
     }
 
-    const handler = bindings[event.key];
+    // Caps Lock and Shift arrive as 'R', not 'r', and the user meant the same key.
+    const handler = bindings[event.key] || bindings[event.key.toLowerCase()];
     if (!handler) {
       return;
     }

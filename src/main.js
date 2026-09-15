@@ -11,6 +11,7 @@
  */
 
 import { RESUME_DELAY } from './core/constants.js';
+import { Keys } from './core/keys.js';
 import { installCanvasPatch } from './core/canvas.js';
 import { installFocusPatch } from './core/focus.js';
 import {
@@ -282,21 +283,21 @@ function bootstrap() {
 
   installHotkeys({
     // The keyboard reference has no key of its own; it opens from the panel.
-    '1': () => store.togglePanel(),
-    '3': () => engine.toggle(TaskId.RERUN),
-    '4': () => engine.toggle(TaskId.WORLD_BOSS),
-    '5': () => engine.toggle(TaskId.SCRIPT),
-    '6': () => engine.toggle(TaskId.RUN_ALL),
-    '0': () => {
+    [Keys.PANEL]: () => store.togglePanel(),
+    [Keys.RERUN]: () => engine.toggle(TaskId.RERUN),
+    [Keys.WORLD_BOSS]: () => engine.toggle(TaskId.WORLD_BOSS),
+    [Keys.SCRIPT]: () => engine.toggle(TaskId.SCRIPT),
+    [Keys.RUN_ALL]: () => engine.toggle(TaskId.RUN_ALL),
+    [Keys.CAPTURE]: () => {
       if (!store.get().isCaptureArmed) {
         engine.setMessage(t('msg.captureDisarmed'));
         return;
       }
       stepEditor.captureAtCursor().then(refresh);
     },
-    '=': () => setSpeed(stepSpeed(getSpeed(), 1)),
-    '+': () => setSpeed(stepSpeed(getSpeed(), 1)),
-    '-': () => setSpeed(stepSpeed(getSpeed(), -1)),
+    [Keys.SPEED_UP]: () => setSpeed(stepSpeed(getSpeed(), 1)),
+    [Keys.SPEED_UP_ALT]: () => setSpeed(stepSpeed(getSpeed(), 1)),
+    [Keys.SPEED_DOWN]: () => setSpeed(stepSpeed(getSpeed(), -1)),
   });
 
   refresh();

@@ -1,4 +1,4 @@
-# BHB <!--version-->v0.9.0<!--/version-->
+# BHB <!--version-->v0.9.1<!--/version-->
 
 > 🇻🇳 [Phiên bản tiếng Việt](README.md) · [Changelog](https://github.com/hungnm-ict/bhb/commits/master)
 
@@ -32,9 +32,9 @@ On Chrome/Edge **older than 138**, where that switch does not exist, turn on **D
 
 1. Open **[dist/bhb.user.js](https://raw.githubusercontent.com/hungnm-ict/bhb/master/dist/bhb.user.js)**
 2. Tampermonkey shows its install page — click **Install**
-3. Open the game and press **`1`** for the keyboard reference
+3. Open the game and press **`` ` ``** (the backtick, under Esc) to open the control panel
 
-> If pressing `1` does nothing, step 2 is almost certainly incomplete. Open the console (F12) and look for `[BHB] ready` — no line means the script never ran.
+> If pressing `` ` `` does nothing, step 2 is almost certainly incomplete. Open the console (F12) and look for `[BHB] ready` — no line means the script never ran.
 
 After that the script **updates itself** — no reinstalling. Tampermonkey checks periodically; to update immediately, go to Tampermonkey → Dashboard → **Installed userscripts** → **Check for userscript updates**.
 
@@ -44,7 +44,7 @@ After that the script **updates itself** — no reinstalling. Tampermonkey check
 
 A small **HUD** sits in the top-right corner of the game: a status dot, the speed, and a line saying what the bot is doing. It fades after 4 seconds so it stops covering the game; hovering brings it back.
 
-Click it (or press `1`) to open the **control panel**, which has six tabs:
+Click it (or press `` ` ``) to open the **control panel**, which has six tabs:
 
 | Tab | Contents |
 |---|---|
@@ -73,12 +73,12 @@ To let the bot know where it is, go to the **Screens** tab and drag a box around
 
 | Key | Action |
 |:---:|---|
-| `1` | Open/close the control panel |
-| `3` | Re-run — polls every 3s, rests 20s after a click |
-| `4` | Solo WB — polls every 2s |
-| `5` | Custom — runs the steps not tagged to an activity, every 3s |
-| `6` | Run All — every activity in the queue, in order |
-| `0` | Capture a step at the cursor |
+| `` ` `` | Open/close the control panel |
+| `R` | Re-run — polls every 3s, rests 20s after a click |
+| `B` | Solo WB — polls every 2s |
+| `C` | Custom — runs the steps not tagged to an activity, every 3s |
+| `A` | Run All — every activity in the queue, in order |
+| `X` | Capture a step at the cursor (capture mode must be on) |
 | `= / +` | Increase game speed (next stop, up to 20×) |
 | `-` | Decrease game speed (down to 0.1×) |
 

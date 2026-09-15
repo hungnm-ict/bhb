@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.9.0
+// @version      0.9.1
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -14,7 +14,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.9.0" : "dev";
+  var VERSION = true ? "0.9.1" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -41,6 +41,22 @@
   var NOTIFY_COOLDOWN_MS = 60 * 1e3;
   var NOTIFY_SHOT_QUALITY = 0.7;
   var Z_TOP = "2147483647";
+
+  // src/core/keys.js
+  var Keys2 = Object.freeze({
+    PANEL: "`",
+    RERUN: "r",
+    WORLD_BOSS: "b",
+    SCRIPT: "c",
+    RUN_ALL: "a",
+    CAPTURE: "x",
+    SPEED_UP: "=",
+    SPEED_UP_ALT: "+",
+    SPEED_DOWN: "-"
+  });
+  function keyLabel2(key) {
+    return key.length === 1 ? key.toUpperCase() : key;
+  }
 
   // src/core/canvas.js
   var cachedCanvas = null;
@@ -1794,9 +1810,9 @@
     "msg.notify": "Đã báo tin: {label}",
     "toast.captured": "✓ đã bắt: {label}",
     "toast.capturedUnstable": "⚠ đã bắt, nhưng màu ở đây đổi liên tục",
-    "steps.armCapture": "Bật chế độ bắt bước — cho phép phím 0",
-    "steps.armHint": "Tắt công tắc này khi bắt xong: phím 0 nằm cạnh các phím điều khiển bot, bật suốt thì dễ bấm nhầm giữa lúc đang chơi. Nút tím bên trên thì lúc nào cũng dùng được.",
-    "msg.captureDisarmed": "phím 0 đang tắt — bật chế độ bắt bước ở tab Bước",
+    "steps.armCapture": "Bật chế độ bắt bước — cho phép phím X",
+    "steps.armHint": "Tắt công tắc này khi bắt xong: phím X nằm cạnh các phím điều khiển bot, bật suốt thì dễ bấm nhầm giữa lúc đang chơi. Nút tím bên trên thì lúc nào cũng dùng được.",
+    "msg.captureDisarmed": "phím X đang tắt — bật chế độ bắt bước ở tab Bước",
     "steps.dryRun": "▷ Chạy thử",
     "steps.dryRunStop": "■ Dừng chạy thử",
     "steps.pinMarkers": "Hiện hết dấu",
@@ -1958,9 +1974,9 @@
     "msg.notify": "Alert sent: {label}",
     "toast.captured": "✓ captured: {label}",
     "toast.capturedUnstable": "⚠ captured, but the colour here keeps changing",
-    "steps.armCapture": "Capture mode — enables the 0 key",
-    "steps.armHint": "Switch this off once you are done: 0 sits beside the keys that drive the bot, and leaving it live invites a stray press mid-fight. The button above always works.",
-    "msg.captureDisarmed": "the 0 key is off — switch capture mode on in the Steps tab",
+    "steps.armCapture": "Capture mode — enables the X key",
+    "steps.armHint": "Switch this off once you are done: X sits beside the keys that drive the bot, and leaving it live invites a stray press mid-fight. The button above always works.",
+    "msg.captureDisarmed": "the X key is off — switch capture mode on in the Steps tab",
     "steps.dryRun": "▷ Dry run",
     "steps.dryRunStop": "■ Stop the dry run",
     "steps.pinMarkers": "Show every marker",
@@ -3205,9 +3221,9 @@
   }
   var LABELLED_SPEEDS = [0.1, 1, 5, 10, 20];
   var TASKS = [
-    [TaskId.RERUN, "task.rerun", "3"],
-    [TaskId.WORLD_BOSS, "task.wb", "4"],
-    [TaskId.SCRIPT, "task.script", "5"]
+    [TaskId.RERUN, "task.rerun", Keys2.RERUN],
+    [TaskId.WORLD_BOSS, "task.wb", Keys2.WORLD_BOSS],
+    [TaskId.SCRIPT, "task.script", Keys2.SCRIPT]
   ];
   function formatRemaining(ms) {
     const total = Math.floor(ms / 1e3);
@@ -3244,7 +3260,7 @@
           // The reason a switch is locked belongs on that switch. Said under the
           // grid instead, it read as a verdict on all four.
           isLocked ? el("span", { class: "bhb-task__warn", title, text: "⚠" }) : null,
-          el("span", { class: "bhb-kbd", text: key })
+          el("span", { class: "bhb-kbd", text: keyLabel2(key) })
         ]
       );
       if (!isLocked) {
@@ -3268,7 +3284,7 @@
     const runAll = taskTile({
       taskId: TaskId.RUN_ALL,
       labelKey: "task.runAll",
-      key: "6",
+      key: Keys2.RUN_ALL,
       phase: engine.activeTask === TaskId.RUN_ALL ? t("queue.round", { n: engine.round }) : "",
       isLocked: ready === 0,
       title: ready === 0 ? t("tasks.runAllLocked") : t("tasks.runAllReady", { n: ready })
@@ -3371,7 +3387,7 @@
     const arm = el("button", { class: `bhb-task bhb-task--wrap ${isArmed ? "is-on" : ""}` }, [
       el("span", { class: "bhb-task__switch" }),
       el("span", { class: "bhb-task__label", text: t("steps.armCapture") }),
-      el("span", { class: "bhb-kbd", text: "0" })
+      el("span", { class: "bhb-kbd", text: keyLabel(Keys.CAPTURE) })
     ]);
     arm.addEventListener("click", () => {
       deps.store.armCapture(!isArmed);
@@ -4166,29 +4182,29 @@
     {
       title: "help.sectionAuto",
       entries: [
-        ["3", "help.rerun"],
-        ["4", "help.wb"],
-        ["5", "help.script"],
-        ["6", "help.runAll"]
+        [keyLabel2(Keys2.RERUN), "help.rerun"],
+        [keyLabel2(Keys2.WORLD_BOSS), "help.wb"],
+        [keyLabel2(Keys2.SCRIPT), "help.script"],
+        [keyLabel2(Keys2.RUN_ALL), "help.runAll"]
       ]
     },
     {
       title: "help.sectionSteps",
       entries: [
-        ["0", "help.capture"]
+        [keyLabel2(Keys2.CAPTURE), "help.capture"]
       ]
     },
     {
       title: "help.sectionUi",
       entries: [
-        ["1", "help.togglePanel"]
+        [keyLabel2(Keys2.PANEL), "help.togglePanel"]
       ]
     },
     {
       title: "help.sectionSpeed",
       entries: [
-        ["= / +", "help.speedUp"],
-        ["-", "help.speedDown"]
+        [`${Keys2.SPEED_UP} / ${Keys2.SPEED_UP_ALT}`, "help.speedUp"],
+        [Keys2.SPEED_DOWN, "help.speedDown"]
       ]
     }
   ];
@@ -4485,7 +4501,7 @@
       if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement) {
         return;
       }
-      const handler = bindings[event.key];
+      const handler = bindings[event.key] || bindings[event.key.toLowerCase()];
       if (!handler) {
         return;
       }
@@ -4721,21 +4737,21 @@
     });
     installHotkeys({
       // The keyboard reference has no key of its own; it opens from the panel.
-      "1": () => store.togglePanel(),
-      "3": () => engine.toggle(TaskId.RERUN),
-      "4": () => engine.toggle(TaskId.WORLD_BOSS),
-      "5": () => engine.toggle(TaskId.SCRIPT),
-      "6": () => engine.toggle(TaskId.RUN_ALL),
-      "0": () => {
+      [Keys2.PANEL]: () => store.togglePanel(),
+      [Keys2.RERUN]: () => engine.toggle(TaskId.RERUN),
+      [Keys2.WORLD_BOSS]: () => engine.toggle(TaskId.WORLD_BOSS),
+      [Keys2.SCRIPT]: () => engine.toggle(TaskId.SCRIPT),
+      [Keys2.RUN_ALL]: () => engine.toggle(TaskId.RUN_ALL),
+      [Keys2.CAPTURE]: () => {
         if (!store.get().isCaptureArmed) {
           engine.setMessage(t("msg.captureDisarmed"));
           return;
         }
         stepEditor.captureAtCursor().then(refresh);
       },
-      "=": () => setSpeed(stepSpeed(getSpeed(), 1)),
-      "+": () => setSpeed(stepSpeed(getSpeed(), 1)),
-      "-": () => setSpeed(stepSpeed(getSpeed(), -1))
+      [Keys2.SPEED_UP]: () => setSpeed(stepSpeed(getSpeed(), 1)),
+      [Keys2.SPEED_UP_ALT]: () => setSpeed(stepSpeed(getSpeed(), 1)),
+      [Keys2.SPEED_DOWN]: () => setSpeed(stepSpeed(getSpeed(), -1))
     });
     refresh();
     hud.wake();
