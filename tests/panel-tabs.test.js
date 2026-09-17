@@ -21,6 +21,8 @@ describe('every tab renders', () => {
         getEngineState: () => ({ activeTask: null, phase: 'hunting', round: 0, remainingMs: 0, expectedStepId: null, screen: null, screenName: null }),
         toggleTask: () => {},
         getSteps: () => [],
+        getProbes: () => [],
+        probeEditor: { scoreAll: () => ({ buffer: null, scores: [] }), clear: () => {}, remove: () => {} },
         getScreens: () => [],
         getActivities: () => [],
         getStats: () => ({ startedAt: Date.now(), clicks: 0, rounds: 0, resyncs: 0, hangs: 0, drops: 0, runningMs: 0, activities: {} }),

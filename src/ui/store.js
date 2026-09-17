@@ -56,6 +56,17 @@ export function createUiStore() {
     areMarkersPinned: false,
 
     /**
+     * Whether the next capture makes a probe instead of a step.
+     *
+     * The probe button lives in the panel, and the panel covers the game — so
+     * it arms rather than captures, the same way the ＋ on a step does.
+     */
+    isAwaitingProbe: false,
+
+    /** Probe crosshairs over the game, so a resize can be judged by eye. */
+    areProbesPinned: false,
+
+    /**
      * A dry run in progress: which step it is on, and what it found.
      *
      * @type {{ index: number, scores: Record<string, string> } | null}
@@ -115,6 +126,9 @@ export function createUiStore() {
 
     pinMarkers: (pinned) => patch({ areMarkersPinned: pinned }),
 
+    awaitProbe: (awaiting) => patch({ isAwaitingProbe: awaiting }),
+    pinProbes: (pinned) => patch({ areProbesPinned: pinned }),
+
     /** @param {{ index: number, scores: Record<string, string> } | null} run */
     setDryRun(run) {
       state.dryRun = run;
@@ -161,6 +175,15 @@ export function createUiStore() {
       return (
         state.areMarkersPinned || state.dryRun !== null || state.hoveredStepId !== null
       );
+    },
+
+    /**
+     * Probes are shown while aiming at one, and while pinned. Unlike markers
+     * they outlive the panel: the whole point is to still be on screen after
+     * the game's resolution changed under them.
+     */
+    probesVisible() {
+      return state.areProbesPinned || state.isAwaitingProbe;
     },
 
     /** Which steps the marker layer should draw, of the ones it could. */

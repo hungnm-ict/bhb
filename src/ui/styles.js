@@ -11,7 +11,7 @@ import { Z_TOP } from '../core/constants.js';
  * layer itself must not, or it would swallow every click meant for the game.
  */
 const CSS = `
-.bhb-hud, .bhb-panel, .bhb-markers, .bhb-flash, .bhb-drag, .bhb-size, .bhb-toast {
+.bhb-hud, .bhb-panel, .bhb-markers, .bhb-probes, .bhb-flash, .bhb-drag, .bhb-size, .bhb-toast {
   --bhb-bg: #12141c;
   --bhb-bg-soft: #1a1d29;
   --bhb-line: rgba(255, 255, 255, .09);
@@ -47,7 +47,7 @@ const CSS = `
   font-family: var(--bhb-font);
   user-select: none;
 }
-.bhb-hud *, .bhb-panel *, .bhb-markers *, .bhb-drag * { box-sizing: border-box; }
+.bhb-hud *, .bhb-panel *, .bhb-markers *, .bhb-probes *, .bhb-drag * { box-sizing: border-box; }
 .bhb-mono { font-family: var(--bhb-mono); font-variant-numeric: tabular-nums; }
 
 /* --- HUD ---------------------------------------------------------------- */
@@ -497,6 +497,51 @@ const CSS = `
   border-color: rgba(124, 92, 255, .5);
   color: var(--bhb-text);
 }
+
+/* --- Probe layer -------------------------------------------------------- */
+
+.bhb-probes { inset: 0; pointer-events: none; }
+
+/* A crosshair, not a badge: a probe judges one pixel, and a badge would sit
+   on top of the thing being judged. */
+.bhb-probe {
+  position: fixed;
+  width: 21px; height: 21px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.bhb-probe::before, .bhb-probe::after {
+  content: ''; position: absolute;
+  background: var(--bhb-cyan);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .7);
+}
+.bhb-probe::before { left: 0; right: 0; top: 10px; height: 1px; }
+.bhb-probe::after { top: 0; bottom: 0; left: 10px; width: 1px; }
+.bhb-probe__dot {
+  position: absolute; left: 7px; top: 7px;
+  width: 7px; height: 7px; border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, .7);
+}
+
+.bhb-probe-table { display: flex; flex-direction: column; gap: 2px; }
+
+.bhb-probe-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto 14px 14px auto 20px;
+  align-items: center; gap: 6px;
+  padding: 3px 6px;
+  background: rgba(255, 255, 255, .03);
+  border-radius: 6px;
+  font-size: var(--bhb-fs-xs);
+}
+.bhb-probe-row__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bhb-probe-row__size, .bhb-probe-row__pos { color: var(--bhb-dim); }
+.bhb-probe-row__swatch {
+  width: 14px; height: 14px; border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, .2);
+}
+.bhb-probe-row__delta.is-match { color: var(--bhb-live); }
+.bhb-probe-row__delta.is-miss { color: var(--bhb-danger); }
 
 /* --- Marker layer ------------------------------------------------------- */
 

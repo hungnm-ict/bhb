@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.13.0
+// @version      0.14.0
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @match        *://*.kongregate.com/*
@@ -14,7 +14,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.13.0" : "dev";
+  var VERSION = true ? "0.14.0" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -1286,6 +1286,60 @@
     return { notify, clearCooldown };
   }
 
+  // src/core/probe.js
+  var ASPECT_EPSILON = 0.01;
+  function createProbeId() {
+    return `pr${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
+  }
+  function createProbe(captured) {
+    return {
+      id: createProbeId(),
+      label: captured.label || "",
+      x: captured.x,
+      y: captured.y,
+      bw: captured.bw,
+      bh: captured.bh,
+      hex: captured.hex
+    };
+  }
+  function scoreProbe(probe, buffer, live, tolerance, mode) {
+    const resolved = resolvePoint(probe, buffer, mode);
+    const expected = hexToRgb(probe.hex);
+    const delta = live ? Math.max(
+      Math.abs(live.r - expected.r),
+      Math.abs(live.g - expected.g),
+      Math.abs(live.b - expected.b)
+    ) : null;
+    const capturedAspect = probe.bw / probe.bh;
+    const liveAspect = buffer.width / buffer.height;
+    return {
+      id: probe.id,
+      resolved,
+      liveHex: live ? rgbToHex(live) : null,
+      delta,
+      matches: delta === null ? null : delta <= tolerance,
+      resized: probe.bw !== buffer.width || probe.bh !== buffer.height,
+      aspectChanged: Math.abs(capturedAspect - liveAspect) > ASPECT_EPSILON
+    };
+  }
+  function isUsable(candidate) {
+    return candidate && typeof candidate === "object" && typeof candidate.x === "number" && typeof candidate.y === "number" && typeof candidate.bw === "number" && typeof candidate.bh === "number" && typeof candidate.hex === "string";
+  }
+  function normaliseProbes(stored) {
+    if (!Array.isArray(stored)) {
+      return [];
+    }
+    return stored.filter(isUsable).map((probe) => ({
+      id: typeof probe.id === "string" && probe.id ? probe.id : createProbeId(),
+      label: typeof probe.label === "string" ? probe.label : "",
+      x: probe.x,
+      y: probe.y,
+      bw: probe.bw,
+      bh: probe.bh,
+      hex: probe.hex
+    }));
+  }
+
   // src/core/storage.js
   var SCHEMA_VERSION = 5;
   function createDefaultState() {
@@ -1464,6 +1518,7 @@
       keepAlive: stored.keepAlive !== false,
       notify: normaliseNotifyConfig(stored.notify),
       canvasLock: normaliseCanvasLock(stored.canvasLock),
+      probes: normaliseProbes(stored.probes),
       // Which settings section is expanded; it is usually the same one twice.
       openSection: typeof stored.openSection === "string" ? stored.openSection : null
     };
@@ -1762,6 +1817,31 @@
     return true;
   }
 
+  // src/core/cursor.js
+  var cursorX = null;
+  var cursorY = null;
+  var isTracking = false;
+  function trackCursor() {
+    if (isTracking) {
+      return;
+    }
+    isTracking = true;
+    window.addEventListener(
+      "mousemove",
+      (event) => {
+        cursorX = event.clientX;
+        cursorY = event.clientY;
+      },
+      true
+    );
+  }
+  function getCursor() {
+    if (cursorX === null || cursorY === null) {
+      return null;
+    }
+    return { clientX: cursorX, clientY: cursorY };
+  }
+
   // src/i18n/vi.js
   var vi_default = {
     "app.name": "BHB",
@@ -1918,6 +1998,22 @@
     "steps.dryRunStop": "■ Dừng chạy thử",
     "steps.pinMarkers": "Hiện hết dấu",
     "steps.dryRunHint": "Chạy thử đi dọc danh sách và chấm điểm từng bước trên khung hình đang hiện — ✓ khớp, ✗ không khớp, ⊘ thuộc màn hình khác. Nó KHÔNG bấm gì vào game nên lúc nào cũng an toàn. Bình thường dấu chỉ hiện khi rê chuột lên một dòng.",
+    "probe.title": "Điểm kiểm tra độ phân giải",
+    "probe.defaultName": "Điểm {n}",
+    "probe.capture": "＋ Chấm điểm",
+    "probe.capturing": "Rê chuột lên nút cần kiểm tra rồi bấm phím X",
+    "probe.cancel": "Thôi",
+    "probe.pin": "Hiện chữ thập trên game",
+    "probe.clear": "Xoá hết",
+    "probe.empty": "Chưa có điểm nào.",
+    "probe.none": "chưa có",
+    "probe.count": "{n} điểm",
+    "probe.captured": "chụp ở",
+    "probe.now": "bây giờ",
+    "probe.unknown": "không đọc được",
+    "probe.aspectWarn": "Tỉ lệ khung đã khác lúc chụp ({before} → {after}). Nếu điểm ở giữa vẫn trúng mà điểm ở góc lệch thì game đang letterbox chứ không kéo dãn.",
+    "probe.hint": "Chấm vài điểm lên các nút hay dùng — bốn góc và một điểm giữa là đủ. Rồi đổi độ phân giải trong setting game và quay lại đây: chữ thập cho biết chỗ bot sẽ bấm, cột Δ cho biết màu lệch bao nhiêu so với lúc chụp. Δ nhỏ hơn sai số màu là khớp. Đây là đồ đo đạc, không đi theo file xuất bộ bước.",
+    "toast.probeCaptured": "✓ điểm kiểm tra: {label}",
     "lock.title": "Khoá cỡ canvas (thử nghiệm)",
     "lock.enabled": "Ghim game ở một cỡ cố định",
     "lock.hint": "Bật thì game luôn vẽ ở 640×400 dù cửa sổ to nhỏ thế nào — nhờ vậy màu bot đọc được giống hệt nhau trên mọi máy, và bộ bước mới chia sẻ được. Cửa sổ nhỏ hơn thì phần hiển thị tự thu lại cho vừa, toạ độ vẫn đúng. Tắt là game co giãn theo cửa sổ như bình thường.",
@@ -2108,6 +2204,22 @@
     "steps.dryRunStop": "■ Stop the dry run",
     "steps.pinMarkers": "Show every marker",
     "steps.dryRunHint": "A dry run walks the list and scores each step against the frame on screen — ✓ matches, ✗ does not, ⊘ belongs to another screen. It clicks nothing, so it is safe at any time. Otherwise a marker appears only while you hover its row.",
+    "probe.title": "Resolution probes",
+    "probe.defaultName": "Probe {n}",
+    "probe.capture": "＋ Drop a probe",
+    "probe.capturing": "Point at the button you care about, then press X",
+    "probe.cancel": "Cancel",
+    "probe.pin": "Show crosshairs over the game",
+    "probe.clear": "Clear all",
+    "probe.empty": "No probes yet.",
+    "probe.none": "none",
+    "probe.count": "{n} probes",
+    "probe.captured": "captured at",
+    "probe.now": "now",
+    "probe.unknown": "unreadable",
+    "probe.aspectWarn": "The aspect ratio has changed since capture ({before} → {after}). If the middle probe still lands but the corner ones drift, the game letterboxes rather than stretches.",
+    "probe.hint": "Drop a probe on a few buttons you rely on — four corners and one in the middle is enough. Then change the resolution in the game’s own settings and come back: the crosshairs show where the bot would now click, and the Δ column shows how far the colour drifted. A Δ under the colour tolerance is a match. These are measurements, so they stay out of your profile export.",
+    "toast.probeCaptured": "✓ probe: {label}",
     "lock.title": "Canvas size lock (experimental)",
     "lock.enabled": "Pin the game to a fixed size",
     "lock.hint": "The game then renders at 640×400 whatever the window does, so the colours the bot reads are identical on every machine — which is what makes a step set shareable. A smaller window scales the display down to fit and the coordinates still hold. Switch it off and the game resizes with the window as before.",
@@ -2187,17 +2299,8 @@
     return { pixel: previous, isSettled: false };
   }
   function createStepEditor(deps) {
-    let cursorX = null;
-    let cursorY = null;
     let capturing = false;
-    window.addEventListener(
-      "mousemove",
-      (event) => {
-        cursorX = event.clientX;
-        cursorY = event.clientY;
-      },
-      true
-    );
+    trackCursor();
     async function captureAtCursor(intoStepId = null) {
       if (capturing) {
         return null;
@@ -2207,25 +2310,27 @@
         deps.report(t("msg.noCanvas"));
         return null;
       }
-      if (cursorX === null || cursorY === null) {
+      const cursor = getCursor();
+      if (!cursor) {
         deps.report(t("msg.noMousePosition"));
         return null;
       }
-      if (!isInsideCanvas(target.canvas, cursorX, cursorY)) {
+      const { clientX: cursorX2, clientY: cursorY2 } = cursor;
+      if (!isInsideCanvas(target.canvas, cursorX2, cursorY2)) {
         deps.report(t("msg.outsideCanvas"));
         return null;
       }
       capturing = true;
       try {
         const { canvas, gl } = target;
-        const point = clientToBuffer(canvas, cursorX, cursorY);
+        const point = clientToBuffer(canvas, cursorX2, cursorY2);
         const buffer = getBufferSize(canvas);
         const hovered = readPixel(gl, point.x, point.y);
         const corner = bufferToClient(canvas, HOVER_RESET_POINT.x, HOVER_RESET_POINT.y);
         dispatchMoveTo(canvas, corner.clientX, corner.clientY);
         const settled = await readSettledPixel(gl, point);
         const resting = settled.pixel;
-        dispatchMoveTo(canvas, cursorX, cursorY);
+        dispatchMoveTo(canvas, cursorX2, cursorY2);
         if (!resting) {
           deps.report(t("msg.noWebgl"));
           return null;
@@ -2256,7 +2361,7 @@
           settled.isSettled ? t("msg.stepCaptured", { x: point.x, y: point.y, hex: restingHex }) : t("msg.stepUnstable", { x: point.x, y: point.y, hex: restingHex })
         );
         if (deps.onCaptured) {
-          deps.onCaptured({ step, clientX: cursorX, clientY: cursorY, isSettled: settled.isSettled });
+          deps.onCaptured({ step, clientX: cursorX2, clientY: cursorY2, isSettled: settled.isSettled });
         }
         return step;
       } finally {
@@ -2604,7 +2709,7 @@
 
   // src/ui/styles.js
   var CSS = `
-.bhb-hud, .bhb-panel, .bhb-markers, .bhb-flash, .bhb-drag, .bhb-size, .bhb-toast {
+.bhb-hud, .bhb-panel, .bhb-markers, .bhb-probes, .bhb-flash, .bhb-drag, .bhb-size, .bhb-toast {
   --bhb-bg: #12141c;
   --bhb-bg-soft: #1a1d29;
   --bhb-line: rgba(255, 255, 255, .09);
@@ -2640,7 +2745,7 @@
   font-family: var(--bhb-font);
   user-select: none;
 }
-.bhb-hud *, .bhb-panel *, .bhb-markers *, .bhb-drag * { box-sizing: border-box; }
+.bhb-hud *, .bhb-panel *, .bhb-markers *, .bhb-probes *, .bhb-drag * { box-sizing: border-box; }
 .bhb-mono { font-family: var(--bhb-mono); font-variant-numeric: tabular-nums; }
 
 /* --- HUD ---------------------------------------------------------------- */
@@ -3091,6 +3196,51 @@
   color: var(--bhb-text);
 }
 
+/* --- Probe layer -------------------------------------------------------- */
+
+.bhb-probes { inset: 0; pointer-events: none; }
+
+/* A crosshair, not a badge: a probe judges one pixel, and a badge would sit
+   on top of the thing being judged. */
+.bhb-probe {
+  position: fixed;
+  width: 21px; height: 21px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.bhb-probe::before, .bhb-probe::after {
+  content: ''; position: absolute;
+  background: var(--bhb-cyan);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .7);
+}
+.bhb-probe::before { left: 0; right: 0; top: 10px; height: 1px; }
+.bhb-probe::after { top: 0; bottom: 0; left: 10px; width: 1px; }
+.bhb-probe__dot {
+  position: absolute; left: 7px; top: 7px;
+  width: 7px; height: 7px; border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, .7);
+}
+
+.bhb-probe-table { display: flex; flex-direction: column; gap: 2px; }
+
+.bhb-probe-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto 14px 14px auto 20px;
+  align-items: center; gap: 6px;
+  padding: 3px 6px;
+  background: rgba(255, 255, 255, .03);
+  border-radius: 6px;
+  font-size: var(--bhb-fs-xs);
+}
+.bhb-probe-row__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bhb-probe-row__size, .bhb-probe-row__pos { color: var(--bhb-dim); }
+.bhb-probe-row__swatch {
+  width: 14px; height: 14px; border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, .2);
+}
+.bhb-probe-row__delta.is-match { color: var(--bhb-live); }
+.bhb-probe-row__delta.is-miss { color: var(--bhb-danger); }
+
 /* --- Marker layer ------------------------------------------------------- */
 
 .bhb-markers { inset: 0; pointer-events: none; }
@@ -3295,6 +3445,15 @@
       /** All markers at once; off by default, so the game stays readable. */
       areMarkersPinned: false,
       /**
+       * Whether the next capture makes a probe instead of a step.
+       *
+       * The probe button lives in the panel, and the panel covers the game — so
+       * it arms rather than captures, the same way the ＋ on a step does.
+       */
+      isAwaitingProbe: false,
+      /** Probe crosshairs over the game, so a resize can be judged by eye. */
+      areProbesPinned: false,
+      /**
        * A dry run in progress: which step it is on, and what it found.
        *
        * @type {{ index: number, scores: Record<string, string> } | null}
@@ -3337,6 +3496,8 @@
       armCapture: (armed) => patch({ isCaptureArmed: armed }),
       awaitPlaceFor: (stepId) => patch({ pendingPlaceStepId: stepId }),
       pinMarkers: (pinned) => patch({ areMarkersPinned: pinned }),
+      awaitProbe: (awaiting) => patch({ isAwaitingProbe: awaiting }),
+      pinProbes: (pinned) => patch({ areProbesPinned: pinned }),
       /** @param {{ index: number, scores: Record<string, string> } | null} run */
       setDryRun(run) {
         state.dryRun = run;
@@ -3376,6 +3537,14 @@
           return false;
         }
         return state.areMarkersPinned || state.dryRun !== null || state.hoveredStepId !== null;
+      },
+      /**
+       * Probes are shown while aiming at one, and while pinned. Unlike markers
+       * they outlive the panel: the whole point is to still be on screen after
+       * the game's resolution changed under them.
+       */
+      probesVisible() {
+        return state.areProbesPinned || state.isAwaitingProbe;
       },
       /** Which steps the marker layer should draw, of the ones it could. */
       markerFilter() {
@@ -4208,6 +4377,102 @@
     }
   }
 
+  // src/ui/panel/probes.js
+  function sizeText(width, height) {
+    return `${width}×${height}`;
+  }
+  function aspectText(width, height) {
+    return (width / height).toFixed(2);
+  }
+  function verdictRow(probe, score) {
+    const cells = [
+      el("span", { class: "bhb-probe-row__name", text: probe.label }),
+      el("span", {
+        class: "bhb-mono bhb-probe-row__size",
+        text: sizeText(probe.bw, probe.bh),
+        title: t("probe.captured")
+      }),
+      el("span", {
+        class: "bhb-mono bhb-probe-row__pos",
+        text: `${score.resolved.x}, ${score.resolved.y}`
+      }),
+      el("span", { class: "bhb-probe-row__swatch", style: { background: probe.hex } }),
+      el("span", {
+        class: "bhb-probe-row__swatch",
+        style: { background: score.liveHex || "transparent" }
+      })
+    ];
+    if (score.matches === null) {
+      cells.push(el("span", { class: "bhb-note", text: t("probe.unknown") }));
+    } else {
+      cells.push(
+        el("span", {
+          class: `bhb-mono bhb-probe-row__delta ${score.matches ? "is-match" : "is-miss"}`,
+          text: `${score.delta} ${score.matches ? "✓" : "✗"}`
+        })
+      );
+    }
+    return cells;
+  }
+  function renderProbeSection(deps, toggleRow) {
+    const probes = deps.getProbes();
+    const { buffer, scores } = deps.probeEditor.scoreAll();
+    const state = deps.store.get();
+    const capture = el("button", {
+      class: `bhb-btn bhb-btn--small ${state.isAwaitingProbe ? "bhb-btn--primary" : ""}`,
+      text: t(state.isAwaitingProbe ? "probe.cancel" : "probe.capture")
+    });
+    capture.addEventListener("click", () => {
+      const awaiting = !state.isAwaitingProbe;
+      deps.store.awaitProbe(awaiting);
+      if (awaiting) {
+        deps.store.armCapture(true);
+        deps.store.closePanel();
+      }
+      deps.refresh();
+    });
+    const clear = el("button", { class: "bhb-btn bhb-btn--small", text: t("probe.clear") });
+    clear.addEventListener("click", () => {
+      deps.probeEditor.clear();
+      deps.refresh();
+    });
+    const rows2 = probes.map((probe, index) => {
+      const score = scores[index];
+      const remove = el("button", { class: "bhb-icon", title: t("probe.clear"), text: "✕" });
+      remove.addEventListener("click", () => {
+        deps.probeEditor.remove(probe.id);
+        deps.refresh();
+      });
+      return el("div", { class: "bhb-probe-row" }, [
+        ...score ? verdictRow(probe, score) : [el("span", { class: "bhb-probe-row__name", text: probe.label })],
+        remove
+      ]);
+    });
+    const drifted = scores.find((score) => score.aspectChanged);
+    const capturedAt = probes[0];
+    return el("div", { class: "bhb-field" }, [
+      el("div", { class: "bhb-btnrow" }, [
+        capture,
+        probes.length > 0 ? clear : null,
+        buffer ? el("span", {
+          class: "bhb-mono bhb-note",
+          text: `${t("probe.now")} ${sizeText(buffer.width, buffer.height)}`
+        }) : null
+      ]),
+      state.isAwaitingProbe ? el("p", { class: "bhb-note bhb-note--warn", text: t("probe.capturing") }) : null,
+      toggleRow("probe.pin", state.areProbesPinned, (value) => deps.store.pinProbes(value)),
+      drifted && capturedAt && buffer ? el("p", {
+        class: "bhb-note bhb-note--warn",
+        text: t("probe.aspectWarn", {
+          before: aspectText(capturedAt.bw, capturedAt.bh),
+          after: aspectText(buffer.width, buffer.height)
+        })
+      }) : null,
+      rows2.length > 0 ? el("div", { class: "bhb-probe-table" }, rows2) : el("p", { class: "bhb-note", text: t("probe.empty") }),
+      el("p", { class: "bhb-note", text: t("probe.hint") })
+    ]);
+  }
+
   // src/ui/panel/settings.js
   var transferBox = null;
   var alertBoxes = {};
@@ -4486,6 +4751,13 @@
         "lock.title",
         `${t(settings.canvasLock.enabled ? "settings.on" : "settings.off")} · ${LOCK_SIZE.width}×${LOCK_SIZE.height}`,
         () => renderCanvasLock(deps, toggleRow)
+      ),
+      section(
+        deps,
+        "probes",
+        "probe.title",
+        deps.getProbes().length > 0 ? t("probe.count", { n: deps.getProbes().length }) : t("probe.none"),
+        () => renderProbeSection(deps, toggleRow)
       ),
       section(
         deps,
@@ -4923,6 +5195,117 @@
     return { render, highlight };
   }
 
+  // src/ui/probe-layer.js
+  function createProbeLayer(deps) {
+    let layer = null;
+    function ensureLayer() {
+      if (!layer) {
+        layer = mount(el("div", { class: "bhb-probes" }));
+      }
+      return layer;
+    }
+    function crosshairFor(probe, canvas, buffer, rect) {
+      const resolved = resolvePoint(probe, buffer, deps.getScaleMode());
+      const pos = bufferToClient(canvas, resolved.x, resolved.y, rect);
+      return el(
+        "div",
+        {
+          class: "bhb-probe",
+          style: { left: `${pos.clientX}px`, top: `${pos.clientY}px` },
+          title: probe.label
+        },
+        [el("span", { class: "bhb-probe__dot", style: { background: probe.hex } })]
+      );
+    }
+    function render() {
+      const node = ensureLayer();
+      if (!deps.store.probesVisible()) {
+        node.style.display = "none";
+        node.replaceChildren();
+        return;
+      }
+      const canvas = getCanvas();
+      if (!canvas) {
+        node.style.display = "none";
+        return;
+      }
+      node.style.display = "block";
+      const buffer = getBufferSize(canvas);
+      const rect = canvas.getBoundingClientRect();
+      node.replaceChildren(
+        ...deps.getProbes().map((probe) => crosshairFor(probe, canvas, buffer, rect))
+      );
+    }
+    return { render };
+  }
+
+  // src/bot/probe-editor.js
+  function createProbeEditor(deps) {
+    trackCursor();
+    function captureAtCursor() {
+      const target = getRenderTarget();
+      if (!target) {
+        deps.report(t("msg.noCanvas"));
+        return null;
+      }
+      const cursor = getCursor();
+      if (!cursor) {
+        deps.report(t("msg.noMousePosition"));
+        return null;
+      }
+      if (!isInsideCanvas(target.canvas, cursor.clientX, cursor.clientY)) {
+        deps.report(t("msg.outsideCanvas"));
+        return null;
+      }
+      const { canvas, gl } = target;
+      const point = clientToBuffer(canvas, cursor.clientX, cursor.clientY);
+      const pixel = readPixel(gl, point.x, point.y);
+      if (!pixel) {
+        deps.report(t("msg.noWebgl"));
+        return null;
+      }
+      const buffer = getBufferSize(canvas);
+      const probes = deps.getProbes();
+      const probe = createProbe({
+        x: point.x,
+        y: point.y,
+        bw: buffer.width,
+        bh: buffer.height,
+        hex: rgbToHex(pixel),
+        label: t("probe.defaultName", { n: probes.length + 1 })
+      });
+      deps.setProbes([...probes, probe]);
+      if (deps.onCaptured) {
+        deps.onCaptured({ probe, clientX: cursor.clientX, clientY: cursor.clientY });
+      }
+      return probe;
+    }
+    function remove(probeId) {
+      deps.setProbes(deps.getProbes().filter((probe) => probe.id !== probeId));
+    }
+    function clear() {
+      deps.setProbes([]);
+    }
+    function scoreAll() {
+      const target = getRenderTarget();
+      const probes = deps.getProbes();
+      if (!target) {
+        return { buffer: null, scores: [] };
+      }
+      const { canvas, gl } = target;
+      const buffer = getBufferSize(canvas);
+      const mode = deps.getScaleMode();
+      const tolerance = deps.getTolerance();
+      const scores = probes.map((probe) => {
+        const resolved = scoreProbe(probe, buffer, null, tolerance, mode).resolved;
+        const live = readPixel(gl, resolved.x, resolved.y);
+        return scoreProbe(probe, buffer, live, tolerance, mode);
+      });
+      return { buffer, scores };
+    }
+    return { captureAtCursor, remove, clear, scoreAll };
+  }
+
   // src/ui/size-badge.js
   var DIM_AFTER_MS2 = 5e3;
   var NEAR_PX = 32;
@@ -5101,6 +5484,25 @@
       getScaleMode: () => settings.scaleMode
     });
     const queueEditor = createQueueEditor({ getActivities, persist });
+    const probeEditor = createProbeEditor({
+      getProbes: () => settings.probes,
+      setProbes: (probes2) => {
+        settings.probes = probes2;
+        saveSettings(settings);
+      },
+      report: engine.setMessage,
+      getTolerance: () => DEFAULT_COLOR_TOLERANCE,
+      getScaleMode: () => settings.scaleMode,
+      onCaptured: ({ probe, clientX, clientY }) => {
+        showClickFlash(clientX, clientY);
+        showToast({
+          clientX,
+          clientY,
+          text: t("toast.probeCaptured", { label: probe.label }),
+          hex: probe.hex
+        });
+      }
+    });
     const dryRunner = createDryRunner({
       getSteps,
       getScreens,
@@ -5114,6 +5516,7 @@
       hud.render();
       panel.render();
       markers.render();
+      probes.render();
       sizeBadge.render();
     };
     const LIVE_TABS = /* @__PURE__ */ new Set([Tab.TASKS, Tab.SCREENS]);
@@ -5165,6 +5568,8 @@
       screenEditor,
       queueEditor,
       dryRunner,
+      probeEditor,
+      getProbes: () => settings.probes,
       getSteps,
       getScreens,
       getActivities,
@@ -5207,6 +5612,11 @@
     });
     const markers = createMarkerLayer({
       getSteps,
+      getScaleMode: () => settings.scaleMode,
+      store
+    });
+    const probes = createProbeLayer({
+      getProbes: () => settings.probes,
       getScaleMode: () => settings.scaleMode,
       store
     });
@@ -5269,6 +5679,13 @@
           engine.setMessage(t("msg.captureDisarmed"));
           return;
         }
+        if (store.get().isAwaitingProbe) {
+          probeEditor.captureAtCursor();
+          store.awaitProbe(false);
+          store.openPanel();
+          refresh();
+          return;
+        }
         const pending = store.get().pendingPlaceStepId;
         stepEditor.captureAtCursor(pending).then(() => {
           if (pending) {
@@ -5291,6 +5708,7 @@
         lockCanvasSize();
       }
       markers.render();
+      probes.render();
       sizeBadge.render();
     };
     window.addEventListener("resize", onCanvasMoved);

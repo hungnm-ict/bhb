@@ -6,6 +6,7 @@ import { NOTIFY_EVENTS, hasNotifyTarget } from '../../core/notify.js';
 import { LOCK_SIZE } from '../../core/canvas-lock.js';
 import { VERSION } from '../../core/constants.js';
 import { checkForUpdate, SCRIPT_URL } from '../../core/update.js';
+import { renderProbeSection } from './probes.js';
 
 /**
  * Settings, and the first home for the profile list.
@@ -383,6 +384,16 @@ export function renderSettingsTab(deps) {
       'lock.title',
       `${t(settings.canvasLock.enabled ? 'settings.on' : 'settings.off')} · ${LOCK_SIZE.width}×${LOCK_SIZE.height}`,
       () => renderCanvasLock(deps, toggleRow)
+    ),
+
+    section(
+      deps,
+      'probes',
+      'probe.title',
+      deps.getProbes().length > 0
+        ? t('probe.count', { n: deps.getProbes().length })
+        : t('probe.none'),
+      () => renderProbeSection(deps, toggleRow)
     ),
 
     section(

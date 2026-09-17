@@ -8,6 +8,7 @@ import { createStep } from '../bot/step.js';
 import { ScaleMode } from './coords.js';
 import { createDefaultActivities, DEFAULT_ACTIVITIES } from '../bot/activity.js';
 import { normaliseNotifyConfig } from './notify.js';
+import { normaliseProbes } from './probe.js';
 
 /**
  * Persistence for step profiles and settings.
@@ -287,7 +288,8 @@ function normaliseCanvasLock(stored) {
 /**
  * @returns {{ scaleMode: string, language: string, closeAfterRound: boolean,
  *   watchdog: boolean, sizeBadge: boolean, keepAlive: boolean,
- *   notify: import('./notify.js').NotifyConfig }}
+ *   notify: import('./notify.js').NotifyConfig,
+ *   probes: import('./probe.js').Probe[] }}
  */
 export function loadSettings() {
   const stored = readJson(STORAGE_KEY_SETTINGS) || {};
@@ -304,6 +306,7 @@ export function loadSettings() {
     keepAlive: stored.keepAlive !== false,
     notify: normaliseNotifyConfig(stored.notify),
     canvasLock: normaliseCanvasLock(stored.canvasLock),
+    probes: normaliseProbes(stored.probes),
     // Which settings section is expanded; it is usually the same one twice.
     openSection: typeof stored.openSection === 'string' ? stored.openSection : null,
   };
