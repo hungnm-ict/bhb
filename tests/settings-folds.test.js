@@ -26,6 +26,7 @@ function build(overrides = {}) {
       events: [],
     },
     openSection: null,
+    probes: [],
     ...overrides,
   };
 
@@ -43,6 +44,12 @@ function build(overrides = {}) {
       { id: 'raid', name: 'Raid', enabled: false },
     ],
     getSteps: () => [],
+    getProbes: () => settings.probes,
+    probeEditor: {
+      scoreAll: () => ({ buffer: null, scores: [] }),
+      clear: () => {},
+      remove: () => {},
+    },
     getEngineState: () => ({ activity: null, round: 0, spent: [] }),
     getReloadCount: () => 0,
     updateSettings: (changes) => Object.assign(settings, changes),

@@ -10,6 +10,7 @@ import {
 } from '../core/coords.js';
 import { realRequestAnimationFrame } from '../core/timers.js';
 import { HOVER_RESET_POINT } from '../core/constants.js';
+import { trackCursor, getCursor } from '../core/cursor.js';
 import { createStep, StepKind, pointsByPlace } from './step.js';
 import { t } from '../i18n/index.js';
 
@@ -83,18 +84,9 @@ async function readSettledPixel(gl, point) {
  *   capture where the user is looking; this module stays DOM-free
  */
 export function createStepEditor(deps) {
-  let cursorX = null;
-  let cursorY = null;
   let capturing = false;
 
-  window.addEventListener(
-    'mousemove',
-    (event) => {
-      cursorX = event.clientX;
-      cursorY = event.clientY;
-    },
-    true
-  );
+  trackCursor();
 
   /**
    * Capture a step at the current cursor position.
@@ -115,10 +107,12 @@ export function createStepEditor(deps) {
       deps.report(t('msg.noCanvas'));
       return null;
     }
-    if (cursorX === null || cursorY === null) {
+    const cursor = getCursor();
+    if (!cursor) {
       deps.report(t('msg.noMousePosition'));
       return null;
     }
+    const { clientX: cursorX, clientY: cursorY } = cursor;
     if (!isInsideCanvas(target.canvas, cursorX, cursorY)) {
       deps.report(t('msg.outsideCanvas'));
       return null;

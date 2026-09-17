@@ -10,7 +10,7 @@
  *  3. Everything else once the DOM is ready.
  */
 
-import { RESUME_DELAY } from './core/constants.js';
+import { RESUME_DELAY, DEFAULT_COLOR_TOLERANCE } from './core/constants.js';
 import { Keys } from './core/keys.js';
 import { installCanvasPatch } from './core/canvas.js';
 import { installFocusPatch } from './core/focus.js';
@@ -54,6 +54,8 @@ import { createHud } from './ui/hud.js';
 import { createPanel } from './ui/panel/index.js';
 import { describeEntry } from './ui/panel/log.js';
 import { createMarkerLayer } from './ui/markers.js';
+import { createProbeLayer } from './ui/probe-layer.js';
+import { createProbeEditor } from './bot/probe-editor.js';
 import { createSizeBadge } from './ui/size-badge.js';
 import { installHotkeys } from './ui/hotkeys.js';
 import { showClickFlash } from './ui/flash.js';
@@ -129,6 +131,26 @@ function bootstrap() {
 
   const queueEditor = createQueueEditor({ getActivities, persist });
 
+  const probeEditor = createProbeEditor({
+    getProbes: () => settings.probes,
+    setProbes: (probes) => {
+      settings.probes = probes;
+      saveSettings(settings);
+    },
+    report: engine.setMessage,
+    getTolerance: () => DEFAULT_COLOR_TOLERANCE,
+    getScaleMode: () => settings.scaleMode,
+    onCaptured: ({ probe, clientX, clientY }) => {
+      showClickFlash(clientX, clientY);
+      showToast({
+        clientX,
+        clientY,
+        text: t('toast.probeCaptured', { label: probe.label }),
+        hex: probe.hex,
+      });
+    },
+  });
+
   const dryRunner = createDryRunner({
     getSteps,
     getScreens,
@@ -144,6 +166,7 @@ function bootstrap() {
     hud.render();
     panel.render();
     markers.render();
+    probes.render();
     sizeBadge.render();
   };
 
@@ -201,6 +224,8 @@ function bootstrap() {
     screenEditor,
     queueEditor,
     dryRunner,
+    probeEditor,
+    getProbes: () => settings.probes,
     getSteps,
     getScreens,
     getActivities,
@@ -244,6 +269,12 @@ function bootstrap() {
 
   const markers = createMarkerLayer({
     getSteps,
+    getScaleMode: () => settings.scaleMode,
+    store,
+  });
+
+  const probes = createProbeLayer({
+    getProbes: () => settings.probes,
     getScaleMode: () => settings.scaleMode,
     store,
   });
@@ -321,6 +352,15 @@ function bootstrap() {
         engine.setMessage(t('msg.captureDisarmed'));
         return;
       }
+      // A probe is armed the same way a step is, and takes precedence: the
+      // user asked for it one button press ago.
+      if (store.get().isAwaitingProbe) {
+        probeEditor.captureAtCursor();
+        store.awaitProbe(false);
+        store.openPanel();
+        refresh();
+        return;
+      }
       // A pending ＋ means this capture belongs to a step that already exists.
       const pending = store.get().pendingPlaceStepId;
       stepEditor.captureAtCursor(pending).then(() => {
@@ -350,6 +390,7 @@ function bootstrap() {
       lockCanvasSize();
     }
     markers.render();
+    probes.render();
     sizeBadge.render();
   };
 
