@@ -35,10 +35,16 @@ export const SCRIPT_PACE_LADDER = Object.freeze([300, 600, 1200, 2000, 3000]);
 export const IDLE_ADVANCE_TICKS = 8;
 
 /**
- * Ticks the runner waits for the step it expects before it stops trusting its
- * place in the list and takes whatever fits the screen in front of it.
+ * How long the runner waits for the step it expects before it stops trusting
+ * its place in the list and takes whatever fits the screen in front of it.
+ *
+ * Wall-clock, not ticks. As ticks this was three of them, which quietly meant
+ * nine seconds at one poll rate and two at another — and giving up early lands
+ * the scan on the step just clicked, whose button is still on screen, so it
+ * clicks it again forever. What the runner is really waiting on is the game
+ * finishing a transition, and that takes the time it takes.
  */
-export const RESYNC_AFTER_TICKS = 3;
+export const RESYNC_AFTER_MS = 9000;
 
 /** Stop automation after this long with no successful click. */
 export const AUTO_STOP_TIMEOUT = 3 * 60 * 1000;

@@ -20,7 +20,7 @@ import {
   INTERVAL_AUTO_STOP_CHECK,
   INTERVAL_RUN_ALL,
   IDLE_ADVANCE_TICKS,
-  RESYNC_AFTER_TICKS,
+  RESYNC_AFTER_MS,
   AUTO_STOP_TIMEOUT,
 } from './constants.js';
 
@@ -80,7 +80,7 @@ export function createEngine(deps) {
   let idleTicks = 0;
 
   /** Where the runner is in the current step list. See `runSequence`. */
-  const cursor = { key: null, index: 0, misses: 0 };
+  const cursor = { key: null, index: 0, missingSince: 0 };
 
   /** When the current rest ends; the loop reads nothing until then. */
   let restingUntil = 0;
@@ -323,7 +323,7 @@ export function createEngine(deps) {
    *
    * A game is not a script, though. A daily reward pops up, a battle ends on a
    * screen nobody planned for, a click does not land. When the expected step
-   * has not matched for `RESYNC_AFTER_TICKS`, the runner stops trusting its
+   * has not matched for `RESYNC_AFTER_MS`, the runner stops trusting its
    * place and takes whatever fits the screen in front of it — that is what
    * keeps a strict sequence from becoming a deadlock.
    */
@@ -336,7 +336,7 @@ export function createEngine(deps) {
     if (cursor.key !== key) {
       cursor.key = key;
       cursor.index = 0;
-      cursor.misses = 0;
+      cursor.missingSince = 0;
     }
 
     const buffer = getBufferSize(canvas);
@@ -355,7 +355,7 @@ export function createEngine(deps) {
         // seats, and which seats they are is the game's business, not ours.
         const stillThere = countPlaces(expected, gl, screenId, buffer, scaleMode);
         if (stillThere > (expected.maxMatches || 0)) {
-          cursor.misses = 0;
+          cursor.missingSince = 0;
           setMessage(
             `${expected.label || expected.id}: waiting (${stillThere} left)`
           );
@@ -367,7 +367,7 @@ export function createEngine(deps) {
 
       if (point) {
         cursor.index = (cursor.index + 1) % steps.length;
-        cursor.misses = 0;
+        cursor.missingSince = 0;
         return { step: expected, point, clicked: clickBufferPoint(canvas, point) };
       }
 
@@ -378,11 +378,13 @@ export function createEngine(deps) {
         continue;
       }
 
-      cursor.misses += 1;
+      if (!cursor.missingSince) {
+        cursor.missingSince = realNow();
+      }
       break;
     }
 
-    if (cursor.misses < RESYNC_AFTER_TICKS) {
+    if (!cursor.missingSince || realNow() - cursor.missingSince < RESYNC_AFTER_MS) {
       // Still waiting for the expected step: taking a later one out of turn is
       // exactly the out-of-order clicking the cursor exists to prevent.
       return null;
@@ -395,7 +397,7 @@ export function createEngine(deps) {
 
     report('resync', { label: scan.step.label || scan.step.id });
     cursor.index = (scan.index + 1) % steps.length;
-    cursor.misses = 0;
+    cursor.missingSince = 0;
     return scan;
   }
 
