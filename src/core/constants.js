@@ -21,6 +21,16 @@ export const INTERVAL_SCRIPT = 3000;
 export const INTERVAL_AUTO_STOP_CHECK = 5000;
 export const INTERVAL_RUN_ALL = 1500;
 
+/**
+ * How fast the Custom task polls, fastest first.
+ *
+ * One tick clicks at most one step, so a fixed 3s nicked a four-step sequence
+ * for twelve seconds of nothing. Mid-sequence the next screen is already on
+ * its way, which is worth reading for; an idle bot staring at an unchanged
+ * screen is not, and every tick costs a `readPixels`.
+ */
+export const SCRIPT_PACE_LADDER = Object.freeze([300, 600, 1200, 2000, 3000]);
+
 /** Ticks with no match before Run-All gives up on an activity and moves on. */
 export const IDLE_ADVANCE_TICKS = 8;
 

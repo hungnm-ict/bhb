@@ -6,8 +6,16 @@ import { isStepReady, colorForPoint, StepKind, pointsByPlace } from '../bot/step
 import { detectScreen, stepAllowedOn } from '../bot/screen.js';
 import { stepsForActivity, looseSteps } from '../bot/activity.js';
 import { createEmitter } from './events.js';
-import { realNow, realSetInterval, realClearInterval } from './timers.js';
 import {
+  realNow,
+  realSetInterval,
+  realClearInterval,
+  realSetTimeout,
+  realClearTimeout,
+} from './timers.js';
+import { nextPace, FIRST_PACE } from './pace.js';
+import {
+  SCRIPT_PACE_LADDER,
   INTERVAL_SCRIPT,
   INTERVAL_AUTO_STOP_CHECK,
   INTERVAL_RUN_ALL,
@@ -76,6 +84,9 @@ export function createEngine(deps) {
 
   /** When the current rest ends; the loop reads nothing until then. */
   let restingUntil = 0;
+
+  /** The Custom task's current gap between ticks. See `pace.js`. */
+  let pace = FIRST_PACE;
 
   let pollTimer = null;
   let autoStopTimer = null;
@@ -430,26 +441,27 @@ export function createEngine(deps) {
     return screen;
   }
 
+  /** @returns {boolean} whether this tick clicked a step. */
   function tick() {
     if (!state.activeTask) {
-      return;
+      return false;
     }
     // Resting reads nothing on purpose: the fight this step started is still
     // running, and the frame has nothing new to say until it ends.
     if (restingUntil > realNow()) {
-      return;
+      return false;
     }
     const target = getRenderTarget();
     if (!target) {
       setMessage('waiting for game canvas');
-      return;
+      return false;
     }
 
     const screen = updateScreen(target.canvas, target.gl);
     // Under Run-All an exhausted resource is the cue to move on, not to stop.
     if (screen && screen.stopsTask && state.activeTask === TaskId.RUN_ALL) {
       advanceQueue('spent');
-      return;
+      return false;
     }
     if (screen && screen.stopsTask) {
       const stopped = state.activeTask;
@@ -457,7 +469,7 @@ export function createEngine(deps) {
       report('resource', { label });
       stop();
       setMessage(`${stopped} stopped: ${label}`);
-      return;
+      return false;
     }
 
     const task = TASKS[state.activeTask];
@@ -468,13 +480,13 @@ export function createEngine(deps) {
         idleTicks += 1;
         if (idleTicks >= IDLE_ADVANCE_TICKS) {
           advanceQueue('idle');
-          return;
+          return false;
         }
         setMessage(`${state.activityName || 'run all'}: no match`);
-        return;
+        return false;
       }
       setMessage(`${state.activeTask}: no match`);
-      return;
+      return false;
     }
 
     idleTicks = 0;
@@ -494,6 +506,34 @@ export function createEngine(deps) {
       point: hit.point,
     });
     setMessage(`${hit.step.label || hit.step.id} → ${hit.clicked ? 'click' : 'busy'}`);
+    return Boolean(hit.clicked);
+  }
+
+  /**
+   * Book the next tick.
+   *
+   * Only the Custom task paces itself: Run-All counts ticks to decide when an
+   * activity is idle, so a tick that changes length would quietly change what
+   * `IDLE_ADVANCE_TICKS` means.
+   */
+  function schedulePoll() {
+    const adaptive = state.activeTask === TaskId.SCRIPT;
+    const resting = restingUntil > realNow();
+    const delay = adaptive
+      ? (resting ? SCRIPT_PACE_LADDER[SCRIPT_PACE_LADDER.length - 1] : pace)
+      : TASKS[state.activeTask].interval;
+
+    pollTimer = realSetTimeout(() => {
+      // Read before the tick: the rest this tick starts is not one it sat out.
+      const wasResting = restingUntil > realNow();
+      const clicked = tick();
+      if (adaptive && !wasResting) {
+        pace = nextPace(pace, clicked);
+      }
+      if (state.activeTask) {
+        schedulePoll();
+      }
+    }, delay);
   }
 
   function clearInterval_(id) {
@@ -562,7 +602,8 @@ export function createEngine(deps) {
       setActivity(taskId === TaskId.RUN_ALL ? currentActivity() : null);
     }
 
-    pollTimer = realSetInterval(tick, TASKS[taskId].interval);
+    pace = FIRST_PACE;
+    schedulePoll();
     autoStopTimer = realSetInterval(checkAutoStop, INTERVAL_AUTO_STOP_CHECK);
 
     report('task', { started: true, label: taskId });
@@ -584,7 +625,7 @@ export function createEngine(deps) {
     cursor.key = null;
     setActivity(null);
 
-    clearInterval_(pollTimer);
+    realClearTimeout(pollTimer);
     clearInterval_(autoStopTimer);
     pollTimer = autoStopTimer = null;
 
