@@ -23,8 +23,15 @@ let lit = new Set();
  * The tests drive `tick` by hand, so the engine's own polling must not run —
  * a live interval also keeps the test worker alive after the file is done.
  */
+let now = 1_000_000;
+
+/** Move the shared fake clock, so a time-based threshold can be tested. */
+function advance(ms) {
+  now += ms;
+}
+
 vi.mock('../src/core/timers.js', () => ({
-  realNow: () => 1_000_000,
+  realNow: () => now,
   realPerformanceNow: () => 0,
   realSetTimeout: () => 0,
   realClearTimeout: () => {},
@@ -59,7 +66,7 @@ vi.mock('../src/core/canvas.js', () => ({
 
 const { createEngine, TaskId } = await import('../src/core/engine.js');
 const { createStep } = await import('../src/bot/step.js');
-const { RESYNC_AFTER_TICKS } = await import('../src/core/constants.js');
+const { RESYNC_AFTER_MS } = await import('../src/core/constants.js');
 
 /** A step that clicks column `x` when column `x` is lit. */
 function stepAt(x, label) {
@@ -81,6 +88,7 @@ function build(steps) {
 beforeEach(() => {
   clicks.length = 0;
   lit = new Set();
+  now = 1_000_000;
 });
 
 describe('step cursor', () => {
@@ -117,7 +125,8 @@ describe('step cursor', () => {
     const engine = build([stepAt(100, 'one'), stepAt(200, 'two')]);
 
     engine.start(TaskId.SCRIPT);
-    for (let i = 0; i < RESYNC_AFTER_TICKS - 2; i += 1) {
+    for (let i = 0; i < 12; i += 1) {
+      advance(RESYNC_AFTER_MS / 20);
       engine.tick();
     }
     expect(clicks, 'still waiting its turn').toEqual([]);
@@ -131,12 +140,29 @@ describe('step cursor', () => {
     engine.on('action', (entry) => entries.push(entry));
 
     engine.start(TaskId.SCRIPT);
-    for (let i = 0; i < RESYNC_AFTER_TICKS + 1; i += 1) {
-      engine.tick();
-    }
+    advance(RESYNC_AFTER_MS + 1);
+    engine.tick();
 
     expect(clicks, 'resynced onto the step that is actually on screen').toContain(200);
     expect(entries.some((entry) => entry.kind === 'resync')).toBe(true);
+    engine.stop();
+  });
+
+  it('holds its place for the same wall-clock time however fast it polls', () => {
+    // The bug this guards: the threshold used to count ticks, so making the
+    // loop poll ten times faster made the runner give up ten times sooner —
+    // and it resynced onto the step it had just clicked, whose button was
+    // still on screen, clicking it over and over.
+    lit = new Set([200]);
+    const engine = build([stepAt(100, 'one'), stepAt(200, 'two')]);
+
+    engine.start(TaskId.SCRIPT);
+    for (let i = 0; i < 30; i += 1) {
+      advance(RESYNC_AFTER_MS / 60);
+      engine.tick();
+    }
+
+    expect(clicks, 'half the threshold of impatience is still patience').toEqual([]);
     engine.stop();
   });
 
@@ -145,9 +171,9 @@ describe('step cursor', () => {
     const engine = build([stepAt(100, 'one'), stepAt(200, 'two'), stepAt(300, 'three')]);
 
     engine.start(TaskId.SCRIPT);
-    for (let i = 0; i < RESYNC_AFTER_TICKS + 1; i += 1) {
-      engine.tick();
-    }
+    advance(RESYNC_AFTER_MS + 1);
+    engine.tick();
+    engine.tick();
 
     // Resync lands on step two, so the next click is step three, not step one.
     expect(clicks[clicks.indexOf(200) + 1]).toBe(300);
@@ -215,7 +241,8 @@ describe('waiting and optional steps', () => {
     const engine = build([waitAt(100, 'slot 3 empty'), stepAt(200, 'start')]);
     engine.start(TaskId.SCRIPT);
 
-    for (let tick = 0; tick < RESYNC_AFTER_TICKS + 3; tick += 1) {
+    for (let tick = 0; tick < 6; tick += 1) {
+      advance(RESYNC_AFTER_MS / 2);
       engine.tick();
     }
 
