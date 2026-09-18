@@ -1,12 +1,13 @@
 {
   "name": "bhb",
-  "version": "0.14.0",
+  "version": "0.14.1",
   "description": "Automation userscript for a casual Gacha + Pokemon-catching + Fashion game",
   "type": "module",
   "private": true,
   "scripts": {
     "build": "node build.js",
     "watch": "node build.js --watch",
+    "bump": "node bump.js",
     "test": "vitest run",
     "test:watch": "vitest"
   },
