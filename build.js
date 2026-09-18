@@ -5,6 +5,9 @@ const pkg = JSON.parse(readFileSync('./package.json', 'utf8'));
 const REPO = 'hungnm-ict/bhb';
 const RAW = `https://raw.githubusercontent.com/${REPO}/master/dist/bhb.user.js`;
 
+/** Inlined so the icon shows up before the script is ever fetched from GitHub. */
+const ICON = `data:image/png;base64,${readFileSync('./Assets/Icons/PixelProbe.png').toString('base64')}`;
+
 /** Tampermonkey reads this block verbatim; @version drives auto-update. */
 const banner = `// ==UserScript==
 // @name         BHB
@@ -12,6 +15,7 @@ const banner = `// ==UserScript==
 // @version      ${pkg.version}
 // @description  ${pkg.description}
 // @author       hungnm-ict
+// @icon         ${ICON}
 // @match        *://*.kongregate.com/*
 // @match        *://*.bitheroesgame.com/*
 // @run-at       document-start

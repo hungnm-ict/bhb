@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="BHB">
+  <rect width="64" height="64" rx="15" fill="#7c5cff"/>
+  <rect x="4" y="4" width="56" height="56" rx="12" fill="#12141c"/>
+  <text x="32" y="41" text-anchor="middle" font-family="ui-monospace, 'SF Mono', Consolas, monospace" font-size="23" font-weight="600" letter-spacing="-.5" fill="#e6e8f0">BHB</text>
+  <rect x="19" y="46" width="26" height="3" rx="1.5" fill="#3ddc97"/>
+</svg>
