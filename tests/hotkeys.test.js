@@ -53,11 +53,27 @@ describe('hotkeys', () => {
   it('keeps out of the way while the user is typing', () => {
     const run = vi.fn();
     uninstall = installHotkeys({ r: run });
+    const panel = document.createElement('div');
+    panel.className = 'bhb-panel';
     const input = document.createElement('input');
-    document.body.append(input);
+    panel.append(input);
+    document.body.append(panel);
 
     press('r', input);
 
     expect(run).not.toHaveBeenCalled();
+  });
+
+  it('still answers when the game parks focus in its hidden input', () => {
+    // Unity focuses an off-screen input the moment the canvas is clicked, and
+    // that used to swallow every hotkey once the bot had clicked anything.
+    const run = vi.fn();
+    uninstall = installHotkeys({ c: run });
+    const ghost = document.createElement('input');
+    document.body.append(ghost);
+
+    press('c', ghost);
+
+    expect(run).toHaveBeenCalled();
   });
 });
