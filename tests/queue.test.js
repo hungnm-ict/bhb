@@ -62,7 +62,13 @@ const { createEngine, TaskId } = await import('../src/core/engine.js');
 const { createStep } = await import('../src/bot/step.js');
 const { createScreen } = await import('../src/bot/screen.js');
 const { captureFingerprint } = await import('../src/core/region.js');
-const { IDLE_ADVANCE_TICKS, AUTO_STOP_TIMEOUT } = await import('../src/core/constants.js');
+const { IDLE_ADVANCE_MS, AUTO_STOP_TIMEOUT } = await import('../src/core/constants.js');
+
+/** A tick with time passing under it — the idle clock is what decides now. */
+function tickFor(engine, ms) {
+  clock += ms;
+  engine.tick();
+}
 
 const RED = { r: 255, g: 0, b: 0 };
 const BLUE = { r: 0, g: 0, b: 255 };
@@ -153,26 +159,22 @@ describe('run-all queue', () => {
     engine.stop();
   });
 
-  it('advances after enough ticks with nothing to click, and a match resets the count', () => {
+  it('advances once an activity has matched nothing for long enough, and a match resets the clock', () => {
     const engine = build({ steps: [ruleFor('pvp')], activities: [...QUEUE] });
 
     engine.start(TaskId.RUN_ALL);
     frame = () => BLUE; // nothing matches now
 
-    for (let i = 0; i < IDLE_ADVANCE_TICKS - 2; i += 1) {
-      engine.tick();
-    }
+    tickFor(engine, IDLE_ADVANCE_MS - 1000);
     expect(engine.getState().activity).toBe('pvp');
 
-    frame = () => RED; // a match resets the idle count
-    engine.tick();
+    frame = () => RED; // a match puts the patience back
+    tickFor(engine, 500);
     frame = () => BLUE;
-    for (let i = 0; i < IDLE_ADVANCE_TICKS - 1; i += 1) {
-      engine.tick();
-    }
+    tickFor(engine, IDLE_ADVANCE_MS - 1000);
     expect(engine.getState().activity).toBe('pvp');
 
-    engine.tick();
+    tickFor(engine, 1000);
     expect(engine.getState().activity).toBe('raid');
     engine.stop();
   });
@@ -235,9 +237,7 @@ describe('run-all queue', () => {
 
     // Raid never runs dry, it just has nothing to click, so the queue wraps.
     frame = () => GREEN;
-    for (let i = 0; i < IDLE_ADVANCE_TICKS; i += 1) {
-      engine.tick();
-    }
+    tickFor(engine, IDLE_ADVANCE_MS);
 
     expect(engine.getState().activeTask).toBe(TaskId.RUN_ALL);
     expect(engine.getState().activity).toBe('pvp');
@@ -252,8 +252,8 @@ describe('run-all queue', () => {
 
     engine.start(TaskId.RUN_ALL);
     frame = () => BLUE;
-    for (let i = 0; i < IDLE_ADVANCE_TICKS * 2; i += 1) {
-      engine.tick();
+    for (let i = 0; i < QUEUE.length + 1; i += 1) {
+      tickFor(engine, IDLE_ADVANCE_MS);
     }
 
     expect(closeGame).toHaveBeenCalled();
