@@ -79,9 +79,11 @@ const CSS = `
 }
 .bhb-hud--dim > * { opacity: .16; }
 .bhb-hud--dim > .bhb-hud__dot,
-.bhb-hud--dim > .bhb-hud__speed { opacity: 1; }
+.bhb-hud--dim > .bhb-hud__speed,
+.bhb-hud--dim > .bhb-hud__fps { opacity: 1; }
 /* The plate is nearly gone underneath, so these two carry their own contrast. */
-.bhb-hud--dim > .bhb-hud__speed { color: var(--bhb-text); text-shadow: 0 1px 3px rgba(0, 0, 0, .9); }
+.bhb-hud--dim > .bhb-hud__speed,
+.bhb-hud--dim > .bhb-hud__fps { color: var(--bhb-text); text-shadow: 0 1px 3px rgba(0, 0, 0, .9); }
 .bhb-hud--dim > .bhb-hud__dot { box-shadow: 0 0 0 2px rgba(0, 0, 0, .55); }
 .bhb-hud:hover { opacity: 1; box-shadow: 0 6px 26px rgba(124, 92, 255, .35); }
 .bhb-hud:hover > * { opacity: 1; }
@@ -104,6 +106,10 @@ const CSS = `
   font-family: var(--bhb-mono); font-size: var(--bhb-fs-sm); color: var(--bhb-dim);
 }
 .bhb-hud__speed.is-boosted { color: var(--bhb-cyan); font-weight: 700; }
+.bhb-hud__fps {
+  font-family: var(--bhb-mono); font-size: var(--bhb-fs-xs); color: var(--bhb-dim);
+}
+.bhb-hud__fps.is-low { color: var(--bhb-warn); }
 .bhb-hud__screen {
   padding: 1px 7px; border-radius: 999px;
   background: rgba(61, 220, 151, .14); color: var(--bhb-live);

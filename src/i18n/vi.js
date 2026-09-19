@@ -16,6 +16,8 @@ export default {
   'panel.close': 'Đóng',
 
   'overlay.speed': 'Tốc độ',
+  'hud.fps': 'Khung hình mỗi giây — game / trình duyệt khi đang tăng tốc',
+  'overlay.fps': 'FPS',
   'overlay.canvas': 'Canvas',
   'overlay.autoStop': 'Tự tắt sau',
   'overlay.steps': 'Bước',
