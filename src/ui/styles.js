@@ -20,6 +20,9 @@ const CSS = `
   --bhb-accent: #7c5cff;
   /* Same colour in channels, because a glow needs to fade it. */
   --bhb-accent-rgb: 124, 92, 255;
+  /* The frame's halo: white, leaning far enough violet to belong to the
+     accent rather than read as a stray highlight. */
+  --bhb-glow-rgb: 228, 223, 255;
   --bhb-cyan: #22d3ee;
   --bhb-live: #3ddc97;
   --bhb-warn: #ffb457;
@@ -59,12 +62,12 @@ const CSS = `
   display: flex; align-items: center; gap: 9px;
   padding: 7px 13px;
   background: linear-gradient(180deg, rgba(26, 29, 41, .96), rgba(18, 20, 28, .96));
-  border: 1px solid rgba(var(--bhb-accent-rgb), .30);
+  border: 1px solid rgba(var(--bhb-glow-rgb), .38);
   border-radius: 999px;
   box-shadow:
     0 6px 22px rgba(0, 0, 0, .5),
     0 0 0 1px rgba(0, 0, 0, .5),
-    0 0 16px rgba(var(--bhb-accent-rgb), .18);
+    0 0 16px rgba(var(--bhb-glow-rgb), .22);
   font-size: var(--bhb-fs-md); line-height: 1;
   cursor: pointer;
   backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
@@ -131,12 +134,12 @@ const CSS = `
   background: var(--bhb-bg);
   /* The dark ring is the load-bearing one: a glow over the game's bright
      pixel art cancels itself out without something to sit against. */
-  border: 1px solid rgba(var(--bhb-accent-rgb), .30);
+  border: 1px solid rgba(var(--bhb-glow-rgb), .38);
   border-radius: 14px;
   box-shadow:
     0 18px 50px rgba(0, 0, 0, .6),
     0 0 0 1px rgba(0, 0, 0, .55),
-    0 0 22px rgba(var(--bhb-accent-rgb), .20);
+    0 0 24px rgba(var(--bhb-glow-rgb), .24);
   font-size: var(--bhb-fs-md);
   overflow: hidden;
   backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
