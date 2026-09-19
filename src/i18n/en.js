@@ -16,7 +16,7 @@ export default {
   'panel.close': 'Close',
 
   'overlay.speed': 'Speed',
-  'hud.fps': 'Frames per second — game / browser while boosted',
+  'hud.fps': 'Frames per second',
   'overlay.fps': 'FPS',
   'overlay.canvas': 'Canvas',
   'overlay.autoStop': 'Auto-stop in',
