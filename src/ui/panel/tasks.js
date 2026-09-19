@@ -93,12 +93,6 @@ function describeTarget(deps, target) {
   return { taskId, activityId, isLocked: loose === 0, title: loose === 0 ? t('tasks.noLoose') : '' };
 }
 
-/** Game frames over browser frames, since the two only match at 1×. */
-function describeFps(speed) {
-  const fps = getFrameRates();
-  return speed > 1 ? `${fps.game} / ${fps.real}` : String(fps.real);
-}
-
 function formatRemaining(ms) {
   const total = Math.floor(ms / 1000);
   return `${Math.floor(total / 60)}m${String(total % 60).padStart(2, '0')}s`;
@@ -290,7 +284,7 @@ export function renderTasksTab(deps) {
 
     el('dl', { class: 'bhb-facts' }, [
       el('dt', { text: t('overlay.fps') }),
-      el('dd', { class: 'bhb-mono', text: describeFps(speed) }),
+      el('dd', { class: 'bhb-mono', text: `${getFrameRates().real} fps` }),
       el('dt', { text: t('overlay.canvas') }),
       el('dd', { class: 'bhb-mono', text: describeCanvas() }),
       el('dt', { text: t('overlay.autoStop') }),

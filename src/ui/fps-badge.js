@@ -1,6 +1,6 @@
 import { el, mount } from './dom.js';
 import { getCanvas } from '../core/canvas.js';
-import { getSpeed, getFrameRates } from '../core/speed.js';
+import { getFrameRates } from '../core/speed.js';
 import { t } from '../i18n/index.js';
 
 /**
@@ -10,10 +10,8 @@ import { t } from '../i18n/index.js';
  * game's picture, and it is read while watching that picture, not while
  * reading the bot's status line.
  *
- * Two rates, because the speed hack makes them diverge. `game` counts how many
- * times the game's loop ran, `real` how many frames the browser delivered — at
- * 10× a healthy run shows ten times as many. When it does not, the frame
- * budget is the ceiling and a higher speed buys nothing.
+ * Only the browser's own rate: the game-loop count rises with the speed hack
+ * and reads as a second, bigger number that nobody is watching for.
  *
  * It never takes pointer events: a readout that swallowed a click into the
  * game would be worse than no readout.
@@ -48,9 +46,8 @@ export function createFpsBadge(deps) {
     target.style.left = `${Math.round(box.left) + 6}px`;
     target.style.top = `${Math.round(box.top) + 6}px`;
 
-    const speed = getSpeed();
-    const { real, game } = getFrameRates();
-    target.textContent = speed > 1 ? `${game}/${real} fps` : `${real} fps`;
+    const { real } = getFrameRates();
+    target.textContent = `${real} fps`;
     target.title = t('hud.fps');
     target.classList.toggle('is-good', real >= GOOD_FPS);
     target.classList.toggle('is-low', real > 0 && real < LOW_FPS);

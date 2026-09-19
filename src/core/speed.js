@@ -279,7 +279,13 @@ function installFrameMultiplier() {
     if (pending) {
       const next = pending;
       pending = null;
-      realRequestAnimationFrame(() => runBurst(next));
+      // A real frame, and the one the loop rides while boosted: the game
+      // re-registered from inside the burst, so it never went back through the
+      // patched `requestAnimationFrame` where deliveries are counted.
+      realRequestAnimationFrame(() => {
+        realFrames += 1;
+        runBurst(next);
+      });
     }
   }
 }

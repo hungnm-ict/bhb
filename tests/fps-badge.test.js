@@ -43,11 +43,11 @@ describe('the fps badge', () => {
     expect(node.classList.contains('is-good'), 'a smooth frame rate reads green').toBe(true);
   });
 
-  it('shows both rates while boosted, since only then do they differ', () => {
+  it('shows the browser rate alone, whatever the speed hack is doing', () => {
     speed = 10;
     rates = { real: 58, game: 410 };
 
-    expect(draw().textContent).toBe('410/58 fps');
+    expect(draw().textContent).toBe('58 fps');
   });
 
   it('warns when the browser itself is stuttering', () => {

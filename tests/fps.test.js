@@ -70,7 +70,31 @@ describe('frame rates', () => {
     clock += 1000 - 10 * 16;
 
     const { real, game } = getFrameRates();
-    expect(real).toBe(10);
+    expect(real, 'every delivered frame counts, burst continuations included')
+      .toBeGreaterThanOrEqual(10);
     expect(game, 'five game frames per browser frame, minus the budget cap').toBeGreaterThan(real);
+  });
+});
+
+describe('frames the burst rides on', () => {
+  it('counts the deliveries the game never re-registers through', () => {
+    clock += 5000;
+    frames = [];
+    installSpeedHack();
+    setSpeed(10);
+    getFrameRates();
+
+    // One delivery, then the burst keeps itself going on real frames of its
+    // own: those are exactly the ones the readout used to miss, showing 0.
+    const loop = () => window.requestAnimationFrame(loop);
+    window.requestAnimationFrame(loop);
+    frames.pop()(clock);
+    for (let i = 0; i < 5 && frames.length; i += 1) {
+      clock += 16;
+      frames.pop()(clock);
+    }
+    clock += 1000;
+
+    expect(getFrameRates().real).toBeGreaterThan(0);
   });
 });
