@@ -32,20 +32,6 @@ export function speedIsBeingDragged() {
   return isDraggingSpeed;
 }
 
-/**
- * The mode picker while its list is open.
- *
- * A native dropdown belongs to the element that opened it, so the half-second
- * rebuild of this tab closed the list the instant it appeared — the click read
- * as a dismiss. An open list keeps the focus, which is how we know to hold off.
- *
- * @type {HTMLSelectElement | null}
- */
-let chooserNode = null;
-
-export function runChooserIsOpen() {
-  return chooserNode !== null && document.activeElement === chooserNode;
-}
 
 /** Repaint just the speed readout and slider position. */
 export function updateSpeedDisplay() {
@@ -150,7 +136,6 @@ export function renderTasksTab(deps) {
   const picked = describeTarget(deps, target);
 
   const chooser = el('select', { class: 'bhb-rule__gate', title: t('tasks.target') });
-  chooserNode = chooser;
   const script = el('option', { text: t('task.script') });
   script.value = TaskId.SCRIPT;
   chooser.append(script);
@@ -178,30 +163,23 @@ export function renderTasksTab(deps) {
   const phase =
     isOnTarget && picked.taskId === TaskId.RUN_ALL ? t('queue.round', { n: engine.round }) : '';
 
-  const run = el(
-    'button',
-    {
-      class: `bhb-task bhb-task--tile ${isOnTarget ? 'is-on' : ''} ${
-        picked.isLocked && !isOnTarget ? 'is-locked' : ''
-      }`,
-      ...(picked.title ? { title: picked.title } : {}),
-    },
-    [
-      el('span', { class: 'bhb-task__switch' }),
-      el('span', { class: 'bhb-task__name', text: t(isOnTarget ? 'tasks.stop' : 'tasks.run') }),
-      phase ? el('span', { class: 'bhb-task__phase', text: phase }) : null,
-      picked.isLocked && !isOnTarget
-        ? el('span', { class: 'bhb-task__warn', title: picked.title, text: '⚠' })
-        : null,
-      el('span', { class: 'bhb-kbd', text: keyLabel(Keys.RUN) }),
-    ]
-  );
-  if (!picked.isLocked || isOnTarget) {
-    run.addEventListener('click', () => {
-      deps.runSelected();
-      deps.refresh();
-    });
-  }
+  const run = el('button', { class: `bhb-task bhb-task--tile ${isOnTarget ? 'is-on' : ''}` }, [
+    el('span', { class: 'bhb-task__switch' }),
+    el('span', { class: 'bhb-task__name', text: t(isOnTarget ? 'tasks.stop' : 'tasks.run') }),
+    phase ? el('span', { class: 'bhb-task__phase', text: phase }) : null,
+    el('span', { class: 'bhb-kbd', text: keyLabel(Keys.RUN) }),
+  ]);
+  run.addEventListener('click', () => {
+    deps.runSelected();
+    deps.refresh();
+  });
+
+  // Said in words under the button, and only about the mode that is selected:
+  // a ⚠ on the switch itself read as the switch being broken.
+  const warning =
+    picked.isLocked && !isOnTarget
+      ? el('p', { class: 'bhb-note bhb-note--warn', text: picked.title })
+      : null;
 
   if (!speedControl) {
     const slider = el('input', { class: 'bhb-slider' });
@@ -275,6 +253,7 @@ export function renderTasksTab(deps) {
         chooser,
       ]),
       run,
+      warning,
     ]),
     el('p', { class: 'bhb-note', text: t('queue.inSettings') }),
 
