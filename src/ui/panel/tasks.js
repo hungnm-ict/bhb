@@ -32,6 +32,21 @@ export function speedIsBeingDragged() {
   return isDraggingSpeed;
 }
 
+/**
+ * The mode picker while its list is open.
+ *
+ * A native dropdown belongs to the element that opened it, so the half-second
+ * rebuild of this tab closed the list the instant it appeared — the click read
+ * as a dismiss. An open list keeps the focus, which is how we know to hold off.
+ *
+ * @type {HTMLSelectElement | null}
+ */
+let chooserNode = null;
+
+export function runChooserIsOpen() {
+  return chooserNode !== null && document.activeElement === chooserNode;
+}
+
 /** Repaint just the speed readout and slider position. */
 export function updateSpeedDisplay() {
   if (!speedControl) {
@@ -135,6 +150,7 @@ export function renderTasksTab(deps) {
   const picked = describeTarget(deps, target);
 
   const chooser = el('select', { class: 'bhb-rule__gate', title: t('tasks.target') });
+  chooserNode = chooser;
   const script = el('option', { text: t('task.script') });
   script.value = TaskId.SCRIPT;
   chooser.append(script);

@@ -8,6 +8,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import { resolveRunTarget, TaskId } from '../src/core/engine.js';
+import { renderTasksTab, runChooserIsOpen } from '../src/ui/panel/tasks.js';
 
 const activities = [{ id: 'wb', name: 'World Boss' }];
 
@@ -32,5 +33,25 @@ describe('the Run target', () => {
       taskId: TaskId.SCRIPT,
       activityId: null,
     });
+  });
+});
+
+describe('the mode picker', () => {
+  it('holds off the half-second rebuild while its list is open', () => {
+    const tab = renderTasksTab({
+      getEngineState: () => ({ activeTask: null, round: 0, remainingMs: 0, activity: null }),
+      getSteps: () => [],
+      getActivities: () => activities,
+      getRunTarget: () => 'script',
+      setRunTarget: () => {},
+      runSelected: () => {},
+      refresh: () => {},
+    });
+    document.body.append(tab);
+    const chooser = tab.querySelector('select');
+
+    expect(runChooserIsOpen(), 'nothing open yet').toBe(false);
+    chooser.focus();
+    expect(runChooserIsOpen()).toBe(true);
   });
 });

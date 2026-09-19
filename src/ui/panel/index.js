@@ -2,7 +2,12 @@ import { el, mount } from '../dom.js';
 import { t } from '../../i18n/index.js';
 import { Tab } from '../store.js';
 import { VERSION } from '../../core/constants.js';
-import { renderTasksTab, updateSpeedDisplay, speedIsBeingDragged } from './tasks.js';
+import {
+  renderTasksTab,
+  updateSpeedDisplay,
+  speedIsBeingDragged,
+  runChooserIsOpen,
+} from './tasks.js';
 import { renderStepsTab, highlightSteps } from './steps.js';
 import { renderScreensTab } from './screens.js';
 import { renderSettingsTab } from './settings.js';
@@ -89,9 +94,10 @@ export function createPanel(deps) {
     const target = ensureNode();
     const state = deps.store.get();
 
-    // Rebuilding under a held slider is what tore the drag apart; the numbers
-    // it would have refreshed are exactly the ones the drag is changing anyway.
-    if (renderedTab !== null && speedIsBeingDragged()) {
+    // Rebuilding under a held slider tore the drag apart, and rebuilding under
+    // an open dropdown closed it before it could be read. Both own the input
+    // the user is in the middle of giving, so the tick waits.
+    if (renderedTab !== null && (speedIsBeingDragged() || runChooserIsOpen())) {
       return;
     }
 
