@@ -82,6 +82,7 @@ export default {
   'settings.keepAliveHint':
     'A window covered edge to edge stops being painted, and the game stops with it. This drives the game loop by hand instead. Takes effect after a reload.',
   'settings.sizeBadge': 'Show the canvas size in the corner',
+  'settings.fpsBadge': 'Show the frame rate over the game',
   'settings.absoluteCoords': 'Use raw coordinates (do not rescale steps)',
   'settings.language': 'Language',
   'settings.transfer': 'Export / import',

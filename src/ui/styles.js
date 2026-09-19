@@ -11,7 +11,7 @@ import { Z_TOP } from '../core/constants.js';
  * layer itself must not, or it would swallow every click meant for the game.
  */
 const CSS = `
-.bhb-hud, .bhb-panel, .bhb-markers, .bhb-probes, .bhb-flash, .bhb-drag, .bhb-size, .bhb-toast {
+.bhb-hud, .bhb-panel, .bhb-markers, .bhb-probes, .bhb-flash, .bhb-drag, .bhb-size, .bhb-fpsbadge, .bhb-toast {
   --bhb-bg: #12141c;
   --bhb-bg-soft: #1a1d29;
   --bhb-line: rgba(255, 255, 255, .09);
@@ -82,11 +82,9 @@ const CSS = `
 }
 .bhb-hud--dim > * { opacity: .16; }
 .bhb-hud--dim > .bhb-hud__dot,
-.bhb-hud--dim > .bhb-hud__speed,
-.bhb-hud--dim > .bhb-hud__fps { opacity: 1; }
+.bhb-hud--dim > .bhb-hud__speed { opacity: 1; }
 /* The plate is nearly gone underneath, so these two carry their own contrast. */
-.bhb-hud--dim > .bhb-hud__speed,
-.bhb-hud--dim > .bhb-hud__fps { color: var(--bhb-text); text-shadow: 0 1px 3px rgba(0, 0, 0, .9); }
+.bhb-hud--dim > .bhb-hud__speed { color: var(--bhb-text); text-shadow: 0 1px 3px rgba(0, 0, 0, .9); }
 .bhb-hud--dim > .bhb-hud__dot { box-shadow: 0 0 0 2px rgba(0, 0, 0, .55); }
 .bhb-hud:hover { opacity: 1; box-shadow: 0 6px 26px rgba(124, 92, 255, .35); }
 .bhb-hud:hover > * { opacity: 1; }
@@ -109,10 +107,6 @@ const CSS = `
   font-family: var(--bhb-mono); font-size: var(--bhb-fs-sm); color: var(--bhb-dim);
 }
 .bhb-hud__speed.is-boosted { color: var(--bhb-cyan); font-weight: 700; }
-.bhb-hud__fps {
-  font-family: var(--bhb-mono); font-size: var(--bhb-fs-xs); color: var(--bhb-dim);
-}
-.bhb-hud__fps.is-low { color: var(--bhb-warn); }
 .bhb-hud__screen {
   padding: 1px 7px; border-radius: 999px;
   background: rgba(61, 220, 151, .14); color: var(--bhb-live);
@@ -511,6 +505,17 @@ const CSS = `
 .bhb-log__coord { color: var(--bhb-dim); font-size: var(--bhb-fs-xs); }
 
 /* --- Canvas size badge -------------------------------------------------- */
+
+.bhb-fpsbadge {
+  padding: 2px 6px;
+  background: rgba(18, 20, 28, .72);
+  border: 1px solid var(--bhb-line); border-radius: 6px;
+  color: var(--bhb-dim); font-size: var(--bhb-fs-xs); line-height: 1.3;
+  /* It sits over the game: taking a click here would be worse than no badge. */
+  pointer-events: none;
+}
+.bhb-fpsbadge.is-good { color: var(--bhb-live); border-color: rgba(61, 220, 151, .35); }
+.bhb-fpsbadge.is-low { color: var(--bhb-warn); border-color: rgba(255, 180, 87, .45); }
 
 .bhb-size {
   right: 10px; bottom: 10px;

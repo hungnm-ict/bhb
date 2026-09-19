@@ -303,6 +303,7 @@ export function loadSettings() {
     closeAfterRound: stored.closeAfterRound === true,
     watchdog: stored.watchdog === true,
     sizeBadge: stored.sizeBadge !== false,
+    fpsBadge: stored.fpsBadge !== false,
     keepAlive: stored.keepAlive !== false,
     notify: normaliseNotifyConfig(stored.notify),
     canvasLock: normaliseCanvasLock(stored.canvasLock),

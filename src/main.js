@@ -57,6 +57,7 @@ import { createMarkerLayer } from './ui/markers.js';
 import { createProbeLayer } from './ui/probe-layer.js';
 import { createProbeEditor } from './bot/probe-editor.js';
 import { createSizeBadge } from './ui/size-badge.js';
+import { createFpsBadge } from './ui/fps-badge.js';
 import { installHotkeys } from './ui/hotkeys.js';
 import { showClickFlash } from './ui/flash.js';
 import { showToast } from './ui/toast.js';
@@ -170,6 +171,7 @@ function bootstrap() {
     markers.render();
     probes.render();
     sizeBadge.render();
+    fpsBadge.render();
   };
 
   /** Tabs whose contents change on their own: a countdown, a live probe. */
@@ -178,6 +180,7 @@ function bootstrap() {
   const refreshLive = () => {
     hud.render();
     sizeBadge.render();
+    fpsBadge.render();
     const state = store.get();
     if (state.panelOpen && LIVE_TABS.has(state.tab)) {
       panel.render();
@@ -301,6 +304,7 @@ function bootstrap() {
   });
 
   const sizeBadge = createSizeBadge({ isVisible: () => settings.sizeBadge });
+  const fpsBadge = createFpsBadge({ isVisible: () => settings.fpsBadge });
 
   /** The game rewrites its own layout, so the lock is re-asserted, not set once. */
   function applyCanvasLock() {
@@ -310,6 +314,7 @@ function bootstrap() {
       unlockCanvasSize();
     }
     sizeBadge.render();
+    fpsBadge.render();
   }
 
   applyCanvasLock();
@@ -415,6 +420,7 @@ function bootstrap() {
     markers.render();
     probes.render();
     sizeBadge.render();
+    fpsBadge.render();
   };
 
   window.addEventListener('resize', onCanvasMoved);
