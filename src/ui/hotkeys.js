@@ -13,6 +13,28 @@
  *   game the rest of the time.
  * @returns {() => void} removes the listener
  */
+/**
+ * A field the user is actually typing in.
+ *
+ * Unity parks an invisible input on the page and focuses it as soon as the
+ * canvas is clicked — so once the bot had clicked anything, every hotkey was
+ * being handed to the game and the toggle keys stopped answering. Our own
+ * fields still win, and so does any game field big enough to be seen.
+ */
+function isTypingField(target) {
+  if (
+    !(target instanceof HTMLInputElement) &&
+    !(target instanceof HTMLTextAreaElement) &&
+    !(target instanceof HTMLSelectElement)
+  ) {
+    return false;
+  }
+  if (target.closest('.bhb-panel, .bhb-probes, .bhb-drag, .bhb-hud')) {
+    return true;
+  }
+  return target.offsetWidth > 1 && target.offsetHeight > 1;
+}
+
 export function installHotkeys(bindings) {
   function onKeyDown(event) {
     // Never steal keys while the user is typing somewhere.
@@ -23,11 +45,7 @@ export function installHotkeys(bindings) {
     if (target instanceof HTMLElement && target.isContentEditable) {
       return;
     }
-    if (
-      target instanceof HTMLInputElement ||
-      target instanceof HTMLTextAreaElement ||
-      target instanceof HTMLSelectElement
-    ) {
+    if (isTypingField(target)) {
       return;
     }
 
