@@ -123,7 +123,7 @@ function createVirtualClock(readReal) {
   let virtual = null;
   let previous = null;
 
-  return function read() {
+  function read() {
     const real = readReal();
     if (virtual === null) {
       virtual = real;
@@ -133,12 +133,48 @@ function createVirtualClock(readReal) {
     virtual += (real - previous) * speed;
     previous = real;
     return virtual;
+  }
+
+  read.drift = () => (virtual === null ? 0 : virtual - readReal());
+  read.reset = () => {
+    virtual = readReal();
+    previous = virtual;
   };
+  return read;
+}
+
+/**
+ * The clock the game is told about, which runs ahead of the real one.
+ *
+ * Boosting does not only make the game quicker — it moves the game's idea of
+ * now forward, hours per hour at 10×. Kept here so that drift can be read and,
+ * when it has gone somewhere it should not, put back.
+ */
+let gameClock = null;
+
+/** How far ahead of real time the game believes it is, in milliseconds. */
+export function getClockDrift() {
+  return gameClock ? gameClock.drift() : 0;
+}
+
+/**
+ * Snap the game's clock back to real time.
+ *
+ * Drift belongs to a session, not to an account: carry hours of it into
+ * another character and the game hands out a daily reset that never happened.
+ * Time jumps backwards here, so it is for between things — switching accounts,
+ * finishing a run — rather than mid-fight.
+ */
+export function resetClock() {
+  if (gameClock) {
+    gameClock.reset();
+  }
 }
 
 export function installSpeedHack() {
   const virtualDateNow = createVirtualClock(realNow);
   const virtualPerformanceNow = createVirtualClock(realPerformanceNow);
+  gameClock = virtualDateNow;
 
   Date.now = () => Math.floor(virtualDateNow());
   performance.now = () => virtualPerformanceNow();

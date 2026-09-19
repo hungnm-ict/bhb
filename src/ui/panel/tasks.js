@@ -8,6 +8,8 @@ import {
   speedIndex,
   stepSpeed,
   getFrameRates,
+  getClockDrift,
+  resetClock,
 } from '../../core/speed.js';
 import { SPEED_STEPS } from '../../core/constants.js';
 import { getCanvas } from '../../core/canvas.js';
@@ -64,6 +66,9 @@ export function updateSpeedDisplay() {
  */
 const LABELLED_SPEEDS = [0.1, 1, 5, 10, 20];
 
+/** Past this the game may already have rolled into another day. */
+const DRIFT_WARN_MS = 60 * 60 * 1000;
+
 /**
  * What Run would start, and why it cannot.
  *
@@ -91,6 +96,19 @@ function describeTarget(deps, target) {
   }
   const loose = steps.filter((step) => !step.activity).length;
   return { taskId, activityId, isLocked: loose === 0, title: loose === 0 ? t('tasks.noLoose') : '' };
+}
+
+/** Drift is only worth reading in the units it has reached. */
+function formatDrift(ms) {
+  const seconds = Math.round(ms / 1000);
+  if (seconds < 60) {
+    return `+${seconds}s`;
+  }
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) {
+    return `+${minutes}m${String(seconds % 60).padStart(2, '0')}s`;
+  }
+  return `+${Math.floor(minutes / 60)}h${String(minutes % 60).padStart(2, '0')}m`;
 }
 
 function formatRemaining(ms) {
@@ -138,6 +156,17 @@ function readyActivityCount(deps) {
 export function renderTasksTab(deps) {
   const engine = deps.getEngineState();
   const speed = getSpeed();
+
+  const drift = getClockDrift();
+  const resetClockButton = el('button', {
+    class: 'bhb-btn bhb-btn--tiny',
+    title: t('tasks.resetClockHint'),
+    text: t('tasks.resetClock'),
+  });
+  resetClockButton.addEventListener('click', () => {
+    resetClock();
+    deps.refresh();
+  });
 
   const target = deps.getRunTarget();
   const picked = describeTarget(deps, target);
@@ -283,6 +312,14 @@ export function renderTasksTab(deps) {
     ]),
 
     el('dl', { class: 'bhb-facts' }, [
+      el('dt', { text: t('overlay.clock') }),
+      el('dd', {}, [
+        el('span', {
+          class: `bhb-mono ${drift >= DRIFT_WARN_MS ? 'bhb-drift--far' : ''}`,
+          text: formatDrift(drift),
+        }),
+        drift >= 1000 ? resetClockButton : null,
+      ]),
       el('dt', { text: t('overlay.fps') }),
       el('dd', { class: 'bhb-mono', text: `${getFrameRates().real} fps` }),
       el('dt', { text: t('overlay.canvas') }),
