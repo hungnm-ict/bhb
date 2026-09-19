@@ -8,7 +8,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import { resolveRunTarget, TaskId } from '../src/core/engine.js';
-import { renderTasksTab, runChooserIsOpen } from '../src/ui/panel/tasks.js';
+import { renderTasksTab } from '../src/ui/panel/tasks.js';
 
 const activities = [{ id: 'wb', name: 'World Boss' }];
 
@@ -36,22 +36,36 @@ describe('the Run target', () => {
   });
 });
 
-describe('the mode picker', () => {
-  it('holds off the half-second rebuild while its list is open', () => {
+describe('the Run button', () => {
+  it('stays pressable even when the chosen mode has nothing to run', () => {
+    let started = 0;
     const tab = renderTasksTab({
       getEngineState: () => ({ activeTask: null, round: 0, remainingMs: 0, activity: null }),
       getSteps: () => [],
       getActivities: () => activities,
-      getRunTarget: () => 'script',
+      getRunTarget: () => 'wb',
+      setRunTarget: () => {},
+      runSelected: () => { started += 1; },
+      refresh: () => {},
+    });
+
+    tab.querySelector('.bhb-task--tile').click();
+
+    expect(started).toBe(1);
+    expect(tab.querySelector('.bhb-note--warn'), 'the reason is said in words').toBeTruthy();
+  });
+
+  it('says nothing when the chosen mode is ready', () => {
+    const tab = renderTasksTab({
+      getEngineState: () => ({ activeTask: null, round: 0, remainingMs: 0, activity: null }),
+      getSteps: () => [{ id: 's', activity: 'wb', points: [], enabled: true }],
+      getActivities: () => activities,
+      getRunTarget: () => 'wb',
       setRunTarget: () => {},
       runSelected: () => {},
       refresh: () => {},
     });
-    document.body.append(tab);
-    const chooser = tab.querySelector('select');
 
-    expect(runChooserIsOpen(), 'nothing open yet').toBe(false);
-    chooser.focus();
-    expect(runChooserIsOpen()).toBe(true);
+    expect(tab.querySelector('.bhb-note--warn')).toBe(null);
   });
 });

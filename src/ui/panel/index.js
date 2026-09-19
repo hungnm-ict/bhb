@@ -2,12 +2,7 @@ import { el, mount } from '../dom.js';
 import { t } from '../../i18n/index.js';
 import { Tab } from '../store.js';
 import { VERSION } from '../../core/constants.js';
-import {
-  renderTasksTab,
-  updateSpeedDisplay,
-  speedIsBeingDragged,
-  runChooserIsOpen,
-} from './tasks.js';
+import { renderTasksTab, updateSpeedDisplay, speedIsBeingDragged } from './tasks.js';
 import { renderStepsTab, highlightSteps } from './steps.js';
 import { renderScreensTab } from './screens.js';
 import { renderSettingsTab } from './settings.js';
@@ -64,6 +59,18 @@ export function createPanel(deps) {
    */
   let renderedTab = null;
 
+  /**
+   * A dropdown somewhere in the panel, with its list open.
+   *
+   * A native list belongs to the element that opened it, so any rebuild closes
+   * it — which is what made a click on one read as a dismiss. The open list
+   * holds the focus, which is how we know to leave the panel alone.
+   */
+  function aDropdownIsOpen() {
+    const active = document.activeElement;
+    return active instanceof HTMLSelectElement && Boolean(node) && node.contains(active);
+  }
+
   function ensureNode() {
     if (!node) {
       node = mount(el('div', { class: 'bhb-panel' }));
@@ -97,7 +104,7 @@ export function createPanel(deps) {
     // Rebuilding under a held slider tore the drag apart, and rebuilding under
     // an open dropdown closed it before it could be read. Both own the input
     // the user is in the middle of giving, so the tick waits.
-    if (renderedTab !== null && (speedIsBeingDragged() || runChooserIsOpen())) {
+    if (renderedTab !== null && (speedIsBeingDragged() || aDropdownIsOpen())) {
       return;
     }
 

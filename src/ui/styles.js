@@ -312,7 +312,7 @@ const CSS = `
   min-width: 17px; padding: 2px 4px;
   background: rgba(255, 255, 255, .06);
   border: 1px solid var(--bhb-line); border-radius: 4px;
-  color: var(--bhb-dim); font-family: var(--bhb-mono); font-size: var(--bhb-fs-xs); text-align: center;
+  color: var(--bhb-text); font-family: var(--bhb-mono); font-size: var(--bhb-fs-xs); text-align: center;
 }
 
 /*
