@@ -163,23 +163,27 @@ export function renderTasksTab(deps) {
   const phase =
     isOnTarget && picked.taskId === TaskId.RUN_ALL ? t('queue.round', { n: engine.round }) : '';
 
-  const run = el('button', { class: `bhb-task bhb-task--tile ${isOnTarget ? 'is-on' : ''}` }, [
-    el('span', { class: 'bhb-task__switch' }),
-    el('span', { class: 'bhb-task__name', text: t(isOnTarget ? 'tasks.stop' : 'tasks.run') }),
-    phase ? el('span', { class: 'bhb-task__phase', text: phase }) : null,
-    el('span', { class: 'bhb-kbd', text: keyLabel(Keys.RUN) }),
-  ]);
-  run.addEventListener('click', () => {
-    deps.runSelected();
-    deps.refresh();
-  });
+  const isLocked = picked.isLocked && !isOnTarget;
+  const run = el(
+    'button',
+    { class: `bhb-task bhb-task--tile ${isOnTarget ? 'is-on' : ''} ${isLocked ? 'is-locked' : ''}` },
+    [
+      el('span', { class: 'bhb-task__switch' }),
+      el('span', { class: 'bhb-task__name', text: t(isOnTarget ? 'tasks.stop' : 'tasks.run') }),
+      phase ? el('span', { class: 'bhb-task__phase', text: phase }) : null,
+      el('span', { class: 'bhb-kbd', text: keyLabel(Keys.RUN) }),
+    ]
+  );
+  if (!isLocked) {
+    run.addEventListener('click', () => {
+      deps.runSelected();
+      deps.refresh();
+    });
+  }
 
   // Said in words under the button, and only about the mode that is selected:
   // a ⚠ on the switch itself read as the switch being broken.
-  const warning =
-    picked.isLocked && !isOnTarget
-      ? el('p', { class: 'bhb-note bhb-note--warn', text: picked.title })
-      : null;
+  const warning = isLocked ? el('p', { class: 'bhb-note bhb-note--warn', text: picked.title }) : null;
 
   if (!speedControl) {
     const slider = el('input', { class: 'bhb-slider' });

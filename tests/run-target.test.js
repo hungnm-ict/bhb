@@ -37,7 +37,7 @@ describe('the Run target', () => {
 });
 
 describe('the Run button', () => {
-  it('stays pressable even when the chosen mode has nothing to run', () => {
+  it('is locked, and says why, when nothing is tagged to the chosen mode', () => {
     let started = 0;
     const tab = renderTasksTab({
       getEngineState: () => ({ activeTask: null, round: 0, remainingMs: 0, activity: null }),
@@ -51,7 +51,7 @@ describe('the Run button', () => {
 
     tab.querySelector('.bhb-task--tile').click();
 
-    expect(started).toBe(1);
+    expect(started, 'a mode with no steps cannot start').toBe(0);
     expect(tab.querySelector('.bhb-note--warn'), 'the reason is said in words').toBeTruthy();
   });
 
