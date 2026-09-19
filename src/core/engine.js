@@ -257,6 +257,18 @@ export function createEngine(deps) {
    *
    * @returns {{ x: number, y: number } | null}
    */
+  /**
+   * The closest a step came to matching this tick.
+   *
+   * "no match" alone cannot tell a step pointing at the wrong place from one
+   * whose colour drifted a shade — and a shade is the common case, since a
+   * button captured under a hover or over an animated background never comes
+   * back quite the same.
+   *
+   * @type {{ label: string, drift: number, seen: string } | null}
+   */
+  let nearest = null;
+
   function matchStep(step, gl, screenId, buffer, scaleMode) {
     if (!isStepReady(step)) {
       return null;
@@ -278,8 +290,22 @@ export function createEngine(deps) {
       if (hit.matched) {
         return hit.point;
       }
+      if (
+        typeof hit.drift === 'number' &&
+        (!nearest || hit.drift < nearest.drift)
+      ) {
+        nearest = { label: step.label || step.id, drift: hit.drift, seen: hit.seen };
+      }
     }
     return null;
+  }
+
+  /** "no match", plus the shade it came closest on. */
+  function describeMiss(who) {
+    if (!nearest) {
+      return `${who}: no match`;
+    }
+    return `${who}: no match — ${nearest.label} off by ${nearest.drift} (${nearest.seen})`;
   }
 
   /**
@@ -495,6 +521,7 @@ export function createEngine(deps) {
     }
 
     const task = TASKS[state.activeTask];
+    nearest = null;
     const hit = runSequence(task.getSteps(), target.canvas, target.gl, state.screen);
 
     if (!hit) {
@@ -503,10 +530,10 @@ export function createEngine(deps) {
           advanceQueue('idle');
           return false;
         }
-        setMessage(`${state.activityName || 'run all'}: no match`);
+        setMessage(describeMiss(state.activityName || 'run all'));
         return false;
       }
-      setMessage(`${state.activeTask}: no match`);
+      setMessage(describeMiss(state.activityName || state.activeTask));
       return false;
     }
 

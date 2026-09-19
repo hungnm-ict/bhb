@@ -168,7 +168,9 @@ export function isRegionPoint(point) {
  * @param {string} mode
  * @param {number} tolerance
  * @param {number} [minRatio]
- * @returns {{ matched: boolean, point: { x: number, y: number }, ratio: number }}
+ * @returns {{ matched: boolean, point: { x: number, y: number }, ratio: number,
+ *   drift?: number, seen?: string }} `drift` is how far the worst channel was
+ *   from the stored colour, which is what a near miss needs to say out loud
  */
 export function matchPoint(gl, point, hex, buffer, mode, tolerance, minRatio) {
   if (isRegionPoint(point)) {
@@ -187,6 +189,12 @@ export function matchPoint(gl, point, hex, buffer, mode, tolerance, minRatio) {
   if (!pixel) {
     return { matched: false, ratio: 0, point: resolved };
   }
-  const matched = colorMatches(pixel, hexToRgb(hex), tolerance);
-  return { matched, ratio: matched ? 1 : 0, point: resolved };
+  const expected = hexToRgb(hex);
+  const matched = colorMatches(pixel, expected, tolerance);
+  const drift = Math.max(
+    Math.abs(pixel.r - expected.r),
+    Math.abs(pixel.g - expected.g),
+    Math.abs(pixel.b - expected.b)
+  );
+  return { matched, ratio: matched ? 1 : 0, point: resolved, drift, seen: rgbToHex(pixel) };
 }
