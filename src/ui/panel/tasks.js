@@ -1,7 +1,14 @@
 import { el } from '../dom.js';
 import { t } from '../../i18n/index.js';
 import { TaskId, resolveRunTarget } from '../../core/engine.js';
-import { getSpeed, setSpeed, formatSpeed, speedIndex, stepSpeed } from '../../core/speed.js';
+import {
+  getSpeed,
+  setSpeed,
+  formatSpeed,
+  speedIndex,
+  stepSpeed,
+  getFrameRates,
+} from '../../core/speed.js';
 import { SPEED_STEPS } from '../../core/constants.js';
 import { getCanvas } from '../../core/canvas.js';
 import { stepsForActivity } from '../../bot/activity.js';
@@ -84,6 +91,12 @@ function describeTarget(deps, target) {
   }
   const loose = steps.filter((step) => !step.activity).length;
   return { taskId, activityId, isLocked: loose === 0, title: loose === 0 ? t('tasks.noLoose') : '' };
+}
+
+/** Game frames over browser frames, since the two only match at 1×. */
+function describeFps(speed) {
+  const fps = getFrameRates();
+  return speed > 1 ? `${fps.game} / ${fps.real}` : String(fps.real);
 }
 
 function formatRemaining(ms) {
@@ -276,6 +289,8 @@ export function renderTasksTab(deps) {
     ]),
 
     el('dl', { class: 'bhb-facts' }, [
+      el('dt', { text: t('overlay.fps') }),
+      el('dd', { class: 'bhb-mono', text: describeFps(speed) }),
       el('dt', { text: t('overlay.canvas') }),
       el('dd', { class: 'bhb-mono', text: describeCanvas() }),
       el('dt', { text: t('overlay.autoStop') }),

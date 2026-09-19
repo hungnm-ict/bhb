@@ -27,6 +27,41 @@ import { SPEED_STEPS } from './constants.js';
  */
 export const STALL_MS = 250;
 
+/**
+ * Frame counters, rolled over a one-second window.
+ *
+ * Two rates, because the speed hack makes them diverge: `real` is what the
+ * browser hands us, `game` is how many times the game's own loop ran. At 10×
+ * a healthy run shows ten times as many game frames as real ones; when it
+ * does not, the frame budget is the ceiling, not the slider.
+ */
+const FPS_WINDOW_MS = 1000;
+let realFrames = 0;
+let gameFrames = 0;
+let windowStartedAt = realPerformanceNow();
+let rates = { real: 0, game: 0 };
+
+function rollFrameWindow() {
+  const elapsed = realPerformanceNow() - windowStartedAt;
+  if (elapsed < FPS_WINDOW_MS) {
+    return;
+  }
+  const perSecond = 1000 / elapsed;
+  rates = {
+    real: Math.round(realFrames * perSecond),
+    game: Math.round(gameFrames * perSecond),
+  };
+  realFrames = 0;
+  gameFrames = 0;
+  windowStartedAt = realPerformanceNow();
+}
+
+/** @returns {{ real: number, game: number }} frames per real second */
+export function getFrameRates() {
+  rollFrameWindow();
+  return rates;
+}
+
 /** Set by `installFrameMultiplier`; a no-op until the hack is installed. */
 let driveStalledFrame = () => false;
 
@@ -166,6 +201,7 @@ function installFrameMultiplier() {
       }
       lastFrameAt = realPerformanceNow();
       waiting = null;
+      realFrames += 1;
       runBurst(callback);
     });
   };
@@ -203,6 +239,7 @@ function installFrameMultiplier() {
   function runBurst(callback) {
     if (speed <= 1) {
       owed = 0;
+      gameFrames += 1;
       callback(performance.now());
       return;
     }
@@ -219,6 +256,7 @@ function installFrameMultiplier() {
         const current = next || callback;
 
         try {
+          gameFrames += 1;
           current(performance.now());
         } catch (error) {
           console.error('[BHB] frame callback threw', error);

@@ -1,6 +1,6 @@
 import { el, mount } from './dom.js';
 import { t } from '../i18n/index.js';
-import { getSpeed, formatSpeed } from '../core/speed.js';
+import { getSpeed, formatSpeed, getFrameRates } from '../core/speed.js';
 import { VERSION } from '../core/constants.js';
 import { realSetTimeout, realClearTimeout } from '../core/timers.js';
 
@@ -61,6 +61,7 @@ export function createHud(deps) {
 
     const engine = deps.getEngineState();
     const speed = getSpeed();
+    const fps = getFrameRates();
     const running = Boolean(engine.activeTask);
 
     target.className = `bhb-hud ${running ? 'bhb-hud--live' : ''} ${
@@ -79,6 +80,13 @@ export function createHud(deps) {
       el('span', {
         class: `bhb-hud__speed ${speed > 1 ? 'is-boosted' : ''}`,
         text: `${formatSpeed(speed)}×`,
+      }),
+      // Two rates only differ under the speed hack, and then the gap is the
+      // point: it says whether the game really ran that much faster.
+      el('span', {
+        class: `bhb-hud__fps ${fps.real > 0 && fps.real < 20 ? 'is-low' : ''}`,
+        title: t('hud.fps'),
+        text: speed > 1 ? `${fps.game}/${fps.real} fps` : `${fps.real} fps`,
       }),
       engine.activityName
         ? el('span', { class: 'bhb-hud__activity', text: engine.activityName })
