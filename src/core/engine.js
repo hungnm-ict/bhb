@@ -535,12 +535,15 @@ export function createEngine(deps) {
   /**
    * Book the next tick.
    *
-   * Only the Custom task paces itself: Run-All counts ticks to decide when an
-   * activity is idle, so a tick that changes length would quietly change what
-   * `IDLE_ADVANCE_TICKS` means.
+   * Everything but Run-All paces itself. A fixed 1.5s gap meant a button that
+   * appeared right after a poll sat there untouched for most of a second, and
+   * at 1× game speed — where the fades are longest — most samples landed
+   * mid-animation and matched nothing. Run-All keeps the fixed tick because it
+   * counts ticks to decide an activity is idle, and a tick that changes length
+   * would quietly change what `IDLE_ADVANCE_TICKS` means.
    */
   function schedulePoll() {
-    const adaptive = state.activeTask === TaskId.SCRIPT;
+    const adaptive = state.activeTask === TaskId.SCRIPT || state.activeTask === TaskId.SOLO;
     const resting = restingUntil > realNow();
     const delay = adaptive
       ? (resting ? SCRIPT_PACE_LADDER[SCRIPT_PACE_LADDER.length - 1] : pace)
