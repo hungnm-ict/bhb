@@ -29,10 +29,13 @@ vi.mock('../src/core/pixel.js', () => ({
   readPixel: (...args) => readPixelImpl(...args),
 }));
 
+let clicks = [];
+
 vi.mock('../src/core/input.js', () => ({
   dispatchMoveTo: vi.fn((_canvas, x) => {
     pointerOnButton = x > 100; // the corner park is at a low x
   }),
+  dispatchClickAt: vi.fn((_canvas, x, y) => clicks.push([x, y])),
 }));
 
 describe('step editor capture', () => {
@@ -45,6 +48,7 @@ describe('step editor capture', () => {
     pointerOnButton = true;
     readPixelImpl = () => (pointerOnButton ? { r: 203, g: 240, b: 103 } : { r: 166, g: 211, b: 57 });
     steps = [];
+    clicks = [];
     report = vi.fn();
     const { createStepEditor } = await import('../src/bot/step-editor.js');
     editor = createStepEditor({ getSteps: () => steps, persist: () => {}, report });
@@ -80,6 +84,12 @@ describe('step editor capture', () => {
     const last = dispatchMoveTo.mock.calls.at(-1);
     expect(last[1]).toBe(400);
     expect(last[2]).toBe(260);
+  });
+
+  it('presses the button it just captured, so the game moves on', async () => {
+    await editor.captureAtCursor();
+
+    expect(clicks).toEqual([[400, 260]]);
   });
 
   it('refuses a second capture while one is in flight', async () => {

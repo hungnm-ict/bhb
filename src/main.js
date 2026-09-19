@@ -108,6 +108,8 @@ function bootstrap() {
     getSteps,
     persist,
     report: engine.setMessage,
+    // A filter of null means All steps, and a new step there belongs to nobody.
+    getCaptureActivity: () => store.get().stepFilter || null,
     // The status line is in a corner; the user is looking at the button they
     // just pointed at, so the confirmation goes there.
     onCaptured: ({ step, clientX, clientY, isSettled }) => {

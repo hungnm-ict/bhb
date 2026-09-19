@@ -25,7 +25,7 @@ export default {
   'step.defaultLabel': 'Step {n}',
   'steps.capture': 'Capture a step at the cursor',
   'steps.captureHint':
-    'Hover a button in the game and press. The resting colour is read for you — no need to move the mouse away.',
+    'Hover a button in the game and press. The resting colour is read for you, and the button is then clicked for real, so the game moves on exactly as the step will drive it.',
   'steps.unnamed': '(unnamed)',
   'steps.enable': 'Enable',
   'steps.disable': 'Disable',
@@ -36,6 +36,7 @@ export default {
   'steps.activity': 'Which activity this step belongs to',
   'steps.loose': 'Custom steps only',
   'steps.noActivity': 'Custom',
+  'steps.moveAll': 'Move the steps shown to…',
   'steps.allSteps': 'All steps',
   'steps.filter': 'Show only one activity',
   'steps.delete': 'Delete',
