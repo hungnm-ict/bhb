@@ -13,8 +13,7 @@
 export const Keys = Object.freeze({
   PANEL: '`',
   CLOSE_PANEL: 'Escape',
-  SCRIPT: 'c',
-  RUN_ALL: 'a',
+  RUN: 'r',
   CAPTURE: 'x',
   SPEED_RESET: '0',
   SPEED_UP: '=',

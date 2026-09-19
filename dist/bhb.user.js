@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.14.7
+// @version      0.15.0
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @icon         data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAJu0lEQVR4nO2bXYxkVRHHf1Xn3u6ez53umWUWZmbBEINCWDUSEkxEkEBMMGIImGCMLxp9w8QH8cGP+AbBxBcT34wfwWzwQaJC0ATfRFGjIu4aDB9hd9ld2PnY6emZnul77ykf7u3e7p7umbnN9swmbiW92emue+pfdc+pqlN1jtCfHJAAzM7OjsVx4R4Tux/jdsSOglR2eHa/yYCqwdsCfzd41kf6u9XVUyvZ7y1dukn6DOiA5NCh66dcmDyKyBcE3p+yG2Z2+VW4DCRySR0zOwXytBg/WFo6fRZQUkN1gO82gGQfXzk89zAm3xfVo5hhqda+jaef8Q6KmoqlGEVURfDelsT49tLS6R9lv0sbb4cSl5SfmX9cRB/L3nZMaj29/Jib4ocyowxIQAIRwZv/ycri5FfhZIM2IzQRCOm0jyvTc78Q5x4x74eoOAiC4TEzVAIMPwwxkBlCVAPz/g8TY+7+t956KyKdKdZUToG4MjP3RKZ8BAQMUfnYbyESELgSsa8jw1tRAgTmfaSqn1yrxT8mdYhK9o8Dkkpl7kER94025YeGJ7GYkcIMD93xaz7/8ReYGrsxNchw3UrovY9E3SOVmbmvkRrBKeArlcqkCT/M3LtjiA5ORImTDa6Z+jDz08eYPXQDC9N3EicbiAxlwrVTYOYTkMfL5WuPAj4NDVp6VJ271rDW1BguCWYxUeyJEo+3pl/aB8FgIlpC9TuA6fz8/AjIl8ybsS/Kt8MREBlODOhPzswbwuempxeu09qmv0fQG2A/DWCoFghUcCIEWmRIobAXCeBVdMLEPxSIyWdRYaD0zqz3zDXSt9vzEY/TIourJ1iuvU0pnODcyl9xWsLbDqFwAFm7kBnygJSn519WlWNm5tnjDDDziCiqromgGxFmHu+TDsdm5lEXICixrzNWPILTAtWNUwRuBPAkSZKOlik1qKzdVADEsGWpzMwtg5R7jN6DBLOEUmmcyfIsKg7rMXWbadba6gU21ldbOfqh8hFKI+OYGSKK9xFGOiNSRYXGVp2Ly+cwS5OkUmksh6yLuSNJkCnfHGsXSoFPlmcJw1Jq9T6PqQiTU7Nsba4Txw3GJiqMT0yTJFHLIEFQSkfNDALG6NgUUbRF9eI7qAa5ZaUJ7N6XRM6Ex1ANsrfnW9/15DRDRFDnsMhwLiRdZdbB0z2+mce5EABVzSdLHUkS53IJ+xj28vjY/QuM+xv3r0C6aoCDBnDQdNUABw3goCmnAaQVymSXWNP83bxHkCxT2z0+pWEvLeCmYTKHrJ1S6T6U2wDeJ6ytLrZA9iMzY231AnEcoc5RX69S36juIlLZ2qyxUVtBxQ0gq7EnI3doVJmZzx10m8mKuoDeMVswn2SAtAVSVAkKxa66bNtTAnGjgU+SjreaV1YeGqj0JaLEcQOLtvrzQAY6+9spvh6xuVKjf6pqaDFEx4rgbWBZeWjg2t/4RCVNb3tuUNKlsrG+ivcJ6pRko8HorfNM3nVTn0TPwCm1l96k9ufX0ZFCVqLIJyvvEshtADPPVOU6xicqmdPpLVBEKJbGWF56G19Plb/x518mmBrFfI+9fbYXtTjhza/8jOoL/0HHChyaOrJ3WYun86qzkwFk+5qyBHUhxZFxkiRmt5y9UBwjKBTZXF5n8q6bcOVRGudXkcD15LfYE14zwaH7bmH1+X+jQZBPVlAkjhqIdo1vvufsgT4GkKx0Hcf1TmYtEOpoVp3Zy1Sz5oBZe8KQwCFuB2flLf20mkZ7l9XEnUS1LtxFnBZ6GmGbAZpNi5HCDLOH78RnzkhVWFp7lfWt88ig+dNe9BiwONzEXQrLHCkf68L9X9bqZwjcyLZcYZsBDE/gSjxw+3Hmp28lyuoLTmGldo5f/ulTeGsQyMgV1CWWS7hvO87CzLEO3Bdr5zn+x3upNxZRCWlfTkGvgVQcpbCCU/AuCzMCpbDcdyodJAngMURchrELd6GM0zDLRVrBBdhmgLRRGcU1nvnLQyzM3EGSTSWnwvmVl6nWTzNWvvkKevtgHbgf5ujhj3Xh/hfV+mlCN7qHJWCeQEtcXH+DC9UTHQ3sQAsUw4lWpTYnyr0XegawbTvuxbWTXbiLhD3WP/SJAoYRaInQjXR9n4UTabr1/khT5y0tFBJoFuf7b1gs9mm1PtCuIwx7kaUpblekEIxu06ffRqlvHpD27rd/731MtFVndGwKs4R+3QoRZWtznSTaQksBay+9zjXR3YSHJ3o3OZoRs+BYe/E1JFB8EhM19i4rjhspRtt589ROuTdDZoaqY3yismP+bd5Tqy2TxFErFZ68+wMcuu+WVp7fpQcSKGsvvsbF376MFEMwj0g+WfuyGwR23aICWTenKUnw61tYlOwY68UpOl7qcNW5ZeWggTZD6RY12NERmhnex5d4zJCxAkGwk0jBJxH4S3n/QLJyUE4DvLfW2NTUpdZYz9F7tsbyyBqoNZaHLm9rrNf4/1etsV7jX22N5eZ9b3S1LH7QAA6arhrgoAEcNF01QD72y90a237qft9bY4ZVs//vIfZcvtaYNOs4lrTVGA+gNVaemTuhojfnPSbnXLjjBsSbJ2lvV2VbYBcUEFGSZIvAlRAJaMRrBC7dAMVxo5XYDCxrDyqQHpOrBgL/AD5IjuwjnaZxVq/fma/tDwCSKMJbRCks85nbjjMSTvLMXx5hZf0NAlfMWKVjjNyydieT9BbFK2robxjoCowgsvOn51PqiP0Ws+WPsjDzIWbL72Ph8CdIfB2Vfpn5YLJ2oHQ6Ks8qSfi89/589oqGdm2jm7xF6Wnx2ON9xy2WYZMBaj6px+jTurLyxqoIT4nsrwGAgzotnoiomMhz1QunX1dAAo2eNPOrpE5wH4xgqIS4/T8tnjo/855EvguIAvruu+++Y2aPiajS54LhZUOQla+X1k5ysXaW9a0q51b+htPSfjRcYlF1Bk+srJw+Qdo3AbJ7Q+WZ+Z+q6heze0PhsFCkfbxNRouz6Wnx+ilCHRm2ASIRDb35F1YWz9xLNtvbr80p3OwqM9XnRfXutstTQ7nLIqIkvgFmOFccKIvbIxkQi2ho5k/EDe6sVs+s0Lw40cbk4WQ0WuJ+88lTIhpmTLs35wdBZR4nYdprHI7y2cVJENXQm/99YzO5q1o9s0yzncj2t9uKReWZha8LfE9Uxi0tSfk2nivt2myT2ltIKqKY+VjgyaXFM98i1aHD0fdSpHWFdvLwwo2B999E9EERKtDriPuVRWk0F8z8GsJzCf7x1Qtn/0nbkYsO/h3Gal05n5o6cr0G7gFDPi3wEWB6l2cPggxYxXhFVJ7DJ79aWjr7avZb3+vz/wMKZXY7ePMQhQAAAABJRU5ErkJggg==
@@ -15,7 +15,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.14.7" : "dev";
+  var VERSION = true ? "0.15.0" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -45,8 +45,7 @@
   var Keys = Object.freeze({
     PANEL: "`",
     CLOSE_PANEL: "Escape",
-    SCRIPT: "c",
-    RUN_ALL: "a",
+    RUN: "r",
     CAPTURE: "x",
     SPEED_RESET: "0",
     SPEED_UP: "=",
@@ -779,6 +778,15 @@
     SOLO: "solo",
     RUN_ALL: "runAll"
   });
+  function resolveRunTarget(target, activities = []) {
+    if (target === TaskId.RUN_ALL) {
+      return { taskId: TaskId.RUN_ALL, activityId: null };
+    }
+    if (target && target !== TaskId.SCRIPT && activities.some((one) => one.id === target)) {
+      return { taskId: TaskId.SOLO, activityId: target };
+    }
+    return { taskId: TaskId.SCRIPT, activityId: null };
+  }
   function createEngine(deps) {
     const emitter = createEmitter();
     const state = {
@@ -806,7 +814,7 @@
     let pace = FIRST_PACE;
     let pollTimer = null;
     let autoStopTimer = null;
-    const TASKS2 = {
+    const TASKS = {
       [TaskId.SCRIPT]: { interval: INTERVAL_SCRIPT, getSteps: () => looseSteps(deps.getScriptSteps()) },
       [TaskId.SOLO]: { interval: INTERVAL_RUN_ALL, getSteps: soloSteps },
       [TaskId.RUN_ALL]: { interval: INTERVAL_RUN_ALL, getSteps: runAllRules }
@@ -1060,7 +1068,7 @@
         setMessage(`${stopped} stopped: ${label}`);
         return false;
       }
-      const task = TASKS2[state.activeTask];
+      const task = TASKS[state.activeTask];
       const hit = runSequence(task.getSteps(), target.canvas, target.gl, state.screen);
       if (!hit) {
         if (state.activeTask === TaskId.RUN_ALL) {
@@ -1095,7 +1103,7 @@
     function schedulePoll() {
       const adaptive = state.activeTask === TaskId.SCRIPT;
       const resting = restingUntil > realNow();
-      const delay = adaptive ? resting ? SCRIPT_PACE_LADDER[SCRIPT_PACE_LADDER.length - 1] : pace : TASKS2[state.activeTask].interval;
+      const delay = adaptive ? resting ? SCRIPT_PACE_LADDER[SCRIPT_PACE_LADDER.length - 1] : pace : TASKS[state.activeTask].interval;
       pollTimer = realSetTimeout(() => {
         const wasResting = restingUntil > realNow();
         const clicked = tick();
@@ -1134,7 +1142,7 @@
       setMessage(`${stalled} auto-stopped (idle ${AUTO_STOP_TIMEOUT / 6e4}m)`);
     }
     function start2(taskId, activityId = null) {
-      if (!TASKS2[taskId]) {
+      if (!TASKS[taskId]) {
         throw new Error(`unknown task: ${taskId}`);
       }
       if (state.activeTask) {
@@ -1556,6 +1564,9 @@
       notify: normaliseNotifyConfig(stored.notify),
       canvasLock: normaliseCanvasLock(stored.canvasLock),
       probes: normaliseProbes(stored.probes),
+      // What the Run key starts: the loose Script set, one activity's id, or
+      // the whole queue. Kept because it is the one thing a session repeats.
+      runTarget: typeof stored.runTarget === "string" ? stored.runTarget : "script",
       // Which settings section is expanded; it is usually the same one twice.
       openSection: typeof stored.openSection === "string" ? stored.openSection : null
     };
@@ -1955,6 +1966,10 @@
     "settings.export": "Xuất",
     "settings.import": "Nhập",
     "settings.importFailed": "Nhập thất bại",
+    "tasks.target": "Chạy chế độ nào",
+    "tasks.run": "Chạy",
+    "tasks.stop": "Dừng",
+    "tasks.noLoose": "Chưa bước nào thuộc Tuỳ chỉnh — bắt một bước, hoặc chuyển một nhóm sang đây",
     "tasks.runAllLocked": "Chưa dùng được: chưa hoạt động nào có bước. Sang tab Bước, bắt bước rồi gán cho một hoạt động.",
     "tasks.runAllReady": "Sẵn sàng: {n} hoạt động đã có bước",
     "queue.inSettings": "Thứ tự và bật/tắt từng hoạt động nằm ở tab Cài đặt.",
@@ -1979,8 +1994,7 @@
     "help.sectionSteps": "Bước",
     "help.sectionUi": "Giao diện",
     "help.sectionSpeed": "Tốc độ",
-    "help.script": "Chạy các bước tuỳ chỉnh chưa gán hoạt động (3s/lần)",
-    "help.runAll": "Chạy lần lượt mọi hoạt động trong hàng đợi",
+    "help.run": "Chạy hoặc dừng chế độ đang chọn ở tab Chạy",
     "help.capture": "Bắt bước tại con trỏ",
     "help.togglePanel": "Mở/đóng bảng điều khiển",
     "help.speedUp": "Nhanh hơn (mốc kế tiếp)",
@@ -2162,6 +2176,10 @@
     "settings.export": "Export",
     "settings.import": "Import",
     "settings.importFailed": "Import failed",
+    "tasks.target": "What Run starts",
+    "tasks.run": "Run",
+    "tasks.stop": "Stop",
+    "tasks.noLoose": "No step belongs to Custom — capture one, or move a set here",
     "tasks.runAllLocked": "Not usable yet: no activity has any steps. Capture one in the Steps tab and tag it to an activity.",
     "tasks.runAllReady": "Ready: {n} activities have steps",
     "queue.inSettings": "The order and the on/off switches live in the Settings tab.",
@@ -2186,8 +2204,7 @@
     "help.sectionSteps": "Steps",
     "help.sectionUi": "Interface",
     "help.sectionSpeed": "Speed",
-    "help.script": "Run the custom steps not tagged to an activity (every 3s)",
-    "help.runAll": "Run every activity in the queue",
+    "help.run": "Start or stop whatever the Run tab is set to",
     "help.capture": "Capture a step at the cursor",
     "help.togglePanel": "Open/close the control panel",
     "help.speedUp": "Speed up (next stop)",
@@ -3729,7 +3746,26 @@
     speedControl.readout.className = `bhb-speed ${speed2 > 1 ? "is-boosted" : ""}`;
   }
   var LABELLED_SPEEDS = [0.1, 1, 5, 10, 20];
-  var TASKS = [[TaskId.SCRIPT, "task.script", Keys.SCRIPT]];
+  function describeTarget(deps, target) {
+    const activities = deps.getActivities();
+    const { taskId, activityId } = resolveRunTarget(target, activities);
+    const steps = deps.getSteps();
+    if (taskId === TaskId.RUN_ALL) {
+      const ready = readyActivityCount(deps);
+      return {
+        taskId,
+        activityId,
+        isLocked: ready === 0,
+        title: ready === 0 ? t("tasks.runAllLocked") : t("tasks.runAllReady", { n: ready })
+      };
+    }
+    if (taskId === TaskId.SOLO) {
+      const count = stepsForActivity(steps, activityId).length;
+      return { taskId, activityId, isLocked: count === 0, title: count === 0 ? t("queue.noSteps") : "" };
+    }
+    const loose = steps.filter((step) => !step.activity).length;
+    return { taskId, activityId, isLocked: loose === 0, title: loose === 0 ? t("tasks.noLoose") : "" };
+  }
   function formatRemaining(ms) {
     const total = Math.floor(ms / 1e3);
     return `${Math.floor(total / 60)}m${String(total % 60).padStart(2, "0")}s`;
@@ -3750,42 +3786,47 @@
   function renderTasksTab(deps) {
     const engine = deps.getEngineState();
     const speed2 = getSpeed();
-    function taskTile({ taskId, labelKey, key, phase, isLocked, title }) {
-      const on = engine.activeTask === taskId;
-      const tile = el(
-        "button",
-        {
-          class: `bhb-task bhb-task--tile ${on ? "is-on" : ""} ${isLocked ? "is-locked" : ""}`,
-          ...title ? { title } : {}
-        },
-        [
-          el("span", { class: "bhb-task__switch" }),
-          el("span", { class: "bhb-task__name", text: t(labelKey) }),
-          phase ? el("span", { class: "bhb-task__phase", text: phase }) : null,
-          // The reason a switch is locked belongs on that switch. Said under the
-          // grid instead, it read as a verdict on all four.
-          isLocked ? el("span", { class: "bhb-task__warn", title, text: "⚠" }) : null,
-          el("span", { class: "bhb-kbd", text: keyLabel(key) })
-        ]
-      );
-      if (!isLocked) {
-        tile.addEventListener("click", () => {
-          deps.toggleTask(taskId);
-          deps.refresh();
-        });
-      }
-      return tile;
+    const target = deps.getRunTarget();
+    const picked = describeTarget(deps, target);
+    const chooser = el("select", { class: "bhb-rule__gate", title: t("tasks.target") });
+    const script = el("option", { text: t("task.script") });
+    script.value = TaskId.SCRIPT;
+    chooser.append(script);
+    for (const activity of deps.getActivities()) {
+      const option = el("option", { text: activity.name });
+      option.value = activity.id;
+      chooser.append(option);
     }
-    const tiles = TASKS.map(([taskId, labelKey, key]) => taskTile({ taskId, labelKey, key }));
-    const ready = readyActivityCount(deps);
-    const runAll = taskTile({
-      taskId: TaskId.RUN_ALL,
-      labelKey: "task.runAll",
-      key: Keys.RUN_ALL,
-      phase: engine.activeTask === TaskId.RUN_ALL ? t("queue.round", { n: engine.round }) : "",
-      isLocked: ready === 0,
-      title: ready === 0 ? t("tasks.runAllLocked") : t("tasks.runAllReady", { n: ready })
+    const all = el("option", { text: t("task.runAll") });
+    all.value = TaskId.RUN_ALL;
+    chooser.append(all);
+    chooser.value = picked.taskId === TaskId.SOLO ? picked.activityId : picked.taskId;
+    chooser.addEventListener("change", () => {
+      deps.setRunTarget(chooser.value);
+      deps.refresh();
     });
+    const isOnTarget = engine.activeTask === picked.taskId && (picked.taskId !== TaskId.SOLO || engine.activity === picked.activityId);
+    const phase = isOnTarget && picked.taskId === TaskId.RUN_ALL ? t("queue.round", { n: engine.round }) : "";
+    const run = el(
+      "button",
+      {
+        class: `bhb-task bhb-task--tile ${isOnTarget ? "is-on" : ""} ${picked.isLocked && !isOnTarget ? "is-locked" : ""}`,
+        ...picked.title ? { title: picked.title } : {}
+      },
+      [
+        el("span", { class: "bhb-task__switch" }),
+        el("span", { class: "bhb-task__name", text: t(isOnTarget ? "tasks.stop" : "tasks.run") }),
+        phase ? el("span", { class: "bhb-task__phase", text: phase }) : null,
+        picked.isLocked && !isOnTarget ? el("span", { class: "bhb-task__warn", title: picked.title, text: "⚠" }) : null,
+        el("span", { class: "bhb-kbd", text: keyLabel(Keys.RUN) })
+      ]
+    );
+    if (!picked.isLocked || isOnTarget) {
+      run.addEventListener("click", () => {
+        deps.runSelected();
+        deps.refresh();
+      });
+    }
     if (!speedControl) {
       const slider2 = el("input", { class: "bhb-slider" });
       slider2.type = "range";
@@ -3838,7 +3879,13 @@
       return button;
     }
     return el("div", { class: "bhb-tab" }, [
-      el("div", { class: "bhb-taskgrid" }, [...tiles, runAll]),
+      el("div", { class: "bhb-field" }, [
+        el("div", { class: "bhb-field__head" }, [
+          el("span", { class: "bhb-label", text: t("tasks.target") }),
+          chooser
+        ]),
+        run
+      ]),
       el("p", { class: "bhb-note", text: t("queue.inSettings") }),
       el("div", { class: "bhb-field" }, [
         el("div", { class: "bhb-field__head" }, [
@@ -5031,8 +5078,7 @@
     {
       title: "help.sectionAuto",
       entries: [
-        [keyLabel(Keys.SCRIPT), "help.script"],
-        [keyLabel(Keys.RUN_ALL), "help.runAll"]
+        [keyLabel(Keys.RUN), "help.run"]
       ]
     },
     {
@@ -5701,6 +5747,12 @@
       },
       getEngineState: engine.getState,
       toggleTask: engine.toggle,
+      getRunTarget: () => settings.runTarget,
+      setRunTarget: (target) => {
+        settings.runTarget = target;
+        saveSettings(settings);
+      },
+      runSelected: () => runSelected(),
       runActivity: (activityId) => {
         const engineState = engine.getState();
         if (engineState.activeTask === TaskId.SOLO && engineState.activity === activityId) {
@@ -5712,6 +5764,16 @@
       getProfileName: () => getActiveProfile(profileState).name,
       refresh: () => refresh()
     });
+    function runSelected() {
+      const { taskId, activityId } = resolveRunTarget(settings.runTarget, getActivities());
+      const state = engine.getState();
+      const isOn = state.activeTask === taskId && (taskId !== TaskId.SOLO || state.activity === activityId);
+      if (isOn) {
+        engine.stop();
+        return;
+      }
+      engine.start(taskId, activityId);
+    }
     const markers = createMarkerLayer({
       getSteps,
       getScaleMode: () => settings.scaleMode,
@@ -5774,8 +5836,10 @@
         refresh();
         return true;
       },
-      [Keys.SCRIPT]: () => engine.toggle(TaskId.SCRIPT),
-      [Keys.RUN_ALL]: () => engine.toggle(TaskId.RUN_ALL),
+      [Keys.RUN]: () => {
+        runSelected();
+        refresh();
+      },
       [Keys.CAPTURE]: () => {
         if (!store.get().isCaptureArmed) {
           engine.setMessage(t("msg.captureDisarmed"));

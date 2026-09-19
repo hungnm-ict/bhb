@@ -88,6 +88,10 @@ export default {
   'settings.import': 'Nhập',
   'settings.importFailed': 'Nhập thất bại',
 
+  'tasks.target': 'Chạy chế độ nào',
+  'tasks.run': 'Chạy',
+  'tasks.stop': 'Dừng',
+  'tasks.noLoose': 'Chưa bước nào thuộc Tuỳ chỉnh — bắt một bước, hoặc chuyển một nhóm sang đây',
   'tasks.runAllLocked':
     'Chưa dùng được: chưa hoạt động nào có bước. Sang tab Bước, bắt bước rồi gán cho một hoạt động.',
   'tasks.runAllReady': 'Sẵn sàng: {n} hoạt động đã có bước',
@@ -115,8 +119,7 @@ export default {
   'help.sectionSteps': 'Bước',
   'help.sectionUi': 'Giao diện',
   'help.sectionSpeed': 'Tốc độ',
-  'help.script': 'Chạy các bước tuỳ chỉnh chưa gán hoạt động (3s/lần)',
-  'help.runAll': 'Chạy lần lượt mọi hoạt động trong hàng đợi',
+  'help.run': 'Chạy hoặc dừng chế độ đang chọn ở tab Chạy',
   'help.capture': 'Bắt bước tại con trỏ',
   'help.togglePanel': 'Mở/đóng bảng điều khiển',
   'help.speedUp': 'Nhanh hơn (mốc kế tiếp)',

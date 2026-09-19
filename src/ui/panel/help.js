@@ -14,8 +14,7 @@ const SECTIONS = [
   {
     title: 'help.sectionAuto',
     entries: [
-      [keyLabel(Keys.SCRIPT), 'help.script'],
-      [keyLabel(Keys.RUN_ALL), 'help.runAll'],
+      [keyLabel(Keys.RUN), 'help.run'],
     ],
   },
   {

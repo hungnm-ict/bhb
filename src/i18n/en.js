@@ -88,6 +88,10 @@ export default {
   'settings.import': 'Import',
   'settings.importFailed': 'Import failed',
 
+  'tasks.target': 'What Run starts',
+  'tasks.run': 'Run',
+  'tasks.stop': 'Stop',
+  'tasks.noLoose': 'No step belongs to Custom — capture one, or move a set here',
   'tasks.runAllLocked':
     'Not usable yet: no activity has any steps. Capture one in the Steps tab and tag it to an activity.',
   'tasks.runAllReady': 'Ready: {n} activities have steps',
@@ -115,8 +119,7 @@ export default {
   'help.sectionSteps': 'Steps',
   'help.sectionUi': 'Interface',
   'help.sectionSpeed': 'Speed',
-  'help.script': 'Run the custom steps not tagged to an activity (every 3s)',
-  'help.runAll': 'Run every activity in the queue',
+  'help.run': 'Start or stop whatever the Run tab is set to',
   'help.capture': 'Capture a step at the cursor',
   'help.togglePanel': 'Open/close the control panel',
   'help.speedUp': 'Speed up (next stop)',

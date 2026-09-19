@@ -307,6 +307,9 @@ export function loadSettings() {
     notify: normaliseNotifyConfig(stored.notify),
     canvasLock: normaliseCanvasLock(stored.canvasLock),
     probes: normaliseProbes(stored.probes),
+    // What the Run key starts: the loose Script set, one activity's id, or
+    // the whole queue. Kept because it is the one thing a session repeats.
+    runTarget: typeof stored.runTarget === 'string' ? stored.runTarget : 'script',
     // Which settings section is expanded; it is usually the same one twice.
     openSection: typeof stored.openSection === 'string' ? stored.openSection : null,
   };

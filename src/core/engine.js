@@ -42,6 +42,27 @@ export const TaskId = Object.freeze({
 });
 
 /**
+ * What the Run control starts.
+ *
+ * Anything that is not one of the two task ids is an activity id, run on its
+ * own — so a target survives an activity being renamed, and a deleted one
+ * simply falls back to the Script set.
+ *
+ * @param {string | null} target
+ * @param {{ id: string }[]} activities
+ * @returns {{ taskId: string, activityId: string | null }}
+ */
+export function resolveRunTarget(target, activities = []) {
+  if (target === TaskId.RUN_ALL) {
+    return { taskId: TaskId.RUN_ALL, activityId: null };
+  }
+  if (target && target !== TaskId.SCRIPT && activities.some((one) => one.id === target)) {
+    return { taskId: TaskId.SOLO, activityId: target };
+  }
+  return { taskId: TaskId.SCRIPT, activityId: null };
+}
+
+/**
  * @typedef {object} EngineDeps
  * @property {() => import('../bot/step.js').Step[]} getScriptSteps
  * @property {() => string} getScaleMode
