@@ -21,6 +21,7 @@ import {
   onSpeedChange,
   stepSpeed,
   pumpFrame,
+  resetClock,
 } from './core/speed.js';
 import { installKeepAlive } from './core/keepalive.js';
 import { createEngine, TaskId, resolveRunTarget } from './core/engine.js';
@@ -355,6 +356,11 @@ function bootstrap() {
   // Rebuilding the panel on every notch replaced the slider mid-drag, which is
   // what made dragging feel like it was fighting back.
   onSpeedChange(() => {
+    // Back at normal speed the drift has no more work to do, and leaving it
+    // there is what greets the next account with a daily reset it never earned.
+    if (settings.clockSafety && getSpeed() <= 1) {
+      resetClock();
+    }
     hud.render();
     panel.updateSpeed();
   });
