@@ -1,4 +1,4 @@
-# BHB <!--version-->v0.14.3<!--/version-->
+# BHB <!--version-->v0.14.4<!--/version-->
 
 > 🇻🇳 [Phiên bản tiếng Việt](README.md) · [Changelog](https://github.com/hungnm-ict/bhb/commits/master)
 
@@ -225,9 +225,9 @@ Tests live in `tests/` and run under vitest. Everything that could lose a user's
 
 ## Origin
 
-This project started from [`laviehihi/bh-scripts`](https://github.com/laviehihi/bh-scripts) — thanks to its author for working out the framebuffer read, the verified button coordinates and colours, and the speed-hack technique. That knowledge is still the foundation of this bot.
+The first idea for this project came from [`laviehihi/bh-scripts`](https://github.com/laviehihi/bh-scripts) — thanks to its author for showing that the game can be read straight from its framebuffer and driven with synthetic events.
 
-The code has been rewritten from scratch. See [NOTICE.md](NOTICE.md) for details.
+BHB is written from scratch and ships none of that project's code. [NOTICE.md](NOTICE.md) sets out what was learned from it and what is original here.
 
 ## Disclaimer
 

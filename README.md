@@ -1,4 +1,4 @@
-# BHB <!--version-->v0.14.3<!--/version-->
+# BHB <!--version-->v0.14.4<!--/version-->
 
 > 🇬🇧 [English version](README.en.md) · [Nhật ký thay đổi](https://github.com/hungnm-ict/bhb/commits/master)
 
@@ -227,9 +227,9 @@ Test nằm ở `tests/`, chạy bằng vitest. Phần nào dễ làm mất công
 
 ## Nguồn gốc
 
-Dự án khởi đầu từ [`laviehihi/bh-scripts`](https://github.com/laviehihi/bh-scripts) — cảm ơn tác giả đã tìm ra cách đọc framebuffer, bộ toạ độ/màu nút đã kiểm chứng, và kỹ thuật tăng tốc game. Phần kiến thức đó vẫn là nền tảng của bot này.
+Ý tưởng ban đầu của dự án đến từ [`laviehihi/bh-scripts`](https://github.com/laviehihi/bh-scripts) — cảm ơn tác giả vì hướng đi: đọc thẳng framebuffer của game và điều khiển bằng sự kiện chuột tổng hợp.
 
-Code đã được viết lại hoàn toàn. Chi tiết xem [NOTICE.md](NOTICE.md).
+BHB được viết mới hoàn toàn, không mang theo code của dự án đó. [NOTICE.md](NOTICE.md) ghi rõ phần nào là kiến thức học được và phần nào là tự làm.
 
 ## Lưu ý
 
