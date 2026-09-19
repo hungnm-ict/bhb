@@ -16,10 +16,8 @@ import {
 import { nextPace, FIRST_PACE } from './pace.js';
 import {
   SCRIPT_PACE_LADDER,
-  INTERVAL_SCRIPT,
   INTERVAL_AUTO_STOP_CHECK,
-  INTERVAL_RUN_ALL,
-  IDLE_ADVANCE_TICKS,
+  IDLE_ADVANCE_MS,
   RESYNC_AFTER_MS,
   AUTO_STOP_TIMEOUT,
 } from './constants.js';
@@ -98,7 +96,8 @@ export function createEngine(deps) {
   /** Activities already out of resources this round; cleared when it wraps. */
   let spent = new Set();
   let queueIndex = 0;
-  let idleTicks = 0;
+  /** When the current activity last did something; see `IDLE_ADVANCE_MS`. */
+  let idleSince = 0;
 
   /** Where the runner is in the current step list. See `runSequence`. */
   const cursor = { key: null, index: 0, missingSince: 0 };
@@ -114,9 +113,9 @@ export function createEngine(deps) {
 
 
   const TASKS = {
-    [TaskId.SCRIPT]: { interval: INTERVAL_SCRIPT, getSteps: () => looseSteps(deps.getScriptSteps()) },
-    [TaskId.SOLO]: { interval: INTERVAL_RUN_ALL, getSteps: soloSteps },
-    [TaskId.RUN_ALL]: { interval: INTERVAL_RUN_ALL, getSteps: runAllRules },
+    [TaskId.SCRIPT]: { getSteps: () => looseSteps(deps.getScriptSteps()) },
+    [TaskId.SOLO]: { getSteps: soloSteps },
+    [TaskId.RUN_ALL]: { getSteps: runAllRules },
   };
 
   /**
@@ -165,7 +164,7 @@ export function createEngine(deps) {
     if (why === 'spent' && leaving) {
       spent.add(leaving.id);
     }
-    idleTicks = 0;
+    idleSince = realNow();
     cursor.key = null;
 
     for (let step = 1; step <= queue.length; step += 1) {
@@ -500,8 +499,7 @@ export function createEngine(deps) {
 
     if (!hit) {
       if (state.activeTask === TaskId.RUN_ALL) {
-        idleTicks += 1;
-        if (idleTicks >= IDLE_ADVANCE_TICKS) {
+        if (realNow() - idleSince >= IDLE_ADVANCE_MS) {
           advanceQueue('idle');
           return false;
         }
@@ -512,7 +510,7 @@ export function createEngine(deps) {
       return false;
     }
 
-    idleTicks = 0;
+    idleSince = realNow();
 
     if (hit.clicked) {
       state.lastActionAt = realNow();
@@ -535,25 +533,21 @@ export function createEngine(deps) {
   /**
    * Book the next tick.
    *
-   * Everything but Run-All paces itself. A fixed 1.5s gap meant a button that
-   * appeared right after a poll sat there untouched for most of a second, and
-   * at 1× game speed — where the fades are longest — most samples landed
-   * mid-animation and matched nothing. Run-All keeps the fixed tick because it
-   * counts ticks to decide an activity is idle, and a tick that changes length
-   * would quietly change what `IDLE_ADVANCE_TICKS` means.
+   * Every mode paces itself the same way: 300ms straight after a click, then
+   * one rung slower each time nothing matches. A fixed gap meant a button that
+   * appeared right after a poll sat there untouched, and at 1× game speed —
+   * where the fades run longest — most samples landed mid-animation and
+   * matched nothing.
    */
   function schedulePoll() {
-    const adaptive = state.activeTask === TaskId.SCRIPT || state.activeTask === TaskId.SOLO;
     const resting = restingUntil > realNow();
-    const delay = adaptive
-      ? (resting ? SCRIPT_PACE_LADDER[SCRIPT_PACE_LADDER.length - 1] : pace)
-      : TASKS[state.activeTask].interval;
+    const delay = resting ? SCRIPT_PACE_LADDER[SCRIPT_PACE_LADDER.length - 1] : pace;
 
     pollTimer = realSetTimeout(() => {
       // Read before the tick: the rest this tick starts is not one it sat out.
       const wasResting = restingUntil > realNow();
       const clicked = tick();
-      if (adaptive && !wasResting) {
+      if (!wasResting) {
         pace = nextPace(pace, clicked);
       }
       if (state.activeTask) {
@@ -614,7 +608,7 @@ export function createEngine(deps) {
     // Starting Run-All begins a clean round, at the top of the queue.
     spent = new Set();
     queueIndex = 0;
-    idleTicks = 0;
+    idleSince = realNow();
     cursor.key = null;
     state.expectedStepId = null;
     state.round = taskId === TaskId.RUN_ALL ? 1 : 0;

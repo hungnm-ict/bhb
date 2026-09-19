@@ -13,16 +13,11 @@ export const STORAGE_KEY_LEGACY_RULES = 'bh_script_rules_v1';
 /** Default per-channel RGB distance allowed when matching a colour. */
 export const DEFAULT_COLOR_TOLERANCE = 15;
 
-/** Poll intervals, in real milliseconds (never scaled by the speed hack). */
-export const INTERVAL_RERUN_HUNT = 3000;
-export const INTERVAL_RERUN_REST = 20000;
-export const INTERVAL_WORLD_BOSS = 2000;
-export const INTERVAL_SCRIPT = 3000;
+/** Real milliseconds, never scaled by the speed hack. */
 export const INTERVAL_AUTO_STOP_CHECK = 5000;
-export const INTERVAL_RUN_ALL = 1500;
 
 /**
- * How fast the Custom task polls, fastest first.
+ * How fast a run polls, fastest first.
  *
  * One tick clicks at most one step, so a fixed 3s nicked a four-step sequence
  * for twelve seconds of nothing. Mid-sequence the next screen is already on
@@ -31,8 +26,14 @@ export const INTERVAL_RUN_ALL = 1500;
  */
 export const SCRIPT_PACE_LADDER = Object.freeze([300, 600, 1200, 2000, 3000]);
 
-/** Ticks with no match before Run-All gives up on an activity and moves on. */
-export const IDLE_ADVANCE_TICKS = 8;
+/**
+ * How long Run-All watches an activity match nothing before moving on.
+ *
+ * Measured in time rather than ticks: every task now paces itself, so a count
+ * of ticks would mean twelve seconds while the loop is slow and two while it
+ * is fast — the same number standing for two different amounts of patience.
+ */
+export const IDLE_ADVANCE_MS = 12000;
 
 /**
  * How long the runner waits for the step it expects before it stops trusting
