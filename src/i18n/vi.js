@@ -82,6 +82,7 @@ export default {
   'settings.keepAliveHint':
     'Trình duyệt ngừng vẽ khi cửa sổ bị cửa sổ khác phủ kín, và game đứng theo. Bật cái này thì bot tự lái vòng lặp của game. Cần tải lại trang sau khi đổi.',
   'settings.sizeBadge': 'Hiện cỡ canvas ở góc màn hình',
+  'settings.fpsBadge': 'Hiện tốc độ khung hình trên game',
   'settings.absoluteCoords': 'Dùng toạ độ thô (không co giãn theo cỡ canvas)',
   'settings.language': 'Ngôn ngữ',
   'settings.transfer': 'Xuất / nhập',
