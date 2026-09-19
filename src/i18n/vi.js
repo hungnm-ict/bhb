@@ -25,7 +25,7 @@ export default {
   'step.defaultLabel': 'Bước {n}',
   'steps.capture': 'Bắt bước tại con trỏ',
   'steps.captureHint':
-    'Rê chuột lên nút trong game rồi bấm. Bot tự đọc màu lúc nút không sáng — không cần di chuột đi đâu cả.',
+    'Rê chuột lên nút trong game rồi bấm. Bot tự đọc màu lúc nút không sáng, rồi bấm luôn nút đó thật — game đi tiếp đúng như khi bước này chạy.',
   'steps.unnamed': '(chưa đặt tên)',
   'steps.enable': 'Bật bước',
   'steps.disable': 'Tắt bước',
@@ -36,6 +36,7 @@ export default {
   'steps.activity': 'Bước này thuộc hoạt động nào',
   'steps.loose': 'Chỉ bước tuỳ chỉnh',
   'steps.noActivity': 'Tuỳ chỉnh',
+  'steps.moveAll': 'Chuyển các bước đang hiện sang…',
   'steps.allSteps': 'Tất cả bước',
   'steps.filter': 'Chỉ hiện một hoạt động',
   'steps.delete': 'Xoá bước',

@@ -105,6 +105,32 @@ export function renderStepsTab(deps) {
     deps.refresh();
   });
 
+  // Moving twenty steps one dropdown at a time is the same choice twenty times.
+  const moveAll = el('select', { class: 'bhb-rule__gate', title: t('steps.moveAll') });
+  const movePrompt = el('option', { text: t('steps.moveAll') });
+  movePrompt.value = '__none__';
+  moveAll.append(movePrompt);
+  const looseTarget = el('option', { text: t('steps.noActivity') });
+  looseTarget.value = '';
+  moveAll.append(looseTarget);
+  for (const activity of activities) {
+    const option = el('option', { text: activity.name });
+    option.value = activity.id;
+    moveAll.append(option);
+  }
+  moveAll.value = '__none__';
+  moveAll.disabled = steps.length === 0;
+  moveAll.addEventListener('change', () => {
+    if (moveAll.value === '__none__') {
+      return;
+    }
+    const target = moveAll.value || null;
+    for (const step of steps) {
+      deps.stepEditor.setActivity(step.id, target);
+    }
+    deps.refresh();
+  });
+
   // A legacy step cannot be rescaled, so it clicks the wrong place the moment
   // the window moves — loud enough to act on, not a ⚠ to squint at.
   const legacyCount = all.filter((step) => step.points[0] && isLegacyPoint(step.points[0])).length;
@@ -114,6 +140,7 @@ export function renderStepsTab(deps) {
       el('span', { class: 'bhb-label', text: `${t('overlay.steps')} · ${steps.length}` }),
       filterSelect,
     ]),
+    el('div', { class: 'bhb-btnrow' }, [moveAll]),
     arm,
     capture,
     el('div', { class: 'bhb-btnrow' }, [dryRun, pin]),

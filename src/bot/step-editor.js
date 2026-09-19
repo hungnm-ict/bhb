@@ -1,7 +1,7 @@
 import { getRenderTarget } from '../core/canvas.js';
 import { readPixel } from '../core/pixel.js';
 import { rgbToHex, colorMatches } from '../core/color.js';
-import { dispatchMoveTo } from '../core/input.js';
+import { dispatchMoveTo, dispatchClickAt } from '../core/input.js';
 import {
   clientToBuffer,
   bufferToClient,
@@ -157,14 +157,23 @@ export function createStepEditor(deps) {
         existing.points.push(...points);
         step = existing;
       } else {
+        // Captured into whichever activity the Steps tab is filtered to: the
+        // user picked Dungeon and then went hunting for Dungeon's buttons.
         step = createStep({
           label: t('step.defaultLabel', { n: steps.length + 1 }),
           points,
           hex: restingHex,
+          activity: deps.getCaptureActivity ? deps.getCaptureActivity() : null,
         });
         steps.push(step);
       }
       deps.persist();
+
+      // Press the button for real: the game moves on to the screen the next
+      // step will be captured from, and the step is proven at the same time.
+      if (step.kind === StepKind.CLICK) {
+        dispatchClickAt(canvas, cursorX, cursorY);
+      }
 
       deps.report(
         settled.isSettled
