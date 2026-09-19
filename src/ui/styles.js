@@ -70,8 +70,21 @@ const CSS = `
   backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
   transition: opacity .45s ease, box-shadow .2s ease;
 }
-.bhb-hud--dim { opacity: .25; }
+/* Faded out it must still answer: is it running, and how fast? */
+.bhb-hud > * { transition: opacity .45s ease; }
+.bhb-hud--dim {
+  background: linear-gradient(180deg, rgba(26, 29, 41, .30), rgba(18, 20, 28, .30));
+  border-color: rgba(var(--bhb-accent-rgb), .10);
+  box-shadow: none;
+}
+.bhb-hud--dim > * { opacity: .16; }
+.bhb-hud--dim > .bhb-hud__dot,
+.bhb-hud--dim > .bhb-hud__speed { opacity: 1; }
+/* The plate is nearly gone underneath, so these two carry their own contrast. */
+.bhb-hud--dim > .bhb-hud__speed { color: var(--bhb-text); text-shadow: 0 1px 3px rgba(0, 0, 0, .9); }
+.bhb-hud--dim > .bhb-hud__dot { box-shadow: 0 0 0 2px rgba(0, 0, 0, .55); }
 .bhb-hud:hover { opacity: 1; box-shadow: 0 6px 26px rgba(124, 92, 255, .35); }
+.bhb-hud:hover > * { opacity: 1; }
 
 .bhb-hud__dot {
   width: 8px; height: 8px; border-radius: 50%; flex: none;
