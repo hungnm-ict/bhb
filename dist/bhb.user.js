@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.17.0
+// @version      0.17.1
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @icon         data:image/png;base64,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
@@ -15,7 +15,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.17.0" : "dev";
+  var VERSION = true ? "0.17.1" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -2023,6 +2023,7 @@
     "log.resync": "Lạc nhịp — bắt lại từ {label}",
     "size.same": "Cỡ framebuffer game vẽ ra — bước lưu toạ độ theo hệ này",
     "size.scaled": "Cỡ framebuffer → cỡ hiển thị. Khác nhau nghĩa là game đang được co giãn",
+    "steps.driftHint": "Đọc được {hex} ở đây — lệch chừng đó so với màu đã lưu. Vượt ngưỡng thì nới ngưỡng hoặc bắt lại.",
     "steps.legacyBadge": "bắt lại",
     "steps.legacyWarning": "{n} bước chưa có cỡ canvas lúc bắt nên không co giãn được — đổi cỡ cửa sổ là bấm sai chỗ. Bắt lại từng cái để sửa.",
     "log.title": "Nhật ký",
@@ -2236,6 +2237,7 @@
     "log.resync": "Lost the thread — picking up at {label}",
     "size.same": "The framebuffer the game draws into — steps store their coordinates in it",
     "size.scaled": "Framebuffer size → displayed size. They differ when the game is being scaled",
+    "steps.driftHint": "Read {hex} here — that far from the stored colour. Above the tolerance, widen it or capture again.",
     "steps.legacyBadge": "recapture",
     "steps.legacyWarning": "{n} steps were captured without a canvas size, so they cannot be rescaled — resize the window and they click the wrong place. Recapture each one to fix it.",
     "log.title": "Activity",
@@ -2729,16 +2731,17 @@
   }
 
   // src/bot/dry-run.js
-  function scoreStep(step, gl, buffer, scaleMode, screenId) {
+  function scoreStepDetail(step, gl, buffer, scaleMode, screenId) {
     if (!step.enabled) {
-      return "off";
+      return { verdict: "off" };
     }
     if (!isStepReady(step)) {
-      return "empty";
+      return { verdict: "empty" };
     }
     if (!stepAllowedOn(step, screenId)) {
-      return "gated";
+      return { verdict: "gated" };
     }
+    let nearest = null;
     for (const storedPoint of step.points) {
       const hit = matchPoint(
         gl,
@@ -2749,10 +2752,16 @@
         step.tolerance
       );
       if (hit.matched) {
-        return step.kind === StepKind.WAIT ? "waiting" : "match";
+        return { verdict: step.kind === StepKind.WAIT ? "waiting" : "match" };
+      }
+      if (typeof hit.drift === "number" && (!nearest || hit.drift < nearest.drift)) {
+        nearest = { drift: hit.drift, seen: hit.seen };
       }
     }
-    return step.kind === StepKind.WAIT ? "match" : "miss";
+    if (step.kind === StepKind.WAIT) {
+      return { verdict: "match" };
+    }
+    return { verdict: "miss", ...nearest || {} };
   }
   function scoreSteps(steps, target, scaleMode, screenId) {
     if (!target) {
@@ -2761,7 +2770,7 @@
     const buffer = getBufferSize(target.canvas);
     return steps.map((step) => ({
       stepId: step.id,
-      verdict: scoreStep(step, target.gl, buffer, scaleMode, screenId)
+      ...scoreStepDetail(step, target.gl, buffer, scaleMode, screenId)
     }));
   }
 
@@ -2793,8 +2802,12 @@
       );
       const scored = scoreSteps(steps, target, deps.getScaleMode(), screen ? screen.id : null);
       const scores = {};
+      const misses = {};
       for (const entry of scored) {
         scores[entry.stepId] = entry.verdict;
+        if (entry.drift !== void 0) {
+          misses[entry.stepId] = { drift: entry.drift, seen: entry.seen };
+        }
       }
       let index = 0;
       const advance = () => {
@@ -2802,7 +2815,7 @@
           stop();
           return;
         }
-        deps.onTick({ index, scores });
+        deps.onTick({ index, scores, misses });
         index += 1;
         timer = realSetTimeout(advance, DRY_RUN_STEP_MS);
       };
@@ -3280,6 +3293,7 @@
 .bhb-rule__coord { color: var(--bhb-cyan); font-size: var(--bhb-fs-xs); }
 /* A step that cannot be rescaled clicks the wrong place after any resize, so
    the mark is a badge rather than a glyph hiding at the end of a number. */
+.bhb-rule__drift { color: var(--bhb-warn); font-size: var(--bhb-fs-xs); }
 .bhb-rule__legacy {
   display: inline-flex; align-items: center; gap: 3px;
   margin-left: 5px; padding: 1px 5px;
@@ -3602,7 +3616,8 @@
       /**
        * A dry run in progress: which step it is on, and what it found.
        *
-       * @type {{ index: number, scores: Record<string, string> } | null}
+       * @type {{ index: number, scores: Record<string, string>,
+       *   misses?: Record<string, { drift: number, seen: string }> } | null}
        */
       dryRun: null,
       /** @type {object[]} newest first */
@@ -3644,7 +3659,8 @@
       pinMarkers: (pinned) => patch({ areMarkersPinned: pinned }),
       awaitProbe: (awaiting) => patch({ isAwaitingProbe: awaiting }),
       pinProbes: (pinned) => patch({ areProbesPinned: pinned }),
-      /** @param {{ index: number, scores: Record<string, string> } | null} run */
+      /** @param {{ index: number, scores: Record<string, string>,
+       *   misses?: Record<string, object> } | null} run */
       setDryRun(run) {
         state.dryRun = run;
         emit();
@@ -4092,6 +4108,7 @@
     rows.clear();
     const stepRows = steps.map((step, index) => {
       const point = step.points[0];
+      const miss = state.dryRun && state.dryRun.misses ? state.dryRun.misses[step.id] : null;
       const legacy = point && isLegacyPoint(point);
       const name = el("input", { class: "bhb-rule__name" });
       name.value = step.label || "";
@@ -4239,6 +4256,13 @@
               class: "bhb-rule__legacy",
               title: t("overlay.needsRecapture"),
               text: `⚠ ${t("steps.legacyBadge")}`
+            }) : null,
+            // A dry run's verdict is a colour on the marker; the number behind it
+            // is what says whether to widen the tolerance or re-capture.
+            miss ? el("span", {
+              class: "bhb-rule__drift bhb-mono",
+              title: t("steps.driftHint", { hex: miss.seen }),
+              text: `Δ${miss.drift}`
             }) : null
           ]),
           activities.length > 0 ? slot : null,

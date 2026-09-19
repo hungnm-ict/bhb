@@ -473,6 +473,7 @@ const CSS = `
 .bhb-rule__coord { color: var(--bhb-cyan); font-size: var(--bhb-fs-xs); }
 /* A step that cannot be rescaled clicks the wrong place after any resize, so
    the mark is a badge rather than a glyph hiding at the end of a number. */
+.bhb-rule__drift { color: var(--bhb-warn); font-size: var(--bhb-fs-xs); }
 .bhb-rule__legacy {
   display: inline-flex; align-items: center; gap: 3px;
   margin-left: 5px; padding: 1px 5px;

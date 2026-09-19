@@ -159,6 +159,7 @@ export function renderStepsTab(deps) {
   rows.clear();
   const stepRows = steps.map((step, index) => {
     const point = step.points[0];
+    const miss = state.dryRun && state.dryRun.misses ? state.dryRun.misses[step.id] : null;
     const legacy = point && isLegacyPoint(point);
 
     const name = el('input', { class: 'bhb-rule__name' });
@@ -331,6 +332,15 @@ export function renderStepsTab(deps) {
                 class: 'bhb-rule__legacy',
                 title: t('overlay.needsRecapture'),
                 text: `⚠ ${t('steps.legacyBadge')}`,
+              })
+            : null,
+          // A dry run's verdict is a colour on the marker; the number behind it
+          // is what says whether to widen the tolerance or re-capture.
+          miss
+            ? el('span', {
+                class: 'bhb-rule__drift bhb-mono',
+                title: t('steps.driftHint', { hex: miss.seen }),
+                text: `Δ${miss.drift}`,
               })
             : null,
         ]),
