@@ -23,7 +23,7 @@ import {
   pumpFrame,
 } from './core/speed.js';
 import { installKeepAlive } from './core/keepalive.js';
-import { createEngine, TaskId } from './core/engine.js';
+import { createEngine, TaskId, resolveRunTarget } from './core/engine.js';
 import { setClickObserver } from './core/input.js';
 import {
   loadProfiles,
@@ -257,6 +257,12 @@ function bootstrap() {
     },
     getEngineState: engine.getState,
     toggleTask: engine.toggle,
+    getRunTarget: () => settings.runTarget,
+    setRunTarget: (target) => {
+      settings.runTarget = target;
+      saveSettings(settings);
+    },
+    runSelected: () => runSelected(),
     runActivity: (activityId) => {
       const engineState = engine.getState();
       if (engineState.activeTask === TaskId.SOLO && engineState.activity === activityId) {
@@ -268,6 +274,19 @@ function bootstrap() {
     getProfileName: () => getActiveProfile(profileState).name,
     refresh: () => refresh(),
   });
+
+  /** Start what the Run tab has selected, or stop it if that is what is on. */
+  function runSelected() {
+    const { taskId, activityId } = resolveRunTarget(settings.runTarget, getActivities());
+    const state = engine.getState();
+    const isOn =
+      state.activeTask === taskId && (taskId !== TaskId.SOLO || state.activity === activityId);
+    if (isOn) {
+      engine.stop();
+      return;
+    }
+    engine.start(taskId, activityId);
+  }
 
   const markers = createMarkerLayer({
     getSteps,
@@ -347,8 +366,10 @@ function bootstrap() {
       refresh();
       return true;
     },
-    [Keys.SCRIPT]: () => engine.toggle(TaskId.SCRIPT),
-    [Keys.RUN_ALL]: () => engine.toggle(TaskId.RUN_ALL),
+    [Keys.RUN]: () => {
+      runSelected();
+      refresh();
+    },
     [Keys.CAPTURE]: () => {
       if (!store.get().isCaptureArmed) {
         engine.setMessage(t('msg.captureDisarmed'));

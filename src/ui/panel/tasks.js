@@ -1,6 +1,6 @@
 import { el } from '../dom.js';
 import { t } from '../../i18n/index.js';
-import { TaskId } from '../../core/engine.js';
+import { TaskId, resolveRunTarget } from '../../core/engine.js';
 import { getSpeed, setSpeed, formatSpeed, speedIndex, stepSpeed } from '../../core/speed.js';
 import { SPEED_STEPS } from '../../core/constants.js';
 import { getCanvas } from '../../core/canvas.js';
@@ -56,8 +56,34 @@ export function updateSpeedDisplay() {
  */
 const LABELLED_SPEEDS = [0.1, 1, 5, 10, 20];
 
-/** Hotkeys still work; showing them here is how the user learns them. */
-const TASKS = [[TaskId.SCRIPT, 'task.script', Keys.SCRIPT]];
+/**
+ * What Run would start, and why it cannot.
+ *
+ * Run-All with nothing tagged rotates an empty queue quietly, and an activity
+ * with no steps polls forever — both look like the bot ignoring the button, so
+ * the control says no instead of starting.
+ */
+function describeTarget(deps, target) {
+  const activities = deps.getActivities();
+  const { taskId, activityId } = resolveRunTarget(target, activities);
+  const steps = deps.getSteps();
+
+  if (taskId === TaskId.RUN_ALL) {
+    const ready = readyActivityCount(deps);
+    return {
+      taskId,
+      activityId,
+      isLocked: ready === 0,
+      title: ready === 0 ? t('tasks.runAllLocked') : t('tasks.runAllReady', { n: ready }),
+    };
+  }
+  if (taskId === TaskId.SOLO) {
+    const count = stepsForActivity(steps, activityId).length;
+    return { taskId, activityId, isLocked: count === 0, title: count === 0 ? t('queue.noSteps') : '' };
+  }
+  const loose = steps.filter((step) => !step.activity).length;
+  return { taskId, activityId, isLocked: loose === 0, title: loose === 0 ? t('tasks.noLoose') : '' };
+}
 
 function formatRemaining(ms) {
   const total = Math.floor(ms / 1000);
@@ -105,46 +131,61 @@ export function renderTasksTab(deps) {
   const engine = deps.getEngineState();
   const speed = getSpeed();
 
-  /** One tile in the 2×2 switch grid. */
-  function taskTile({ taskId, labelKey, key, phase, isLocked, title }) {
-    const on = engine.activeTask === taskId;
-    const tile = el(
-      'button',
-      {
-        class: `bhb-task bhb-task--tile ${on ? 'is-on' : ''} ${isLocked ? 'is-locked' : ''}`,
-        ...(title ? { title } : {}),
-      },
-      [
-        el('span', { class: 'bhb-task__switch' }),
-        el('span', { class: 'bhb-task__name', text: t(labelKey) }),
-        phase ? el('span', { class: 'bhb-task__phase', text: phase }) : null,
-        // The reason a switch is locked belongs on that switch. Said under the
-        // grid instead, it read as a verdict on all four.
-        isLocked ? el('span', { class: 'bhb-task__warn', title, text: '⚠' }) : null,
-        el('span', { class: 'bhb-kbd', text: keyLabel(key) }),
-      ]
-    );
-    if (!isLocked) {
-      tile.addEventListener('click', () => {
-        deps.toggleTask(taskId);
-        deps.refresh();
-      });
-    }
-    return tile;
+  const target = deps.getRunTarget();
+  const picked = describeTarget(deps, target);
+
+  const chooser = el('select', { class: 'bhb-rule__gate', title: t('tasks.target') });
+  const script = el('option', { text: t('task.script') });
+  script.value = TaskId.SCRIPT;
+  chooser.append(script);
+  for (const activity of deps.getActivities()) {
+    const option = el('option', { text: activity.name });
+    option.value = activity.id;
+    chooser.append(option);
   }
-
-  const tiles = TASKS.map(([taskId, labelKey, key]) => taskTile({ taskId, labelKey, key }));
-
-  const ready = readyActivityCount(deps);
-  const runAll = taskTile({
-    taskId: TaskId.RUN_ALL,
-    labelKey: 'task.runAll',
-    key: Keys.RUN_ALL,
-    phase:
-      engine.activeTask === TaskId.RUN_ALL ? t('queue.round', { n: engine.round }) : '',
-    isLocked: ready === 0,
-    title: ready === 0 ? t('tasks.runAllLocked') : t('tasks.runAllReady', { n: ready }),
+  const all = el('option', { text: t('task.runAll') });
+  all.value = TaskId.RUN_ALL;
+  chooser.append(all);
+  // A target whose activity was deleted falls back to the Script set, and the
+  // dropdown has to agree with what Run would actually do.
+  chooser.value = picked.taskId === TaskId.SOLO ? picked.activityId : picked.taskId;
+  chooser.addEventListener('change', () => {
+    deps.setRunTarget(chooser.value);
+    deps.refresh();
   });
+
+  // Running *this* target, not merely running: Run-All is not the Script set.
+  const isOnTarget =
+    engine.activeTask === picked.taskId &&
+    (picked.taskId !== TaskId.SOLO || engine.activity === picked.activityId);
+
+  const phase =
+    isOnTarget && picked.taskId === TaskId.RUN_ALL ? t('queue.round', { n: engine.round }) : '';
+
+  const run = el(
+    'button',
+    {
+      class: `bhb-task bhb-task--tile ${isOnTarget ? 'is-on' : ''} ${
+        picked.isLocked && !isOnTarget ? 'is-locked' : ''
+      }`,
+      ...(picked.title ? { title: picked.title } : {}),
+    },
+    [
+      el('span', { class: 'bhb-task__switch' }),
+      el('span', { class: 'bhb-task__name', text: t(isOnTarget ? 'tasks.stop' : 'tasks.run') }),
+      phase ? el('span', { class: 'bhb-task__phase', text: phase }) : null,
+      picked.isLocked && !isOnTarget
+        ? el('span', { class: 'bhb-task__warn', title: picked.title, text: '⚠' })
+        : null,
+      el('span', { class: 'bhb-kbd', text: keyLabel(Keys.RUN) }),
+    ]
+  );
+  if (!picked.isLocked || isOnTarget) {
+    run.addEventListener('click', () => {
+      deps.runSelected();
+      deps.refresh();
+    });
+  }
 
   if (!speedControl) {
     const slider = el('input', { class: 'bhb-slider' });
@@ -212,7 +253,13 @@ export function renderTasksTab(deps) {
   }
 
   return el('div', { class: 'bhb-tab' }, [
-    el('div', { class: 'bhb-taskgrid' }, [...tiles, runAll]),
+    el('div', { class: 'bhb-field' }, [
+      el('div', { class: 'bhb-field__head' }, [
+        el('span', { class: 'bhb-label', text: t('tasks.target') }),
+        chooser,
+      ]),
+      run,
+    ]),
     el('p', { class: 'bhb-note', text: t('queue.inSettings') }),
 
     el('div', { class: 'bhb-field' }, [
