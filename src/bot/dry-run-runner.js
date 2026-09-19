@@ -21,7 +21,8 @@ import { DRY_RUN_STEP_MS } from '../core/constants.js';
  * @param {() => import('./step.js').Step[]} deps.getSteps
  * @param {() => import('./screen.js').Screen[]} deps.getScreens
  * @param {() => string} deps.getScaleMode
- * @param {(run: { index: number, scores: Record<string, string> } | null) => void} deps.onTick
+ * @param {(run: { index: number, scores: Record<string, string>,
+ *   misses: Record<string, { drift: number, seen: string }> } | null) => void} deps.onTick
  */
 export function createDryRunner(deps) {
   let timer = null;
@@ -57,8 +58,13 @@ export function createDryRunner(deps) {
     const scored = scoreSteps(steps, target, deps.getScaleMode(), screen ? screen.id : null);
 
     const scores = {};
+    /** How close a miss came, kept apart so a verdict stays one plain word. */
+    const misses = {};
     for (const entry of scored) {
       scores[entry.stepId] = entry.verdict;
+      if (entry.drift !== undefined) {
+        misses[entry.stepId] = { drift: entry.drift, seen: entry.seen };
+      }
     }
 
     let index = 0;
@@ -67,7 +73,7 @@ export function createDryRunner(deps) {
         stop();
         return;
       }
-      deps.onTick({ index, scores });
+      deps.onTick({ index, scores, misses });
       index += 1;
       timer = realSetTimeout(advance, DRY_RUN_STEP_MS);
     };

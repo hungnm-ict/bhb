@@ -69,7 +69,8 @@ export function createUiStore() {
     /**
      * A dry run in progress: which step it is on, and what it found.
      *
-     * @type {{ index: number, scores: Record<string, string> } | null}
+     * @type {{ index: number, scores: Record<string, string>,
+     *   misses?: Record<string, { drift: number, seen: string }> } | null}
      */
     dryRun: null,
 
@@ -129,7 +130,8 @@ export function createUiStore() {
     awaitProbe: (awaiting) => patch({ isAwaitingProbe: awaiting }),
     pinProbes: (pinned) => patch({ areProbesPinned: pinned }),
 
-    /** @param {{ index: number, scores: Record<string, string> } | null} run */
+    /** @param {{ index: number, scores: Record<string, string>,
+     *   misses?: Record<string, object> } | null} run */
     setDryRun(run) {
       state.dryRun = run;
       emit();
