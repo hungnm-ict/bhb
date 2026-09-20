@@ -120,6 +120,21 @@ function formatRemaining(ms) {
  * Live framebuffer size next to the displayed size — when steps start missing,
  * this line says whether the framebuffer moved under them.
  */
+/**
+ * Frames, and what the boost actually bought.
+ *
+ * The slider is a request. What arrives is capped by how long one game frame
+ * takes, so 20x on a busy screen can be 2x in practice — and until this was
+ * shown, nothing said so.
+ */
+function describeFrames() {
+  const { real, effective } = getFrameRates();
+  if (getSpeed() <= 1) {
+    return `${real} fps`;
+  }
+  return `${real} fps · ${formatSpeed(Math.round(effective * 10) / 10)}× real`;
+}
+
 function describeCanvas() {
   const canvas = getCanvas();
   if (!canvas) {
@@ -321,7 +336,7 @@ export function renderTasksTab(deps) {
         drift >= 1000 ? resetClockButton : null,
       ]),
       el('dt', { text: t('overlay.fps') }),
-      el('dd', { class: 'bhb-mono', text: `${getFrameRates().real} fps` }),
+      el('dd', { class: 'bhb-mono', text: describeFrames() }),
       el('dt', { text: t('overlay.canvas') }),
       el('dd', { class: 'bhb-mono', text: describeCanvas() }),
       el('dt', { text: t('overlay.autoStop') }),
