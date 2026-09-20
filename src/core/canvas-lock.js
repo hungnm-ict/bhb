@@ -27,13 +27,35 @@ import { getCanvas } from './canvas.js';
  */
 
 /**
- * The one pinned size.
+ * The sizes the canvas may be pinned to, smallest first.
  *
- * A single size is the point: a step set is only shareable because everyone who
- * captured it was looking at the same pixels. A menu of sizes would quietly
- * split the packs into incompatible families.
+ * Every one of them is 1.6 wide, and that is not decoration. A step is stored
+ * against the framebuffer it was captured on and resolved onto the live one by
+ * proportion, so a set survives a change of size exactly as long as the
+ * proportion survives it. Sizes at three different ratios would look like a
+ * menu and behave like three incompatible families of step packs.
  */
-export const LOCK_SIZE = Object.freeze({ width: 640, height: 400 });
+export const LOCK_SIZES = Object.freeze([
+  Object.freeze({ width: 560, height: 350 }),
+  Object.freeze({ width: 640, height: 400 }),
+  Object.freeze({ width: 800, height: 500 }),
+]);
+
+/** The middle one, and what a profile that never chose is pinned to. */
+export const LOCK_SIZE = LOCK_SIZES[1];
+
+/**
+ * @param {{ width?: unknown, height?: unknown } | null} size
+ * @returns {{ width: number, height: number }} one of `LOCK_SIZES`
+ */
+export function normaliseLockSize(size) {
+  const match =
+    size &&
+    LOCK_SIZES.find(
+      (offered) => offered.width === Number(size.width) && offered.height === Number(size.height)
+    );
+  return match || LOCK_SIZE;
+}
 
 /** @type {{ canvas: string, box: string } | null} styles as they were */
 let original = null;

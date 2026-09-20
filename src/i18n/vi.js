@@ -212,6 +212,8 @@ export default {
   'lock.title': 'Khoá cỡ canvas (thử nghiệm)',
   'lock.enabled': 'Ghim game ở một cỡ cố định',
   'lock.hint': 'Bật thì game luôn vẽ ở 640×400 dù cửa sổ to nhỏ thế nào — nhờ vậy màu bot đọc được giống hệt nhau trên mọi máy, và bộ bước mới chia sẻ được. Cửa sổ nhỏ hơn thì phần hiển thị tự thu lại cho vừa, toạ độ vẫn đúng. Tắt là game co giãn theo cửa sổ như bình thường.',
+  'lock.size': 'Kích cỡ',
+  'lock.sizeHint': 'Cả ba đều tỉ lệ 1.6, nên bộ bước bắt ở cỡ này vẫn rơi đúng chỗ ở cỡ khác.',
 
   'help.closePanel': 'Đóng bảng điều khiển',
 
