@@ -39,7 +39,7 @@ const FPS_WINDOW_MS = 1000;
 let realFrames = 0;
 let gameFrames = 0;
 let windowStartedAt = realPerformanceNow();
-let rates = { real: 0, game: 0 };
+let rates = { real: 0, game: 0, effective: 1 };
 
 function rollFrameWindow() {
   const elapsed = realPerformanceNow() - windowStartedAt;
@@ -50,13 +50,19 @@ function rollFrameWindow() {
   rates = {
     real: Math.round(realFrames * perSecond),
     game: Math.round(gameFrames * perSecond),
+    // What the boost actually delivered. The slider is a request; this is the
+    // answer, and on a heavy screen the two are nothing like each other.
+    effective: realFrames > 0 ? gameFrames / realFrames : 1,
   };
   realFrames = 0;
   gameFrames = 0;
   windowStartedAt = realPerformanceNow();
 }
 
-/** @returns {{ real: number, game: number }} frames per real second */
+/**
+ * @returns {{ real: number, game: number, effective: number }} frames per real
+ *   second, and game frames per browser frame — the speed actually achieved.
+ */
 export function getFrameRates() {
   rollFrameWindow();
   return rates;
