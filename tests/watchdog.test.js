@@ -24,7 +24,7 @@ describe('resume record', () => {
   it('comes back to the task that was running', () => {
     const { watchdog } = build();
     watchdog.arm('runAll');
-    expect(watchdog.taskToResume()).toBe('runAll');
+    expect(watchdog.taskToResume().task).toBe('runAll');
   });
 
   it('ignores and clears a record the user walked away from', () => {
@@ -73,7 +73,7 @@ describe('reload streak', () => {
 
     watchdog.noteProgress();
     expect(watchdog.reloadCount()).toBe(0);
-    expect(watchdog.taskToResume()).toBe('runAll');
+    expect(watchdog.taskToResume().task).toBe('runAll');
   });
 
   it('keeps the streak across a reload, because the record is all that survives', () => {
@@ -84,6 +84,6 @@ describe('reload streak', () => {
     // A reload is a new page: a new watchdog reading the same localStorage.
     const second = build();
     expect(second.watchdog.reloadCount()).toBe(1);
-    expect(second.watchdog.taskToResume()).toBe('runAll');
+    expect(second.watchdog.taskToResume().task).toBe('runAll');
   });
 });

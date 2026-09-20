@@ -97,15 +97,19 @@ export function createHud(deps) {
     } ${target.classList.contains('bhb-hud--dim') ? 'bhb-hud--dim' : ''}`;
     target.title = stuck ? engine.lastMessage || '' : '';
 
-    const code = running ? runCode(engine) : t('hud.idle');
+    // Stopped, the mode is a plan rather than a fact — the panel is where a
+    // plan belongs. The strip keeps only the dot.
+    const code = running ? runCode(engine) : null;
 
     const parts = [
       el('span', { class: 'bhb-hud__dot' }),
-      el('span', {
-        class: 'bhb-hud__code',
-        text: code,
-        title: engine.activityName || (running ? t(`task.${engine.activeTask}`) : ''),
-      }),
+      code
+        ? el('span', {
+            class: 'bhb-hud__code',
+            text: code,
+            title: engine.activityName || t(`task.${engine.activeTask}`),
+          })
+        : null,
       speed > 1 || running
         ? el('span', {
             class: `bhb-hud__speed ${speed > 1 ? 'is-boosted' : ''}`,

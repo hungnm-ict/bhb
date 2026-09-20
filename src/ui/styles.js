@@ -413,7 +413,10 @@ const CSS = `
   margin: 0; padding-top: 11px; border-top: 1px solid var(--bhb-line);
 }
 .bhb-facts dt { color: var(--bhb-dim); font-size: var(--bhb-fs-xs); letter-spacing: .06em; text-transform: uppercase; }
-.bhb-facts dd { margin: 0; color: var(--bhb-cyan); font-size: var(--bhb-fs-sm); text-align: right; }
+.bhb-facts dd {
+  display: flex; align-items: center; justify-content: flex-end; gap: 8px;
+  margin: 0; color: var(--bhb-cyan); font-size: var(--bhb-fs-sm); text-align: right;
+}
 
 /* --- Buttons ------------------------------------------------------------ */
 
@@ -496,7 +499,8 @@ const CSS = `
 .bhb-rule__drift { color: var(--bhb-warn); font-size: var(--bhb-fs-xs); }
 .bhb-drift--far { color: var(--bhb-warn); }
 .bhb-btn--tiny {
-  min-height: 0; margin-left: 8px; padding: 2px 7px;
+  display: inline-flex; flex: none;
+  min-height: 0; padding: 2px 7px;
   font-size: var(--bhb-fs-xs);
 }
 .bhb-rule__legacy {

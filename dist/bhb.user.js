@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.22.1
+// @version      0.22.2
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @icon         data:image/png;base64,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
@@ -15,7 +15,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.22.1" : "dev";
+  var VERSION = true ? "0.22.2" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -1758,7 +1758,13 @@
       if (!parsed || typeof parsed.task !== "string" || typeof parsed.at !== "number") {
         return null;
       }
-      return { task: parsed.task, at: parsed.at, reloads: Number(parsed.reloads) || 0 };
+      return {
+        task: parsed.task,
+        // Older builds wrote the task alone.
+        activity: typeof parsed.activity === "string" ? parsed.activity : null,
+        at: parsed.at,
+        reloads: Number(parsed.reloads) || 0
+      };
     } catch (error) {
       console.warn("[BHB] could not read the resume record", error);
       return null;
@@ -1780,9 +1786,9 @@
   function createWatchdog(deps = {}) {
     const now = deps.now || realNow;
     const reload = deps.reload || (() => window.location.reload());
-    function arm(task) {
+    function arm(task, activity = null) {
       const previous = read();
-      write({ task, at: now(), reloads: previous ? previous.reloads : 0 });
+      write({ task, activity: activity || null, at: now(), reloads: previous ? previous.reloads : 0 });
     }
     function disarm() {
       write(null);
@@ -1802,20 +1808,20 @@
         write(null);
         return null;
       }
-      return record.task;
+      return { task: record.task, activity: record.activity };
     }
     function reloadCount() {
       const record = read();
       return record ? record.reloads : 0;
     }
-    function recover(task) {
+    function recover(task, activity = null) {
       const record = read();
       const reloads = (record ? record.reloads : 0) + 1;
       if (reloads > MAX_RELOADS) {
         write(null);
         return false;
       }
-      write({ task, at: now(), reloads });
+      write({ task, activity: activity || (record ? record.activity : null), at: now(), reloads });
       reload();
       return true;
     }
@@ -3318,7 +3324,10 @@
   margin: 0; padding-top: 11px; border-top: 1px solid var(--bhb-line);
 }
 .bhb-facts dt { color: var(--bhb-dim); font-size: var(--bhb-fs-xs); letter-spacing: .06em; text-transform: uppercase; }
-.bhb-facts dd { margin: 0; color: var(--bhb-cyan); font-size: var(--bhb-fs-sm); text-align: right; }
+.bhb-facts dd {
+  display: flex; align-items: center; justify-content: flex-end; gap: 8px;
+  margin: 0; color: var(--bhb-cyan); font-size: var(--bhb-fs-sm); text-align: right;
+}
 
 /* --- Buttons ------------------------------------------------------------ */
 
@@ -3401,7 +3410,8 @@
 .bhb-rule__drift { color: var(--bhb-warn); font-size: var(--bhb-fs-xs); }
 .bhb-drift--far { color: var(--bhb-warn); }
 .bhb-btn--tiny {
-  min-height: 0; margin-left: 8px; padding: 2px 7px;
+  display: inline-flex; flex: none;
+  min-height: 0; padding: 2px 7px;
   font-size: var(--bhb-fs-xs);
 }
 .bhb-rule__legacy {
@@ -3931,14 +3941,14 @@
       const stuck = Boolean(engine.activeTask) && sinceClick > STUCK_AFTER_MS;
       target.className = `bhb-hud ${running ? "bhb-hud--live" : ""} ${stuck ? "bhb-hud--stuck" : ""} ${target.classList.contains("bhb-hud--dim") ? "bhb-hud--dim" : ""}`;
       target.title = stuck ? engine.lastMessage || "" : "";
-      const code = running ? runCode(engine) : t("hud.idle");
+      const code = running ? runCode(engine) : null;
       const parts = [
         el("span", { class: "bhb-hud__dot" }),
-        el("span", {
+        code ? el("span", {
           class: "bhb-hud__code",
           text: code,
-          title: engine.activityName || (running ? t(`task.${engine.activeTask}`) : "")
-        }),
+          title: engine.activityName || t(`task.${engine.activeTask}`)
+        }) : null,
         speed2 > 1 || running ? el("span", {
           class: `bhb-hud__speed ${speed2 > 1 ? "is-boosted" : ""}`,
           text: `${formatSpeed(speed2)}×`
@@ -5939,7 +5949,7 @@
       shouldCloseAfterRound: () => settings.closeAfterRound,
       closeGame: () => window.close(),
       shouldRecoverFromHang: () => settings.watchdog,
-      recoverFromHang: (task) => watchdog.recover(task)
+      recoverFromHang: (task) => watchdog.recover(task, engine.getState().activity)
     });
     const stepEditor = createStepEditor({
       getSteps,
@@ -6150,7 +6160,7 @@
       }
       if (entry.kind === "task") {
         if (entry.started) {
-          watchdog.arm(entry.label);
+          watchdog.arm(entry.label, engine.getState().activity);
         } else {
           watchdog.disarm();
         }
@@ -6230,14 +6240,14 @@
     console.info("[BHB] ready — press 1 for the keyboard reference");
   }
   function resumeAfterReload(engine, watchdog) {
-    const task = watchdog.taskToResume();
-    if (!task) {
+    const resume = watchdog.taskToResume();
+    if (!resume) {
       return;
     }
-    engine.setMessage(`resuming ${task} in ${RESUME_DELAY / 1e3}s`);
+    engine.setMessage(`resuming ${resume.task} in ${RESUME_DELAY / 1e3}s`);
     realSetTimeout(() => {
       if (!engine.getState().activeTask) {
-        engine.start(task);
+        engine.start(resume.task, resume.activity);
       }
     }, RESUME_DELAY);
   }
