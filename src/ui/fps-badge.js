@@ -1,5 +1,6 @@
 import { el, mount } from './dom.js';
 import { getCanvas } from '../core/canvas.js';
+import { anchorTopLeft } from './anchor.js';
 import { getFrameRates } from '../core/speed.js';
 import { t } from '../i18n/index.js';
 
@@ -41,10 +42,8 @@ export function createFpsBadge(deps) {
       return;
     }
 
-    const box = canvas.getBoundingClientRect();
     target.style.display = 'block';
-    target.style.left = `${Math.round(box.left) + 6}px`;
-    target.style.top = `${Math.round(box.top) + 6}px`;
+    anchorTopLeft(target);
 
     const { real } = getFrameRates();
     target.textContent = `${real} fps`;

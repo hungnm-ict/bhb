@@ -1,4 +1,5 @@
 import { el, mount } from './dom.js';
+import { anchorTopRight } from './anchor.js';
 import { t } from '../i18n/index.js';
 import { getSpeed, formatSpeed } from '../core/speed.js';
 import { AUTO_STOP_TIMEOUT } from '../core/constants.js';
@@ -79,6 +80,7 @@ export function createHud(deps) {
       return;
     }
     target.style.display = '';
+    anchorTopRight(target);
 
     const engine = deps.getEngineState();
     const speed = getSpeed();

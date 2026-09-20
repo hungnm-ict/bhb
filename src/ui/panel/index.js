@@ -1,4 +1,5 @@
 import { el, mount } from '../dom.js';
+import { anchorTopRight } from '../anchor.js';
 import { t } from '../../i18n/index.js';
 import { Tab } from '../store.js';
 import { VERSION } from '../../core/constants.js';
@@ -125,6 +126,7 @@ export function createPanel(deps) {
       return;
     }
     target.style.display = 'flex';
+    anchorTopRight(target);
 
     const close = el('button', { class: 'bhb-icon', title: t('panel.close'), text: '✕' });
     close.addEventListener('click', () => {
