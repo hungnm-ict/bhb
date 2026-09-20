@@ -310,6 +310,8 @@ export function loadSettings() {
     // A bot that closes the game unasked is a bot that loses a session.
     closeAfterRound: stored.closeAfterRound === true,
     watchdog: stored.watchdog === true,
+    // On is what shipped; off is the experiment, so it has to be asked for.
+    multiplyFrames: stored.multiplyFrames !== false,
     sizeBadge: stored.sizeBadge !== false,
     fpsBadge: stored.fpsBadge !== false,
     // Drift belongs to a boost, not to the account: carrying hours of it into

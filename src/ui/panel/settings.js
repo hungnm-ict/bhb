@@ -252,6 +252,7 @@ function countBehaviour(settings) {
     settings.watchdog,
     settings.closeAfterRound,
     settings.keepAlive,
+    settings.multiplyFrames,
     settings.sizeBadge,
     settings.fpsBadge,
     settings.scaleMode === ScaleMode.ABSOLUTE,
@@ -379,6 +380,9 @@ export function renderSettingsTab(deps) {
           ),
           toggleRow('settings.keepAlive', settings.keepAlive, (value) =>
             deps.updateSettings({ keepAlive: value })
+          ),
+          toggleRow('settings.multiplyFrames', settings.multiplyFrames, (value) =>
+            deps.updateSettings({ multiplyFrames: value })
           ),
           toggleRow('settings.fpsBadge', settings.fpsBadge, (value) =>
             deps.updateSettings({ fpsBadge: value })

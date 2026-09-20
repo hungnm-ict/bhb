@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.21.0
+// @version      0.22.0
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @icon         data:image/png;base64,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
@@ -15,7 +15,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.21.0" : "dev";
+  var VERSION = true ? "0.22.0" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -181,6 +181,10 @@
     return driveStalledFrame();
   }
   var speed = 1;
+  var multiplyFrames = true;
+  function setFrameMultiplier(enabled) {
+    multiplyFrames = enabled !== false;
+  }
   var listeners = [];
   function getSpeed() {
     return speed;
@@ -294,7 +298,7 @@
       return true;
     };
     function runBurst(callback) {
-      if (speed <= 1) {
+      if (speed <= 1 || !multiplyFrames) {
         owed = 0;
         gameFrames += 1;
         callback(performance.now());
@@ -1714,6 +1718,8 @@
       // A bot that closes the game unasked is a bot that loses a session.
       closeAfterRound: stored.closeAfterRound === true,
       watchdog: stored.watchdog === true,
+      // On is what shipped; off is the experiment, so it has to be asked for.
+      multiplyFrames: stored.multiplyFrames !== false,
       sizeBadge: stored.sizeBadge !== false,
       fpsBadge: stored.fpsBadge !== false,
       // Drift belongs to a boost, not to the account: carrying hours of it into
@@ -2067,6 +2073,8 @@
     "settings.watchdogHint": "Không bật thì bot chỉ dừng sau 3 phút không làm gì. Bật thì trang tự tải lại và chạy tiếp — tối đa 3 lần rồi mới chịu thua.",
     "settings.reloads": "đã tải lại {n}×",
     "settings.keepAlive": "Chạy tiếp khi cửa sổ bị che kín",
+    "settings.multiplyFrames": "Tăng tốc bằng cách chạy thêm khung hình",
+    "settings.multiplyFramesHint": "Bật: mỗi khung hình chạy vòng lặp game nhiều lần — đây là thứ thật sự làm game nhanh lên, và cũng là thứ ăn hết FPS. Tắt: chỉ kéo giãn đồng hồ, giống cách hack tốc độ trên game cài đặt — không mất khung hình nào, nhưng game có thể kẹp delta và gần như không nhanh lên. Thử cả hai rồi nhìn fps.",
     "settings.keepAliveHint": "Trình duyệt ngừng vẽ khi cửa sổ bị cửa sổ khác phủ kín, và game đứng theo. Bật cái này thì bot tự lái vòng lặp của game. Cần tải lại trang sau khi đổi.",
     "settings.sizeBadge": "Hiện cỡ canvas ở góc màn hình",
     "settings.fpsBadge": "Hiện tốc độ khung hình trên game",
@@ -2289,6 +2297,8 @@
     "settings.watchdogHint": "Without this the bot just stops after three idle minutes. With it, the page reloads and the task starts again — up to three times before it gives up.",
     "settings.reloads": "reloaded {n}×",
     "settings.keepAlive": "Keep running when the window is covered",
+    "settings.multiplyFrames": "Speed up by running extra frames",
+    "settings.multiplyFramesHint": "On: a boost runs the game loop several times per frame, which is what actually speeds it up and what costs the frame rate. Off: only the clock is stretched, the way a native speed hack does it — no frames are lost, but the game may clamp the stretched delta and barely speed up at all. Try both and watch the fps.",
     "settings.keepAliveHint": "A window covered edge to edge stops being painted, and the game stops with it. This drives the game loop by hand instead. Takes effect after a reload.",
     "settings.sizeBadge": "Show the canvas size in the corner",
     "settings.fpsBadge": "Show the frame rate over the game",
@@ -5004,6 +5014,7 @@
       settings.watchdog,
       settings.closeAfterRound,
       settings.keepAlive,
+      settings.multiplyFrames,
       settings.sizeBadge,
       settings.fpsBadge,
       settings.scaleMode === ScaleMode.ABSOLUTE
@@ -5124,6 +5135,11 @@
             "settings.keepAlive",
             settings.keepAlive,
             (value) => deps.updateSettings({ keepAlive: value })
+          ),
+          toggleRow(
+            "settings.multiplyFrames",
+            settings.multiplyFrames,
+            (value) => deps.updateSettings({ multiplyFrames: value })
           ),
           toggleRow(
             "settings.fpsBadge",
@@ -6052,6 +6068,9 @@
         if (changes.canvasLock) {
           applyCanvasLock();
         }
+        if ("multiplyFrames" in changes) {
+          setFrameMultiplier(changes.multiplyFrames);
+        }
       },
       getEngineState: engine.getState,
       toggleTask: engine.toggle,
@@ -6104,6 +6123,7 @@
       fpsBadge.render();
     }
     applyCanvasLock();
+    setFrameMultiplier(settings.multiplyFrames);
     if (settings.keepAlive) {
       installKeepAlive(() => pumpFrame());
     }
