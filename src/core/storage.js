@@ -314,7 +314,6 @@ export function loadSettings() {
     fpsBadge: stored.fpsBadge !== false,
     // Drift belongs to a boost, not to the account: carrying hours of it into
     // another character is what conjures a daily reset out of nothing.
-    clockSafety: stored.clockSafety !== false,
     keepAlive: stored.keepAlive !== false,
     notify: normaliseNotifyConfig(stored.notify),
     canvasLock: normaliseCanvasLock(stored.canvasLock),
