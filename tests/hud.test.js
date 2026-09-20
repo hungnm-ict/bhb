@@ -85,7 +85,10 @@ describe('HUD', () => {
     const node = hudWith(engine({ activeTask: null, activity: null, remainingMs: 0 }));
     expect(node.dataset.activity).toBeUndefined();
     expect(node.classList.contains('bhb-hud--stuck'), 'stopped is not stuck').toBe(false);
-    expect(node.querySelector('.bhb-hud__code').textContent).toBe('—');
+    expect(
+      node.querySelector('.bhb-hud__code'),
+      'a mode that is not running is a plan, and plans live in the panel'
+    ).toBeNull();
   });
 
   it('falls back to the mode when a run has no activity of its own', () => {

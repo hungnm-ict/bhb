@@ -9,7 +9,11 @@ import { realNow } from './timers.js';
  * intent to keep farming has to be written down before it happens and read
  * back on the way in.
  *
- * @typedef {{ task: string, at: number, reloads: number }} ResumeRecord
+ * A solo run is a task plus the activity it is on, and both have to survive:
+ * coming back as "solo, nothing in particular" leaves the runner with an empty
+ * step list, spinning until auto-stop.
+ *
+ * @typedef {{ task: string, activity: string | null, at: number, reloads: number }} ResumeRecord
  */
 
 function read() {
@@ -19,7 +23,13 @@ function read() {
     if (!parsed || typeof parsed.task !== 'string' || typeof parsed.at !== 'number') {
       return null;
     }
-    return { task: parsed.task, at: parsed.at, reloads: Number(parsed.reloads) || 0 };
+    return {
+      task: parsed.task,
+      // Older builds wrote the task alone.
+      activity: typeof parsed.activity === 'string' ? parsed.activity : null,
+      at: parsed.at,
+      reloads: Number(parsed.reloads) || 0,
+    };
   } catch (error) {
     console.warn('[BHB] could not read the resume record', error);
     return null;
@@ -49,10 +59,15 @@ export function createWatchdog(deps = {}) {
   const now = deps.now || realNow;
   const reload = deps.reload || (() => window.location.reload());
 
-  /** Remember what to come back to. Called whenever a task starts. */
-  function arm(task) {
+  /**
+   * Remember what to come back to. Called whenever a task starts.
+   *
+   * @param {string} task
+   * @param {string | null} [activity] the activity a solo run is on
+   */
+  function arm(task, activity = null) {
     const previous = read();
-    write({ task, at: now(), reloads: previous ? previous.reloads : 0 });
+    write({ task, activity: activity || null, at: now(), reloads: previous ? previous.reloads : 0 });
   }
 
   /** The user stopped the task themselves, so there is nothing to come back to. */
@@ -83,7 +98,7 @@ export function createWatchdog(deps = {}) {
       write(null);
       return null;
     }
-    return record.task;
+    return { task: record.task, activity: record.activity };
   }
 
   function reloadCount() {
@@ -95,9 +110,10 @@ export function createWatchdog(deps = {}) {
    * Recover from a hang.
    *
    * @param {string} task the task that was running
+   * @param {string | null} [activity] the activity a solo run was on
    * @returns {boolean} false when reloading has stopped helping
    */
-  function recover(task) {
+  function recover(task, activity = null) {
     const record = read();
     const reloads = (record ? record.reloads : 0) + 1;
 
@@ -107,7 +123,7 @@ export function createWatchdog(deps = {}) {
       return false;
     }
 
-    write({ task, at: now(), reloads });
+    write({ task, activity: activity || (record ? record.activity : null), at: now(), reloads });
     reload();
     return true;
   }

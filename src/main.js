@@ -103,7 +103,7 @@ function bootstrap() {
     shouldCloseAfterRound: () => settings.closeAfterRound,
     closeGame: () => window.close(),
     shouldRecoverFromHang: () => settings.watchdog,
-    recoverFromHang: (task) => watchdog.recover(task),
+    recoverFromHang: (task) => watchdog.recover(task, engine.getState().activity),
   });
 
   const stepEditor = createStepEditor({
@@ -342,7 +342,9 @@ function bootstrap() {
     // whether the game is still answering.
     if (entry.kind === 'task') {
       if (entry.started) {
-        watchdog.arm(entry.label);
+        // A solo run is the task plus the activity; the task alone comes back
+        // with no steps to run.
+        watchdog.arm(entry.label, engine.getState().activity);
       } else {
         watchdog.disarm();
       }
@@ -453,15 +455,15 @@ function bootstrap() {
  * screen takes; starting into that would only burn the watchdog's patience.
  */
 function resumeAfterReload(engine, watchdog) {
-  const task = watchdog.taskToResume();
-  if (!task) {
+  const resume = watchdog.taskToResume();
+  if (!resume) {
     return;
   }
 
-  engine.setMessage(`resuming ${task} in ${RESUME_DELAY / 1000}s`);
+  engine.setMessage(`resuming ${resume.task} in ${RESUME_DELAY / 1000}s`);
   realSetTimeout(() => {
     if (!engine.getState().activeTask) {
-      engine.start(task);
+      engine.start(resume.task, resume.activity);
     }
   }, RESUME_DELAY);
 }
