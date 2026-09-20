@@ -5,7 +5,10 @@ export default {
   'task.script': 'Custom',
 
 
-  'hud.idle': 'idle',
+  'hud.idle': '—',
+  'code.script': 'SET',
+  'code.solo': 'SOLO',
+  'code.runAll': 'ALL',
 
   'tab.tasks': 'Run',
   'tab.steps': 'Steps',

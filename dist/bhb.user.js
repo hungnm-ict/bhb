@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.18.0
+// @version      0.19.0
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @icon         data:image/png;base64,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
@@ -15,7 +15,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.18.0" : "dev";
+  var VERSION = true ? "0.19.0" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -776,6 +776,28 @@
   }
   function looseSteps(steps) {
     return steps.filter((step) => !step.activity);
+  }
+  var CODES = Object.freeze({
+    pvp: "PVP",
+    gvg: "GVG",
+    invasion: "INV",
+    expedition: "EXP",
+    trials: "TG",
+    worldboss: "WB-S",
+    worldbossteam: "WB-T",
+    raid: "RAID",
+    dungeon: "DUN"
+  });
+  function activityCode(activity) {
+    if (!activity) {
+      return "?";
+    }
+    const known = CODES[activity.id];
+    if (known) {
+      return known;
+    }
+    const letters = String(activity.name || "").replace(/[^\p{L}\p{N}]/gu, "");
+    return letters ? letters.slice(0, 3).toUpperCase() : "?";
   }
 
   // src/core/events.js
@@ -1957,7 +1979,10 @@
     "app.name": "BHB",
     "task.runAll": "Chạy tất cả",
     "task.script": "Tuỳ chỉnh",
-    "hud.idle": "đang dừng",
+    "hud.idle": "—",
+    "code.script": "SET",
+    "code.solo": "SOLO",
+    "code.runAll": "ALL",
     "tab.tasks": "Chạy",
     "tab.steps": "Bước",
     "tab.screens": "Màn hình",
@@ -2175,7 +2200,10 @@
     "app.name": "BHB",
     "task.runAll": "Run all",
     "task.script": "Custom",
-    "hud.idle": "idle",
+    "hud.idle": "—",
+    "code.script": "SET",
+    "code.solo": "SOLO",
+    "code.runAll": "ALL",
     "tab.tasks": "Run",
     "tab.steps": "Steps",
     "tab.screens": "Screens",
@@ -2906,8 +2934,8 @@
 
 .bhb-hud {
   top: 14px; right: 14px;
-  display: flex; align-items: center; gap: 9px;
-  padding: 7px 13px;
+  display: flex; align-items: center; gap: 7px;
+  padding: 4px 9px;
   background: linear-gradient(180deg, rgba(26, 29, 41, .96), rgba(18, 20, 28, .96));
   border: 1px solid rgba(var(--bhb-glow-rgb), .38);
   border-radius: 999px;
@@ -2945,22 +2973,29 @@
   box-shadow: 0 0 0 0 rgba(61, 220, 151, .7);
   animation: bhb-pulse 1.8s ease-out infinite;
 }
-.bhb-hud__name { font-weight: 700; letter-spacing: .06em; }
-.bhb-hud__ver { color: var(--bhb-dim); font-size: var(--bhb-fs-xs); }
-.bhb-hud__sep { width: 1px; height: 13px; background: var(--bhb-line); }
-.bhb-hud__task { font-weight: 600; font-size: var(--bhb-fs-sm); letter-spacing: .04em; }
-.bhb-hud--live .bhb-hud__task { color: var(--bhb-live); }
+/* The badge carries the activity's colour, so the strip is readable at a
+   glance without reading it: shape in the corner of the eye, not a word. */
+.bhb-hud__code {
+  padding: 1px 7px; border-radius: 6px;
+  background: rgba(var(--bhb-code-rgb, 179, 186, 205), .16);
+  color: rgb(var(--bhb-code-rgb, 179, 186, 205));
+  font-weight: 700; font-size: var(--bhb-fs-sm); letter-spacing: .06em;
+}
+.bhb-hud[data-activity="pvp"]           { --bhb-code-rgb: 255, 107, 129; }
+.bhb-hud[data-activity="gvg"]           { --bhb-code-rgb: 255, 180, 87; }
+.bhb-hud[data-activity="invasion"]      { --bhb-code-rgb: 255, 140, 200; }
+.bhb-hud[data-activity="expedition"]    { --bhb-code-rgb: 124, 92, 255; }
+.bhb-hud[data-activity="trials"]        { --bhb-code-rgb: 34, 211, 238; }
+.bhb-hud[data-activity="worldboss"]     { --bhb-code-rgb: 61, 220, 151; }
+.bhb-hud[data-activity="worldbossteam"] { --bhb-code-rgb: 120, 230, 120; }
+.bhb-hud[data-activity="raid"]          { --bhb-code-rgb: 255, 120, 90; }
+.bhb-hud[data-activity="dungeon"]       { --bhb-code-rgb: 150, 160, 255; }
 .bhb-hud__speed {
   font-family: var(--bhb-mono); font-size: var(--bhb-fs-sm); color: var(--bhb-dim);
 }
 .bhb-hud__speed.is-boosted { color: var(--bhb-cyan); font-weight: 700; }
-.bhb-hud__screen {
-  padding: 1px 7px; border-radius: 999px;
-  background: rgba(61, 220, 151, .14); color: var(--bhb-live);
-  font-size: var(--bhb-fs-xs); letter-spacing: .04em;
-}
 .bhb-hud__msg {
-  max-width: 190px; color: var(--bhb-dim); font-size: var(--bhb-fs-sm);
+  max-width: 190px; color: var(--bhb-warn); font-size: var(--bhb-fs-sm);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
@@ -3340,7 +3375,11 @@
 .bhb-step--stacked { flex-direction: column; align-items: stretch; gap: 5px; }
 .bhb-rule__main { display: flex; align-items: center; gap: 7px; }
 .bhb-rule__meta { display: flex; align-items: center; gap: 6px; padding-left: 21px; }
-.bhb-rule__meta .bhb-rule__gate { flex: 1; min-width: 0; max-width: none; }
+.bhb-rule__meta .bhb-tabs__ver {
+  color: var(--bhb-dim); font-size: var(--bhb-fs-xs); opacity: .75;
+  padding-right: 2px; white-space: nowrap;
+}
+.bhb-rule__gate { flex: 1; min-width: 0; max-width: none; }
 
 /* --- Log ---------------------------------------------------------------- */
 
@@ -3491,11 +3530,6 @@
 .bhb-queue__row.is-spent { opacity: .45; }
 .bhb-queue__state { width: 14px; text-align: center; color: var(--bhb-live); font-size: var(--bhb-fs-xs); }
 .bhb-queue__name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.bhb-hud__activity {
-  padding: 1px 7px; border-radius: 999px;
-  background: rgba(124, 92, 255, .18); color: var(--bhb-accent);
-  font-size: var(--bhb-fs-xs); letter-spacing: .04em;
-}
 .bhb-rule__gate {
   max-width: 120px; padding: 2px 18px 2px 5px;
   background-color: var(--bhb-bg-soft); color: var(--bhb-dim);
@@ -3780,6 +3814,13 @@
 
   // src/ui/hud.js
   var DIM_AFTER_MS = 4e3;
+  var STUCK_AFTER_MS = 4e3;
+  function runCode(engine) {
+    if (engine.activity) {
+      return activityCode({ id: engine.activity, name: engine.activityName });
+    }
+    return t(`code.${engine.activeTask}`);
+  }
   function createHud(deps) {
     let node = null;
     let dimTimer = null;
@@ -3814,23 +3855,27 @@
       const speed2 = getSpeed();
       const running = Boolean(engine.activeTask);
       target.className = `bhb-hud ${running ? "bhb-hud--live" : ""} ${target.classList.contains("bhb-hud--dim") ? "bhb-hud--dim" : ""}`;
+      const sinceClick = AUTO_STOP_TIMEOUT - (engine.remainingMs || 0);
+      const stuck = running && sinceClick > STUCK_AFTER_MS;
+      const code = running ? runCode(engine) : t("hud.idle");
       const parts = [
         el("span", { class: "bhb-hud__dot" }),
-        el("span", { class: "bhb-hud__name", text: t("app.name") }),
-        el("span", { class: "bhb-hud__ver", text: `v${VERSION}` }),
-        el("span", { class: "bhb-hud__sep" }),
         el("span", {
-          class: "bhb-hud__task",
-          text: running ? t(`task.${engine.activeTask}`) : t("hud.idle")
+          class: "bhb-hud__code",
+          text: code,
+          title: engine.activityName || (running ? t(`task.${engine.activeTask}`) : "")
         }),
-        el("span", {
+        speed2 > 1 || running ? el("span", {
           class: `bhb-hud__speed ${speed2 > 1 ? "is-boosted" : ""}`,
           text: `${formatSpeed(speed2)}×`
-        }),
-        engine.activityName ? el("span", { class: "bhb-hud__activity", text: engine.activityName }) : null,
-        engine.screenName ? el("span", { class: "bhb-hud__screen", text: engine.screenName }) : null,
-        el("span", { class: "bhb-hud__msg", text: engine.lastMessage || "" })
+        }) : null,
+        stuck && engine.lastMessage ? el("span", { class: "bhb-hud__msg", text: engine.lastMessage }) : null
       ].filter(Boolean);
+      if (running && engine.activity) {
+        target.dataset.activity = engine.activity;
+      } else {
+        delete target.dataset.activity;
+      }
       target.replaceChildren(...parts);
     }
     return { render, wake };
@@ -5375,7 +5420,14 @@
       target.replaceChildren(
         el("nav", { class: "bhb-tabs" }, [
           ...tabs,
-          el("span", { class: "bhb-tabs__end" }, [profile, help, close])
+          el("span", { class: "bhb-tabs__end" }, [
+            // The version left the HUD, which needed the room; it belongs where
+            // the update check already lives.
+            el("span", { class: "bhb-tabs__ver bhb-mono", text: `v${VERSION}` }),
+            profile,
+            help,
+            close
+          ])
         ]),
         body
       );

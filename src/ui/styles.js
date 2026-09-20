@@ -59,8 +59,8 @@ const CSS = `
 
 .bhb-hud {
   top: 14px; right: 14px;
-  display: flex; align-items: center; gap: 9px;
-  padding: 7px 13px;
+  display: flex; align-items: center; gap: 7px;
+  padding: 4px 9px;
   background: linear-gradient(180deg, rgba(26, 29, 41, .96), rgba(18, 20, 28, .96));
   border: 1px solid rgba(var(--bhb-glow-rgb), .38);
   border-radius: 999px;
@@ -98,22 +98,29 @@ const CSS = `
   box-shadow: 0 0 0 0 rgba(61, 220, 151, .7);
   animation: bhb-pulse 1.8s ease-out infinite;
 }
-.bhb-hud__name { font-weight: 700; letter-spacing: .06em; }
-.bhb-hud__ver { color: var(--bhb-dim); font-size: var(--bhb-fs-xs); }
-.bhb-hud__sep { width: 1px; height: 13px; background: var(--bhb-line); }
-.bhb-hud__task { font-weight: 600; font-size: var(--bhb-fs-sm); letter-spacing: .04em; }
-.bhb-hud--live .bhb-hud__task { color: var(--bhb-live); }
+/* The badge carries the activity's colour, so the strip is readable at a
+   glance without reading it: shape in the corner of the eye, not a word. */
+.bhb-hud__code {
+  padding: 1px 7px; border-radius: 6px;
+  background: rgba(var(--bhb-code-rgb, 179, 186, 205), .16);
+  color: rgb(var(--bhb-code-rgb, 179, 186, 205));
+  font-weight: 700; font-size: var(--bhb-fs-sm); letter-spacing: .06em;
+}
+.bhb-hud[data-activity="pvp"]           { --bhb-code-rgb: 255, 107, 129; }
+.bhb-hud[data-activity="gvg"]           { --bhb-code-rgb: 255, 180, 87; }
+.bhb-hud[data-activity="invasion"]      { --bhb-code-rgb: 255, 140, 200; }
+.bhb-hud[data-activity="expedition"]    { --bhb-code-rgb: 124, 92, 255; }
+.bhb-hud[data-activity="trials"]        { --bhb-code-rgb: 34, 211, 238; }
+.bhb-hud[data-activity="worldboss"]     { --bhb-code-rgb: 61, 220, 151; }
+.bhb-hud[data-activity="worldbossteam"] { --bhb-code-rgb: 120, 230, 120; }
+.bhb-hud[data-activity="raid"]          { --bhb-code-rgb: 255, 120, 90; }
+.bhb-hud[data-activity="dungeon"]       { --bhb-code-rgb: 150, 160, 255; }
 .bhb-hud__speed {
   font-family: var(--bhb-mono); font-size: var(--bhb-fs-sm); color: var(--bhb-dim);
 }
 .bhb-hud__speed.is-boosted { color: var(--bhb-cyan); font-weight: 700; }
-.bhb-hud__screen {
-  padding: 1px 7px; border-radius: 999px;
-  background: rgba(61, 220, 151, .14); color: var(--bhb-live);
-  font-size: var(--bhb-fs-xs); letter-spacing: .04em;
-}
 .bhb-hud__msg {
-  max-width: 190px; color: var(--bhb-dim); font-size: var(--bhb-fs-sm);
+  max-width: 190px; color: var(--bhb-warn); font-size: var(--bhb-fs-sm);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
@@ -493,7 +500,11 @@ const CSS = `
 .bhb-step--stacked { flex-direction: column; align-items: stretch; gap: 5px; }
 .bhb-rule__main { display: flex; align-items: center; gap: 7px; }
 .bhb-rule__meta { display: flex; align-items: center; gap: 6px; padding-left: 21px; }
-.bhb-rule__meta .bhb-rule__gate { flex: 1; min-width: 0; max-width: none; }
+.bhb-rule__meta .bhb-tabs__ver {
+  color: var(--bhb-dim); font-size: var(--bhb-fs-xs); opacity: .75;
+  padding-right: 2px; white-space: nowrap;
+}
+.bhb-rule__gate { flex: 1; min-width: 0; max-width: none; }
 
 /* --- Log ---------------------------------------------------------------- */
 
@@ -644,11 +655,6 @@ const CSS = `
 .bhb-queue__row.is-spent { opacity: .45; }
 .bhb-queue__state { width: 14px; text-align: center; color: var(--bhb-live); font-size: var(--bhb-fs-xs); }
 .bhb-queue__name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.bhb-hud__activity {
-  padding: 1px 7px; border-radius: 999px;
-  background: rgba(124, 92, 255, .18); color: var(--bhb-accent);
-  font-size: var(--bhb-fs-xs); letter-spacing: .04em;
-}
 .bhb-rule__gate {
   max-width: 120px; padding: 2px 18px 2px 5px;
   background-color: var(--bhb-bg-soft); color: var(--bhb-dim);
