@@ -44,3 +44,38 @@ export function stepsForActivity(steps, activityId) {
 export function looseSteps(steps) {
   return steps.filter((step) => !step.activity);
 }
+
+/**
+ * Badges for the HUD, where there is room for a word and not a name.
+ *
+ * Keyed by id rather than name so renaming an activity keeps its badge, and
+ * so the two World Boss modes stay apart — the whole reason they are separate
+ * activities is that they are separate sequences.
+ */
+const CODES = Object.freeze({
+  pvp: 'PVP',
+  gvg: 'GVG',
+  invasion: 'INV',
+  expedition: 'EXP',
+  trials: 'TG',
+  worldboss: 'WB-S',
+  worldbossteam: 'WB-T',
+  raid: 'RAID',
+  dungeon: 'DUN',
+});
+
+/**
+ * @param {{ id?: string, name?: string } | null} activity
+ * @returns {string} at most four characters, never empty
+ */
+export function activityCode(activity) {
+  if (!activity) {
+    return '?';
+  }
+  const known = CODES[activity.id];
+  if (known) {
+    return known;
+  }
+  const letters = String(activity.name || '').replace(/[^\p{L}\p{N}]/gu, '');
+  return letters ? letters.slice(0, 3).toUpperCase() : '?';
+}

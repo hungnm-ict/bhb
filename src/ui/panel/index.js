@@ -164,7 +164,14 @@ export function createPanel(deps) {
     target.replaceChildren(
       el('nav', { class: 'bhb-tabs' }, [
         ...tabs,
-        el('span', { class: 'bhb-tabs__end' }, [profile, help, close]),
+        el('span', { class: 'bhb-tabs__end' }, [
+          // The version left the HUD, which needed the room; it belongs where
+          // the update check already lives.
+          el('span', { class: 'bhb-tabs__ver bhb-mono', text: `v${VERSION}` }),
+          profile,
+          help,
+          close,
+        ]),
       ]),
       body
     );

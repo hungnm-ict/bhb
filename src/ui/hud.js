@@ -1,7 +1,8 @@
 import { el, mount } from './dom.js';
 import { t } from '../i18n/index.js';
 import { getSpeed, formatSpeed } from '../core/speed.js';
-import { VERSION } from '../core/constants.js';
+import { AUTO_STOP_TIMEOUT } from '../core/constants.js';
+import { activityCode } from '../bot/activity.js';
 import { realSetTimeout, realClearTimeout } from '../core/timers.js';
 
 /**
@@ -10,15 +11,35 @@ import { realSetTimeout, realClearTimeout } from '../core/timers.js';
  * It answers one question — is the bot working, and on what — and gets out of
  * the way. Everything else lives in the panel. It fades once the user stops
  * touching it so it stops being something to look past while playing.
+ *
+ * The name and version are gone from here: they never change, so they were
+ * paying rent on the one corner of the screen the game is also using. What is
+ * left is a badge, and a message only when there is bad news.
  */
 
 const DIM_AFTER_MS = 4000;
+
+/**
+ * How long without a click before the status line earns its width.
+ *
+ * While steps are landing, the message only repeats what the badge says. It is
+ * the silence that is worth reading about.
+ */
+const STUCK_AFTER_MS = 4000;
 
 /**
  * @param {object} deps
  * @param {() => object} deps.getEngineState
  * @param {ReturnType<import('./store.js').createUiStore>} deps.store
  */
+/** The badge: the activity when there is one, else the mode being run. */
+function runCode(engine) {
+  if (engine.activity) {
+    return activityCode({ id: engine.activity, name: engine.activityName });
+  }
+  return t(`code.${engine.activeTask}`);
+}
+
 export function createHud(deps) {
   /** @type {HTMLElement | null} */
   let node = null;
@@ -67,27 +88,33 @@ export function createHud(deps) {
       target.classList.contains('bhb-hud--dim') ? 'bhb-hud--dim' : ''
     }`;
 
+    const sinceClick = AUTO_STOP_TIMEOUT - (engine.remainingMs || 0);
+    const stuck = running && sinceClick > STUCK_AFTER_MS;
+    const code = running ? runCode(engine) : t('hud.idle');
+
     const parts = [
       el('span', { class: 'bhb-hud__dot' }),
-      el('span', { class: 'bhb-hud__name', text: t('app.name') }),
-      el('span', { class: 'bhb-hud__ver', text: `v${VERSION}` }),
-      el('span', { class: 'bhb-hud__sep' }),
       el('span', {
-        class: 'bhb-hud__task',
-        text: running ? t(`task.${engine.activeTask}`) : t('hud.idle'),
+        class: 'bhb-hud__code',
+        text: code,
+        title: engine.activityName || (running ? t(`task.${engine.activeTask}`) : ''),
       }),
-      el('span', {
-        class: `bhb-hud__speed ${speed > 1 ? 'is-boosted' : ''}`,
-        text: `${formatSpeed(speed)}×`,
-      }),
-      engine.activityName
-        ? el('span', { class: 'bhb-hud__activity', text: engine.activityName })
+      speed > 1 || running
+        ? el('span', {
+            class: `bhb-hud__speed ${speed > 1 ? 'is-boosted' : ''}`,
+            text: `${formatSpeed(speed)}×`,
+          })
         : null,
-      engine.screenName
-        ? el('span', { class: 'bhb-hud__screen', text: engine.screenName })
+      stuck && engine.lastMessage
+        ? el('span', { class: 'bhb-hud__msg', text: engine.lastMessage })
         : null,
-      el('span', { class: 'bhb-hud__msg', text: engine.lastMessage || '' }),
     ].filter(Boolean);
+
+    if (running && engine.activity) {
+      target.dataset.activity = engine.activity;
+    } else {
+      delete target.dataset.activity;
+    }
 
     target.replaceChildren(...parts);
   }

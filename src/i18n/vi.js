@@ -5,7 +5,10 @@ export default {
   'task.script': 'Tuỳ chỉnh',
 
 
-  'hud.idle': 'đang dừng',
+  'hud.idle': '—',
+  'code.script': 'SET',
+  'code.solo': 'SOLO',
+  'code.runAll': 'ALL',
 
   'tab.tasks': 'Chạy',
   'tab.steps': 'Bước',
