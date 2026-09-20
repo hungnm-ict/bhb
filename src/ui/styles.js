@@ -119,10 +119,23 @@ const CSS = `
   font-family: var(--bhb-mono); font-size: var(--bhb-fs-sm); color: var(--bhb-dim);
 }
 .bhb-hud__speed.is-boosted { color: var(--bhb-cyan); font-weight: 700; }
-.bhb-hud__msg {
-  max-width: 190px; color: var(--bhb-warn); font-size: var(--bhb-fs-sm);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+/* Nothing is landing. The frame carries it, so the strip keeps its width. */
+.bhb-hud--stuck {
+  border-color: rgba(255, 180, 87, .85);
+  box-shadow:
+    0 6px 22px rgba(0, 0, 0, .5),
+    0 0 0 1px rgba(0, 0, 0, .5),
+    0 0 18px rgba(255, 180, 87, .45);
 }
+.bhb-hud--stuck .bhb-hud__dot { background: var(--bhb-warn); }
+/* The strip fades after a few seconds, which is exactly when nobody is
+   watching it — so the warning has to outlast the fade. */
+.bhb-hud--dim.bhb-hud--stuck {
+  border-color: rgba(255, 180, 87, .85);
+  box-shadow: 0 0 18px rgba(255, 180, 87, .45);
+}
+.bhb-hud--dim.bhb-hud--stuck > .bhb-hud__dot { opacity: 1; }
+
 
 /* --- Panel -------------------------------------------------------------- */
 
