@@ -9,6 +9,7 @@ import { ScaleMode } from './coords.js';
 import { createDefaultActivities, DEFAULT_ACTIVITIES } from '../bot/activity.js';
 import { normaliseNotifyConfig } from './notify.js';
 import { normaliseProbes } from './probe.js';
+import { normaliseLockSize } from './canvas-lock.js';
 
 /**
  * Persistence for step profiles and settings.
@@ -282,7 +283,14 @@ export function setActiveProfile(state, profileId) {
 
 /** Off by default: pinning costs sharpness, and most users never share steps. */
 function normaliseCanvasLock(stored) {
-  return { enabled: Boolean(stored && stored.enabled === true) };
+  // A size written by an older build was never chosen from a menu, so it
+  // falls back rather than pinning the canvas somewhere nothing was captured.
+  const size = normaliseLockSize(stored);
+  return {
+    enabled: Boolean(stored && stored.enabled === true),
+    width: size.width,
+    height: size.height,
+  };
 }
 
 /**

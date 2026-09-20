@@ -3,7 +3,7 @@ import { t, getLanguage } from '../../i18n/index.js';
 import { ScaleMode } from '../../core/coords.js';
 import { renderQueueSection } from './queue.js';
 import { NOTIFY_EVENTS, hasNotifyTarget } from '../../core/notify.js';
-import { LOCK_SIZE } from '../../core/canvas-lock.js';
+import { LOCK_SIZES, normaliseLockSize } from '../../core/canvas-lock.js';
 import { VERSION } from '../../core/constants.js';
 import { checkForUpdate, SCRIPT_URL } from '../../core/update.js';
 import { renderProbeSection } from './probes.js';
@@ -128,9 +128,25 @@ function renderCanvasLock(deps, toggleRow) {
     deps.refresh();
   }
 
+  const chosen = normaliseLockSize(lock);
+  const size = el('select', { class: 'bhb-select', title: t('lock.size') });
+  for (const offered of LOCK_SIZES) {
+    const option = el('option', { text: `${offered.width}×${offered.height}` });
+    option.value = `${offered.width}x${offered.height}`;
+    size.append(option);
+  }
+  size.value = `${chosen.width}x${chosen.height}`;
+  size.disabled = !lock.enabled;
+  size.addEventListener('change', () => {
+    const [width, height] = size.value.split('x').map(Number);
+    update({ width, height });
+  });
+
   return el('div', { class: 'bhb-field' }, [
     toggleRow('lock.enabled', lock.enabled, (value) => update({ enabled: value })),
+    size,
     el('p', { class: 'bhb-note', text: t('lock.hint') }),
+    el('p', { class: 'bhb-note', text: t('lock.sizeHint') }),
   ]);
 }
 
@@ -390,7 +406,9 @@ export function renderSettingsTab(deps) {
       deps,
       'lock',
       'lock.title',
-      `${t(settings.canvasLock.enabled ? 'settings.on' : 'settings.off')} · ${LOCK_SIZE.width}×${LOCK_SIZE.height}`,
+      `${t(settings.canvasLock.enabled ? 'settings.on' : 'settings.off')} · ${
+        normaliseLockSize(settings.canvasLock).width
+      }×${normaliseLockSize(settings.canvasLock).height}`,
       () => renderCanvasLock(deps, toggleRow)
     ),
 
