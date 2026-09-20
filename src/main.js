@@ -21,7 +21,6 @@ import {
   onSpeedChange,
   stepSpeed,
   pumpFrame,
-  resetClock,
 } from './core/speed.js';
 import { installKeepAlive } from './core/keepalive.js';
 import { createEngine, TaskId, resolveRunTarget } from './core/engine.js';
@@ -356,11 +355,11 @@ function bootstrap() {
   // Rebuilding the panel on every notch replaced the slider mid-drag, which is
   // what made dragging feel like it was fighting back.
   onSpeedChange(() => {
-    // Back at normal speed the drift has no more work to do, and leaving it
-    // there is what greets the next account with a daily reset it never earned.
-    if (settings.clockSafety && getSpeed() <= 1) {
-      resetClock();
-    }
+    // Nothing touches the clock here. Snapping it back on the way down to 1x
+    // rewound the game's idea of now by however long the boost had run, and a
+    // game holds timers against that: a minute at 10x left every cooldown nine
+    // minutes in the future, so the game sat still until real time caught up.
+    // Clearing drift is a between-things job, which is what the button is for.
     hud.render();
     panel.updateSpeed();
   });

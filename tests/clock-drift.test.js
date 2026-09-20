@@ -59,3 +59,42 @@ describe('the game clock', () => {
     expect(Date.now()).toBeGreaterThan(first);
   });
 });
+
+describe('coming back down from a boost', () => {
+  beforeEach(() => {
+    installSpeedHack();
+    setSpeed(1);
+    Date.now();
+    resetClock();
+  });
+
+  it('never moves the game clock backwards', () => {
+    // A backwards jump strands every timer the game holds: a cooldown due in
+    // ten seconds is suddenly due in nine minutes, and the game sits there.
+    // Whatever is done about drift, it cannot be done by rewinding mid-play.
+    setSpeed(10);
+    Date.now();
+    clock += 60_000;
+    const beforeDrop = Date.now();
+
+    setSpeed(1);
+    const afterDrop = Date.now();
+
+    expect(afterDrop).toBeGreaterThanOrEqual(beforeDrop);
+  });
+
+  it('keeps the drift it earned, for the user to clear on purpose', () => {
+    setSpeed(10);
+    Date.now();
+    clock += 60_000;
+    Date.now();
+
+    setSpeed(1);
+    Date.now();
+
+    expect(getClockDrift(), 'nine minutes owed, still owed').toBe(540_000);
+
+    resetClock();
+    expect(getClockDrift(), 'and gone once asked for').toBe(0);
+  });
+});

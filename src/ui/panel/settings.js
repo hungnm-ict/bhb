@@ -254,7 +254,6 @@ function countBehaviour(settings) {
     settings.keepAlive,
     settings.sizeBadge,
     settings.fpsBadge,
-    settings.clockSafety,
     settings.scaleMode === ScaleMode.ABSOLUTE,
   ];
   return switches.filter(Boolean).length;
@@ -380,9 +379,6 @@ export function renderSettingsTab(deps) {
           ),
           toggleRow('settings.keepAlive', settings.keepAlive, (value) =>
             deps.updateSettings({ keepAlive: value })
-          ),
-          toggleRow('settings.clockSafety', settings.clockSafety, (value) =>
-            deps.updateSettings({ clockSafety: value })
           ),
           toggleRow('settings.fpsBadge', settings.fpsBadge, (value) =>
             deps.updateSettings({ fpsBadge: value })
