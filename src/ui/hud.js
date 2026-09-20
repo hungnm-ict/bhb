@@ -86,12 +86,17 @@ export function createHud(deps) {
     const speed = getSpeed();
     const running = Boolean(engine.activeTask);
 
-    target.className = `bhb-hud ${running ? 'bhb-hud--live' : ''} ${
-      target.classList.contains('bhb-hud--dim') ? 'bhb-hud--dim' : ''
-    }`;
-
     const sinceClick = AUTO_STOP_TIMEOUT - (engine.remainingMs || 0);
-    const stuck = running && sinceClick > STUCK_AFTER_MS;
+    // While steps are landing the message only repeats the badge. It is the
+    // silence that is worth saying something about — and an amber frame says
+    // it without taking a strip of the game with it.
+    const stuck = Boolean(engine.activeTask) && sinceClick > STUCK_AFTER_MS;
+
+    target.className = `bhb-hud ${running ? 'bhb-hud--live' : ''} ${
+      stuck ? 'bhb-hud--stuck' : ''
+    } ${target.classList.contains('bhb-hud--dim') ? 'bhb-hud--dim' : ''}`;
+    target.title = stuck ? engine.lastMessage || '' : '';
+
     const code = running ? runCode(engine) : t('hud.idle');
 
     const parts = [
@@ -106,9 +111,6 @@ export function createHud(deps) {
             class: `bhb-hud__speed ${speed > 1 ? 'is-boosted' : ''}`,
             text: `${formatSpeed(speed)}×`,
           })
-        : null,
-      stuck && engine.lastMessage
-        ? el('span', { class: 'bhb-hud__msg', text: engine.lastMessage })
         : null,
     ].filter(Boolean);
 
