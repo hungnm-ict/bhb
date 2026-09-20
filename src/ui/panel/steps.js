@@ -87,16 +87,16 @@ export function renderStepsTab(deps) {
   });
 
   const filterSelect = el('select', { class: 'bhb-rule__gate', title: t('steps.filter') });
-  const filterOptions = [['', t('steps.allSteps')], ['', t('steps.loose')]];
-  filterOptions[0][0] = '__all__';
-  for (const [value, label] of filterOptions) {
-    const option = el('option', { text: label });
-    option.value = value;
-    filterSelect.append(option);
-  }
+  // Activities first: they are what the list is usually being narrowed to. The
+  // two catch-alls sit at the bottom, where widening out again is one reach.
   for (const activity of activities) {
     const option = el('option', { text: activity.name });
     option.value = activity.id;
+    filterSelect.append(option);
+  }
+  for (const [value, label] of [['', t('steps.loose')], ['__all__', t('steps.allSteps')]]) {
+    const option = el('option', { text: label });
+    option.value = value;
     filterSelect.append(option);
   }
   filterSelect.value = filter === null ? '__all__' : filter;

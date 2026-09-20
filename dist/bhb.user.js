@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.20.1
+// @version      0.21.0
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @icon         data:image/png;base64,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
@@ -15,7 +15,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.20.1" : "dev";
+  var VERSION = true ? "0.21.0" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -756,17 +756,17 @@
 
   // src/bot/activity.js
   var DEFAULT_ACTIVITIES = Object.freeze([
-    { id: "pvp", name: "PVP", enabled: true },
-    { id: "gvg", name: "GVG", enabled: true },
-    { id: "invasion", name: "Invasion", enabled: true },
-    { id: "expedition", name: "Expedition", enabled: true },
-    { id: "trials", name: "Trials / Gauntlet", enabled: true },
     // Solo and team are two different sequences, not one with a setting: the
     // team lobby has a party to wait for and a Private box to get right.
     { id: "worldboss", name: "World Boss (solo)", enabled: true },
     { id: "worldbossteam", name: "World Boss (team)", enabled: false },
+    { id: "dungeon", name: "Dungeon", enabled: true },
     { id: "raid", name: "Raid", enabled: true },
-    { id: "dungeon", name: "Dungeon", enabled: true }
+    { id: "pvp", name: "PVP", enabled: true },
+    { id: "trials", name: "Trials / Gauntlet", enabled: true },
+    { id: "invasion", name: "Invasion", enabled: true },
+    { id: "expedition", name: "Expedition", enabled: true },
+    { id: "gvg", name: "GVG", enabled: true }
   ]);
   function createDefaultActivities() {
     return DEFAULT_ACTIVITIES.map((activity) => ({ ...activity }));
@@ -3832,6 +3832,35 @@
     return node;
   }
 
+  // src/ui/anchor.js
+  var CANVAS_INSET = 6;
+  function canvasBox() {
+    const canvas = getCanvas();
+    if (!canvas) {
+      return null;
+    }
+    const box = canvas.getBoundingClientRect();
+    return box.width > 0 && box.height > 0 ? box : null;
+  }
+  function anchorTopLeft(node) {
+    const box = canvasBox();
+    if (!box) {
+      return false;
+    }
+    node.style.left = `${Math.round(box.left) + CANVAS_INSET}px`;
+    node.style.top = `${Math.round(box.top) + CANVAS_INSET}px`;
+    return true;
+  }
+  function anchorTopRight(node) {
+    const box = canvasBox();
+    if (!box) {
+      return false;
+    }
+    node.style.right = `${Math.round(window.innerWidth - box.right) + CANVAS_INSET}px`;
+    node.style.top = `${Math.round(box.top) + CANVAS_INSET}px`;
+    return true;
+  }
+
   // src/ui/hud.js
   var DIM_AFTER_MS = 4e3;
   var STUCK_AFTER_MS = 4e3;
@@ -3871,6 +3900,7 @@
         return;
       }
       target.style.display = "";
+      anchorTopRight(target);
       const engine = deps.getEngineState();
       const speed2 = getSpeed();
       const running = Boolean(engine.activeTask);
@@ -4173,16 +4203,14 @@
       deps.refresh();
     });
     const filterSelect = el("select", { class: "bhb-rule__gate", title: t("steps.filter") });
-    const filterOptions = [["", t("steps.allSteps")], ["", t("steps.loose")]];
-    filterOptions[0][0] = "__all__";
-    for (const [value, label] of filterOptions) {
-      const option = el("option", { text: label });
-      option.value = value;
-      filterSelect.append(option);
-    }
     for (const activity of activities) {
       const option = el("option", { text: activity.name });
       option.value = activity.id;
+      filterSelect.append(option);
+    }
+    for (const [value, label] of [["", t("steps.loose")], ["__all__", t("steps.allSteps")]]) {
+      const option = el("option", { text: label });
+      option.value = value;
       filterSelect.append(option);
     }
     filterSelect.value = filter === null ? "__all__" : filter;
@@ -5414,6 +5442,7 @@
         return;
       }
       target.style.display = "flex";
+      anchorTopRight(target);
       const close = el("button", { class: "bhb-icon", title: t("panel.close"), text: "✕" });
       close.addEventListener("click", () => {
         deps.store.closePanel();
@@ -5770,10 +5799,8 @@
         target.style.display = "none";
         return;
       }
-      const box = canvas.getBoundingClientRect();
       target.style.display = "block";
-      target.style.left = `${Math.round(box.left) + 6}px`;
-      target.style.top = `${Math.round(box.top) + 6}px`;
+      anchorTopLeft(target);
       const { real } = getFrameRates();
       target.textContent = `${real} fps`;
       target.title = t("hud.fps");

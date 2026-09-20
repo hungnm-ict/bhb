@@ -12,19 +12,26 @@
  * @property {boolean} enabled
  */
 
-/** The roadmap's order, which is the order the game rewards. */
+/**
+ * The order a session actually runs in, best first.
+ *
+ * World Boss opens on a timer somebody else set, so it goes first or it is
+ * missed; the rest descend by what an hour spent on them is worth. Only the
+ * default — the queue is reorderable, and a profile that has been reordered
+ * keeps its own order.
+ */
 export const DEFAULT_ACTIVITIES = Object.freeze([
-  { id: 'pvp', name: 'PVP', enabled: true },
-  { id: 'gvg', name: 'GVG', enabled: true },
-  { id: 'invasion', name: 'Invasion', enabled: true },
-  { id: 'expedition', name: 'Expedition', enabled: true },
-  { id: 'trials', name: 'Trials / Gauntlet', enabled: true },
   // Solo and team are two different sequences, not one with a setting: the
   // team lobby has a party to wait for and a Private box to get right.
   { id: 'worldboss', name: 'World Boss (solo)', enabled: true },
   { id: 'worldbossteam', name: 'World Boss (team)', enabled: false },
-  { id: 'raid', name: 'Raid', enabled: true },
   { id: 'dungeon', name: 'Dungeon', enabled: true },
+  { id: 'raid', name: 'Raid', enabled: true },
+  { id: 'pvp', name: 'PVP', enabled: true },
+  { id: 'trials', name: 'Trials / Gauntlet', enabled: true },
+  { id: 'invasion', name: 'Invasion', enabled: true },
+  { id: 'expedition', name: 'Expedition', enabled: true },
+  { id: 'gvg', name: 'GVG', enabled: true },
 ]);
 
 /** @returns {Activity[]} a fresh, mutable copy — the default list is frozen. */

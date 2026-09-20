@@ -43,7 +43,7 @@ Tự động chạy hết các hoạt động mình chọn, theo thứ tự mìn
 - [x] **Hàng đợi ưu tiên** — tab Chạy tất cả: bật/tắt và ▲▼ sắp xếp
 - [x] Lặp vô hạn: hết tài nguyên thì sang mục kế, hết một vòng thì quay lại từ đầu, mọi mục cạn trong cùng một vòng thì dừng
 - [x] Tuỳ chọn: chạy xong một vòng thì đóng game (mặc định tắt)
-- [x] Thứ tự mặc định: PVP → GVG → Invasion → Expedition → TG → WB → Raid → Dungeon
+- [x] Thứ tự mặc định: WB solo → WB team → Dungeon → Raid → PVP → TG → Invasion → Expedition → GVG
 
 **Còn nợ:** rule thật cho từng hoạt động — phải bắt trực tiếp trên game, không viết sẵn được.
 
@@ -140,9 +140,9 @@ Cái giá, và là lý do chưa làm:
 
 Milestone 1 (foundations) is done. Milestone 2 adds region matching and screen-state
 detection — the reliability layer everything else needs. Milestone 3 is **auto-regen**:
-per-activity runners plus a reorderable priority queue (PVP → GVG → Invasion →
-Expedition → Trials/Gauntlet → World Boss → Raid → Dungeon) looping until resources
-run out. Milestone 4 covers lag detection with auto-restart and character-slot
+per-activity runners plus a reorderable priority queue (World Boss solo and team →
+Dungeon → Raid → PVP → Trials/Gauntlet → Invasion → Expedition → GVG) looping until
+resources run out. Milestone 4 covers lag detection with auto-restart and character-slot
 switching. Milestone 5 adds session stats that survive a watchdog reload, and
 Discord/Telegram alerts with a canvas screenshot — a rare drop is just a screen
 with its `notify` flag set, so it needs no vision code of its own. Milestone 6
