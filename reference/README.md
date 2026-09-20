@@ -12,5 +12,6 @@ World Boss party flow — even though the code itself has been rewritten.
 | `rules.js` | The proven pixel coordinates and colours, now in `src/rules/builtin.js` |
 | `engine.js` | Original rule loop, rewritten as `src/core/engine.js` |
 | `overlay.js` | Original panel markup, rewritten as `src/ui/overlay.js` |
+| `speed-hack.js` | Original timing override, rewritten as `src/core/speed.js` |
 | `wb-party.js` | World Boss team mode — **not yet ported**, planned for a later milestone |
 | `README.MD` | The original Vietnamese instructions |
