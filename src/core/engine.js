@@ -105,8 +105,11 @@ export function createEngine(deps) {
   /** When the current rest ends; the loop reads nothing until then. */
   let restingUntil = 0;
 
-  /** The Custom task's current gap between ticks. See `pace.js`. */
+  /** The current gap between ticks. See `pace.js`. */
   let pace = FIRST_PACE;
+
+  /** Set by `updateScreen`, read and cleared by the pacer on the same tick. */
+  let screenJustChanged = false;
 
   let pollTimer = null;
   let autoStopTimer = null;
@@ -476,6 +479,7 @@ export function createEngine(deps) {
     const id = screen ? screen.id : null;
 
     if (id !== state.screen) {
+      screenJustChanged = true;
       state.screen = id;
       state.screenName = screen ? screen.name : null;
       report('screen', { label: screen ? screen.name || screen.id : 'unknown', screenId: id });
@@ -574,9 +578,12 @@ export function createEngine(deps) {
       // Read before the tick: the rest this tick starts is not one it sat out.
       const wasResting = restingUntil > realNow();
       const clicked = tick();
+      // A new screen is a new set of buttons to look for, so the back-off has
+      // nothing to stand on: what it measures is a screen that has not changed.
       if (!wasResting) {
-        pace = nextPace(pace, clicked);
+        pace = nextPace(pace, clicked || screenJustChanged);
       }
+      screenJustChanged = false;
       if (state.activeTask) {
         schedulePoll();
       }

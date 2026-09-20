@@ -74,6 +74,11 @@ export function createPanel(deps) {
   function ensureNode() {
     if (!node) {
       node = mount(el('div', { class: 'bhb-panel' }));
+      // A choice that has been made is not a list being read. The guard below
+      // keeps the tick off an open dropdown, but a browser leaves focus on a
+      // select afterwards — so the redraw the choice itself asked for was the
+      // one getting skipped, and the table kept showing the old filter.
+      node.addEventListener('change', () => render({ force: true }));
     }
     return node;
   }
@@ -97,14 +102,19 @@ export function createPanel(deps) {
     return renderTasksTab(deps);
   }
 
-  function render() {
+  /** @param {{ force?: boolean }} [options] force: the user just committed a change. */
+  function render(options = {}) {
     const target = ensureNode();
     const state = deps.store.get();
 
     // Rebuilding under a held slider tore the drag apart, and rebuilding under
     // an open dropdown closed it before it could be read. Both own the input
     // the user is in the middle of giving, so the tick waits.
-    if (renderedTab !== null && (speedIsBeingDragged() || aDropdownIsOpen())) {
+    if (
+      !options.force &&
+      renderedTab !== null &&
+      (speedIsBeingDragged() || aDropdownIsOpen())
+    ) {
       return;
     }
 

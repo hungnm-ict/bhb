@@ -24,7 +24,7 @@ export const INTERVAL_AUTO_STOP_CHECK = 5000;
  * its way, which is worth reading for; an idle bot staring at an unchanged
  * screen is not, and every tick costs a `readPixels`.
  */
-export const SCRIPT_PACE_LADDER = Object.freeze([300, 600, 1200, 2000, 3000]);
+export const SCRIPT_PACE_LADDER = Object.freeze([300, 600, 1000]);
 
 /**
  * How long Run-All watches an activity match nothing before moving on.
