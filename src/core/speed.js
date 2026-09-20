@@ -71,6 +71,29 @@ export function pumpFrame() {
 }
 
 let speed = 1;
+
+/**
+ * Whether a boost multiplies frames as well as the clock.
+ *
+ * Multiplying frames is what buys the speed and what costs the frame rate: the
+ * game's callback paints as well as thinks, so every extra call is another
+ * full render of the scene. Turning it off leaves the clock stretched and the
+ * rendering untouched — the bargain a native speed hack gets for free, which
+ * only works here if the build honours a stretched delta rather than clamping
+ * it. That is a question about the game, so it is a switch rather than a
+ * decision made here.
+ */
+let multiplyFrames = true;
+
+/** @returns {boolean} */
+export function getFrameMultiplier() {
+  return multiplyFrames;
+}
+
+/** @param {boolean} enabled */
+export function setFrameMultiplier(enabled) {
+  multiplyFrames = enabled !== false;
+}
 /** @type {Array<(speed: number) => void>} */
 const listeners = [];
 
@@ -273,7 +296,7 @@ function installFrameMultiplier() {
   };
 
   function runBurst(callback) {
-    if (speed <= 1) {
+    if (speed <= 1 || !multiplyFrames) {
       owed = 0;
       gameFrames += 1;
       callback(performance.now());

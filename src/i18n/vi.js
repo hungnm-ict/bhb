@@ -85,6 +85,8 @@ export default {
   'settings.watchdogHint': 'Không bật thì bot chỉ dừng sau 3 phút không làm gì. Bật thì trang tự tải lại và chạy tiếp — tối đa 3 lần rồi mới chịu thua.',
   'settings.reloads': 'đã tải lại {n}×',
   'settings.keepAlive': 'Chạy tiếp khi cửa sổ bị che kín',
+  'settings.multiplyFrames': 'Tăng tốc bằng cách chạy thêm khung hình',
+  'settings.multiplyFramesHint': 'Bật: mỗi khung hình chạy vòng lặp game nhiều lần — đây là thứ thật sự làm game nhanh lên, và cũng là thứ ăn hết FPS. Tắt: chỉ kéo giãn đồng hồ, giống cách hack tốc độ trên game cài đặt — không mất khung hình nào, nhưng game có thể kẹp delta và gần như không nhanh lên. Thử cả hai rồi nhìn fps.',
   'settings.keepAliveHint':
     'Trình duyệt ngừng vẽ khi cửa sổ bị cửa sổ khác phủ kín, và game đứng theo. Bật cái này thì bot tự lái vòng lặp của game. Cần tải lại trang sau khi đổi.',
   'settings.sizeBadge': 'Hiện cỡ canvas ở góc màn hình',

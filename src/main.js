@@ -16,6 +16,7 @@ import { installCanvasPatch } from './core/canvas.js';
 import { installFocusPatch } from './core/focus.js';
 import {
   installSpeedHack,
+  setFrameMultiplier,
   getSpeed,
   setSpeed,
   onSpeedChange,
@@ -257,6 +258,9 @@ function bootstrap() {
       if (changes.canvasLock) {
         applyCanvasLock();
       }
+      if ('multiplyFrames' in changes) {
+        setFrameMultiplier(changes.multiplyFrames);
+      }
     },
     getEngineState: engine.getState,
     toggleTask: engine.toggle,
@@ -318,6 +322,7 @@ function bootstrap() {
   }
 
   applyCanvasLock();
+  setFrameMultiplier(settings.multiplyFrames);
 
   // A window covered edge to edge stops getting animation frames, and the game
   // stops with them. This drives the loop by hand when that happens.

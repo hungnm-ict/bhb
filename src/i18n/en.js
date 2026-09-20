@@ -85,6 +85,8 @@ export default {
   'settings.watchdogHint': 'Without this the bot just stops after three idle minutes. With it, the page reloads and the task starts again — up to three times before it gives up.',
   'settings.reloads': 'reloaded {n}×',
   'settings.keepAlive': 'Keep running when the window is covered',
+  'settings.multiplyFrames': 'Speed up by running extra frames',
+  'settings.multiplyFramesHint': 'On: a boost runs the game loop several times per frame, which is what actually speeds it up and what costs the frame rate. Off: only the clock is stretched, the way a native speed hack does it — no frames are lost, but the game may clamp the stretched delta and barely speed up at all. Try both and watch the fps.',
   'settings.keepAliveHint':
     'A window covered edge to edge stops being painted, and the game stops with it. This drives the game loop by hand instead. Takes effect after a reload.',
   'settings.sizeBadge': 'Show the canvas size in the corner',
