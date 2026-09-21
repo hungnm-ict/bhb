@@ -232,8 +232,9 @@ export function createStepEditor(deps) {
       return;
     }
     step.kind = kind === StepKind.WAIT ? StepKind.WAIT : StepKind.CLICK;
-    step.optional = step.kind === StepKind.CLICK && optional === true;
     step.endsRun = step.kind === StepKind.CLICK && endsRun === true;
+    // Ending the run implies skipping when absent: see the engine's cursor.
+    step.optional = step.kind === StepKind.CLICK && (optional === true || step.endsRun);
     deps.persist();
   }
 

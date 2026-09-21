@@ -422,7 +422,11 @@ export function createEngine(deps) {
 
       // Optional: there was nothing to do here, which is not the same as being
       // stuck — the ticked-already checkbox is the whole reason this exists.
-      if (expected.optional) {
+      //
+      // A step that ends the run is optional whether or not it is marked so:
+      // the out-of-resources button is on screen exactly when the resource is
+      // out, so waiting for it would stall every lap that still had keys.
+      if (expected.optional || expected.endsRun) {
         cursor.index = (cursor.index + 1) % steps.length;
         continue;
       }

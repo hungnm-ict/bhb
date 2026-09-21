@@ -118,6 +118,41 @@ describe('a step that ends the run', () => {
     engine.stop();
   });
 
+  it('steps aside when the button is not there', () => {
+    // The whole point: the out-of-resources button is only on screen when the
+    // resource is out. A step that waited for it would stall every lap.
+    lit = new Set([200]);
+    const engine = createEngine({
+      getScriptSteps: () => [
+        stepAt(100, 'no more keys', { endsRun: true }),
+        stepAt(200, 'play again'),
+      ],
+      getScaleMode: () => 'scale',
+    });
+
+    engine.start(TaskId.SCRIPT);
+
+    expect(clicks, 'the run carries on past it').toEqual([200]);
+    expect(engine.getState().activeTask).toBe(TaskId.SCRIPT);
+    engine.stop();
+  });
+
+  it('still ends the run the lap the button does appear', () => {
+    lit = new Set([100, 200]);
+    const engine = createEngine({
+      getScriptSteps: () => [
+        stepAt(100, 'no more keys', { endsRun: true }),
+        stepAt(200, 'play again'),
+      ],
+      getScaleMode: () => 'scale',
+    });
+
+    engine.start(TaskId.SCRIPT);
+
+    expect(clicks).toEqual([100]);
+    expect(engine.getState().activeTask).toBeNull();
+  });
+
   it('does not fire on a step that matched nothing', () => {
     lit = new Set();
     const engine = createEngine({
