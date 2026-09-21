@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.25.0
+// @version      0.26.0
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @icon         data:image/png;base64,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
@@ -15,7 +15,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.25.0" : "dev";
+  var VERSION = true ? "0.26.0" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -716,6 +716,14 @@
       maxMatches: 0,
       /** Skip instead of waiting when it does not match — a box already ticked. */
       optional: false,
+      /**
+       * Clicking this one means the resource is spent.
+       *
+       * A screen could already say so; a step could not, and capturing a whole
+       * screen to express "the Play button went grey" is more work than the
+       * fact deserves.
+       */
+      endsRun: false,
       ...overrides
     };
   }
@@ -1217,6 +1225,18 @@
         point: hit.point
       });
       setMessage(`${hit.step.label || hit.step.id} → ${hit.clicked ? "click" : "busy"}`);
+      if (hit.clicked && hit.step.endsRun) {
+        const label = hit.step.label || hit.step.id;
+        report("resource", { label });
+        if (state.activeTask === TaskId.RUN_ALL) {
+          advanceQueue("spent");
+          return true;
+        }
+        const stopped = state.activeTask;
+        stop();
+        setMessage(`${stopped} stopped: ${label}`);
+        return true;
+      }
       return Boolean(hit.clicked);
     }
     function schedulePoll() {
@@ -2071,6 +2091,8 @@
     "steps.transferHint": "Chép lấy đúng những gì bộ lọc đang hiện. Dán sẽ thay các hoạt động đó ở cửa sổ này, các hoạt động khác giữ nguyên.",
     "steps.importFailed": "Không đọc được",
     "steps.importedButSized": "Đã dán — nhưng bộ này bắt ở {from} còn cửa sổ đang khoá {to}, nên kiểm lại trước khi chạy thật.",
+    "steps.kindSpent": "Bấm rồi dừng",
+    "steps.kindSpentHint": "Bấm nó, rồi coi như hết tài nguyên: đang Chạy tất cả thì sang mục kế, chạy riêng thì dừng hẳn.",
     "steps.unnamed": "(chưa đặt tên)",
     "steps.enable": "Bật bước",
     "steps.disable": "Tắt bước",
@@ -2300,6 +2322,8 @@
     "steps.transferHint": "Copy carries whatever the filter is showing. Paste replaces those activities on this window and leaves the others alone.",
     "steps.importFailed": "Could not read that",
     "steps.importedButSized": "Pasted — but these were captured at {from} and this window is pinned to {to}, so check them before trusting a run.",
+    "steps.kindSpent": "Click, then stop",
+    "steps.kindSpentHint": "Click it, then treat the resource as spent: under Run-All the queue moves to the next activity, on its own the run ends.",
     "steps.unnamed": "(unnamed)",
     "steps.enable": "Enable",
     "steps.disable": "Disable",
@@ -2639,13 +2663,14 @@
       step.screens = screenIds;
       deps.persist();
     }
-    function setBehaviour(stepId, { kind, optional }) {
+    function setBehaviour(stepId, { kind, optional, endsRun }) {
       const step = find(stepId);
       if (!step) {
         return;
       }
       step.kind = kind === StepKind.WAIT ? StepKind.WAIT : StepKind.CLICK;
       step.optional = step.kind === StepKind.CLICK && optional === true;
+      step.endsRun = step.kind === StepKind.CLICK && endsRun === true;
       deps.persist();
     }
     function setMaxMatches(stepId, count) {
@@ -4485,17 +4510,19 @@
       for (const [value, labelKey] of [
         ["click", "steps.kindClick"],
         ["optional", "steps.kindOptional"],
-        ["wait", "steps.kindWait"]
+        ["wait", "steps.kindWait"],
+        ["spent", "steps.kindSpent"]
       ]) {
         const option = el("option", { text: t(labelKey) });
         option.value = value;
         behaviour.append(option);
       }
-      behaviour.value = step.kind === StepKind.WAIT ? "wait" : step.optional ? "optional" : "click";
+      behaviour.value = step.kind === StepKind.WAIT ? "wait" : step.endsRun ? "spent" : step.optional ? "optional" : "click";
       behaviour.addEventListener("change", () => {
         deps.stepEditor.setBehaviour(step.id, {
           kind: behaviour.value === "wait" ? StepKind.WAIT : StepKind.CLICK,
-          optional: behaviour.value === "optional"
+          optional: behaviour.value === "optional",
+          endsRun: behaviour.value === "spent"
         });
         deps.refresh();
       });

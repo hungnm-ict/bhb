@@ -274,25 +274,34 @@ export function renderStepsTab(deps) {
       deps.refresh();
     });
 
-    // Three behaviours, one control: click it, click it only if it is there,
-    // or hold here while it is there. The third is how "wait for a third
-    // player" is expressed — the empty slot's button is the colour to wait out.
+    // Four behaviours, one control: click it, click it only if it is there,
+    // hold here while it is there, or click it and call the resource spent.
+    // The third is how "wait for a third player" is expressed — the empty
+    // slot's button is the colour to wait out.
     const behaviour = el('select', { class: 'bhb-rule__gate', title: t('steps.behaviourHint') });
     for (const [value, labelKey] of [
       ['click', 'steps.kindClick'],
       ['optional', 'steps.kindOptional'],
       ['wait', 'steps.kindWait'],
+      ['spent', 'steps.kindSpent'],
     ]) {
       const option = el('option', { text: t(labelKey) });
       option.value = value;
       behaviour.append(option);
     }
     behaviour.value =
-      step.kind === StepKind.WAIT ? 'wait' : step.optional ? 'optional' : 'click';
+      step.kind === StepKind.WAIT
+        ? 'wait'
+        : step.endsRun
+          ? 'spent'
+          : step.optional
+            ? 'optional'
+            : 'click';
     behaviour.addEventListener('change', () => {
       deps.stepEditor.setBehaviour(step.id, {
         kind: behaviour.value === 'wait' ? StepKind.WAIT : StepKind.CLICK,
         optional: behaviour.value === 'optional',
+        endsRun: behaviour.value === 'spent',
       });
       deps.refresh();
     });

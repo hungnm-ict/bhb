@@ -39,6 +39,8 @@ export default {
   'steps.transferHint': 'Copy carries whatever the filter is showing. Paste replaces those activities on this window and leaves the others alone.',
   'steps.importFailed': 'Could not read that',
   'steps.importedButSized': 'Pasted — but these were captured at {from} and this window is pinned to {to}, so check them before trusting a run.',
+  'steps.kindSpent': 'Click, then stop',
+  'steps.kindSpentHint': 'Click it, then treat the resource as spent: under Run-All the queue moves to the next activity, on its own the run ends.',
   'steps.unnamed': '(unnamed)',
   'steps.enable': 'Enable',
   'steps.disable': 'Disable',
