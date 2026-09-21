@@ -32,6 +32,12 @@ export function highlightSteps(state) {
   }
 }
 
+/** Kept across renders: the tab rebuilds every tick, and a box that emptied
+ *  itself under the user's hands would be unusable. */
+let packBox = null;
+/** What this tab last wrote into the box, so a paste is never overwritten. */
+let packedValue = null;
+
 /** True when a pack was captured on a different pinned size than this window. */
 function mismatch(packLock, windowLock) {
   if (!packLock || !windowLock) {
@@ -146,37 +152,83 @@ export function renderStepsTab(deps) {
 
   // Carrying a combo to another window: each instance is its own browser
   // profile, so the only road between them is text.
-  const transfer = el('textarea', { class: 'bhb-textarea' });
-  transfer.spellcheck = false;
+  //
+  // The box survives the tick that rebuilds this tab, and it refills itself
+  // from the filter — but only while it still holds what it last put there.
+  // Once the user has pasted or typed, that is theirs to keep.
+  if (!packBox) {
+    packBox = el('textarea', { class: 'bhb-textarea' });
+    packBox.spellcheck = false;
+  }
+  const transfer = packBox;
   transfer.placeholder = t('steps.transferHint');
+
+  const lock = deps.getCanvasLock ? deps.getCanvasLock() : null;
+  const packed = steps.length > 0 ? exportSteps(steps, lock) : '';
+  if (transfer.value === packedValue || transfer.value === '') {
+    transfer.value = packed;
+  }
+  packedValue = packed;
+
+  function load(text) {
+    try {
+      const pack = importSteps(text);
+      deps.stepEditor.replaceAll(mergeSteps(deps.getSteps(), pack.steps));
+      note.textContent = mismatch(pack.lock, lock)
+        ? t('steps.importedButSized', {
+            from: `${pack.lock.width}×${pack.lock.height}`,
+            to: `${lock.width}×${lock.height}`,
+          })
+        : t('steps.imported', { n: pack.steps.length });
+      // The next render repacks from the filter rather than keeping the paste.
+      packedValue = null;
+      deps.refresh();
+    } catch (error) {
+      note.textContent = `${t('steps.importFailed')}: ${error.message}`;
+    }
+  }
+
+  const note = el('p', { class: 'bhb-note' });
 
   const exportButton = el('button', {
     class: 'bhb-btn bhb-btn--small',
     text: t('steps.export'),
   });
-  exportButton.addEventListener('click', () => {
-    transfer.value = exportSteps(steps, deps.getCanvasLock ? deps.getCanvasLock() : null);
+  exportButton.addEventListener('click', async () => {
+    transfer.select();
+    try {
+      await navigator.clipboard.writeText(transfer.value);
+      note.textContent = t('steps.copied', { n: steps.length });
+    } catch {
+      // Clipboard access can be refused; the text is selected either way.
+      note.textContent = t('steps.copyByHand');
+    }
   });
 
   const importButton = el('button', {
     class: 'bhb-btn bhb-btn--small',
     text: t('steps.import'),
   });
-  importButton.addEventListener('click', () => {
+  importButton.addEventListener('click', async () => {
     try {
-      const pack = importSteps(transfer.value);
-      const lock = deps.getCanvasLock ? deps.getCanvasLock() : null;
-      deps.stepEditor.replaceAll(mergeSteps(deps.getSteps(), pack.steps));
-      transfer.value = mismatch(pack.lock, lock)
-        ? t('steps.importedButSized', {
-            from: `${pack.lock.width}×${pack.lock.height}`,
-            to: `${lock.width}×${lock.height}`,
-          })
-        : '';
-      deps.refresh();
-    } catch (error) {
-      transfer.value = `${t('steps.importFailed')}: ${error.message}`;
+      const text = await navigator.clipboard.readText();
+      transfer.value = text;
+      load(text);
+    } catch {
+      note.textContent = t('steps.pasteByHand');
+      transfer.focus();
     }
+  });
+
+  // Pasting straight into the box counts as asking for it to be loaded.
+  transfer.addEventListener('paste', (event) => {
+    const text = event.clipboardData && event.clipboardData.getData('text');
+    if (!text) {
+      return;
+    }
+    event.preventDefault();
+    transfer.value = text;
+    load(text);
   });
 
   const head = el('div', { class: 'bhb-field' }, [
@@ -190,6 +242,7 @@ export function renderStepsTab(deps) {
     el('div', { class: 'bhb-btnrow' }, [dryRun, pin]),
     el('div', { class: 'bhb-btnrow' }, [exportButton, importButton]),
     transfer,
+    note,
     el('p', { class: 'bhb-note', text: t('steps.captureHint') }),
     el('p', { class: 'bhb-note', text: t('steps.armHint') }),
     el('p', { class: 'bhb-note', text: t('steps.dryRunHint') }),

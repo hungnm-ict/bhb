@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.26.2
+// @version      0.27.0
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @icon         data:image/png;base64,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
@@ -15,7 +15,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.26.2" : "dev";
+  var VERSION = true ? "0.27.0" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -2088,11 +2088,15 @@
     "steps.captureHint": "Rê chuột lên nút trong game rồi bấm. Bot tự đọc màu lúc nút không sáng, rồi bấm luôn nút đó thật — game đi tiếp đúng như khi bước này chạy.",
     "steps.export": "Chép các bước này",
     "steps.import": "Dán bước vào",
-    "steps.transferHint": "Chép lấy đúng những gì bộ lọc đang hiện. Dán sẽ thay các hoạt động đó ở cửa sổ này, các hoạt động khác giữ nguyên.",
+    "steps.transferHint": "Ô này luôn sẵn nội dung theo bộ lọc đang hiện. Dán vào sẽ thay các hoạt động đó ở cửa sổ này, các hoạt động khác giữ nguyên.",
     "steps.importFailed": "Không đọc được",
     "steps.importedButSized": "Đã dán — nhưng bộ này bắt ở {from} còn cửa sổ đang khoá {to}, nên kiểm lại trước khi chạy thật.",
     "steps.kindSpent": "Bấm rồi dừng",
     "steps.kindSpentHint": "Bấm nó, rồi coi như hết tài nguyên: đang Chạy tất cả thì sang mục kế, chạy riêng thì dừng hẳn.",
+    "steps.copied": "Đã chép {n} bước",
+    "steps.copyByHand": "Bôi đen ô rồi tự chép — trình duyệt từ chối clipboard.",
+    "steps.pasteByHand": "Dán thẳng vào ô — trình duyệt từ chối clipboard.",
+    "steps.imported": "Đã nạp {n} bước",
     "steps.unnamed": "(chưa đặt tên)",
     "steps.enable": "Bật bước",
     "steps.disable": "Tắt bước",
@@ -2319,11 +2323,15 @@
     "steps.captureHint": "Hover a button in the game and press. The resting colour is read for you, and the button is then clicked for real, so the game moves on exactly as the step will drive it.",
     "steps.export": "Copy these steps",
     "steps.import": "Paste steps in",
-    "steps.transferHint": "Copy carries whatever the filter is showing. Paste replaces those activities on this window and leaves the others alone.",
+    "steps.transferHint": "The box holds whatever the filter is showing. Paste replaces those activities on this window and leaves the others alone.",
     "steps.importFailed": "Could not read that",
     "steps.importedButSized": "Pasted — but these were captured at {from} and this window is pinned to {to}, so check them before trusting a run.",
     "steps.kindSpent": "Click, then stop",
     "steps.kindSpentHint": "Click it, then treat the resource as spent: under Run-All the queue moves to the next activity, on its own the run ends.",
+    "steps.copied": "Copied {n} steps",
+    "steps.copyByHand": "Select the box and copy it yourself — the clipboard was refused.",
+    "steps.pasteByHand": "Paste into the box — the clipboard was refused.",
+    "steps.imported": "Loaded {n} steps",
     "steps.unnamed": "(unnamed)",
     "steps.enable": "Enable",
     "steps.disable": "Disable",
@@ -4309,6 +4317,8 @@
       row.classList.toggle("is-hovered", state.hoveredStepId === stepId);
     }
   }
+  var packBox = null;
+  var packedValue = null;
   function mismatch(packLock, windowLock) {
     if (!packLock || !windowLock) {
       return false;
@@ -4401,33 +4411,68 @@
       deps.refresh();
     });
     const legacyCount = all.filter((step) => step.points[0] && isLegacyPoint(step.points[0])).length;
-    const transfer = el("textarea", { class: "bhb-textarea" });
-    transfer.spellcheck = false;
+    if (!packBox) {
+      packBox = el("textarea", { class: "bhb-textarea" });
+      packBox.spellcheck = false;
+    }
+    const transfer = packBox;
     transfer.placeholder = t("steps.transferHint");
+    const lock = deps.getCanvasLock ? deps.getCanvasLock() : null;
+    const packed = steps.length > 0 ? exportSteps(steps, lock) : "";
+    if (transfer.value === packedValue || transfer.value === "") {
+      transfer.value = packed;
+    }
+    packedValue = packed;
+    function load(text) {
+      try {
+        const pack = importSteps(text);
+        deps.stepEditor.replaceAll(mergeSteps(deps.getSteps(), pack.steps));
+        note.textContent = mismatch(pack.lock, lock) ? t("steps.importedButSized", {
+          from: `${pack.lock.width}×${pack.lock.height}`,
+          to: `${lock.width}×${lock.height}`
+        }) : t("steps.imported", { n: pack.steps.length });
+        packedValue = null;
+        deps.refresh();
+      } catch (error) {
+        note.textContent = `${t("steps.importFailed")}: ${error.message}`;
+      }
+    }
+    const note = el("p", { class: "bhb-note" });
     const exportButton = el("button", {
       class: "bhb-btn bhb-btn--small",
       text: t("steps.export")
     });
-    exportButton.addEventListener("click", () => {
-      transfer.value = exportSteps(steps, deps.getCanvasLock ? deps.getCanvasLock() : null);
+    exportButton.addEventListener("click", async () => {
+      transfer.select();
+      try {
+        await navigator.clipboard.writeText(transfer.value);
+        note.textContent = t("steps.copied", { n: steps.length });
+      } catch {
+        note.textContent = t("steps.copyByHand");
+      }
     });
     const importButton = el("button", {
       class: "bhb-btn bhb-btn--small",
       text: t("steps.import")
     });
-    importButton.addEventListener("click", () => {
+    importButton.addEventListener("click", async () => {
       try {
-        const pack = importSteps(transfer.value);
-        const lock = deps.getCanvasLock ? deps.getCanvasLock() : null;
-        deps.stepEditor.replaceAll(mergeSteps(deps.getSteps(), pack.steps));
-        transfer.value = mismatch(pack.lock, lock) ? t("steps.importedButSized", {
-          from: `${pack.lock.width}×${pack.lock.height}`,
-          to: `${lock.width}×${lock.height}`
-        }) : "";
-        deps.refresh();
-      } catch (error) {
-        transfer.value = `${t("steps.importFailed")}: ${error.message}`;
+        const text = await navigator.clipboard.readText();
+        transfer.value = text;
+        load(text);
+      } catch {
+        note.textContent = t("steps.pasteByHand");
+        transfer.focus();
       }
+    });
+    transfer.addEventListener("paste", (event) => {
+      const text = event.clipboardData && event.clipboardData.getData("text");
+      if (!text) {
+        return;
+      }
+      event.preventDefault();
+      transfer.value = text;
+      load(text);
     });
     const head = el("div", { class: "bhb-field" }, [
       el("div", { class: "bhb-field__head" }, [
@@ -4440,6 +4485,7 @@
       el("div", { class: "bhb-btnrow" }, [dryRun, pin]),
       el("div", { class: "bhb-btnrow" }, [exportButton, importButton]),
       transfer,
+      note,
       el("p", { class: "bhb-note", text: t("steps.captureHint") }),
       el("p", { class: "bhb-note", text: t("steps.armHint") }),
       el("p", { class: "bhb-note", text: t("steps.dryRunHint") }),
