@@ -128,7 +128,10 @@ export function createPanel(deps) {
     target.style.display = 'flex';
     anchorTopRight(target);
 
-    const close = el('button', { class: 'bhb-icon', title: t('panel.close'), text: '✕' });
+    // Out of the tab strip and into the frame's own corner: the strip scrolls
+    // when the labels are long, and close is the one control that must never
+    // move or need scrolling to reach.
+    const close = el('button', { class: 'bhb-icon bhb-panel__close', title: t('panel.close'), text: '✕' });
     close.addEventListener('click', () => {
       deps.store.closePanel();
       deps.refresh();
@@ -174,6 +177,7 @@ export function createPanel(deps) {
     const help = tabs.pop();
 
     target.replaceChildren(
+      close,
       el('nav', { class: 'bhb-tabs' }, [
         ...tabs,
         el('span', { class: 'bhb-tabs__end' }, [
@@ -182,7 +186,6 @@ export function createPanel(deps) {
           el('span', { class: 'bhb-tabs__ver bhb-mono', text: `v${VERSION}` }),
           profile,
           help,
-          close,
         ]),
       ]),
       body
