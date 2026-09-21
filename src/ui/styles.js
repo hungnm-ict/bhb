@@ -176,7 +176,7 @@ const CSS = `
 
 .bhb-tabs {
   flex: none;
-  display: flex; align-items: center; gap: 0; padding: 7px 9px 0;
+  display: flex; align-items: center; gap: 0; padding: 7px 34px 0 9px;
   border-radius: 14px 14px 0 0;
   background: linear-gradient(90deg, rgba(124, 92, 255, .14), transparent 70%);
   background-color: var(--bhb-bg);
@@ -198,6 +198,14 @@ const CSS = `
 /* The strip scrolls, and close is not something to have to scroll for: this
    group stays pinned to the right edge while the tabs slide under it. Longer
    labels in another language were enough to push ✕ out of sight. */
+/* The frame's own corner, above the strip: close never scrolls away and never
+   moves when a language makes the tab labels longer. */
+.bhb-panel__close {
+  position: absolute; top: 5px; right: 6px; z-index: 2;
+  color: var(--bhb-text);
+}
+.bhb-panel__close:hover { color: var(--bhb-danger); }
+
 .bhb-tabs__end {
   position: sticky; right: 0;
   flex: none;
