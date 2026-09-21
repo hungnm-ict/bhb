@@ -68,8 +68,8 @@ describe('speed range', () => {
   it('snaps to the nearest stop and clamps to [0.1, 20]', async () => {
     const speed = await import('../src/core/speed.js');
 
-    speed.setSpeed(0.3);
-    expect(speed.getSpeed()).toBe(0.25);
+    speed.setSpeed(0.4);
+    expect(speed.getSpeed()).toBe(0.5);
 
     speed.setSpeed(6);
     expect(speed.getSpeed()).toBe(5);
