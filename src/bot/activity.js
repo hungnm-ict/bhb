@@ -86,3 +86,28 @@ export function activityCode(activity) {
   const letters = String(activity.name || '').replace(/[^\p{L}\p{N}]/gu, '');
   return letters ? letters.slice(0, 3).toUpperCase() : '?';
 }
+
+/**
+ * Put a profile's activities back in the order a session runs.
+ *
+ * A stored order always wins over the default — that is what lets the queue be
+ * reordered and stay reordered — so a profile made before the default changed
+ * keeps the old one until it is asked to catch up. Switches and names are the
+ * user's and are carried across untouched; anything not in the defaults keeps
+ * its relative order at the end.
+ *
+ * @param {Activity[]} activities
+ * @returns {Activity[]}
+ */
+export function sortToDefaultOrder(activities) {
+  const rank = new Map(DEFAULT_ACTIVITIES.map((activity, index) => [activity.id, index]));
+  const known = [];
+  const unknown = [];
+
+  for (const activity of activities) {
+    (rank.has(activity.id) ? known : unknown).push(activity);
+  }
+  known.sort((left, right) => rank.get(left.id) - rank.get(right.id));
+
+  return [...known, ...unknown];
+}

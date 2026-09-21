@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { activityCode, createDefaultActivities } from '../src/bot/activity.js';
+import {
+  activityCode,
+  createDefaultActivities,
+  sortToDefaultOrder,
+} from '../src/bot/activity.js';
 
 describe('activityCode', () => {
   it('gives each built-in activity a badge that fits the HUD', () => {
@@ -32,5 +36,53 @@ describe('activityCode', () => {
     expect(activityCode({ id: 'x', name: '' })).toBe('?');
     expect(activityCode({ id: 'x' })).toBe('?');
     expect(activityCode(null)).toBe('?');
+  });
+});
+
+describe('restoring the default order', () => {
+  it('puts a profile back in the order the roadmap runs', () => {
+    const stored = [
+      { id: 'pvp', name: 'PVP', enabled: true },
+      { id: 'dungeon', name: 'Dungeon', enabled: true },
+      { id: 'worldboss', name: 'World Boss (solo)', enabled: true },
+    ];
+
+    expect(sortToDefaultOrder(stored).map((one) => one.id)).toEqual([
+      'worldboss',
+      'dungeon',
+      'pvp',
+    ]);
+  });
+
+  it('keeps each activity switched the way the user left it', () => {
+    const stored = [
+      { id: 'pvp', name: 'PVP', enabled: false },
+      { id: 'worldboss', name: 'World Boss (solo)', enabled: true },
+    ];
+
+    const sorted = sortToDefaultOrder(stored);
+    expect(sorted.find((one) => one.id === 'pvp').enabled).toBe(false);
+  });
+
+  it('keeps a renamed activity under its own name', () => {
+    const stored = [{ id: 'dungeon', name: 'Hang ngục', enabled: true }];
+    expect(sortToDefaultOrder(stored)[0].name).toBe('Hang ngục');
+  });
+
+  it('leaves an activity it does not know at the end, in the order it was', () => {
+    const stored = [
+      { id: 'mine', name: 'Fishing', enabled: true },
+      { id: 'pvp', name: 'PVP', enabled: true },
+      { id: 'other', name: 'Trading', enabled: true },
+    ];
+
+    expect(sortToDefaultOrder(stored).map((one) => one.id)).toEqual(['pvp', 'mine', 'other']);
+  });
+
+  it('changes nothing when the order is already right', () => {
+    const already = createDefaultActivities();
+    expect(sortToDefaultOrder(already).map((one) => one.id)).toEqual(
+      already.map((one) => one.id)
+    );
   });
 });

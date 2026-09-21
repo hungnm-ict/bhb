@@ -79,6 +79,8 @@ export default {
   'queue.round': 'round {n}',
   'queue.stepCount': 'Steps tagged to this activity',
   'queue.closeAfterRound': 'Close the game after a full round',
+  'queue.restoreOrder': 'Restore the default order',
+  'queue.restoreOrderHint': 'World Boss first, then Dungeon, Raid, PVP, Trials, Invasion, Expedition, GVG. Switches and names are kept.',
   'queue.hint':
     'Runs top to bottom, skips what is out of resources, and starts again. Tag steps to an activity in the Steps tab.',
 
