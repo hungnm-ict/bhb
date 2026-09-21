@@ -195,9 +195,15 @@ const CSS = `
 /* Help is not a place to work, so it reads as a mark rather than a label. */
 .bhb-tabbtn--help { padding: 7px 7px 9px; font-size: var(--bhb-fs-md); }
 /* Pushed to the far end: these are not places to go, they are the way out. */
+/* The strip scrolls, and close is not something to have to scroll for: this
+   group stays pinned to the right edge while the tabs slide under it. Longer
+   labels in another language were enough to push ✕ out of sight. */
 .bhb-tabs__end {
-  margin-left: auto; padding-bottom: 2px;
+  position: sticky; right: 0;
+  flex: none;
+  margin-left: auto; padding-bottom: 2px; padding-left: 8px;
   display: flex; align-items: center; gap: 5px;
+  background: linear-gradient(90deg, transparent, var(--bhb-bg) 8px);
 }
 .bhb-tabbtn.is-active { color: var(--bhb-warn); border-bottom-color: var(--bhb-warn); }
 
