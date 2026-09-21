@@ -39,6 +39,8 @@ export default {
   'steps.transferHint': 'Chép lấy đúng những gì bộ lọc đang hiện. Dán sẽ thay các hoạt động đó ở cửa sổ này, các hoạt động khác giữ nguyên.',
   'steps.importFailed': 'Không đọc được',
   'steps.importedButSized': 'Đã dán — nhưng bộ này bắt ở {from} còn cửa sổ đang khoá {to}, nên kiểm lại trước khi chạy thật.',
+  'steps.kindSpent': 'Bấm rồi dừng',
+  'steps.kindSpentHint': 'Bấm nó, rồi coi như hết tài nguyên: đang Chạy tất cả thì sang mục kế, chạy riêng thì dừng hẳn.',
   'steps.unnamed': '(chưa đặt tên)',
   'steps.enable': 'Bật bước',
   'steps.disable': 'Tắt bước',

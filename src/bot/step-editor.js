@@ -226,13 +226,14 @@ export function createStepEditor(deps) {
    * How the step behaves: click it, click it if it happens to be there, or
    * hold the sequence while it is there.
    */
-  function setBehaviour(stepId, { kind, optional }) {
+  function setBehaviour(stepId, { kind, optional, endsRun }) {
     const step = find(stepId);
     if (!step) {
       return;
     }
     step.kind = kind === StepKind.WAIT ? StepKind.WAIT : StepKind.CLICK;
     step.optional = step.kind === StepKind.CLICK && optional === true;
+    step.endsRun = step.kind === StepKind.CLICK && endsRun === true;
     deps.persist();
   }
 

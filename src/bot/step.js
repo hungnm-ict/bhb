@@ -81,6 +81,14 @@ export function createStep(overrides = {}) {
     maxMatches: 0,
     /** Skip instead of waiting when it does not match — a box already ticked. */
     optional: false,
+    /**
+     * Clicking this one means the resource is spent.
+     *
+     * A screen could already say so; a step could not, and capturing a whole
+     * screen to express "the Play button went grey" is more work than the
+     * fact deserves.
+     */
+    endsRun: false,
     ...overrides,
   };
 }

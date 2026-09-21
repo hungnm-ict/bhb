@@ -558,6 +558,23 @@ export function createEngine(deps) {
       point: hit.point,
     });
     setMessage(`${hit.step.label || hit.step.id} → ${hit.clicked ? 'click' : 'busy'}`);
+
+    // The button that means the resource is spent. Same two endings as a
+    // screen that says it: under the queue this activity is done and the next
+    // one starts, on its own there is nothing to move to.
+    if (hit.clicked && hit.step.endsRun) {
+      const label = hit.step.label || hit.step.id;
+      report('resource', { label });
+      if (state.activeTask === TaskId.RUN_ALL) {
+        advanceQueue('spent');
+        return true;
+      }
+      const stopped = state.activeTask;
+      stop();
+      setMessage(`${stopped} stopped: ${label}`);
+      return true;
+    }
+
     return Boolean(hit.clicked);
   }
 
