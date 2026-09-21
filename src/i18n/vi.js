@@ -34,6 +34,11 @@ export default {
   'steps.capture': 'Bắt bước tại con trỏ',
   'steps.captureHint':
     'Rê chuột lên nút trong game rồi bấm. Bot tự đọc màu lúc nút không sáng, rồi bấm luôn nút đó thật — game đi tiếp đúng như khi bước này chạy.',
+  'steps.export': 'Chép các bước này',
+  'steps.import': 'Dán bước vào',
+  'steps.transferHint': 'Chép lấy đúng những gì bộ lọc đang hiện. Dán sẽ thay các hoạt động đó ở cửa sổ này, các hoạt động khác giữ nguyên.',
+  'steps.importFailed': 'Không đọc được',
+  'steps.importedButSized': 'Đã dán — nhưng bộ này bắt ở {from} còn cửa sổ đang khoá {to}, nên kiểm lại trước khi chạy thật.',
   'steps.unnamed': '(chưa đặt tên)',
   'steps.enable': 'Bật bước',
   'steps.disable': 'Tắt bước',
