@@ -34,6 +34,11 @@ export default {
   'steps.capture': 'Capture a step at the cursor',
   'steps.captureHint':
     'Hover a button in the game and press. The resting colour is read for you, and the button is then clicked for real, so the game moves on exactly as the step will drive it.',
+  'steps.export': 'Copy these steps',
+  'steps.import': 'Paste steps in',
+  'steps.transferHint': 'Copy carries whatever the filter is showing. Paste replaces those activities on this window and leaves the others alone.',
+  'steps.importFailed': 'Could not read that',
+  'steps.importedButSized': 'Pasted — but these were captured at {from} and this window is pinned to {to}, so check them before trusting a run.',
   'steps.unnamed': '(unnamed)',
   'steps.enable': 'Enable',
   'steps.disable': 'Disable',

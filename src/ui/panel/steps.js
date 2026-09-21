@@ -3,6 +3,7 @@ import { t } from '../../i18n/index.js';
 import { Keys, keyLabel } from '../../core/keys.js';
 import { StepKind, pointsByPlace } from '../../bot/step.js';
 import { isLegacyPoint } from '../../core/coords.js';
+import { exportSteps, importSteps, mergeSteps } from '../../bot/step-pack.js';
 
 /**
  * The steps table.
@@ -29,6 +30,14 @@ export function highlightSteps(state) {
     row.classList.toggle('is-selected', state.selectedStepId === stepId);
     row.classList.toggle('is-hovered', state.hoveredStepId === stepId);
   }
+}
+
+/** True when a pack was captured on a different pinned size than this window. */
+function mismatch(packLock, windowLock) {
+  if (!packLock || !windowLock) {
+    return false;
+  }
+  return packLock.width !== windowLock.width || packLock.height !== windowLock.height;
 }
 
 export function renderStepsTab(deps) {
@@ -135,6 +144,41 @@ export function renderStepsTab(deps) {
   // the window moves — loud enough to act on, not a ⚠ to squint at.
   const legacyCount = all.filter((step) => step.points[0] && isLegacyPoint(step.points[0])).length;
 
+  // Carrying a combo to another window: each instance is its own browser
+  // profile, so the only road between them is text.
+  const transfer = el('textarea', { class: 'bhb-textarea' });
+  transfer.spellcheck = false;
+  transfer.placeholder = t('steps.transferHint');
+
+  const exportButton = el('button', {
+    class: 'bhb-btn bhb-btn--small',
+    text: t('steps.export'),
+  });
+  exportButton.addEventListener('click', () => {
+    transfer.value = exportSteps(steps, deps.getCanvasLock ? deps.getCanvasLock() : null);
+  });
+
+  const importButton = el('button', {
+    class: 'bhb-btn bhb-btn--small',
+    text: t('steps.import'),
+  });
+  importButton.addEventListener('click', () => {
+    try {
+      const pack = importSteps(transfer.value);
+      const lock = deps.getCanvasLock ? deps.getCanvasLock() : null;
+      deps.stepEditor.replaceAll(mergeSteps(deps.getSteps(), pack.steps));
+      transfer.value = mismatch(pack.lock, lock)
+        ? t('steps.importedButSized', {
+            from: `${pack.lock.width}×${pack.lock.height}`,
+            to: `${lock.width}×${lock.height}`,
+          })
+        : '';
+      deps.refresh();
+    } catch (error) {
+      transfer.value = `${t('steps.importFailed')}: ${error.message}`;
+    }
+  });
+
   const head = el('div', { class: 'bhb-field' }, [
     el('div', { class: 'bhb-field__head' }, [
       el('span', { class: 'bhb-label', text: `${t('overlay.steps')} · ${steps.length}` }),
@@ -144,6 +188,8 @@ export function renderStepsTab(deps) {
     arm,
     capture,
     el('div', { class: 'bhb-btnrow' }, [dryRun, pin]),
+    el('div', { class: 'bhb-btnrow' }, [exportButton, importButton]),
+    transfer,
     el('p', { class: 'bhb-note', text: t('steps.captureHint') }),
     el('p', { class: 'bhb-note', text: t('steps.armHint') }),
     el('p', { class: 'bhb-note', text: t('steps.dryRunHint') }),

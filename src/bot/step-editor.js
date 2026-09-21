@@ -303,8 +303,21 @@ export function createStepEditor(deps) {
     deps.persist();
   }
 
+  /**
+   * Swap the whole list, keeping the array the profile holds.
+   *
+   * The profile owns the array, so it is emptied and refilled rather than
+   * replaced — everything else here mutates in place for the same reason.
+   */
+  function replaceAll(next) {
+    const steps = deps.getSteps();
+    steps.splice(0, steps.length, ...next);
+    deps.persist();
+  }
+
   return {
     captureAtCursor,
+    replaceAll,
     rename,
     setEnabled,
     setScreens,

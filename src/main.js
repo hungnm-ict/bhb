@@ -262,6 +262,12 @@ function bootstrap() {
         setFrameMultiplier(changes.multiplyFrames);
       }
     },
+    // Null when the canvas is not pinned: a pack from an unpinned window says
+    // nothing about size, and nothing is the honest answer.
+    getCanvasLock: () =>
+      settings.canvasLock.enabled
+        ? { width: settings.canvasLock.width, height: settings.canvasLock.height }
+        : null,
     getEngineState: engine.getState,
     toggleTask: engine.toggle,
     getRunTarget: () => settings.runTarget,
