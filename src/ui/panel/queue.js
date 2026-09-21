@@ -104,9 +104,20 @@ export function renderQueueSection(deps) {
     ]);
   });
 
+  const restore = el('button', {
+    class: 'bhb-btn bhb-btn--small',
+    title: t('queue.restoreOrderHint'),
+    text: t('queue.restoreOrder'),
+  });
+  restore.addEventListener('click', () => {
+    deps.queueEditor.restoreOrder();
+    deps.refresh();
+  });
+
   return el('div', { class: 'bhb-field' }, [
     head,
     el('p', { class: 'bhb-note', text: t('queue.hint') }),
     el('div', { class: 'bhb-steps' }, rows),
+    el('div', { class: 'bhb-btnrow' }, [restore]),
   ]);
 }

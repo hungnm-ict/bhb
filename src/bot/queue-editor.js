@@ -1,3 +1,4 @@
+import { sortToDefaultOrder } from './activity.js';
 /**
  * Enabling and reordering the Run-All queue.
  *
@@ -29,5 +30,18 @@ export function createQueueEditor(deps) {
     deps.persist();
   }
 
-  return { setEnabled, move };
+  /**
+   * Catch a profile up with the order a session runs in.
+   *
+   * A stored order wins over the default, so a profile made before the default
+   * changed keeps the old one until it is asked. The array is refilled rather
+   * than replaced because the profile owns it.
+   */
+  function restoreOrder() {
+    const activities = deps.getActivities();
+    activities.splice(0, activities.length, ...sortToDefaultOrder([...activities]));
+    deps.persist();
+  }
+
+  return { setEnabled, move, restoreOrder };
 }
