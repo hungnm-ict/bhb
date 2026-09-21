@@ -27,9 +27,15 @@ vi.mock('../src/core/timers.js', () => ({
   },
 }));
 
-const { installSpeedHack, setSpeed, setFrameMultiplier, getFrameRates } = await import(
-  '../src/core/speed.js'
-);
+const {
+  installSpeedHack,
+  setSpeed,
+  setFrameMultiplier,
+  setFrameBudget,
+  getFrameBudget,
+  reportFrameRate,
+  getFrameRates,
+} = await import('../src/core/speed.js');
 
 beforeEach(() => {
   // The clock never rewinds: the counting window is module state, and a clock
@@ -38,6 +44,7 @@ beforeEach(() => {
   frameCost = 0;
   setSpeed(1);
   setFrameMultiplier(true);
+  setFrameBudget(15);
   installSpeedHack();
   // The counting window is module state and the fake clock restarts at zero,
   // so roll it once to start this test's window here.
@@ -142,5 +149,95 @@ describe('the frame budget', () => {
 
     expect(loop).toHaveBeenCalledTimes(1);
     expect(spent, 'one frame, not two or three').toBeLessThan(45);
+  });
+});
+
+describe('the share of a frame a run may take', () => {
+  it('defaults to what shipped', () => {
+    expect(getFrameBudget()).toBe(15);
+  });
+
+  it('refuses a budget that would eat the whole frame, or none of it', () => {
+    setFrameBudget(500);
+    expect(getFrameBudget()).toBeLessThanOrEqual(25);
+    setFrameBudget(0);
+    expect(getFrameBudget()).toBeGreaterThanOrEqual(3);
+    setFrameBudget('nonsense');
+    expect(getFrameBudget()).toBeGreaterThanOrEqual(3);
+  });
+
+  it('spends less of each frame when it is given less', () => {
+    // Three instances on one machine each want a slice; the point of the dial
+    // is that the slices can be made to add up to one frame instead of three.
+    frameCost = 2;
+    setSpeed(20);
+    setFrameBudget(4);
+    const loop = startLoop();
+
+    tickFrame();
+
+    expect(
+      loop.mock.calls.length,
+      'a small budget buys a few cheap frames, not twenty'
+    ).toBeLessThan(6);
+  });
+
+  it('buys more frames when it is given more', () => {
+    frameCost = 2;
+    setSpeed(20);
+    setFrameBudget(20);
+    const loop = startLoop();
+
+    tickFrame();
+
+    expect(loop.mock.calls.length).toBeGreaterThan(4);
+  });
+});
+
+describe('finding its own share of the machine', () => {
+  it('gives ground when frames are scarce', () => {
+    // Three instances on one machine: each sees its own frame rate fall and
+    // backs off, so they settle into a share without knowing about each other.
+    setSpeed(20);
+    const before = getFrameBudget();
+
+    reportFrameRate({ real: 12, game: 20 });
+
+    expect(getFrameBudget()).toBeLessThan(before);
+  });
+
+  it('takes more back when the machine is idle again', () => {
+    setSpeed(20);
+    setFrameBudget(6);
+
+    reportFrameRate({ real: 58, game: 120 });
+
+    expect(getFrameBudget()).toBeGreaterThan(6);
+  });
+
+  it('holds still inside the band, rather than hunting', () => {
+    setSpeed(20);
+    setFrameBudget(10);
+
+    reportFrameRate({ real: 35, game: 70 });
+
+    expect(getFrameBudget()).toBe(10);
+  });
+
+  it('never gives away so much that a frame cannot run', () => {
+    setSpeed(20);
+    for (let i = 0; i < 40; i += 1) {
+      reportFrameRate({ real: 3, game: 3 });
+    }
+    expect(getFrameBudget()).toBeGreaterThanOrEqual(3);
+  });
+
+  it('leaves the budget alone when nothing is boosted', () => {
+    setSpeed(1);
+    setFrameBudget(12);
+
+    reportFrameRate({ real: 5, game: 5 });
+
+    expect(getFrameBudget(), 'at 1x the budget buys nothing either way').toBe(12);
   });
 });

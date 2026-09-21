@@ -8,6 +8,7 @@ import {
   speedIndex,
   stepSpeed,
   getFrameRates,
+  getFrameBudget,
   getClockDrift,
   resetClock,
 } from '../../core/speed.js';
@@ -132,7 +133,9 @@ function describeFrames() {
   if (getSpeed() <= 1) {
     return `${real} fps`;
   }
-  return `${real} fps · ${formatSpeed(Math.round(effective * 10) / 10)}× real`;
+  // The budget is shown because it moves on its own: seeing it fall is what
+  // tells you the machine is busy, rather than the bot being broken.
+  return `${real} fps · ${formatSpeed(Math.round(effective * 10) / 10)}× real · ${getFrameBudget()}ms`;
 }
 
 function describeCanvas() {

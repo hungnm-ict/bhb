@@ -57,6 +57,7 @@ function rollFrameWindow() {
   realFrames = 0;
   gameFrames = 0;
   windowStartedAt = realPerformanceNow();
+  reportFrameRate(rates);
 }
 
 /**
@@ -66,6 +67,61 @@ function rollFrameWindow() {
 export function getFrameRates() {
   rollFrameWindow();
   return rates;
+}
+
+/**
+ * How much of each real frame a boost may spend running extra game frames.
+ *
+ * It tunes itself, and it has to: the budget is per instance, but the machine
+ * is not. Three windows each taking 15ms of a 16.7ms frame ask for three
+ * machines. Each one watching its own frame rate and giving ground is how they
+ * settle into a share without any of them knowing the others exist.
+ */
+const BUDGET_MIN_MS = 3;
+const BUDGET_MAX_MS = 25;
+const BUDGET_STEP_MS = 2;
+
+/** The band the tuner aims to keep the browser's own frame rate inside. */
+const FPS_FLOOR = 25;
+const FPS_CEILING = 45;
+
+let frameBudget = 15;
+
+/** @returns {number} milliseconds of each real frame a burst may use */
+export function getFrameBudget() {
+  return frameBudget;
+}
+
+/** @param {number} ms clamped to something that can still run one frame */
+export function setFrameBudget(ms) {
+  const wanted = Number(ms);
+  if (!Number.isFinite(wanted)) {
+    frameBudget = BUDGET_MIN_MS;
+    return;
+  }
+  frameBudget = Math.max(BUDGET_MIN_MS, Math.min(BUDGET_MAX_MS, Math.round(wanted)));
+}
+
+/**
+ * Hand the tuner a second's worth of frames.
+ *
+ * Called from the rolling window, and exported so the loop can be driven
+ * directly rather than waited out.
+ *
+ * @param {{ real: number }} measured
+ */
+export function reportFrameRate(measured) {
+  // At 1x nothing extra is being run, so the budget buys nothing either way.
+  if (speed <= 1 || !multiplyFrames) {
+    return;
+  }
+  if (measured.real < FPS_FLOOR) {
+    setFrameBudget(frameBudget - BUDGET_STEP_MS);
+    return;
+  }
+  if (measured.real > FPS_CEILING) {
+    setFrameBudget(frameBudget + BUDGET_STEP_MS);
+  }
 }
 
 /** Set by `installFrameMultiplier`; a no-op until the hack is installed. */
@@ -227,11 +283,10 @@ export function installSpeedHack() {
  * what gets the single real frame scheduled at the end of it. Drop that and
  * the loop simply stops.
  *
- * `FRAME_BUDGET_MS` caps the catch-up so a slow frame cannot stall the
+ * The frame budget caps the catch-up so a slow frame cannot stall the
  * browser; `owed` carries the remainder into the next frame.
  */
 function installFrameMultiplier() {
-  const FRAME_BUDGET_MS = 15;
 
   /** Callback registered from inside the current burst. */
   let pending = null;
@@ -332,7 +387,7 @@ function installFrameMultiplier() {
         if (!pending) {
           break;
         }
-        if (realPerformanceNow() - startedAt > FRAME_BUDGET_MS) {
+        if (realPerformanceNow() - startedAt > frameBudget) {
           owed = 0;
           break;
         }
