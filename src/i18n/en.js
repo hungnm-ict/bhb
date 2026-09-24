@@ -229,7 +229,6 @@ export default {
   'lock.size': 'Size',
   'lock.sizeHint': 'All three are 1.6 wide, so a step set captured at one still lands at another.',
 
-  'help.closePanel': 'Close the control panel',
 
   'settings.onCount': '{n}/{total} on',
   'settings.queueCount': '{n} activities',
