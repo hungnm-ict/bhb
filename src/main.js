@@ -380,15 +380,6 @@ function bootstrap() {
   installHotkeys({
     // The keyboard reference has no key of its own; it opens from the panel.
     [Keys.PANEL]: () => store.togglePanel(),
-    [Keys.CLOSE_PANEL]: () => {
-      // Declined when there is nothing to close, so the game keeps its Esc.
-      if (!store.get().panelOpen) {
-        return false;
-      }
-      store.closePanel();
-      refresh();
-      return true;
-    },
     [Keys.RUN]: () => {
       runSelected();
       refresh();

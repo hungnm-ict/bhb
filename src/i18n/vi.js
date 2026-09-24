@@ -229,7 +229,6 @@ export default {
   'lock.size': 'Kích cỡ',
   'lock.sizeHint': 'Cả ba đều tỉ lệ 1.6, nên bộ bước bắt ở cỡ này vẫn rơi đúng chỗ ở cỡ khác.',
 
-  'help.closePanel': 'Đóng bảng điều khiển',
 
   'settings.onCount': '{n}/{total} bật',
   'settings.queueCount': '{n} hoạt động',
