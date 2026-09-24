@@ -43,6 +43,13 @@ export function installFocusPatch() {
 
   for (const type of SUPPRESSED_EVENTS) {
     const swallow = (event) => {
+      // Only the page's own blur. A capture listener here also sees every
+      // element's blur/focusout on the way down, and swallowing those left the
+      // game's chat field focused in the DOM but dead to the game: Enter sent
+      // nothing and the typed line stayed put.
+      if (event.target instanceof Element) {
+        return;
+      }
       event.stopImmediatePropagation();
       event.preventDefault();
     };
