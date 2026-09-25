@@ -143,6 +143,15 @@ function renderStats(deps) {
  * @param {() => void} deps.resetStats
  * @param {() => void} deps.refresh
  */
+/**
+ * The report box outlives its render, like the step transfer box: the panel
+ * rebuilds every tick, and a block of text that vanished under the user's
+ * hands before they could select it would be no use at all.
+ *
+ * @type {HTMLTextAreaElement | null}
+ */
+let reportBox = null;
+
 export function renderLogTab(deps) {
   const entries = deps.store.get().log;
   const stats = renderStats(deps);
@@ -150,12 +159,34 @@ export function renderLogTab(deps) {
   const clear = el('button', { class: 'bhb-btn', text: t('log.clear') });
   clear.addEventListener('click', () => {
     deps.store.clearLog();
+    // The stored copy too, or the next reload brings it all back.
+    deps.clearStoredLog();
     deps.refresh();
   });
+
+  if (!reportBox) {
+    reportBox = el('textarea', { class: 'bhb-transfer bhb-mono' });
+    reportBox.rows = 4;
+    reportBox.spellcheck = false;
+    reportBox.placeholder = t('log.reportHint');
+  }
+
+  const report = el('button', { class: 'bhb-btn', text: t('log.report') });
+  report.addEventListener('click', () => {
+    reportBox.value = deps.buildReport();
+    reportBox.focus();
+    reportBox.select();
+  });
+
+  const reportRow = el('div', { class: 'bhb-field' }, [
+    el('div', { class: 'bhb-btnrow' }, [report]),
+    reportBox,
+  ]);
 
   if (entries.length === 0) {
     return el('div', { class: 'bhb-tab' }, [
       stats,
+      reportRow,
       el('p', { class: 'bhb-empty', text: t('log.empty') }),
     ]);
   }
@@ -174,6 +205,7 @@ export function renderLogTab(deps) {
 
   return el('div', { class: 'bhb-tab' }, [
     stats,
+    reportRow,
     el('div', { class: 'bhb-field__head' }, [
       el('span', { class: 'bhb-label', text: `${t('log.title')} · ${entries.length}` }),
       clear,

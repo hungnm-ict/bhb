@@ -2,6 +2,7 @@ import {
   STORAGE_KEY_PROFILES,
   STORAGE_KEY_SETTINGS,
   STORAGE_KEY_LEGACY_RULES,
+  STORAGE_KEY_LOG,
   DEFAULT_COLOR_TOLERANCE,
 } from './constants.js';
 import { createStep } from '../bot/step.js';
@@ -326,6 +327,9 @@ export function loadSettings() {
     // Screens are a rarely-needed refinement, so the tab stays out of the way
     // until someone asks for it. Stored screens keep gating steps either way.
     showScreens: stored.showScreens === true,
+    // On by default: the watchdog reloads the page exactly when the log was
+    // about to be worth reading.
+    keepLog: stored.keepLog !== false,
     // Drift belongs to a boost, not to the account: carrying hours of it into
     // another character is what conjures a daily reset out of nothing.
     keepAlive: stored.keepAlive !== false,
@@ -338,6 +342,20 @@ export function loadSettings() {
     // Which settings section is expanded; it is usually the same one twice.
     openSection: typeof stored.openSection === 'string' ? stored.openSection : null,
   };
+}
+
+/** @returns {object[]} newest first, as the store keeps it */
+export function loadLog() {
+  const stored = readJson(STORAGE_KEY_LOG);
+  return Array.isArray(stored) ? stored : [];
+}
+
+export function saveLog(entries) {
+  return writeJson(STORAGE_KEY_LOG, entries);
+}
+
+export function clearStoredLog() {
+  return writeJson(STORAGE_KEY_LOG, []);
 }
 
 export function saveSettings(settings) {

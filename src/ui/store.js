@@ -20,7 +20,10 @@ export const Tab = Object.freeze({
 /** Entries beyond this are dropped. The log describes a session, not history. */
 export const LOG_LIMIT = 200;
 
-export function createUiStore() {
+/**
+ * @param {object[]} [restoredLog] entries from a previous page, newest first
+ */
+export function createUiStore(restoredLog = []) {
   const emitter = createEmitter();
 
   const state = {
@@ -83,7 +86,7 @@ export function createUiStore() {
     dryRun: null,
 
     /** @type {object[]} newest first */
-    log: [],
+    log: Array.isArray(restoredLog) ? restoredLog.slice(0, LOG_LIMIT) : [],
   };
 
   /**
