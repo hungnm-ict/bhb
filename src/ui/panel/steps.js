@@ -3,6 +3,7 @@ import { t } from '../../i18n/index.js';
 import { Keys, keyLabel } from '../../core/keys.js';
 import { StepKind, pointsByPlace } from '../../bot/step.js';
 import { isLegacyPoint } from '../../core/coords.js';
+import { startDragSelect } from '../dragselect.js';
 import { exportSteps, importSteps, mergeSteps } from '../../bot/step-pack.js';
 
 /**
@@ -336,6 +337,7 @@ export function renderStepsTab(deps) {
       ['click', 'steps.kindClick'],
       ['optional', 'steps.kindOptional'],
       ['wait', 'steps.kindWait'],
+      ['count', 'steps.kindCount'],
       ['spent', 'steps.kindSpent'],
     ]) {
       const option = el('option', { text: t(labelKey) });
@@ -345,14 +347,17 @@ export function renderStepsTab(deps) {
     behaviour.value =
       step.kind === StepKind.WAIT
         ? 'wait'
-        : step.endsRun
-          ? 'spent'
-          : step.optional
-            ? 'optional'
-            : 'click';
+        : step.kind === StepKind.COUNT
+          ? 'count'
+          : step.endsRun
+            ? 'spent'
+            : step.optional
+              ? 'optional'
+              : 'click';
     behaviour.addEventListener('change', () => {
+      const kinds = { wait: StepKind.WAIT, count: StepKind.COUNT };
       deps.stepEditor.setBehaviour(step.id, {
-        kind: behaviour.value === 'wait' ? StepKind.WAIT : StepKind.CLICK,
+        kind: kinds[behaviour.value] || StepKind.CLICK,
         optional: behaviour.value === 'optional',
         endsRun: behaviour.value === 'spent',
       });
@@ -371,8 +376,48 @@ export function renderStepsTab(deps) {
       deps.refresh();
     });
 
+    // How many changes to wait out, and how long before giving up on them.
+    const countTarget = el('input', { class: 'bhb-rest bhb-mono', title: t('steps.countToHint') });
+    countTarget.type = 'number';
+    countTarget.min = '0';
+    countTarget.max = '99';
+    countTarget.value = String(step.countTo || 0);
+    countTarget.addEventListener('change', () => {
+      deps.stepEditor.setCount(step.id, { countTo: countTarget.value });
+      deps.refresh();
+    });
+
+    const countCap = el('input', { class: 'bhb-rest bhb-mono', title: t('steps.countCapHint') });
+    countCap.type = 'number';
+    countCap.min = '0';
+    countCap.max = '3600';
+    countCap.value = String(step.countCap || 0);
+    countCap.addEventListener('change', () => {
+      deps.stepEditor.setCount(step.id, { countCap: countCap.value });
+      deps.refresh();
+    });
+
+    const drawRegion = el('button', {
+      class: 'bhb-icon bhb-step__region',
+      title: t('steps.drawRegion'),
+      text: '▭',
+    });
+    drawRegion.addEventListener('click', () => {
+      // The panel covers the game, so it gets out of the way for the drag.
+      deps.store.closePanel();
+      deps.refresh();
+      startDragSelect((rect) => {
+        if (rect) {
+          deps.stepEditor.captureRegion(rect, step.id);
+        }
+        deps.store.openPanel();
+        deps.refresh();
+      });
+    });
+
     const places = pointsByPlace(step);
     const isWait = step.kind === StepKind.WAIT;
+    const isCount = step.kind === StepKind.COUNT;
 
     // A wait can watch several places at once, and then it is a count that
     // matters: four empty party slots, at most two of them still empty.
@@ -424,12 +469,19 @@ export function renderStepsTab(deps) {
         el('span', { class: 'bhb-rule__n', text: String(index + 1) }),
         el('span', { class: 'bhb-rule__swatch', style: { background: step.hex || 'transparent' } }),
         name,
-        el('span', { class: 'bhb-rule__actions' }, [addPlace, toggle, up, down, remove]),
+        el('span', { class: 'bhb-rule__actions' }, [
+          isCount ? drawRegion : addPlace,
+          toggle,
+          up,
+          down,
+          remove,
+        ]),
       ]),
       el('div', { class: 'bhb-rule__meta' }, [
         behaviour,
         placeCount,
-        isWait ? threshold : rest,
+        isCount ? countTarget : isWait ? threshold : rest,
+        isCount ? countCap : null,
         el('span', { class: 'bhb-rule__meta-coord' }, [
           el('span', {
             class: 'bhb-rule__coord bhb-mono',

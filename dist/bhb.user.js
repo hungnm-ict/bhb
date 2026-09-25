@@ -501,6 +501,26 @@
     const offset = (row * region.w + col) * 4;
     return { r: region.data[offset], g: region.data[offset + 1], b: region.data[offset + 2] };
   }
+  var DEFAULT_CHANGE_RATIO = 0.02;
+  function regionsDiffer(left, right, tolerance, changeRatio = DEFAULT_CHANGE_RATIO) {
+    if (!left || !right) {
+      return true;
+    }
+    if (left.w !== right.w || left.h !== right.h) {
+      return true;
+    }
+    const pixels = left.w * left.h;
+    if (pixels === 0) {
+      return false;
+    }
+    let moved = 0;
+    for (let offset = 0; offset < pixels * 4; offset += 4) {
+      if (Math.abs(left.data[offset] - right.data[offset]) > tolerance || Math.abs(left.data[offset + 1] - right.data[offset + 1]) > tolerance || Math.abs(left.data[offset + 2] - right.data[offset + 2]) > tolerance) {
+        moved += 1;
+      }
+    }
+    return moved / pixels > changeRatio;
+  }
   function captureFingerprint(gl, rect) {
     const region = readRegion(gl, rect.x, rect.y, rect.w, rect.h);
     if (!region) {
@@ -685,7 +705,8 @@
   // src/bot/step.js
   var StepKind = Object.freeze({
     CLICK: "click",
-    WAIT: "wait"
+    WAIT: "wait",
+    COUNT: "count"
   });
   function createStepId() {
     return `r${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
@@ -716,6 +737,13 @@
        * is "wait until three players are here", whichever seats they took.
        */
       maxMatches: 0,
+      /**
+       * For a count step: how many times its region must settle at a new
+       * picture before the sequence goes on. Seven is an Invasion's waves.
+       */
+      countTo: 0,
+      /** Seconds before a count that is going nowhere gives up and moves on. */
+      countCap: 180,
       /** Skip instead of waiting when it does not match — a box already ticked. */
       optional: false,
       /**
@@ -732,6 +760,9 @@
   function isStepReady(step) {
     if (!step.enabled || step.points.length === 0) {
       return false;
+    }
+    if (step.kind === StepKind.COUNT) {
+      return step.points.some(isRegionPoint);
     }
     return Boolean(step.hex) || step.points.every(isRegionPoint);
   }
@@ -937,6 +968,9 @@
     let queueIndex = 0;
     let idleSince = 0;
     const cursor = { key: null, index: 0, missingSince: 0 };
+    const tally = { stepId: null, count: 0, mark: null, previous: null, since: 0 };
+    let isCounting = false;
+    let hasCounted = false;
     let restingUntil = 0;
     let pace = FIRST_PACE;
     let screenJustChanged = false;
@@ -1083,6 +1117,48 @@
       }
       return seen;
     }
+    function runCount(step, gl, buffer, scaleMode) {
+      const watched = step.points.find(isRegionPoint);
+      if (!watched) {
+        return "done";
+      }
+      if (tally.stepId !== step.id) {
+        tally.stepId = step.id;
+        tally.count = 0;
+        tally.mark = null;
+        tally.previous = null;
+        tally.since = realNow();
+      }
+      const goal = Math.max(0, Math.round(Number(step.countTo) || 0));
+      if (tally.count >= goal) {
+        return "done";
+      }
+      const rect = resolveRect(watched, buffer, scaleMode);
+      const reading = readRegion(gl, rect.x, rect.y, rect.w, rect.h);
+      if (reading) {
+        if (!tally.mark) {
+          tally.mark = reading;
+          tally.previous = reading;
+        } else {
+          const hasSettled = !regionsDiffer(reading, tally.previous, step.tolerance);
+          const hasMoved = regionsDiffer(reading, tally.mark, step.tolerance);
+          if (hasSettled && hasMoved) {
+            tally.count += 1;
+            tally.mark = reading;
+            hasCounted = true;
+          }
+          tally.previous = reading;
+        }
+      }
+      if (tally.count >= goal) {
+        return "done";
+      }
+      const cap = Number(step.countCap) || 0;
+      if (cap > 0 && realNow() - tally.since >= cap * 1e3) {
+        return "capped";
+      }
+      return "waiting";
+    }
     function tryStep(step, canvas, gl, screenId, buffer, scaleMode) {
       const point = matchStep(step, gl, screenId, buffer, scaleMode);
       if (!point) {
@@ -1126,6 +1202,26 @@
             );
             return null;
           }
+          cursor.index = (cursor.index + 1) % steps.length;
+          continue;
+        }
+        if (expected.kind === StepKind.COUNT && isStepReady(expected)) {
+          isCounting = true;
+          const verdict = runCount(expected, gl, buffer, scaleMode);
+          const label = expected.label || expected.id;
+          const goal = Number(expected.countTo) || 0;
+          if (verdict === "waiting") {
+            cursor.missingSince = 0;
+            setMessage(`${label}: ${tally.count}/${goal}`);
+            return null;
+          }
+          if (verdict === "capped") {
+            report("idle", { label });
+            setMessage(`${label}: gave up after ${expected.countCap}s`);
+          } else if (goal > 0) {
+            setMessage(`${label}: ${tally.count}/${goal}`);
+          }
+          tally.stepId = null;
           cursor.index = (cursor.index + 1) % steps.length;
           continue;
         }
@@ -1209,8 +1305,17 @@
       }
       const task = TASKS[state.activeTask];
       nearest = null;
+      isCounting = false;
+      hasCounted = false;
       const hit = runSequence(task.getSteps(), target.canvas, target.gl, state.screen);
+      if (hasCounted) {
+        idleSince = realNow();
+        state.lastActionAt = realNow();
+      }
       if (!hit) {
+        if (isCounting) {
+          return false;
+        }
         if (state.activeTask === TaskId.RUN_ALL) {
           if (realNow() - idleSince >= IDLE_ADVANCE_MS) {
             advanceQueue("idle");
@@ -1253,12 +1358,12 @@
     }
     function schedulePoll() {
       const resting = restingUntil > realNow();
-      const delay = resting ? SCRIPT_PACE_LADDER[SCRIPT_PACE_LADDER.length - 1] : pace;
+      const delay = resting ? SCRIPT_PACE_LADDER[SCRIPT_PACE_LADDER.length - 1] : isCounting ? FIRST_PACE : pace;
       pollTimer = realSetTimeout(() => {
         const wasResting = restingUntil > realNow();
         const clicked = tick();
         if (!wasResting) {
-          pace = nextPace(pace, clicked || screenJustChanged);
+          pace = nextPace(pace, clicked || screenJustChanged || isCounting);
         }
         screenJustChanged = false;
         if (state.activeTask) {
@@ -2290,6 +2395,10 @@
     "steps.kindClick": "Bấm",
     "steps.kindOptional": "Bấm nếu có",
     "steps.kindWait": "Chờ đến khi hết",
+    "steps.kindCount": "Đếm đổi",
+    "steps.countToHint": "Ô được theo dõi phải đổi bao nhiêu lần thì mới đi tiếp",
+    "steps.countCapHint": "Quá bao nhiêu giây không đếm được thì bỏ qua",
+    "steps.drawRegion": "Khoanh ô cần theo dõi",
     "steps.behaviourHint": "Bấm: thấy màu thì bấm, chưa thấy thì đợi. Bấm nếu có: không thấy thì bỏ qua luôn, sang bước sau — dùng cho ô tick sẵn như Private. Chờ đến khi hết: còn thấy màu là còn đứng chờ, mất mới đi tiếp — dùng để chờ đủ người trước khi bấm START.",
     "steps.addPlace": "Thêm một chỗ nữa vào bước này (bảng sẽ ẩn đi, rê chuột rồi bấm X)",
     "steps.placeCount": "Số chỗ bước này nhìn vào",
@@ -2527,6 +2636,10 @@
     "steps.kindClick": "Click",
     "steps.kindOptional": "Click if present",
     "steps.kindWait": "Wait until gone",
+    "steps.kindCount": "Count changes",
+    "steps.countToHint": "How many times the watched box must change before the sequence goes on",
+    "steps.countCapHint": "Seconds before a count that is going nowhere gives up",
+    "steps.drawRegion": "Draw the box to watch",
     "steps.behaviourHint": "Click: click when the colour shows, wait otherwise. Click if present: skip straight on when it does not — for a box like Private that may already be ticked. Wait until gone: hold here while the colour is there — for waiting on a party to fill before Start.",
     "steps.addPlace": "Watch one more place (the panel steps aside; hover and press X)",
     "steps.placeCount": "How many places this step watches",
@@ -2695,7 +2808,7 @@
       if (!step) {
         return;
       }
-      step.kind = kind === StepKind.WAIT ? StepKind.WAIT : StepKind.CLICK;
+      step.kind = kind === StepKind.WAIT ? StepKind.WAIT : kind === StepKind.COUNT ? StepKind.COUNT : StepKind.CLICK;
       step.endsRun = step.kind === StepKind.CLICK && endsRun === true;
       step.optional = step.kind === StepKind.CLICK && (optional === true || step.endsRun);
       deps.persist();
@@ -2707,6 +2820,49 @@
       }
       step.maxMatches = Math.max(0, Math.min(20, Math.round(Number(count) || 0)));
       deps.persist();
+    }
+    function setCount(stepId, { countTo, countCap }) {
+      const step = find(stepId);
+      if (!step) {
+        return;
+      }
+      if (countTo !== void 0) {
+        step.countTo = Math.max(0, Math.min(99, Math.round(Number(countTo) || 0)));
+      }
+      if (countCap !== void 0) {
+        step.countCap = Math.max(0, Math.min(3600, Math.round(Number(countCap) || 0)));
+      }
+      deps.persist();
+    }
+    function captureRegion(rect, stepId) {
+      const step = find(stepId);
+      if (!step) {
+        return null;
+      }
+      const target = getRenderTarget();
+      if (!target) {
+        deps.report(t("msg.noCanvas"));
+        return null;
+      }
+      const { canvas, gl } = target;
+      const origin = clientToBuffer(canvas, rect.left, rect.top + rect.height);
+      const far = clientToBuffer(canvas, rect.left + rect.width, rect.top);
+      const buffer = getBufferSize(canvas);
+      const fingerprint = captureFingerprint(gl, {
+        x: origin.x,
+        y: origin.y,
+        w: Math.max(1, far.x - origin.x),
+        h: Math.max(1, far.y - origin.y),
+        bw: buffer.width,
+        bh: buffer.height
+      });
+      if (!fingerprint) {
+        deps.report(t("msg.noWebgl"));
+        return null;
+      }
+      step.points = [fingerprint];
+      deps.persist();
+      return step;
     }
     function removePlace(stepId, placeIndex) {
       const step = find(stepId);
@@ -2771,6 +2927,8 @@
       setRest,
       setBehaviour,
       setMaxMatches,
+      setCount,
+      captureRegion,
       removePlace,
       setActivity,
       remove,
@@ -2936,6 +3094,9 @@
     }
     if (!stepAllowedOn(step, screenId)) {
       return { verdict: "gated" };
+    }
+    if (step.kind === StepKind.COUNT) {
+      return { verdict: "counting" };
     }
     let nearest = null;
     for (const storedPoint of step.points) {
@@ -3672,6 +3833,7 @@
 .bhb-mark--miss { border-color: var(--bhb-danger); opacity: .75; }
 .bhb-mark--gated { border-color: var(--bhb-dim); opacity: .45; }
 .bhb-mark--waiting { border-color: var(--bhb-warn); box-shadow: 0 0 0 2px rgba(255, 180, 87, .3); }
+.bhb-mark--counting { border-color: var(--bhb-accent); box-shadow: 0 0 0 2px rgba(var(--bhb-accent-rgb), .3); }
 .bhb-mark--testing { transform: translate(-50%, -50%) scale(1.45); z-index: 1; }
 .bhb-mark__n { color: var(--bhb-text); font-family: var(--bhb-mono); font-size: var(--bhb-fs-xs); font-weight: 700; }
 .bhb-mark__swatch {
@@ -4308,6 +4470,92 @@
     ]);
   }
 
+  // src/ui/dragselect.js
+  var MIN_SIDE_PX = 6;
+  function startDragSelect(onDone) {
+    const canvas = getCanvas();
+    if (!canvas) {
+      onDone(null);
+      return () => {
+      };
+    }
+    const layer = mount(el("div", { class: "bhb-drag" }));
+    const box = el("div", { class: "bhb-drag__box" });
+    const hint = el("div", { class: "bhb-drag__hint" });
+    layer.append(box, hint);
+    let startX = null;
+    let startY = null;
+    let finished = false;
+    function rectFrom(x, y) {
+      return {
+        left: Math.min(startX, x),
+        top: Math.min(startY, y),
+        width: Math.abs(x - startX),
+        height: Math.abs(y - startY)
+      };
+    }
+    function draw(rect) {
+      Object.assign(box.style, {
+        display: "block",
+        left: `${rect.left}px`,
+        top: `${rect.top}px`,
+        width: `${rect.width}px`,
+        height: `${rect.height}px`
+      });
+      hint.textContent = `${Math.round(rect.width)} × ${Math.round(rect.height)}`;
+    }
+    function finish(rect) {
+      if (finished) {
+        return;
+      }
+      finished = true;
+      window.removeEventListener("mousedown", onDown, true);
+      window.removeEventListener("mousemove", onMove, true);
+      window.removeEventListener("mouseup", onUp, true);
+      window.removeEventListener("keydown", onKey, true);
+      layer.remove();
+      onDone(rect);
+    }
+    function onDown(event) {
+      if (!isInsideCanvas(canvas, event.clientX, event.clientY)) {
+        finish(null);
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      startX = event.clientX;
+      startY = event.clientY;
+      draw(rectFrom(startX, startY));
+    }
+    function onMove(event) {
+      if (startX === null) {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      draw(rectFrom(event.clientX, event.clientY));
+    }
+    function onUp(event) {
+      if (startX === null) {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      const rect = rectFrom(event.clientX, event.clientY);
+      finish(rect.width >= MIN_SIDE_PX && rect.height >= MIN_SIDE_PX ? rect : null);
+    }
+    function onKey(event) {
+      if (event.key === "Escape") {
+        finish(null);
+      }
+    }
+    window.addEventListener("mousedown", onDown, true);
+    window.addEventListener("mousemove", onMove, true);
+    window.addEventListener("mouseup", onUp, true);
+    window.addEventListener("keydown", onKey, true);
+    return () => finish(null);
+  }
+
   // src/bot/step-pack.js
   var KIND = "bhb.steps";
   var VERSION2 = 1;
@@ -4595,16 +4843,18 @@
         ["click", "steps.kindClick"],
         ["optional", "steps.kindOptional"],
         ["wait", "steps.kindWait"],
+        ["count", "steps.kindCount"],
         ["spent", "steps.kindSpent"]
       ]) {
         const option = el("option", { text: t(labelKey) });
         option.value = value;
         behaviour.append(option);
       }
-      behaviour.value = step.kind === StepKind.WAIT ? "wait" : step.endsRun ? "spent" : step.optional ? "optional" : "click";
+      behaviour.value = step.kind === StepKind.WAIT ? "wait" : step.kind === StepKind.COUNT ? "count" : step.endsRun ? "spent" : step.optional ? "optional" : "click";
       behaviour.addEventListener("change", () => {
+        const kinds = { wait: StepKind.WAIT, count: StepKind.COUNT };
         deps.stepEditor.setBehaviour(step.id, {
-          kind: behaviour.value === "wait" ? StepKind.WAIT : StepKind.CLICK,
+          kind: kinds[behaviour.value] || StepKind.CLICK,
           optional: behaviour.value === "optional",
           endsRun: behaviour.value === "spent"
         });
@@ -4619,8 +4869,43 @@
         deps.stepEditor.setRest(step.id, rest.value);
         deps.refresh();
       });
+      const countTarget = el("input", { class: "bhb-rest bhb-mono", title: t("steps.countToHint") });
+      countTarget.type = "number";
+      countTarget.min = "0";
+      countTarget.max = "99";
+      countTarget.value = String(step.countTo || 0);
+      countTarget.addEventListener("change", () => {
+        deps.stepEditor.setCount(step.id, { countTo: countTarget.value });
+        deps.refresh();
+      });
+      const countCap = el("input", { class: "bhb-rest bhb-mono", title: t("steps.countCapHint") });
+      countCap.type = "number";
+      countCap.min = "0";
+      countCap.max = "3600";
+      countCap.value = String(step.countCap || 0);
+      countCap.addEventListener("change", () => {
+        deps.stepEditor.setCount(step.id, { countCap: countCap.value });
+        deps.refresh();
+      });
+      const drawRegion = el("button", {
+        class: "bhb-icon bhb-step__region",
+        title: t("steps.drawRegion"),
+        text: "▭"
+      });
+      drawRegion.addEventListener("click", () => {
+        deps.store.closePanel();
+        deps.refresh();
+        startDragSelect((rect) => {
+          if (rect) {
+            deps.stepEditor.captureRegion(rect, step.id);
+          }
+          deps.store.openPanel();
+          deps.refresh();
+        });
+      });
       const places = pointsByPlace(step);
       const isWait = step.kind === StepKind.WAIT;
+      const isCount = step.kind === StepKind.COUNT;
       const addPlace = el("button", {
         class: "bhb-icon",
         title: t("steps.addPlace"),
@@ -4664,12 +4949,19 @@
           el("span", { class: "bhb-rule__n", text: String(index + 1) }),
           el("span", { class: "bhb-rule__swatch", style: { background: step.hex || "transparent" } }),
           name,
-          el("span", { class: "bhb-rule__actions" }, [addPlace, toggle, up, down, remove])
+          el("span", { class: "bhb-rule__actions" }, [
+            isCount ? drawRegion : addPlace,
+            toggle,
+            up,
+            down,
+            remove
+          ])
         ]),
         el("div", { class: "bhb-rule__meta" }, [
           behaviour,
           placeCount,
-          isWait ? threshold : rest,
+          isCount ? countTarget : isWait ? threshold : rest,
+          isCount ? countCap : null,
           el("span", { class: "bhb-rule__meta-coord" }, [
             el("span", {
               class: "bhb-rule__coord bhb-mono",
@@ -4699,92 +4991,6 @@
       return row;
     });
     return el("div", { class: "bhb-tab" }, [head, el("div", { class: "bhb-steps" }, stepRows)]);
-  }
-
-  // src/ui/dragselect.js
-  var MIN_SIDE_PX = 6;
-  function startDragSelect(onDone) {
-    const canvas = getCanvas();
-    if (!canvas) {
-      onDone(null);
-      return () => {
-      };
-    }
-    const layer = mount(el("div", { class: "bhb-drag" }));
-    const box = el("div", { class: "bhb-drag__box" });
-    const hint = el("div", { class: "bhb-drag__hint" });
-    layer.append(box, hint);
-    let startX = null;
-    let startY = null;
-    let finished = false;
-    function rectFrom(x, y) {
-      return {
-        left: Math.min(startX, x),
-        top: Math.min(startY, y),
-        width: Math.abs(x - startX),
-        height: Math.abs(y - startY)
-      };
-    }
-    function draw(rect) {
-      Object.assign(box.style, {
-        display: "block",
-        left: `${rect.left}px`,
-        top: `${rect.top}px`,
-        width: `${rect.width}px`,
-        height: `${rect.height}px`
-      });
-      hint.textContent = `${Math.round(rect.width)} × ${Math.round(rect.height)}`;
-    }
-    function finish(rect) {
-      if (finished) {
-        return;
-      }
-      finished = true;
-      window.removeEventListener("mousedown", onDown, true);
-      window.removeEventListener("mousemove", onMove, true);
-      window.removeEventListener("mouseup", onUp, true);
-      window.removeEventListener("keydown", onKey, true);
-      layer.remove();
-      onDone(rect);
-    }
-    function onDown(event) {
-      if (!isInsideCanvas(canvas, event.clientX, event.clientY)) {
-        finish(null);
-        return;
-      }
-      event.preventDefault();
-      event.stopPropagation();
-      startX = event.clientX;
-      startY = event.clientY;
-      draw(rectFrom(startX, startY));
-    }
-    function onMove(event) {
-      if (startX === null) {
-        return;
-      }
-      event.preventDefault();
-      event.stopPropagation();
-      draw(rectFrom(event.clientX, event.clientY));
-    }
-    function onUp(event) {
-      if (startX === null) {
-        return;
-      }
-      event.preventDefault();
-      event.stopPropagation();
-      const rect = rectFrom(event.clientX, event.clientY);
-      finish(rect.width >= MIN_SIDE_PX && rect.height >= MIN_SIDE_PX ? rect : null);
-    }
-    function onKey(event) {
-      if (event.key === "Escape") {
-        finish(null);
-      }
-    }
-    window.addEventListener("mousedown", onDown, true);
-    window.addEventListener("mousemove", onMove, true);
-    window.addEventListener("mouseup", onUp, true);
-    window.addEventListener("keydown", onKey, true);
-    return () => finish(null);
   }
 
   // src/ui/panel/screens.js
