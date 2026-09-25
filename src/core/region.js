@@ -58,6 +58,48 @@ export function sampleRegion(region, dx, dy) {
   return { r: region.data[offset], g: region.data[offset + 1], b: region.data[offset + 2] };
 }
 
+/** Share of pixels that must move before two readings are a different picture. */
+export const DEFAULT_CHANGE_RATIO = 0.02;
+
+/**
+ * Did this rectangle change between two readings?
+ *
+ * Whole pixels rather than the sample grid: one redrawn digit is a few
+ * hundred pixels and might not cross a single grid point.
+ *
+ * @param {{ w: number, h: number, data: Uint8Array } | null} left
+ * @param {{ w: number, h: number, data: Uint8Array } | null} right
+ * @param {number} tolerance per-channel, as a step's tolerance
+ * @param {number} [changeRatio]
+ * @returns {boolean}
+ */
+export function regionsDiffer(left, right, tolerance, changeRatio = DEFAULT_CHANGE_RATIO) {
+  if (!left || !right) {
+    return true;
+  }
+  if (left.w !== right.w || left.h !== right.h) {
+    return true;
+  }
+
+  const pixels = left.w * left.h;
+  if (pixels === 0) {
+    return false;
+  }
+
+  let moved = 0;
+  for (let offset = 0; offset < pixels * 4; offset += 4) {
+    if (
+      Math.abs(left.data[offset] - right.data[offset]) > tolerance ||
+      Math.abs(left.data[offset + 1] - right.data[offset + 1]) > tolerance ||
+      Math.abs(left.data[offset + 2] - right.data[offset + 2]) > tolerance
+    ) {
+      moved += 1;
+    }
+  }
+
+  return moved / pixels > changeRatio;
+}
+
 /**
  * A rectangle, plus the colours of a grid of points inside it.
  *
