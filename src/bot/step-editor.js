@@ -16,7 +16,7 @@ import {
   HOVER_RESET_POINT,
 } from '../core/constants.js';
 import { trackCursor, getCursor } from '../core/cursor.js';
-import { createStep, StepKind, pointsByPlace } from './step.js';
+import { createStep, StepKind, pointsByPlace, renumberAutoLabels } from './step.js';
 import { t } from '../i18n/index.js';
 
 /**
@@ -369,6 +369,7 @@ export function createStepEditor(deps) {
       return;
     }
     step.activity = activityId;
+    renumberAutoLabels(deps.getSteps());
     deps.persist();
   }
 
@@ -379,6 +380,7 @@ export function createStepEditor(deps) {
       return;
     }
     steps.splice(index, 1);
+    renumberAutoLabels(steps);
     deps.persist();
   }
 
@@ -392,6 +394,9 @@ export function createStepEditor(deps) {
     }
     const [step] = steps.splice(from, 1);
     steps.splice(to, 0, step);
+    // A name this file gave out says where its step sits, so moving one moves
+    // the name with it. A name the user typed is untouched.
+    renumberAutoLabels(steps);
     deps.persist();
   }
 

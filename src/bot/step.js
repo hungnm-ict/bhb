@@ -109,6 +109,49 @@ export function createStep(overrides = {}) {
 }
 
 /**
+ * Names this file gave out, in either language. Anything else is the user's.
+ *
+ * Kept as a pattern rather than as a flag on the step: a profile written
+ * before this existed has no flag, and the name is the only evidence there is.
+ */
+const AUTO_LABEL = /^(Step|Bước)\s+(\d+)$/;
+
+/**
+ * Renumber the names this file gave out so they match the row beside them.
+ *
+ * A profile with eight activities in it numbered every capture across the
+ * whole list, so Invasion's first step was called "Step 41" while the row
+ * said 1. Numbering is per activity and by position, and a name the user
+ * typed is left exactly as it is — it still holds its place in the count, so
+ * the number on a name always equals the number on its row.
+ *
+ * @param {Step[]} steps
+ * @returns {boolean} whether anything changed
+ */
+export function renumberAutoLabels(steps) {
+  const seen = new Map();
+  let hasChanged = false;
+
+  for (const step of steps) {
+    const group = step.activity || '';
+    const position = (seen.get(group) || 0) + 1;
+    seen.set(group, position);
+
+    const match = AUTO_LABEL.exec(step.label || '');
+    if (!match) {
+      continue;
+    }
+    const renamed = `${match[1]} ${position}`;
+    if (renamed !== step.label) {
+      step.label = renamed;
+      hasChanged = true;
+    }
+  }
+
+  return hasChanged;
+}
+
+/**
  * A step is only actionable once it has somewhere to look and a colour to
  * expect there. A region point carries its own colours, so it needs no `hex`.
  */
