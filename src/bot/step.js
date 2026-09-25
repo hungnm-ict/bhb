@@ -85,8 +85,13 @@ export function createStep(overrides = {}) {
      * picture before the sequence goes on. Seven is an Invasion's waves.
      */
     countTo: 0,
-    /** Seconds before a count that is going nowhere gives up and moves on. */
-    countCap: 180,
+    /**
+     * Seconds before a count that is going nowhere gives up and moves on.
+     *
+     * Under the three-minute auto-stop on purpose: the two clocks race, and
+     * the one that should win is the one that loses a lap rather than the run.
+     */
+    countCap: 120,
     /** Skip instead of waiting when it does not match — a box already ticked. */
     optional: false,
     /**

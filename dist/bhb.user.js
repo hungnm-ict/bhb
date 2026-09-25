@@ -26,6 +26,8 @@
   var SCRIPT_PACE_LADDER = Object.freeze([300, 600, 1e3]);
   var IDLE_ADVANCE_MS = 12e3;
   var RESYNC_AFTER_MS = 9e3;
+  var COUNT_SETTLE_MS = 700;
+  var COUNT_REGION_WARN_PX = 2e4;
   var AUTO_STOP_TIMEOUT = 3 * 60 * 1e3;
   var RESUME_MAX_AGE = 15 * 60 * 1e3;
   var RESUME_DELAY = 45 * 1e3;
@@ -742,8 +744,13 @@
        * picture before the sequence goes on. Seven is an Invasion's waves.
        */
       countTo: 0,
-      /** Seconds before a count that is going nowhere gives up and moves on. */
-      countCap: 180,
+      /**
+       * Seconds before a count that is going nowhere gives up and moves on.
+       *
+       * Under the three-minute auto-stop on purpose: the two clocks race, and
+       * the one that should win is the one that loses a lap rather than the run.
+       */
+      countCap: 120,
       /** Skip instead of waiting when it does not match — a box already ticked. */
       optional: false,
       /**
@@ -968,7 +975,22 @@
     let queueIndex = 0;
     let idleSince = 0;
     const cursor = { key: null, index: 0, missingSince: 0 };
-    const tally = { stepId: null, count: 0, mark: null, previous: null, since: 0 };
+    const tally = {
+      stepId: null,
+      count: 0,
+      mark: null,
+      previous: null,
+      since: 0,
+      settledSince: 0
+    };
+    function resetTally() {
+      tally.stepId = null;
+      tally.count = 0;
+      tally.mark = null;
+      tally.previous = null;
+      tally.since = 0;
+      tally.settledSince = 0;
+    }
     let isCounting = false;
     let hasCounted = false;
     let restingUntil = 0;
@@ -1068,6 +1090,9 @@
       if (!isStepReady(step)) {
         return null;
       }
+      if (step.kind === StepKind.COUNT) {
+        return null;
+      }
       if (!stepAllowedOn(step, screenId)) {
         return null;
       }
@@ -1123,10 +1148,8 @@
         return "done";
       }
       if (tally.stepId !== step.id) {
+        resetTally();
         tally.stepId = step.id;
-        tally.count = 0;
-        tally.mark = null;
-        tally.previous = null;
         tally.since = realNow();
       }
       const goal = Math.max(0, Math.round(Number(step.countTo) || 0));
@@ -1136,18 +1159,18 @@
       const rect = resolveRect(watched, buffer, scaleMode);
       const reading = readRegion(gl, rect.x, rect.y, rect.w, rect.h);
       if (reading) {
-        if (!tally.mark) {
+        const hasResized = tally.mark && (reading.w !== tally.mark.w || reading.h !== tally.mark.h);
+        if (!tally.mark || hasResized) {
           tally.mark = reading;
           tally.previous = reading;
-        } else {
-          const hasSettled = !regionsDiffer(reading, tally.previous, step.tolerance);
-          const hasMoved = regionsDiffer(reading, tally.mark, step.tolerance);
-          if (hasSettled && hasMoved) {
-            tally.count += 1;
-            tally.mark = reading;
-            hasCounted = true;
-          }
+          tally.settledSince = realNow();
+        } else if (regionsDiffer(reading, tally.previous, step.tolerance)) {
           tally.previous = reading;
+          tally.settledSince = realNow();
+        } else if (realNow() - tally.settledSince >= COUNT_SETTLE_MS && regionsDiffer(reading, tally.mark, step.tolerance)) {
+          tally.count += 1;
+          tally.mark = reading;
+          hasCounted = true;
         }
       }
       if (tally.count >= goal) {
@@ -1205,6 +1228,12 @@
           cursor.index = (cursor.index + 1) % steps.length;
           continue;
         }
+        if (expected.kind === StepKind.COUNT && expected.enabled && !expected.points.some(isRegionPoint)) {
+          isCounting = true;
+          cursor.missingSince = 0;
+          setMessage(`${expected.label || expected.id}: no box to watch — draw one`);
+          return null;
+        }
         if (expected.kind === StepKind.COUNT && isStepReady(expected)) {
           isCounting = true;
           const verdict = runCount(expected, gl, buffer, scaleMode);
@@ -1221,7 +1250,7 @@
           } else if (goal > 0) {
             setMessage(`${label}: ${tally.count}/${goal}`);
           }
-          tally.stepId = null;
+          resetTally();
           cursor.index = (cursor.index + 1) % steps.length;
           continue;
         }
@@ -1422,6 +1451,8 @@
         setActivity(taskId === TaskId.RUN_ALL ? currentActivity() : null);
       }
       pace = FIRST_PACE;
+      isCounting = false;
+      resetTally();
       schedulePoll();
       autoStopTimer = realSetInterval(checkAutoStop, INTERVAL_AUTO_STOP_CHECK);
       report("task", { started: true, label: taskId });
@@ -1439,6 +1470,8 @@
       state.screenName = null;
       state.expectedStepId = null;
       cursor.key = null;
+      isCounting = false;
+      resetTally();
       setActivity(null);
       realClearTimeout(pollTimer);
       clearInterval_(autoStopTimer);
@@ -2314,6 +2347,7 @@
     "help.footer": "Tự tắt sau 3 phút không click",
     "msg.noCanvas": "không thấy canvas",
     "msg.noWebgl": "không có WebGL",
+    "msg.countRegionBig": "Ô hơi to — khoanh sát vào đúng con số thay đổi thôi.",
     "msg.noMousePosition": "chưa có vị trí chuột",
     "msg.outsideCanvas": "con trỏ ngoài canvas",
     "msg.anchorCaptured": "đã bắt vùng {n} cho {name}",
@@ -2555,6 +2589,7 @@
     "help.footer": "Stops itself after 3 minutes without a click",
     "msg.noCanvas": "no canvas found",
     "msg.noWebgl": "no WebGL context",
+    "msg.countRegionBig": "That box is large — draw a tight one around just the number that changes.",
     "msg.noMousePosition": "no cursor position yet",
     "msg.outsideCanvas": "cursor is outside the canvas",
     "msg.anchorCaptured": "anchor {n} captured for {name}",
@@ -2830,7 +2865,8 @@
         step.countTo = Math.max(0, Math.min(99, Math.round(Number(countTo) || 0)));
       }
       if (countCap !== void 0) {
-        step.countCap = Math.max(0, Math.min(3600, Math.round(Number(countCap) || 0)));
+        const ceiling = Math.round(AUTO_STOP_TIMEOUT / 1e3) - 10;
+        step.countCap = Math.max(0, Math.min(ceiling, Math.round(Number(countCap) || 0)));
       }
       deps.persist();
     }
@@ -2861,6 +2897,9 @@
         return null;
       }
       step.points = [fingerprint];
+      if (fingerprint.w * fingerprint.h > COUNT_REGION_WARN_PX) {
+        deps.report(t("msg.countRegionBig"));
+      }
       deps.persist();
       return step;
     }
@@ -4881,7 +4920,7 @@
       const countCap = el("input", { class: "bhb-rest bhb-mono", title: t("steps.countCapHint") });
       countCap.type = "number";
       countCap.min = "0";
-      countCap.max = "3600";
+      countCap.max = "170";
       countCap.value = String(step.countCap || 0);
       countCap.addEventListener("change", () => {
         deps.stepEditor.setCount(step.id, { countCap: countCap.value });

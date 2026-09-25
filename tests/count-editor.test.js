@@ -60,9 +60,10 @@ describe('the count step editor', () => {
     expect(step.countTo).toBe(7);
     expect(step.countCap).toBe(90);
 
+    // The cap's ceiling is set by the auto-stop, not by a round number.
     editor.setCount(step.id, { countTo: -3, countCap: 99999 });
     expect(step.countTo).toBe(0);
-    expect(step.countCap).toBe(3600);
+    expect(step.countCap).toBe(170);
   });
 
   it('leaves the other number alone when only one is given', () => {
@@ -91,5 +92,49 @@ describe('the count step editor', () => {
 
     editor.setBehaviour(step.id, { kind: StepKind.COUNT, optional: false, endsRun: false });
     expect(step.kind).toBe(StepKind.COUNT);
+  });
+});
+
+describe('the cap and the box size', () => {
+  it('keeps the cap under the auto-stop, so the cap fires first', async () => {
+    const { AUTO_STOP_TIMEOUT } = await import('../src/core/constants.js');
+    const step = createStep({ kind: StepKind.COUNT });
+    const editor = editorWith(step);
+
+    expect(step.countCap * 1000).toBeLessThan(AUTO_STOP_TIMEOUT);
+
+    editor.setCount(step.id, { countCap: 9999 });
+    expect(step.countCap * 1000).toBeLessThan(AUTO_STOP_TIMEOUT);
+  });
+
+  it('warns when the dragged box is far bigger than what changes in it', () => {
+    const said = [];
+    const step = createStep({ kind: StepKind.COUNT });
+    const steps = [step];
+    const editor = createStepEditor({
+      getSteps: () => steps,
+      persist: () => {},
+      report: (message) => said.push(message),
+      getScaleMode: () => 'scale',
+    });
+
+    editor.captureRegion({ left: 100, top: 50, width: 400, height: 200 }, step.id);
+    expect(said.join(' ')).toMatch(/nh·|small|tight|to|big/i);
+    expect(step.points).toHaveLength(1);
+  });
+
+  it('says nothing about a tight box', () => {
+    const said = [];
+    const step = createStep({ kind: StepKind.COUNT });
+    const steps = [step];
+    const editor = createStepEditor({
+      getSteps: () => steps,
+      persist: () => {},
+      report: (message) => said.push(message),
+      getScaleMode: () => 'scale',
+    });
+
+    editor.captureRegion({ left: 100, top: 50, width: 60, height: 20 }, step.id);
+    expect(said).toHaveLength(0);
   });
 });

@@ -23,7 +23,7 @@ describe('a count step', () => {
   it('starts with nothing to count and a cap', () => {
     const step = createStep();
     expect(step.countTo).toBe(0);
-    expect(step.countCap).toBe(180);
+    expect(step.countCap).toBe(120);
   });
 
   it('is not ready until it has a region to watch', () => {
