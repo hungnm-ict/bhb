@@ -6,9 +6,13 @@ and the Invasion sequence it exists to make possible.
 ## Why
 
 Invasion cannot be won. It is an endless ladder of waves, and the reward is
-capped: 21 enemies — seven waves of three — pays out the full drop, gold and
-experience. Everything fought after the twenty-first enemy is time spent for
-nothing. The fast way to farm it is to enter at a low wave, kill seven waves,
+capped: 21 enemies pays out the full drop, gold and experience, and
+everything fought after the twenty-first is time spent for nothing.
+
+A wave is three or four enemies, so seven waves is the floor — take the
+smallest wave every time and seven of them still reach 21. Usually it is
+reached sooner, and counting waves rather than enemies pays a little time for
+a number the bot can actually see. The fast way to farm it is to enter at a low wave, kill seven waves,
 quit, and enter again. Quitting is scored as a defeat and pays in full.
 
 Every other activity the bot runs ends by itself: the energy runs out, a
