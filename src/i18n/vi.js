@@ -105,6 +105,7 @@ export default {
   'settings.sizeBadge': 'Hiện cỡ canvas ở góc màn hình',
   'settings.fpsBadge': 'Hiện tốc độ khung hình trên game',
   'settings.absoluteCoords': 'Dùng toạ độ thô (không co giãn theo cỡ canvas)',
+  'settings.showScreens': 'Hiện tab màn hình',
   'settings.language': 'Ngôn ngữ',
   'settings.transfer': 'Xuất / nhập',
   'settings.transferHint': 'Dán nội dung hồ sơ đã xuất vào đây rồi bấm Nhập.',

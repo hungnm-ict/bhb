@@ -105,6 +105,7 @@ export default {
   'settings.sizeBadge': 'Show the canvas size in the corner',
   'settings.fpsBadge': 'Show the frame rate over the game',
   'settings.absoluteCoords': 'Use raw coordinates (do not rescale steps)',
+  'settings.showScreens': 'Show the screens tab',
   'settings.language': 'Language',
   'settings.transfer': 'Export / import',
   'settings.transferHint': 'Paste a profile export here, then press Import.',

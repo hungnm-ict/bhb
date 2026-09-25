@@ -33,7 +33,7 @@ describe('every tab renders', () => {
         getReloadCount: () => 0,
         getProfileName: () => 'Default',
         profiles: { list: () => [{ id: 'p', name: 'Default' }], activeId: () => 'p', activeName: () => 'Default', exportAll: () => '' },
-        settings: { scaleMode: 'scale', watchdog: false, keepAlive: true, sizeBadge: true, closeAfterRound: false, notify: { enabled: false, discordWebhook: '', telegramToken: '', telegramChat: '', withShot: true, events: [] }, canvasLock: { enabled: false, width: 800, height: 520 } },
+        settings: { scaleMode: 'scale', showScreens: true, watchdog: false, keepAlive: true, sizeBadge: true, closeAfterRound: false, notify: { enabled: false, discordWebhook: '', telegramToken: '', telegramChat: '', withShot: true, events: [] }, canvasLock: { enabled: false, width: 800, height: 520 } },
         updateSettings: () => {},
         sendTestAlert: () => Promise.resolve(false),
         stepEditor: {},
