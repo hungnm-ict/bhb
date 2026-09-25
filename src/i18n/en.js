@@ -39,7 +39,7 @@ export default {
   'steps.transferHint': 'The box holds whatever the filter is showing. Paste replaces those activities on this window and leaves the others alone.',
   'steps.importFailed': 'Could not read that',
   'steps.importedButSized': 'Pasted — but these were captured at {from} and this window is pinned to {to}, so check them before trusting a run.',
-  'steps.kindSpent': 'Click if present, then stop',
+  'steps.kindSpent': 'Stop the run here',
   'steps.kindSpentHint': 'Skipped when it is not on screen. When it is, it is clicked and the resource counts as spent: under Run-All the queue moves to the next activity, on its own the run ends.',
   'steps.copied': 'Copied {n} steps',
   'steps.copyByHand': 'Select the box and copy it yourself — the clipboard was refused.',
