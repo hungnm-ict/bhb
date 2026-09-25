@@ -154,6 +154,7 @@ export default {
 
   'msg.noCanvas': 'no canvas found',
   'msg.noWebgl': 'no WebGL context',
+  'msg.countRegionBig': 'That box is large — draw a tight one around just the number that changes.',
   'msg.noMousePosition': 'no cursor position yet',
   'msg.outsideCanvas': 'cursor is outside the canvas',
   'msg.anchorCaptured': 'anchor {n} captured for {name}',

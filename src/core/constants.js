@@ -47,6 +47,22 @@ export const IDLE_ADVANCE_MS = 12000;
  */
 export const RESYNC_AFTER_MS = 9000;
 
+/**
+ * How long a watched region must hold still before a count accepts it.
+ *
+ * Two consecutive reads are not enough: a number that animates in can pause
+ * part-way for a poll or two, and each pause would be counted as its own wave.
+ * Counting one wave twice is what loses the reward, so the bar is time.
+ */
+export const COUNT_SETTLE_MS = 700;
+
+/**
+ * A count region bigger than this is almost certainly a drag around the
+ * general area rather than around the thing that changes, and a few hundred
+ * redrawn pixels inside it will never reach the change ratio.
+ */
+export const COUNT_REGION_WARN_PX = 20000;
+
 /** Stop automation after this long with no successful click. */
 export const AUTO_STOP_TIMEOUT = 3 * 60 * 1000;
 
