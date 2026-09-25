@@ -661,13 +661,15 @@ const CSS = `
 /* Previewing a step draws its marker on the canvas, which the panel was
    sitting on top of. Faded rather than hidden on purpose: the button doing the
    fading is on the panel, and a hidden one would drop the hover that holds it. */
-.bhb-panel.is-peeking { opacity: .12; }
+.bhb-panel.is-peeking { opacity: .3; }
 /* Only on the first frame a marker exists: the layer is rebuilt every tick. */
 .bhb-mark--arriving { animation: bhb-mark-drop .45s cubic-bezier(.2, 1.4, .4, 1); }
 
 .bhb-mark--previewing {
   border-color: var(--bhb-live);
-  animation: bhb-pulse .8s ease-out infinite;
+  /* Two animations at once: the ring pulses and the marker itself hops, so it
+     is findable on a busy screen without reading anything. */
+  animation: bhb-mark-hop .7s ease-in-out infinite, bhb-pulse .7s ease-out infinite;
 }
 
 .bhb-mark--counting { border-color: var(--bhb-accent); box-shadow: 0 0 0 2px rgba(var(--bhb-accent-rgb), .3); }
@@ -780,6 +782,13 @@ const CSS = `
 .bhb-toast__swatch {
   width: 13px; height: 13px; flex: none;
   border: 1px solid rgba(255, 255, 255, .35); border-radius: 4px;
+}
+
+@keyframes bhb-mark-hop {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  30%      { transform: translate(-50%, -125%) scale(1.18); }
+  55%      { transform: translate(-50%, -50%) scale(.94); }
+  72%      { transform: translate(-50%, -82%) scale(1.06); }
 }
 
 @keyframes bhb-mark-drop {

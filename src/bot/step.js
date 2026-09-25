@@ -86,10 +86,12 @@ export function createStep(overrides = {}) {
      */
     countTo: 0,
     /**
-     * Seconds before a count that is going nowhere gives up and moves on.
+     * Seconds without a single change before the count gives up and moves on.
      *
-     * Under the three-minute auto-stop on purpose: the two clocks race, and
-     * the one that should win is the one that loses a lap rather than the run.
+     * Since the last change, not since the count began, so a slow battle is
+     * never cut off part-way. Kept under the auto-stop on purpose: the two
+     * clocks race, and the one that should win is the one that loses a lap
+     * rather than the whole run.
      */
     countCap: 120,
     /** Skip instead of waiting when it does not match — a box already ticked. */
