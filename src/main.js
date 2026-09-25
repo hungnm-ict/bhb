@@ -59,7 +59,7 @@ import { createProbeLayer } from './ui/probe-layer.js';
 import { createProbeEditor } from './bot/probe-editor.js';
 import { createSizeBadge } from './ui/size-badge.js';
 import { createFpsBadge } from './ui/fps-badge.js';
-import { installHotkeys } from './ui/hotkeys.js';
+import { installHotkeys, shieldOwnFields } from './ui/hotkeys.js';
 import { showClickFlash } from './ui/flash.js';
 import { showToast } from './ui/toast.js';
 import { realSetInterval, realClearInterval, realSetTimeout, realNow } from './core/timers.js';
@@ -68,6 +68,8 @@ import { getCanvas } from './core/canvas.js';
 // --- Phase 1: patches that must beat the game to the punch -----------------
 installCanvasPatch();
 installFocusPatch();
+// Before the game has loaded, so nothing of ours is ever typed into it.
+shieldOwnFields();
 installSpeedHack();
 
 /** Redraw cadence for the countdown and status text. */

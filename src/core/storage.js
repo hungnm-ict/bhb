@@ -6,6 +6,7 @@ import {
 } from './constants.js';
 import { createStep } from '../bot/step.js';
 import { ScaleMode } from './coords.js';
+import { renumberAutoLabels } from '../bot/step.js';
 import { createDefaultActivities, DEFAULT_ACTIVITIES } from '../bot/activity.js';
 import { normaliseNotifyConfig } from './notify.js';
 import { normaliseProbes } from './probe.js';
@@ -157,6 +158,14 @@ function normaliseState(candidate) {
       screens: Array.isArray(profile.screens) ? profile.screens : [],
       activities: mergeActivities(profile.activities),
     }));
+
+  // Names the capture button gave out used to count across the whole profile,
+  // so Invasion's first step was called "Step 41" beside a row saying 1. They
+  // count per activity now, and an old profile catches up here. A name the
+  // user typed is left alone.
+  for (const profile of profiles) {
+    renumberAutoLabels(profile.steps);
+  }
 
   if (profiles.length === 0) {
     return createDefaultState();
