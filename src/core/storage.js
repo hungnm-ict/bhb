@@ -314,6 +314,9 @@ export function loadSettings() {
     multiplyFrames: stored.multiplyFrames !== false,
     sizeBadge: stored.sizeBadge !== false,
     fpsBadge: stored.fpsBadge !== false,
+    // Screens are a rarely-needed refinement, so the tab stays out of the way
+    // until someone asks for it. Stored screens keep gating steps either way.
+    showScreens: stored.showScreens === true,
     // Drift belongs to a boost, not to the account: carrying hours of it into
     // another character is what conjures a daily reset out of nothing.
     keepAlive: stored.keepAlive !== false,
