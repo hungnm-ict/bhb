@@ -516,7 +516,7 @@ export function createEngine(deps) {
    * that clicks what it finds has already acted.
    */
   function findMatch(steps, gl, screenId, buffer, scaleMode) {
-    for (let index = 0; index < steps.length; index += 1) {
+    for (let index = lastCheckpoint(steps); index < steps.length; index += 1) {
       const step = steps[index];
       // A wait holds the sequence and a count watches it; neither is something
       // to land on when looking for the way back.
@@ -529,6 +529,27 @@ export function createEngine(deps) {
       }
     }
     return null;
+  }
+
+  /**
+   * How far back the way back may go.
+   *
+   * A wait or a count is a checkpoint: getting past one cost real time, and
+   * a step before it will often match for exactly the wrong reason. Turning
+   * auto-battle off makes the turn-it-on step match again, so a runner that
+   * could reach back past its count turned auto on, counted the same battle
+   * over, and never once reached the button that quits.
+   *
+   * @returns {number} the first index the way back may consider
+   */
+  function lastCheckpoint(steps) {
+    for (let index = Math.min(cursor.index, steps.length) - 1; index >= 0; index -= 1) {
+      const kind = steps[index].kind;
+      if (kind === StepKind.WAIT || kind === StepKind.COUNT) {
+        return index + 1;
+      }
+    }
+    return 0;
   }
 
   /**

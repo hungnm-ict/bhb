@@ -336,3 +336,66 @@ describe('a blocking step waits its turn', () => {
     engine.stop();
   });
 });
+
+describe('a blocking step is a checkpoint', () => {
+  function countStep(label) {
+    return createStep({
+      label,
+      kind: StepKind.COUNT,
+      countTo: 7,
+      countCap: 120,
+      tolerance: 4,
+      points: [
+        { x: 500, y: 300, w: 20, h: 8, bw: 800, bh: 600, samples: [{ dx: 0.5, dy: 0.5, hex: '#000000' }] },
+      ],
+    });
+  }
+
+  it('never goes back past one, however well a step before it matches', () => {
+    // The loop this closes: the bot turns auto off, the quit button does not
+    // match, and going back finds the turn-auto-on step — which matches only
+    // because auto was just turned off. It undoes its own work, forever.
+    const autoOn = stepAt(100, 'auto on');
+    const quit = stepAt(300, 'quit');
+    const engine = build([autoOn, countStep('waves'), stepAt(200, 'auto off'), quit]);
+
+    // Walk to the far side of the count: auto on, then the count gives up.
+    lit = new Set([100]);
+    engine.start(TaskId.SCRIPT);
+    expect(clicks).toEqual([100]);
+
+    // The count's clock starts when the cursor reaches it, so this is two
+    // hops: one to arrive, one to find the cap long past.
+    lit = new Set();
+    advance(1000);
+    engine.tick();
+    advance(130_000);
+    engine.tick();
+
+    // Auto off clicks; now only the step before the count is on screen.
+    lit = new Set([200]);
+    advance(1000);
+    engine.tick();
+    clicks.length = 0;
+
+    lit = new Set([100]);
+    for (let tick = 0; tick < 20; tick += 1) {
+      advance(1000);
+      engine.tick();
+    }
+
+    expect(clicks, 'a wave already counted is not to be counted again').toEqual([]);
+    engine.stop();
+  });
+
+  it('still goes back freely when no checkpoint has been passed', () => {
+    lit = new Set([100]);
+    const engine = build([stepAt(100, 'one'), stepAt(200, 'two')]);
+    engine.start(TaskId.SCRIPT);
+    clicks.length = 0;
+
+    waitOutBackward(engine);
+    expect(clicks).toEqual([100]);
+    engine.stop();
+  });
+});
