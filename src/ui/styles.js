@@ -753,10 +753,13 @@ const CSS = `
   box-shadow: 0 0 0 1px rgba(0, 0, 0, .5);
 }
 .bhb-drag__hint {
-  position: fixed; left: 50%; top: 14px; transform: translateX(-50%);
-  padding: 4px 10px; border-radius: 999px;
-  background: var(--bhb-bg); border: 1px solid var(--bhb-line);
-  font-family: var(--bhb-mono); font-size: var(--bhb-fs-sm);
+  display: none; position: fixed; left: 0; top: 0;
+  padding: 3px 9px; border-radius: 999px;
+  background: rgba(18, 20, 28, .92); border: 1px solid var(--bhb-line);
+  color: var(--bhb-text);
+  font-family: var(--bhb-mono); font-size: var(--bhb-fs-xs);
+  /* It follows the box; a click that landed on it would end the drag early. */
+  pointer-events: none;
 }
 
 /* --- Help tab & flash --------------------------------------------------- */

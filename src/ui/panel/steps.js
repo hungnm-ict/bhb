@@ -29,6 +29,29 @@ import { exportSteps, importSteps, mergeSteps } from '../../bot/step-pack.js';
 const rows = new Map();
 
 /** Lighting a row is a class change; it never needs the table rebuilt. */
+const peekWatchers = new WeakSet();
+
+/**
+ * Ends a preview once the pointer is off its ◉. Matched by step id rather than
+ * by node, because the row the button sits in is rebuilt on every change.
+ */
+function releasePeek(store) {
+  if (peekWatchers.has(store)) {
+    return;
+  }
+  peekWatchers.add(store);
+  document.addEventListener('pointermove', (event) => {
+    const previewing = store.get().previewStepId;
+    if (previewing === null) {
+      return;
+    }
+    const button = event.target instanceof Element ? event.target.closest('[data-peek-step]') : null;
+    if (button === null || button.dataset.peekStep !== previewing) {
+      store.previewStep(null);
+    }
+  });
+}
+
 export function highlightSteps(state) {
   for (const [stepId, row] of rows) {
     row.classList.toggle('is-selected', state.selectedStepId === stepId);
@@ -486,15 +509,19 @@ export function renderStepsTab(deps) {
 
     // A wait can watch several places at once, and then it is a count that
     // matters: four empty party slots, at most two of them still empty.
-    // Hover, not click: the panel has to fade to show what is under it, and a
-    // click that fades the thing you clicked has nothing left to click again.
+    // Click, not hover: a rebuild under the pointer drops the old node without a
+    // mouseleave, and the panel stayed faded. Leaving is watched by releasePeek.
     const preview = el('button', {
       class: 'bhb-icon bhb-step__peek',
       title: t('steps.preview'),
       text: '\u25c9',
     });
-    preview.addEventListener('mouseenter', () => deps.store.previewStep(step.id));
-    preview.addEventListener('mouseleave', () => deps.store.previewStep(null));
+    preview.dataset.peekStep = step.id;
+    preview.addEventListener('click', () => {
+      const isPeeking = deps.store.get().previewStepId === step.id;
+      deps.store.previewStep(isPeeking ? null : step.id);
+    });
+    releasePeek(deps.store);
 
     const addPlace = el('button', {
       class: 'bhb-icon',
