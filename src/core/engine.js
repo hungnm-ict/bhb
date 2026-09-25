@@ -1,6 +1,6 @@
 import { getRenderTarget } from './canvas.js';
 import { matchPoint, readRegion, resolveRect, isRegionPoint, regionsDiffer } from './region.js';
-import { clickBufferPoint } from './input.js';
+import { clickBufferPoint, dispatchKey } from './input.js';
 import { getBufferSize } from './coords.js';
 import { isStepReady, colorForPoint, StepKind, pointsByPlace } from '../bot/step.js';
 import { detectScreen, stepAllowedOn } from '../bot/screen.js';
@@ -15,11 +15,16 @@ import {
 } from './timers.js';
 import { nextPace, FIRST_PACE } from './pace.js';
 import {
+  BACKWARD_QUIET_MS,
+  BACKWARD_STABLE_MS,
   COUNT_SETTLE_MS,
+  PANIC_AFTER_MS,
+  PANIC_GAP_MS,
+  PANIC_MAX_TRIES,
+  PANIC_SWEEPS,
   SCRIPT_PACE_LADDER,
   INTERVAL_AUTO_STOP_CHECK,
   IDLE_ADVANCE_MS,
-  RESYNC_AFTER_MS,
   AUTO_STOP_TIMEOUT,
 } from './constants.js';
 
@@ -140,6 +145,33 @@ export function createEngine(deps) {
   /** Read by the pacer and the clocks; set while a count step is live. */
   let isCounting = false;
   let hasCounted = false;
+
+  /**
+   * What the runner knows about being lost.
+   *
+   * `candidate` is a step behind the cursor that keeps matching; going back on
+   * it is the only move that cannot be justified by what is on screen, so it
+   * has to earn it by holding still. `sweeps` counts full scans that found
+   * nothing at all, which is a different predicament — the game is showing
+   * something no step describes, and Escape is the only thing left to try.
+   */
+  const lost = {
+    candidateId: null,
+    stableSince: 0,
+    sweeps: 0,
+    since: 0,
+    escapes: 0,
+    lastEscapeAt: 0,
+  };
+
+  function foundOurWay() {
+    lost.candidateId = null;
+    lost.stableSince = 0;
+    lost.sweeps = 0;
+    lost.since = 0;
+    lost.escapes = 0;
+    lost.lastEscapeAt = 0;
+  }
 
   /** When the current rest ends; the loop reads nothing until then. */
   let restingUntil = 0;
@@ -465,18 +497,45 @@ export function createEngine(deps) {
   }
 
   /**
+   * The same scan without the click.
+   *
+   * Going back on a step has to be believed before it is acted on, and a scan
+   * that clicks what it finds has already acted.
+   */
+  function findMatch(steps, gl, screenId, buffer, scaleMode) {
+    for (let index = 0; index < steps.length; index += 1) {
+      const step = steps[index];
+      // A wait holds the sequence and a count watches it; neither is something
+      // to land on when looking for the way back.
+      if (step.kind === StepKind.WAIT || step.kind === StepKind.COUNT) {
+        continue;
+      }
+      const point = matchStep(step, gl, screenId, buffer, scaleMode);
+      if (point) {
+        return { step, point, index };
+      }
+    }
+    return null;
+  }
+
+  /**
    * Walk a list in order, and find the way back when the game does not.
    *
    * A list the user wrote is a sequence — open PVP, pick an opponent, accept —
    * and first-match-wins cannot express it: two buttons on one screen would
    * leave the runner clicking the first one forever. So the runner keeps its
-   * place and tries the expected step first.
+   * place, and scans only from there.
    *
-   * A game is not a script, though. A daily reward pops up, a battle ends on a
-   * screen nobody planned for, a click does not land. When the expected step
-   * has not matched for `RESYNC_AFTER_MS`, the runner stops trusting its
-   * place and takes whatever fits the screen in front of it — that is what
-   * keeps a strict sequence from becoming a deadlock.
+   * Which way it may move is decided by what can be proved. A button belonging
+   * to a later step is on screen only because the game moved on, so forward is
+   * taken at once. A step already done matching again proves nothing — it looks
+   * the same whether the game went back or the screen being waited for is still
+   * drawing — so backward is paid for in time: a quiet spell since the last
+   * click, and the candidate holding still while it is watched.
+   *
+   * Nothing matching anywhere is a third thing, neither forward nor back. It
+   * means the game is showing something the steps do not describe, and Escape
+   * is all that is left to try.
    */
   function runSequence(steps, canvas, gl, screenId) {
     const key = sequenceKey();
@@ -493,11 +552,15 @@ export function createEngine(deps) {
     const buffer = getBufferSize(canvas);
     const scaleMode = deps.getScaleMode();
 
-    // Several steps can be settled in one tick — a gate that has opened, an
-    // optional step with nothing to do — so the cursor walks until it reaches
-    // one that has to wait or one that clicks.
-    for (let hops = 0; hops < steps.length; hops += 1) {
-      const expected = steps[cursor.index % steps.length];
+    // Forward from where the cursor stands, and no further round: a button of
+    // a later screen being on screen is proof the game moved on, so the runner
+    // moves with it. A step behind the cursor proves nothing, and is handled
+    // below, on time rather than on sight.
+    let blockedAt = null;
+
+    for (let at = cursor.index % steps.length; at < steps.length; at += 1) {
+      const expected = steps[at];
+      cursor.index = at;
       state.expectedStepId = expected ? expected.id : null;
       const point = matchStep(expected, gl, screenId, buffer, scaleMode);
 
@@ -512,7 +575,6 @@ export function createEngine(deps) {
           );
           return null;
         }
-        cursor.index = (cursor.index + 1) % steps.length;
         continue;
       }
 
@@ -547,48 +609,102 @@ export function createEngine(deps) {
           setMessage(`${label}: ${tally.count}/${goal}`);
         }
         resetTally();
-        cursor.index = (cursor.index + 1) % steps.length;
         continue;
       }
 
       if (point) {
-        cursor.index = (cursor.index + 1) % steps.length;
+        cursor.index = (at + 1) % steps.length;
         cursor.missingSince = 0;
+        foundOurWay();
         return { step: expected, point, clicked: clickBufferPoint(canvas, point) };
       }
 
-      // Optional: there was nothing to do here, which is not the same as being
-      // stuck — the ticked-already checkbox is the whole reason this exists.
-      //
-      // A step that ends the run is optional whether or not it is marked so:
-      // the out-of-resources button is on screen exactly when the resource is
-      // out, so waiting for it would stall every lap that still had keys.
-      if (expected.optional || expected.endsRun) {
-        cursor.index = (cursor.index + 1) % steps.length;
-        continue;
+      // Nothing here. The cursor remembers the first step it could not do, so
+      // that a forward scan which finds nothing leaves it where it was rather
+      // than at the end of the list.
+      if (blockedAt === null && !expected.optional && !expected.endsRun) {
+        blockedAt = at;
       }
-
-      if (!cursor.missingSince) {
-        cursor.missingSince = realNow();
-      }
-      break;
     }
 
-    if (!cursor.missingSince || realNow() - cursor.missingSince < RESYNC_AFTER_MS) {
-      // Still waiting for the expected step: taking a later one out of turn is
-      // exactly the out-of-order clicking the cursor exists to prevent.
+    // Nothing ahead is waiting on anything, so the lap is over: back to the
+    // top. A scan that only ever ran forward would otherwise reach the end of
+    // the list and stay there.
+    cursor.index = blockedAt === null ? 0 : blockedAt;
+    state.expectedStepId = steps[cursor.index] ? steps[cursor.index].id : null;
+
+    return lookBack(steps, canvas, gl, screenId, buffer, scaleMode);
+  }
+
+  /**
+   * Nothing ahead. Either the game went back, or it is showing something no
+   * step describes.
+   */
+  function lookBack(steps, canvas, gl, screenId, buffer, scaleMode) {
+    if (!cursor.missingSince) {
+      cursor.missingSince = realNow();
+    }
+    // Just clicked: the game has been given something to do, and has not had
+    // time to do it. Suspecting oneself of being lost this early is impatience.
+    if (realNow() - state.lastActionAt < BACKWARD_QUIET_MS) {
       return null;
     }
 
-    const scan = runSteps(steps, canvas, gl, screenId);
-    if (!scan) {
+    const candidate = findMatch(steps, gl, screenId, buffer, scaleMode);
+    if (!candidate) {
+      lost.candidateId = null;
+      lost.stableSince = 0;
+      panic(canvas);
       return null;
     }
 
-    report('resync', { label: scan.step.label || scan.step.id });
-    cursor.index = (scan.index + 1) % steps.length;
+    lost.sweeps = 0;
+    lost.since = 0;
+
+    if (lost.candidateId !== candidate.step.id) {
+      lost.candidateId = candidate.step.id;
+      lost.stableSince = realNow();
+    }
+    if (realNow() - lost.stableSince < BACKWARD_STABLE_MS) {
+      setMessage(`${candidate.step.label || candidate.step.id}: seen behind us, waiting to be sure`);
+      return null;
+    }
+
+    report('resync', { label: candidate.step.label || candidate.step.id });
+    cursor.index = (candidate.index + 1) % steps.length;
     cursor.missingSince = 0;
-    return scan;
+    foundOurWay();
+    return { ...candidate, clicked: clickBufferPoint(canvas, candidate.point) };
+  }
+
+  /**
+   * The way out of a screen nobody wrote a step for.
+   *
+   * Escape is what closes a dialog in this game, and a dialog the steps do not
+   * know is the one thing that can hold the bot forever without anything on
+   * screen to click. It is tried a few times and then left to the watchdog:
+   * pressing a key into a game that is not listening is only a disciplined way
+   * to waste the night.
+   */
+  function panic(canvas) {
+    if (!lost.since) {
+      lost.since = realNow();
+    }
+    lost.sweeps += 1;
+
+    const isLost = lost.sweeps >= PANIC_SWEEPS && realNow() - lost.since >= PANIC_AFTER_MS;
+    if (!isLost || lost.escapes >= PANIC_MAX_TRIES) {
+      return;
+    }
+    if (lost.lastEscapeAt && realNow() - lost.lastEscapeAt < PANIC_GAP_MS) {
+      return;
+    }
+
+    lost.escapes += 1;
+    lost.lastEscapeAt = realNow();
+    dispatchKey(canvas, 'Escape');
+    report('hang', { label: 'escape' });
+    setMessage(`nothing on screen matches — tried Escape (${lost.escapes}/${PANIC_MAX_TRIES})`);
   }
 
   /**
@@ -837,6 +953,7 @@ export function createEngine(deps) {
     pace = FIRST_PACE;
     isCounting = false;
     resetTally();
+    foundOurWay();
     schedulePoll();
     autoStopTimer = realSetInterval(checkAutoStop, INTERVAL_AUTO_STOP_CHECK);
 
@@ -859,6 +976,7 @@ export function createEngine(deps) {
     cursor.key = null;
     isCounting = false;
     resetTally();
+    foundOurWay();
     setActivity(null);
 
     realClearTimeout(pollTimer);

@@ -111,6 +111,41 @@ function dispatchSequence(canvas, sequence, clientX, clientY) {
   }
 }
 
+/** The few keys worth sending, with the legacy codes older engines read. */
+const KEY_CODES = Object.freeze({ Escape: 27 });
+
+/**
+ * Press and release a key.
+ *
+ * The bot is a mouse everywhere else, and deliberately so — a button that can
+ * be clicked should be clicked. Escape is the exception: it is the only way
+ * out of a dialog the steps do not describe, and the game offers no button
+ * for it. Whether a Unity build reads a synthetic key at all is a question
+ * only the game can answer, so nothing here depends on it working.
+ *
+ * @param {HTMLCanvasElement} canvas
+ * @param {string} key
+ */
+export function dispatchKey(canvas, key) {
+  const keyCode = KEY_CODES[key] || 0;
+  const init = { bubbles: true, cancelable: true, composed: true, key, code: key };
+
+  for (const type of ['keydown', 'keyup']) {
+    for (const target of [canvas, document, window]) {
+      try {
+        const event = new KeyboardEvent(type, init);
+        // `keyCode` is legacy and read-only through the constructor, and it is
+        // the field a Unity build is most likely to be reading.
+        Object.defineProperty(event, 'keyCode', { get: () => keyCode });
+        Object.defineProperty(event, 'which', { get: () => keyCode });
+        target.dispatchEvent(event);
+      } catch {
+        // A target that rejects one event must not abort the rest.
+      }
+    }
+  }
+}
+
 /** Just the approach half of the sequence: hover without pressing anything. */
 const MOVE_SEQUENCE = [
   ['pointerover', 'pointer', 0],
