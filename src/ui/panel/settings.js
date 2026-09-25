@@ -257,6 +257,7 @@ function countBehaviour(settings) {
     settings.fpsBadge,
     settings.scaleMode === ScaleMode.ABSOLUTE,
     settings.showScreens,
+    settings.keepLog,
   ];
   return { n: switches.filter(Boolean).length, total: switches.length };
 }
@@ -397,6 +398,9 @@ export function renderSettingsTab(deps) {
           ),
           toggleRow('settings.showScreens', settings.showScreens, (value) =>
             deps.updateSettings({ showScreens: value })
+          ),
+          toggleRow('settings.keepLog', settings.keepLog, (value) =>
+            deps.updateSettings({ keepLog: value })
           ),
           el('p', { class: 'bhb-note', text: t('settings.watchdogHint') }),
           el('p', { class: 'bhb-note', text: t('settings.keepAliveHint') }),

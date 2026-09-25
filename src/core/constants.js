@@ -8,6 +8,11 @@ export const STORAGE_KEY_SETTINGS = 'bhb.settings.v2';
 /** Upstream's key, read once to migrate a user coming from bh-scripts. */
 export const STORAGE_KEY_RESUME = 'bhb.resume.v1';
 export const STORAGE_KEY_STATS = 'bhb.stats.v1';
+/** How often the log is written out; per entry would stall a busy minute. */
+export const LOG_WRITE_MS = 4000;
+
+/** The activity log, kept so a watchdog reload does not erase the evidence. */
+export const STORAGE_KEY_LOG = 'bhb.log.v1';
 export const STORAGE_KEY_LEGACY_RULES = 'bh_script_rules_v1';
 
 /** Default per-channel RGB distance allowed when matching a colour. */

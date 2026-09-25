@@ -10,8 +10,9 @@
  *  3. Everything else once the DOM is ready.
  */
 
-import { RESUME_DELAY, DEFAULT_COLOR_TOLERANCE } from './core/constants.js';
+import { RESUME_DELAY, DEFAULT_COLOR_TOLERANCE, LOG_WRITE_MS, VERSION } from './core/constants.js';
 import { Keys } from './core/keys.js';
+import { buildReport } from './core/report.js';
 import { installCanvasPatch } from './core/canvas.js';
 import { installFocusPatch } from './core/focus.js';
 import {
@@ -39,6 +40,9 @@ import {
   setActiveProfile,
   exportProfiles,
   importProfiles,
+  loadLog,
+  saveLog,
+  clearStoredLog,
 } from './core/storage.js';
 import { createWatchdog } from './core/watchdog.js';
 import { createStats } from './core/stats.js';
@@ -87,7 +91,9 @@ function bootstrap() {
   const getActivities = () => getActiveProfile(profileState).activities;
   const persist = () => saveProfiles(profileState);
 
-  const store = createUiStore();
+  // The log outlives the page when asked to: a watchdog reload is exactly
+  // when somebody wanted to read what had just happened.
+  const store = createUiStore(settings.keepLog ? loadLog() : []);
   const watchdog = createWatchdog();
   const stats = createStats();
 
@@ -245,6 +251,17 @@ function bootstrap() {
     profiles: profileActions,
     settings,
     getReloadCount: () => watchdog.reloadCount(),
+    clearStoredLog,
+    buildReport: () =>
+      buildReport({
+        version: VERSION,
+        settings,
+        canvas: getCanvas(),
+        stats: stats.snapshot(),
+        activities: getActivities(),
+        steps: getSteps(),
+        log: store.get().log,
+      }),
     getStats: () => stats.snapshot(),
     resetStats: () => stats.reset(),
     sendTestAlert: () => {
@@ -338,10 +355,29 @@ function bootstrap() {
     installKeepAlive(() => pumpFrame());
   }
 
+  /**
+   * Keep the log across a reload.
+   *
+   * Written on a timer rather than per entry: a busy minute is hundreds of
+   * clicks, and a `localStorage` write on each one is a stall the bot pays
+   * for in missed frames.
+   */
+  let logWriteTimer = null;
+  function persistLog() {
+    if (!settings.keepLog || logWriteTimer !== null) {
+      return;
+    }
+    logWriteTimer = realSetTimeout(() => {
+      logWriteTimer = null;
+      saveLog(store.get().log);
+    }, LOG_WRITE_MS);
+  }
+
   setClickObserver(showClickFlash);
   engine.on('change', () => refresh());
   engine.on('action', (entry) => {
     store.log(entry);
+    persistLog();
     stats.record(entry);
     if (settings.notify.events.includes(entry.kind)) {
       notifier.notify(`${t('app.name')} · ${describeEntry(entry)}`, entry.kind);
