@@ -60,13 +60,23 @@ export const BACKWARD_STABLE_MS = 1500;
 export const RESYNC_AFTER_MS = BACKWARD_QUIET_MS;
 
 /**
- * How long a watched region must hold still before a count accepts it.
+ * How often a count reads its region.
  *
- * Two consecutive reads are not enough: a number that animates in can pause
- * part-way for a poll or two, and each pause would be counted as its own wave.
- * Counting one wave twice is what loses the reward, so the bar is time.
+ * Far faster than the step loop's own floor. At 15x game speed a wave can be
+ * over in a third of a second, and a change seen late is a change not seen:
+ * counting seven waves took twenty when the count read every 300ms. It is one
+ * small `readPixels` against a rectangle of digits, so the rate is cheap.
  */
-export const COUNT_SETTLE_MS = 700;
+export const COUNT_POLL_MS = 80;
+
+/**
+ * The shortest gap between two counted waves.
+ *
+ * A number that animates in can pause part-way and read as still for a poll,
+ * which would split one wave into two. No real pair of waves arrives this
+ * close together, so the debounce costs nothing and closes that door.
+ */
+export const COUNT_DEBOUNCE_MS = 150;
 
 /**
  * A count region bigger than this is almost certainly a drag around the

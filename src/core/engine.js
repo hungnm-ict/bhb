@@ -17,7 +17,8 @@ import { nextPace, FIRST_PACE } from './pace.js';
 import {
   BACKWARD_QUIET_MS,
   BACKWARD_STABLE_MS,
-  COUNT_SETTLE_MS,
+  COUNT_DEBOUNCE_MS,
+  COUNT_POLL_MS,
   PANIC_AFTER_MS,
   PANIC_GAP_MS,
   PANIC_MAX_TRIES,
@@ -119,10 +120,12 @@ export function createEngine(deps) {
   const tally = {
     stepId: null,
     count: 0,
-    mark: null,
+    /** The region as it read last poll. */
     previous: null,
+    /** Whether that poll found it unchanged — a wave is an edge off stillness. */
+    wasStill: true,
     since: 0,
-    settledSince: 0,
+    lastCountAt: 0,
   };
 
   /**
@@ -136,10 +139,10 @@ export function createEngine(deps) {
   function resetTally() {
     tally.stepId = null;
     tally.count = 0;
-    tally.mark = null;
     tally.previous = null;
+    tally.wasStill = true;
     tally.since = 0;
-    tally.settledSince = 0;
+    tally.lastCountAt = 0;
   }
 
   /** Read by the pacer and the clocks; set while a count step is live. */
@@ -445,25 +448,32 @@ export function createEngine(deps) {
       // A resized framebuffer reads as different at every pixel, which is a
       // new rectangle rather than a new wave. Start again from what is there.
       const hasResized =
-        tally.mark && (reading.w !== tally.mark.w || reading.h !== tally.mark.h);
+        tally.previous &&
+        (reading.w !== tally.previous.w || reading.h !== tally.previous.h);
 
-      if (!tally.mark || hasResized) {
-        tally.mark = reading;
+      if (!tally.previous || hasResized) {
         tally.previous = reading;
-        tally.settledSince = realNow();
+        tally.wasStill = true;
       } else if (regionsDiffer(reading, tally.previous, step.tolerance)) {
+        // A wave is the moment the region leaves stillness, not the moment it
+        // comes to rest somewhere new: waiting for rest missed every wave that
+        // ended before the rest could be confirmed, which at speed is most of
+        // them. A number still animating is already moving, so it cannot start
+        // a second wave — and the debounce covers a pause part-way through.
+        const isNewWave =
+          tally.wasStill && realNow() - tally.lastCountAt >= COUNT_DEBOUNCE_MS;
+        if (isNewWave) {
+          tally.count += 1;
+          tally.lastCountAt = realNow();
+          // The cap runs from the last wave, not from the first.
+          tally.since = realNow();
+          hasCounted = true;
+        }
+        tally.wasStill = false;
         tally.previous = reading;
-        tally.settledSince = realNow();
-      } else if (
-        realNow() - tally.settledSince >= COUNT_SETTLE_MS &&
-        regionsDiffer(reading, tally.mark, step.tolerance)
-      ) {
-        tally.count += 1;
-        tally.mark = reading;
-        // The cap runs from the last thing that happened, not from the start:
-        // a wave every twenty seconds is slow, not stuck.
-        tally.since = realNow();
-        hasCounted = true;
+      } else {
+        tally.wasStill = true;
+        tally.previous = reading;
       }
     }
 
@@ -878,7 +888,7 @@ export function createEngine(deps) {
     const delay = resting
       ? SCRIPT_PACE_LADDER[SCRIPT_PACE_LADDER.length - 1]
       : isCounting
-        ? FIRST_PACE
+        ? COUNT_POLL_MS
         : pace;
 
     pollTimer = realSetTimeout(() => {
