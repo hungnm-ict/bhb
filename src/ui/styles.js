@@ -576,15 +576,14 @@ const CSS = `
   pointer-events: none;
   transition: opacity .25s ease, color .25s ease, border-color .25s ease;
 }
-.bhb-size__ver { color: var(--bhb-accent); opacity: .85; }
-.bhb-size__px { color: var(--bhb-dim); }
+.bhb-size__ver { color: var(--bhb-text); }
 .bhb-size--dim { opacity: .28; }
 .bhb-size--near {
   opacity: 1;
   background: rgba(18, 20, 28, .92);
   border-color: rgba(124, 92, 255, .5);
 }
-.bhb-size--near .bhb-size__px { color: var(--bhb-text); }
+
 
 /* --- Probe layer -------------------------------------------------------- */
 

@@ -20,17 +20,18 @@ function clearBadges() {
 }
 
 describe('the size badge', () => {
-  it('shows the build above the size', () => {
+  it('shows the build, and nothing else', () => {
     clearBadges();
     const badge = createSizeBadge({ isVisible: () => true });
     badge.render();
 
     const node = document.querySelector('.bhb-size');
     expect(node.querySelector('.bhb-size__ver').textContent).toBe(`v${VERSION}`);
-    expect(node.querySelector('.bhb-size__px').textContent).toBe('800×500');
+    // The canvas size moved to the Run tab: it is read a few times a month.
+    expect(node.textContent).toBe(`v${VERSION}`);
   });
 
-  it('redraws the size without losing the version', () => {
+  it('redraws without losing the version', () => {
     clearBadges();
     const badge = createSizeBadge({ isVisible: () => true });
     badge.render();
