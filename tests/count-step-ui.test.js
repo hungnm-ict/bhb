@@ -139,7 +139,7 @@ describe('peeking past the panel', () => {
     expect(node.classList.contains('is-peeking')).toBe(false);
   });
 
-  it('gives every step a preview button that arms on hover', () => {
+  it('gives every step a preview button', () => {
     const step = createStep({ label: 'one' });
     const node = render(step);
     const button = node.querySelector('.bhb-step__peek');
