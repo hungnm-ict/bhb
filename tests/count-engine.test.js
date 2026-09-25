@@ -55,7 +55,7 @@ vi.mock('../src/core/canvas.js', () => ({
 
 const { createEngine, TaskId } = await import('../src/core/engine.js');
 const { createStep, StepKind } = await import('../src/bot/step.js');
-const { COUNT_SETTLE_MS } = await import('../src/core/constants.js');
+const { COUNT_DEBOUNCE_MS } = await import('../src/core/constants.js');
 
 const REGION_POINT = {
   x: 10,
@@ -92,38 +92,30 @@ beforeEach(() => {
 });
 
 describe('counting in the engine', () => {
-  it('counts once the picture has settled somewhere new', () => {
+  it('counts the moment the region leaves stillness', () => {
     const engine = build([countStep({ countTo: 1 })]);
 
-    // start() ticks once itself: that read only sets the mark.
+    // start() ticks once itself: that read is the stillness to leave.
     engine.start(TaskId.SCRIPT);
     expect(engine.getState().lastMessage).toContain('0/1');
 
     shade = 40;
     advance(300);
     engine.tick();
-    // Differs from the mark but has not held still long enough yet.
-    expect(engine.getState().lastMessage).toContain('0/1');
-
-    advance(COUNT_SETTLE_MS);
-    engine.tick();
     expect(engine.getState().lastMessage).toContain('1/1');
     engine.stop();
   });
 
-  it('counts an animation as one wave, not three', () => {
+  it('counts a number arriving over several frames as one wave', () => {
     const engine = build([countStep({ countTo: 2 })]);
     engine.start(TaskId.SCRIPT);
 
+    // Still moving is still the same wave: only the first frame counts.
     for (const frame of [30, 50, 70]) {
       shade = frame;
       advance(300);
       engine.tick();
     }
-    expect(engine.getState().lastMessage).toContain('0/2');
-
-    advance(COUNT_SETTLE_MS);
-    engine.tick();
     expect(engine.getState().lastMessage).toContain('1/2');
     engine.stop();
   });
@@ -171,8 +163,6 @@ describe('counting in the engine', () => {
     advance(100_000);
     shade = 90;
     engine.tick();
-    advance(COUNT_SETTLE_MS);
-    engine.tick();
     expect(engine.getState().lastMessage).toContain('1/9');
 
     // Three minutes past the start, but only a moment past the counted wave.
@@ -188,15 +178,13 @@ describe('counting in the engine', () => {
     engine.start(TaskId.SCRIPT);
 
     shade = 60;
-    engine.tick();
-    advance(COUNT_SETTLE_MS);
+    advance(300);
     engine.tick();
     expect(engine.getState().lastMessage).toContain('1/1');
 
-    // Past the count, round the list, and back: the tally resets.
-    engine.tick();
-    shade = 80;
-    advance(COUNT_SETTLE_MS);
+    // Past the count, round the list, and back: the tally resets, and the
+    // first read of the new visit is the stillness the next wave leaves.
+    advance(300);
     engine.tick();
     expect(engine.getState().lastMessage).toContain('0/1');
     engine.stop();
@@ -239,22 +227,18 @@ describe('counting survives the things a session does to it', () => {
     engine.stop();
   });
 
-  it('counts a wave that animates through a held frame once', () => {
+  it('absorbs a frame that pauses briefly on its way in', () => {
     const engine = build([countStep({ countTo: 7 })]);
     engine.start(TaskId.SCRIPT);
 
-    // One wave: 10 → 25 held for two polls → 40, at rest.
+    // One wave arriving through an intermediate frame, inside the debounce.
     shade = 25;
-    advance(300);
+    advance(60);
     engine.tick();
-    advance(300);
+    advance(60);
     engine.tick();
     shade = 40;
-    advance(300);
-    engine.tick();
-    advance(300);
-    engine.tick();
-    advance(1000);
+    advance(60);
     engine.tick();
 
     expect(engine.getState().lastMessage).toContain('1/7');
@@ -296,7 +280,7 @@ describe('the cap measures progress, not patience', () => {
       shade = 10 + wave * 20;
       advance(20_000);
       engine.tick();
-      advance(COUNT_SETTLE_MS);
+      advance(300);
       engine.tick();
     }
 
@@ -312,13 +296,69 @@ describe('the cap measures progress, not patience', () => {
     shade = 60;
     advance(1000);
     engine.tick();
-    advance(COUNT_SETTLE_MS);
+    advance(300);
     engine.tick();
     expect(engine.getState().lastMessage).toContain('1/9');
 
     advance(31_000);
     engine.tick();
     expect(engine.getState().lastMessage).toContain('gave up');
+    engine.stop();
+  });
+});
+
+describe('counting keeps up with a fast battle', () => {
+  it('catches a wave that lasts only two polls', () => {
+    // Asked for more than will arrive, so the tally is still there to read:
+    // reaching the target ends the count and starts the next lap at zero.
+    const engine = build([countStep({ countTo: 9 })]);
+    engine.start(TaskId.SCRIPT);
+
+    // Five waves, each one steady for a single extra poll before the next.
+    for (let wave = 1; wave <= 5; wave += 1) {
+      shade = 10 + wave * 25;
+      advance(300);
+      engine.tick();
+      advance(300);
+      engine.tick();
+    }
+
+    expect(engine.getState().lastMessage).toContain('5/9');
+    engine.stop();
+  });
+
+  it('still counts a number that animates in as one wave', () => {
+    const engine = build([countStep({ countTo: 3 })]);
+    engine.start(TaskId.SCRIPT);
+
+    // One wave, arriving through three moving frames, then at rest.
+    for (const frame of [30, 50, 70]) {
+      shade = frame;
+      advance(300);
+      engine.tick();
+    }
+    advance(300);
+    engine.tick();
+    advance(300);
+    engine.tick();
+
+    expect(engine.getState().lastMessage).toContain('1/3');
+    engine.stop();
+  });
+
+  it('counts nothing at all in a region that never stops moving', () => {
+    const engine = build([countStep({ countTo: 3 })]);
+    engine.start(TaskId.SCRIPT);
+
+    for (let tick = 0; tick < 12; tick += 1) {
+      shade = 10 + tick * 15;
+      advance(300);
+      engine.tick();
+    }
+
+    // The first frame of movement is a wave; nothing after it is, because the
+    // region never comes to rest for another one to start from.
+    expect(engine.getState().lastMessage).toContain('1/3');
     engine.stop();
   });
 });
