@@ -1,5 +1,5 @@
 import { getRenderTarget } from './canvas.js';
-import { matchPoint } from './region.js';
+import { matchPoint, readRegion, resolveRect, isRegionPoint, regionsDiffer } from './region.js';
 import { clickBufferPoint } from './input.js';
 import { getBufferSize } from './coords.js';
 import { isStepReady, colorForPoint, StepKind, pointsByPlace } from '../bot/step.js';
@@ -101,6 +101,20 @@ export function createEngine(deps) {
 
   /** Where the runner is in the current step list. See `runSequence`. */
   const cursor = { key: null, index: 0, missingSince: 0 };
+
+  /**
+   * A count step's tally.
+   *
+   * `mark` is the picture of the wave being counted from, `previous` the one
+   * read last tick. A change lands only when the current read matches
+   * `previous` and differs from `mark`, so a number animating in is one wave
+   * rather than three.
+   */
+  const tally = { stepId: null, count: 0, mark: null, previous: null, since: 0 };
+
+  /** Read by the pacer and the clocks; set while a count step is live. */
+  let isCounting = false;
+  let hasCounted = false;
 
   /** When the current rest ends; the loop reads nothing until then. */
   let restingUntil = 0;
@@ -340,6 +354,58 @@ export function createEngine(deps) {
     return seen;
   }
 
+  /**
+   * Watch a count step's region for this tick.
+   *
+   * @returns {'waiting' | 'done' | 'capped'}
+   */
+  function runCount(step, gl, buffer, scaleMode) {
+    const watched = step.points.find(isRegionPoint);
+    if (!watched) {
+      return 'done';
+    }
+
+    if (tally.stepId !== step.id) {
+      tally.stepId = step.id;
+      tally.count = 0;
+      tally.mark = null;
+      tally.previous = null;
+      tally.since = realNow();
+    }
+
+    const goal = Math.max(0, Math.round(Number(step.countTo) || 0));
+    if (tally.count >= goal) {
+      return 'done';
+    }
+
+    const rect = resolveRect(watched, buffer, scaleMode);
+    const reading = readRegion(gl, rect.x, rect.y, rect.w, rect.h);
+    if (reading) {
+      if (!tally.mark) {
+        tally.mark = reading;
+        tally.previous = reading;
+      } else {
+        const hasSettled = !regionsDiffer(reading, tally.previous, step.tolerance);
+        const hasMoved = regionsDiffer(reading, tally.mark, step.tolerance);
+        if (hasSettled && hasMoved) {
+          tally.count += 1;
+          tally.mark = reading;
+          hasCounted = true;
+        }
+        tally.previous = reading;
+      }
+    }
+
+    if (tally.count >= goal) {
+      return 'done';
+    }
+    const cap = Number(step.countCap) || 0;
+    if (cap > 0 && realNow() - tally.since >= cap * 1000) {
+      return 'capped';
+    }
+    return 'waiting';
+  }
+
   function tryStep(step, canvas, gl, screenId, buffer, scaleMode) {
     const point = matchStep(step, gl, screenId, buffer, scaleMode);
     if (!point) {
@@ -410,6 +476,29 @@ export function createEngine(deps) {
           );
           return null;
         }
+        cursor.index = (cursor.index + 1) % steps.length;
+        continue;
+      }
+
+      if (expected.kind === StepKind.COUNT && isStepReady(expected)) {
+        isCounting = true;
+        const verdict = runCount(expected, gl, buffer, scaleMode);
+        const label = expected.label || expected.id;
+        const goal = Number(expected.countTo) || 0;
+        if (verdict === 'waiting') {
+          cursor.missingSince = 0;
+          setMessage(`${label}: ${tally.count}/${goal}`);
+          return null;
+        }
+        if (verdict === 'capped') {
+          report('idle', { label });
+          setMessage(`${label}: gave up after ${expected.countCap}s`);
+        } else if (goal > 0) {
+          setMessage(`${label}: ${tally.count}/${goal}`);
+        }
+        // Let go of the tally on the way out: the id alone cannot tell a
+        // second lap from the first, and a lap must start at zero.
+        tally.stepId = null;
         cursor.index = (cursor.index + 1) % steps.length;
         continue;
       }
@@ -530,9 +619,23 @@ export function createEngine(deps) {
 
     const task = TASKS[state.activeTask];
     nearest = null;
+    isCounting = false;
+    hasCounted = false;
     const hit = runSequence(task.getSteps(), target.canvas, target.gl, state.screen);
 
+    // A counted wave is the bot working, not the bot stuck: without this the
+    // queue moves on after 12s and the run auto-stops after three minutes.
+    if (hasCounted) {
+      idleSince = realNow();
+      state.lastActionAt = realNow();
+    }
+
     if (!hit) {
+      // A count step has already said where it is up to; "no match" would
+      // overwrite that with a miss it is not having.
+      if (isCounting) {
+        return false;
+      }
       if (state.activeTask === TaskId.RUN_ALL) {
         if (realNow() - idleSince >= IDLE_ADVANCE_MS) {
           advanceQueue('idle');
@@ -593,7 +696,13 @@ export function createEngine(deps) {
    */
   function schedulePoll() {
     const resting = restingUntil > realNow();
-    const delay = resting ? SCRIPT_PACE_LADDER[SCRIPT_PACE_LADDER.length - 1] : pace;
+    // A wave at 15x can be shorter than the slowest rung, and a change seen
+    // late is a change not seen at all.
+    const delay = resting
+      ? SCRIPT_PACE_LADDER[SCRIPT_PACE_LADDER.length - 1]
+      : isCounting
+        ? FIRST_PACE
+        : pace;
 
     pollTimer = realSetTimeout(() => {
       // Read before the tick: the rest this tick starts is not one it sat out.
@@ -602,7 +711,7 @@ export function createEngine(deps) {
       // A new screen is a new set of buttons to look for, so the back-off has
       // nothing to stand on: what it measures is a screen that has not changed.
       if (!wasResting) {
-        pace = nextPace(pace, clicked || screenJustChanged);
+        pace = nextPace(pace, clicked || screenJustChanged || isCounting);
       }
       screenJustChanged = false;
       if (state.activeTask) {
