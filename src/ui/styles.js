@@ -504,7 +504,7 @@ const CSS = `
   width: 46px; padding: 3px 5px;
   background: var(--bhb-bg-soft);
   border: 1px solid var(--bhb-line); border-radius: 6px;
-  color: var(--bhb-dim); font-size: var(--bhb-fs-xs); text-align: right;
+  font-size: var(--bhb-fs-xs); line-height: 1.35; text-align: right; text-align: right;
 }
 .bhb-rest:focus { outline: none; border-color: rgba(124, 92, 255, .6); color: var(--bhb-text); }
 
@@ -533,7 +533,7 @@ const CSS = `
 .bhb-rule__main { display: flex; align-items: center; gap: 7px; }
 .bhb-rule__meta { display: flex; align-items: center; gap: 6px; padding-left: 21px; }
 .bhb-rule__meta .bhb-tabs__ver {
-  color: var(--bhb-dim); font-size: var(--bhb-fs-xs); opacity: .75;
+  font-size: var(--bhb-fs-xs); line-height: 1.35; text-align: right; opacity: .75;
   padding-right: 2px; white-space: nowrap;
 }
 .bhb-rule__gate { flex: 1; min-width: 0; max-width: none; }
@@ -559,7 +559,7 @@ const CSS = `
   padding: 2px 6px;
   background: rgba(18, 20, 28, .72);
   border: 1px solid var(--bhb-line); border-radius: 6px;
-  color: var(--bhb-dim); font-size: var(--bhb-fs-xs); line-height: 1.3;
+  font-size: var(--bhb-fs-xs); line-height: 1.35; text-align: right; line-height: 1.3;
   /* It sits over the game: taking a click here would be worse than no badge. */
   pointer-events: none;
 }
@@ -571,18 +571,20 @@ const CSS = `
   padding: 3px 8px;
   background: rgba(18, 20, 28, .72);
   border: 1px solid var(--bhb-line); border-radius: 7px;
-  color: var(--bhb-dim); font-size: var(--bhb-fs-xs);
+  font-size: var(--bhb-fs-xs); line-height: 1.35; text-align: right;
   /* It sits over the game: taking a click here would be worse than no badge. */
   pointer-events: none;
   transition: opacity .25s ease, color .25s ease, border-color .25s ease;
 }
+.bhb-size__ver { color: var(--bhb-accent); opacity: .85; }
+.bhb-size__px { color: var(--bhb-dim); }
 .bhb-size--dim { opacity: .28; }
 .bhb-size--near {
   opacity: 1;
   background: rgba(18, 20, 28, .92);
   border-color: rgba(124, 92, 255, .5);
-  color: var(--bhb-text);
 }
+.bhb-size--near .bhb-size__px { color: var(--bhb-text); }
 
 /* --- Probe layer -------------------------------------------------------- */
 
@@ -745,7 +747,7 @@ const CSS = `
 .bhb-help__label { flex: 1; text-align: right; color: var(--bhb-dim); }
 .bhb-help__footer {
   margin-top: 11px; padding-top: 8px; border-top: 1px solid var(--bhb-line);
-  color: var(--bhb-dim); font-size: var(--bhb-fs-xs); text-align: center;
+  font-size: var(--bhb-fs-xs); line-height: 1.35; text-align: right; text-align: center;
 }
 
 .bhb-flash {
