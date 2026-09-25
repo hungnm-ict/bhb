@@ -71,3 +71,36 @@ export function mergeSteps(existing, incoming) {
   const kept = existing.filter((step) => !replaced.has(step.activity || ''));
   return [...kept, ...incoming];
 }
+
+/**
+ * Copy a set of steps under another activity, leaving the originals alone.
+ *
+ * Raid is Dungeon with different buttons: rebuilding a sequence that is nine
+ * tenths the same is nine tenths wasted. Moving them was already possible and
+ * emptied the activity they came from, which is the opposite of what is
+ * wanted here.
+ *
+ * Whatever the target already had is replaced, as a paste is — copying twice
+ * leaves one copy rather than deepening the pile.
+ *
+ * @param {import('./step.js').Step[]} all every step in the profile
+ * @param {import('./step.js').Step[]} source the ones to copy, in order
+ * @param {string} activityId the activity to copy them into
+ * @returns {import('./step.js').Step[]} the new list, or `all` if nothing to do
+ */
+export function cloneStepsInto(all, source, activityId) {
+  const target = activityId || '';
+  if (source.length === 0 || source.every((step) => (step.activity || '') === target)) {
+    return all;
+  }
+
+  const copies = source.map((step) => ({
+    ...step,
+    id: createStepId(),
+    points: step.points.map((point) => ({ ...point })),
+    activity: activityId || null,
+  }));
+
+  const kept = all.filter((step) => (step.activity || '') !== target);
+  return [...kept, ...copies];
+}

@@ -56,6 +56,8 @@ export default {
   'steps.loose': 'Custom steps only',
   'steps.noActivity': 'Custom',
   'steps.moveAll': 'Move the steps shown to…',
+  'steps.cloneAll': 'Copy the steps shown into…',
+  'steps.cloneConfirm': 'Copy these {n} steps into {name}? Whatever {name} has now is replaced; the steps shown are left as they are.',
   'steps.allSteps': 'All steps',
   'steps.filter': 'Show only one activity',
   'steps.hints': 'How capture and dry runs work',
