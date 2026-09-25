@@ -53,27 +53,55 @@ that.
 
 ## Counting
 
-Each tick, while the cursor sits on a `COUNT` step:
+The wave box sits at a fixed place at the top of the battle screen: an opaque
+panel, light digits, nothing of the scene behind it. Inside that rectangle the
+digits are the only thing that ever moves, which is what makes counting
+changes there trustworthy.
 
-1. Resolve the step's region against the live framebuffer, the same way a
-   region point resolves today.
-2. Read it and sample it — `captureFingerprint`, already written for screen
-   anchors.
-3. Compare, sample by sample, against the reading from the previous tick,
-   using the step's own tolerance. Different → one change.
-4. At `countTo` changes, clear the counter and let the cursor through.
+### Whole pixels, not a sample grid
 
-The first tick on the step has nothing to compare against; it stores the
-reading and counts nothing. The counter and the stored reading are cleared
-whenever the cursor arrives at the step, so a second lap starts at zero.
+The existing region matcher scores a 4x4 grid of sixteen samples and calls two
+readings different when four of them differ. That is built for "is this the
+same button", and it is too coarse for this: wave 13 to 14 redraws one digit,
+a thin pixel glyph that a sixteen-point grid may cross once or not at all.
+Four samples would never differ, and the count would simply never move.
+
+So a count step compares the region's *pixels*. `readRegion` already returns
+the whole rectangle in one `readPixels` — the sample grid was throwing that
+away. A box of roughly 100x40 is four thousand pixels; comparing two of them
+is a loop, not a cost. One digit redrawn flips hundreds of pixels, which is a
+signal that needs no threshold tuning to see.
+
+Two readings are "different" when more than `CHANGE_RATIO` of their pixels
+differ by more than the step's tolerance.
 
 ### Undercounting is the safe direction
 
 The poll can be slower than a wave, and a change seen late is a change not
 seen at all. That makes the bot quit *later* than asked, which still collects
-the full reward — it only costs time. There is no mechanism that counts a
-wave twice, so overcounting, the failure that would actually lose the
-reward, cannot happen.
+the full reward; it only costs time. Nothing here can count a wave twice
+without the region settling twice, so the failure that would actually lose
+the reward cannot happen.
+
+### Settled, not merely different
+
+Counting every difference would overcount, and overcounting is the direction
+that loses the reward. If a new number animates in — scales, fades, flashes —
+then every tick during the animation differs from the tick before it, and one
+wave would be counted three times.
+
+So the step keeps two readings rather than one:
+
+- `mark` — the region as it looked at the wave it is counting from
+- `previous` — the region as it looked last tick
+
+and counts one change only when the current reading **matches `previous`**
+(it has come to rest) **and differs from `mark`** (it came to rest somewhere
+new). `mark` then becomes the current reading.
+
+Mid-animation each tick differs from the one before, so nothing is counted.
+Overcounting would need the region to settle twice at two different values,
+which is two waves. The cost is one tick of confirmation, 300ms.
 
 ## The three clocks that must be told
 
@@ -149,9 +177,14 @@ an `endsRun` step on the greyed-out `PLAY`.
 
 ## Testing
 
-- counting: a fake gl whose region reads change on demand — n changes
-  advances the cursor at exactly n, not n±1; an unchanged region never
-  advances; the first tick counts nothing.
+- counting: a fake gl whose region reads change on demand — n settled
+  changes advances the cursor at exactly n, not n±1; an unchanged region
+  never advances; the first tick counts nothing.
+- settling: a reading that differs from both `mark` and `previous` (mid
+  animation) counts nothing, however many ticks it lasts; the count lands
+  once when it comes to rest.
+- a one-digit change: a region where a handful of pixels differ still counts,
+  which is the case the sample grid could not see.
 - reset: leaving and re-entering the step starts from zero.
 - the cap releases the cursor and reports it.
 - the three clocks: a counted change refreshes idle and action times; the
