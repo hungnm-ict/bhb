@@ -2674,7 +2674,7 @@
     "steps.kindClick": "Click",
     "steps.kindOptional": "Click if present",
     "steps.kindWait": "Wait until gone",
-    "steps.kindCount": "Count changes",
+    "steps.kindCount": "Count",
     "steps.countToHint": "How many times the watched box must change before the sequence goes on",
     "steps.countCapHint": "Seconds before a count that is going nowhere gives up",
     "steps.drawRegion": "Draw the box to watch",
@@ -3287,7 +3287,8 @@
     0 6px 22px rgba(0, 0, 0, .5),
     0 0 0 1px rgba(0, 0, 0, .5),
     0 0 16px rgba(var(--bhb-glow-rgb), .22);
-  font-size: var(--bhb-fs-md); line-height: 1;
+  font-size: var(--bhb-fs-md);
+  transition: opacity .12s ease-out; line-height: 1;
   cursor: pointer;
   backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
   transition: opacity .45s ease, box-shadow .2s ease;
@@ -3875,6 +3876,11 @@
 .bhb-mark--miss { border-color: var(--bhb-danger); opacity: .75; }
 .bhb-mark--gated { border-color: var(--bhb-dim); opacity: .45; }
 .bhb-mark--waiting { border-color: var(--bhb-warn); box-shadow: 0 0 0 2px rgba(255, 180, 87, .3); }
+/* Hovering a step draws its marker on the canvas, which the panel was sitting
+   on top of. Mouse events stay, so the panel does not flicker out from under
+   the cursor that is fading it. */
+.bhb-panel.is-peeking { opacity: .2; }
+
 .bhb-mark--counting { border-color: var(--bhb-accent); box-shadow: 0 0 0 2px rgba(var(--bhb-accent-rgb), .3); }
 .bhb-mark--testing { transform: translate(-50%, -50%) scale(1.45); z-index: 1; }
 .bhb-mark__n { color: var(--bhb-text); font-family: var(--bhb-mono); font-size: var(--bhb-fs-xs); font-weight: 700; }
@@ -6041,7 +6047,11 @@
       updateSpeedDisplay();
     }
     function highlight() {
-      highlightSteps(deps.store.get());
+      const state = deps.store.get();
+      highlightSteps(state);
+      if (node) {
+        node.classList.toggle("is-peeking", state.hoveredStepId !== null);
+      }
     }
     return { render, highlight, updateSpeed };
   }

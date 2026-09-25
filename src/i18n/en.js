@@ -247,7 +247,7 @@ export default {
   'steps.kindClick': 'Click',
   'steps.kindOptional': 'Click if present',
   'steps.kindWait': 'Wait until gone',
-  'steps.kindCount': 'Count changes',
+  'steps.kindCount': 'Count',
   'steps.countToHint': 'How many times the watched box must change before the sequence goes on',
   'steps.countCapHint': 'Seconds before a count that is going nowhere gives up',
   'steps.drawRegion': 'Draw the box to watch',
