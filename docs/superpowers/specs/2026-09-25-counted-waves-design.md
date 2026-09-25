@@ -116,16 +116,23 @@ What the user will build once the step exists — no code, just steps tagged
 1. Invasion icon → the Invasion dialog
 2. `PLAY`
 3. `YES` on "your team is not full", optional
-4. **count 7 changes of the wave box**
-5. `AUTO` — green only while auto-battle is on, so it matches exactly when it
-   needs to and is skipped when it does not
-6. `✕` top-right → the EXIT dialog
-7. `YES`
-8. back at the Invasion dialog, the cursor wraps and the next run starts
+4. `AUTO` **while red** — quitting the previous run left auto-battle off, and
+   nothing clears waves until it is back on
+5. **count 7 changes of the wave box**
+6. `AUTO` **while green** — off again, which is what makes the ✕ reachable
+7. `✕` top-right → the EXIT dialog
+8. `YES`
+9. `TOWN` on the DEFEAT screen
+10. back at the town, the cursor wraps and the next run starts
 
-The loop needs nothing new: a step sequence already wraps to the top. Badges
-running out ends it the ordinary way, through a `stopsTask` screen or an
-`endsRun` step on the greyed-out `PLAY`.
+Two steps on one button, told apart by its colour. The button says which
+state it is in, so a step matching red fires only when auto needs turning on
+and a step matching green only when it needs turning off; neither can fire in
+the other's place. This is the existing colour language, not an addition.
+
+The loop needs nothing new either: a step sequence already wraps to the top.
+Badges running out ends it the ordinary way, through a `stopsTask` screen or
+an `endsRun` step on the greyed-out `PLAY`.
 
 ## Error handling
 
