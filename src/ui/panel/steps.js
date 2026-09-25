@@ -421,6 +421,16 @@ export function renderStepsTab(deps) {
 
     // A wait can watch several places at once, and then it is a count that
     // matters: four empty party slots, at most two of them still empty.
+    // Hover, not click: the panel has to fade to show what is under it, and a
+    // click that fades the thing you clicked has nothing left to click again.
+    const preview = el('button', {
+      class: 'bhb-icon bhb-step__peek',
+      title: t('steps.preview'),
+      text: '\u25ce',
+    });
+    preview.addEventListener('mouseenter', () => deps.store.previewStep(step.id));
+    preview.addEventListener('mouseleave', () => deps.store.previewStep(null));
+
     const addPlace = el('button', {
       class: 'bhb-icon',
       title: t('steps.addPlace'),
@@ -470,6 +480,7 @@ export function renderStepsTab(deps) {
         el('span', { class: 'bhb-rule__swatch', style: { background: step.hex || 'transparent' } }),
         name,
         el('span', { class: 'bhb-rule__actions' }, [
+          preview,
           isCount ? drawRegion : addPlace,
           toggle,
           up,

@@ -657,10 +657,14 @@ const CSS = `
 .bhb-mark--miss { border-color: var(--bhb-danger); opacity: .75; }
 .bhb-mark--gated { border-color: var(--bhb-dim); opacity: .45; }
 .bhb-mark--waiting { border-color: var(--bhb-warn); box-shadow: 0 0 0 2px rgba(255, 180, 87, .3); }
-/* Hovering a step draws its marker on the canvas, which the panel was sitting
-   on top of. Mouse events stay, so the panel does not flicker out from under
-   the cursor that is fading it. */
-.bhb-panel.is-peeking { opacity: .2; }
+/* Previewing a step draws its marker on the canvas, which the panel was
+   sitting on top of. Faded rather than hidden on purpose: the button doing the
+   fading is on the panel, and a hidden one would drop the hover that holds it. */
+.bhb-panel.is-peeking { opacity: .12; }
+.bhb-mark--previewing {
+  border-color: var(--bhb-live);
+  animation: bhb-pulse .8s ease-out infinite;
+}
 
 .bhb-mark--counting { border-color: var(--bhb-accent); box-shadow: 0 0 0 2px rgba(var(--bhb-accent-rgb), .3); }
 .bhb-mark--testing { transform: translate(-50%, -50%) scale(1.45); z-index: 1; }
