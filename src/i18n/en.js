@@ -246,6 +246,10 @@ export default {
   'steps.kindClick': 'Click',
   'steps.kindOptional': 'Click if present',
   'steps.kindWait': 'Wait until gone',
+  'steps.kindCount': 'Count changes',
+  'steps.countToHint': 'How many times the watched box must change before the sequence goes on',
+  'steps.countCapHint': 'Seconds before a count that is going nowhere gives up',
+  'steps.drawRegion': 'Draw the box to watch',
   'steps.behaviourHint': 'Click: click when the colour shows, wait otherwise. Click if present: skip straight on when it does not — for a box like Private that may already be ticked. Wait until gone: hold here while the colour is there — for waiting on a party to fill before Start.',
 
   'steps.addPlace': 'Watch one more place (the panel steps aside; hover and press X)',
