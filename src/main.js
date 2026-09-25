@@ -104,6 +104,7 @@ function bootstrap() {
   });
 
   const engine = createEngine({
+    shouldTryEscape: () => settings.panicEscape === true,
     getScriptSteps: getSteps,
     getScaleMode: () => settings.scaleMode,
     getScreens,

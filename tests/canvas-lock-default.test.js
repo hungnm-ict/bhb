@@ -56,3 +56,11 @@ describe('the lock section', () => {
     setLanguage('vi');
   });
 });
+
+describe('the Escape key', () => {
+  it('is off unless asked for', async () => {
+    window.localStorage.clear();
+    const { loadSettings } = await import('../src/core/storage.js');
+    expect(loadSettings().panicEscape).toBe(false);
+  });
+});

@@ -137,6 +137,8 @@ export default {
   'log.report': '⎘ Copy a report',
   'log.reportHint': 'A block of text holding the build, the settings, the steps and this log — for someone diagnosing a problem.',
   'settings.keepLog': 'Keep the log across a reload',
+  'settings.panicEscape': 'Press Escape when nothing matches',
+  'settings.panicEscapeWarning': 'Escape is also this game\u2019s quit key, and a long fight looks exactly like being stuck — this will sometimes open the leave-this-dungeon dialog mid-battle. Being truly stuck is already handled: the run auto-stops after three minutes, and the watchdog reloads.',
   'log.clicked': 'Clicked {label}',
   'log.busy': 'Matched {label}, busy',
   'log.screen': 'Screen: {label}',

@@ -87,10 +87,12 @@ function stepAt(x, label, overrides = {}) {
   });
 }
 
-function build(steps) {
+/** Escape is off unless a profile asks for it; these tests ask. */
+function build(steps, { escape = true } = {}) {
   return createEngine({
     getScriptSteps: () => steps,
     getScaleMode: () => 'scale',
+    shouldTryEscape: () => escape,
   });
 }
 
@@ -207,6 +209,21 @@ describe('going backward', () => {
 });
 
 describe('the last resort', () => {
+  it('is not tried at all unless the profile asked for it', () => {
+    // Nothing matching for a while is what a long fight looks like, and the
+    // key this presses is the one that leaves a dungeon.
+    lit = new Set();
+    const engine = build([stepAt(100, 'one')], { escape: false });
+
+    engine.start(TaskId.SCRIPT);
+    for (let tick = 0; tick < 30; tick += 1) {
+      advance(PANIC_GAP_MS);
+      engine.tick();
+    }
+    expect(keys).toEqual([]);
+    engine.stop();
+  });
+
   it('tries Escape when nothing in the list matches for long enough', () => {
     lit = new Set();
     const engine = build([stepAt(100, 'one'), stepAt(200, 'two')]);

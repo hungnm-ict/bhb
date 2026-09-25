@@ -724,13 +724,16 @@ export function createEngine(deps) {
   /**
    * The way out of a screen nobody wrote a step for.
    *
-   * Escape is what closes a dialog in this game, and a dialog the steps do not
-   * know is the one thing that can hold the bot forever without anything on
-   * screen to click. It is tried a few times and then left to the watchdog:
-   * pressing a key into a game that is not listening is only a disciplined way
-   * to waste the night.
+   * Escape is what closes a dialog in this game — and also what leaves a
+   * dungeon. Nothing matching for a while is exactly what a long fight looks
+   * like, so this cannot tell the two apart and will sometimes quit a battle
+   * that was going fine. Off unless asked for, and tried a few times before
+   * being left to the watchdog.
    */
   function panic(canvas) {
+    if (!deps.shouldTryEscape || !deps.shouldTryEscape()) {
+      return;
+    }
     if (!lost.since) {
       lost.since = realNow();
     }
