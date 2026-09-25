@@ -333,6 +333,10 @@ export function loadSettings() {
     // On by default: the watchdog reloads the page exactly when the log was
     // about to be worth reading.
     keepLog: stored.keepLog !== false,
+    // Off unless asked for. Escape is this game's quit key, and "nothing has
+    // matched for a while" is what a long fight looks like — pressing it then
+    // opens the leave-this-dungeon dialog mid-fight.
+    panicEscape: stored.panicEscape === true,
     // Drift belongs to a boost, not to the account: carrying hours of it into
     // another character is what conjures a daily reset out of nothing.
     keepAlive: stored.keepAlive !== false,

@@ -137,6 +137,8 @@ export default {
   'log.report': '⎘ Chép báo cáo',
   'log.reportHint': 'Một khối text gồm phiên bản, cài đặt, bộ bước và log này — để gửi cho người đang tìm lỗi.',
   'settings.keepLog': 'Giữ log qua lần tải lại trang',
+  'settings.panicEscape': 'Bấm Esc khi không có gì khớp',
+  'settings.panicEscapeWarning': 'Esc cũng chính là phím thoát trận của game, mà một trận đánh dài trông y hệt như bị kẹt — cái này sẽ có lúc mở hộp thoại rời dungeon giữa trận. Kẹt thật thì đã có lớp khác lo: run tự dừng sau ba phút, và watchdog tải lại trang.',
   'log.clicked': 'Click {label}',
   'log.busy': 'Khớp {label}, đang bận',
   'log.screen': 'Màn hình: {label}',
