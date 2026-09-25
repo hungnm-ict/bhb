@@ -80,3 +80,56 @@ describe('a count step in the panel', () => {
     expect(node.querySelector('.bhb-step__region')).toBeNull();
   });
 });
+
+describe('peeking past the panel', () => {
+  it('fades the panel while a step is hovered, and back when it is not', async () => {
+    const { createPanel } = await import('../src/ui/panel/index.js');
+    const { Tab } = await import('../src/ui/store.js');
+
+    document.body.replaceChildren();
+    const store = createUiStore();
+    const step = createStep({ label: 'one', hex: '#ff0000', points: [{ x: 1, y: 2 }] });
+    const panel = createPanel({
+      store,
+      getEngineState: () => ({ expectedStepId: null, activeTask: null, phase: '', round: 0, remainingMs: 0, screen: null, screenName: null }),
+      toggleTask: () => {},
+      getRunTarget: () => 'script',
+      setRunTarget: () => {},
+      runSelected: () => {},
+      getSteps: () => [step],
+      getProbes: () => [],
+      probeEditor: { scoreAll: () => ({ buffer: null, scores: [] }), clear: () => {}, remove: () => {} },
+      getScreens: () => [],
+      getActivities: () => [],
+      getCanvasLock: () => ({ width: 640, height: 400 }),
+      getStats: () => ({ startedAt: Date.now(), clicks: 0, rounds: 0, resyncs: 0, hangs: 0, drops: 0, runningMs: 0, activities: {} }),
+      resetStats: () => {},
+      getReloadCount: () => 0,
+      getProfileName: () => 'Default',
+      profiles: { list: () => [{ id: 'p', name: 'Default' }], activeId: () => 'p', activeName: () => 'Default', exportAll: () => '' },
+      settings: { scaleMode: 'scale', showScreens: false, watchdog: false, keepAlive: true, sizeBadge: true, closeAfterRound: false, notify: { enabled: false, discordWebhook: '', telegramToken: '', telegramChat: '', withShot: true, events: [] }, canvasLock: { enabled: false, width: 800, height: 520 } },
+      updateSettings: () => {},
+      sendTestAlert: () => Promise.resolve(false),
+      stepEditor: {},
+      screenEditor: { probe: () => null },
+      queueEditor: {},
+      dryRunner: { start: () => {}, stop: () => {} },
+      refresh: () => {},
+    });
+
+    store.openPanel();
+    store.setTab(Tab.STEPS);
+    panel.render();
+
+    const node = document.querySelector('.bhb-panel');
+    expect(node.classList.contains('is-peeking')).toBe(false);
+
+    store.hoverStep(step.id);
+    panel.highlight();
+    expect(node.classList.contains('is-peeking')).toBe(true);
+
+    store.hoverStep(null);
+    panel.highlight();
+    expect(node.classList.contains('is-peeking')).toBe(false);
+  });
+});
