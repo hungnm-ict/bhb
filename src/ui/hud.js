@@ -66,6 +66,11 @@ export function createHud(deps) {
       realClearTimeout(dimTimer);
     }
     dimTimer = realSetTimeout(() => {
+      dimTimer = null;
+      // A run that started while the clock was ticking keeps the strip up.
+      if (deps.getEngineState().activeTask) {
+        return;
+      }
       target.classList.add('bhb-hud--dim');
     }, DIM_AFTER_MS);
   }
@@ -92,9 +97,18 @@ export function createHud(deps) {
     // it without taking a strip of the game with it.
     const stuck = Boolean(engine.activeTask) && sinceClick > STUCK_AFTER_MS;
 
+    // Fading hides the mode badge and keeps only the dot, which is right for
+    // an idle strip and wrong for a running one: which mode is running is the
+    // single thing worth reading here, and it is worth reading all night.
+    const isFaded = !running && target.classList.contains('bhb-hud--dim');
+    if (running && dimTimer !== null) {
+      realClearTimeout(dimTimer);
+      dimTimer = null;
+    }
+
     target.className = `bhb-hud ${running ? 'bhb-hud--live' : ''} ${
       stuck ? 'bhb-hud--stuck' : ''
-    } ${target.classList.contains('bhb-hud--dim') ? 'bhb-hud--dim' : ''}`;
+    } ${isFaded ? 'bhb-hud--dim' : ''}`;
     target.title = stuck ? engine.lastMessage || '' : '';
 
     // Stopped, the mode is a plan rather than a fact — the panel is where a
