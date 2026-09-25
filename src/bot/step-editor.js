@@ -273,6 +273,16 @@ export function createStepEditor(deps) {
     return t('step.defaultLabel', { n: siblings.length + 1 });
   }
 
+  /** The speed this step asks the game for; 0 leaves it alone. */
+  function setSpeedTo(stepId, speed) {
+    const step = find(stepId);
+    if (!step) {
+      return;
+    }
+    step.speedTo = Math.max(0, Math.min(30, Math.round(Number(speed) || 0)));
+    deps.persist();
+  }
+
   /** A count step's two numbers: how many changes, and when to give up. */
   function setCount(stepId, { countTo, countCap }) {
     const step = find(stepId);
@@ -422,6 +432,7 @@ export function createStepEditor(deps) {
     setBehaviour,
     setMaxMatches,
     nextLabel,
+    setSpeedTo,
     setCount,
     captureRegion,
     removePlace,

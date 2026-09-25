@@ -500,6 +500,19 @@ export function renderStepsTab(deps) {
       deps.refresh();
     });
 
+    // Blank means "leave the speed alone", which is what almost every step
+    // wants; the few that matter are the ones entering and leaving a battle.
+    const speedBox = el('input', { class: 'bhb-rest bhb-mono', title: t('steps.speedHint') });
+    speedBox.type = 'number';
+    speedBox.min = '0';
+    speedBox.max = '30';
+    speedBox.placeholder = '×';
+    speedBox.value = step.speedTo ? String(step.speedTo) : '';
+    speedBox.addEventListener('change', () => {
+      deps.stepEditor.setSpeedTo(step.id, speedBox.value);
+      deps.refresh();
+    });
+
     const drawRegion = el('button', {
       class: 'bhb-icon bhb-step__region',
       title: t('steps.drawRegion'),
@@ -619,7 +632,7 @@ export function renderStepsTab(deps) {
         behaviour,
         placeCount,
         isCount ? countTarget : isWait ? threshold : rest,
-        isCount ? countCap : null,
+        isCount ? countCap : speedBox,
         el('span', { class: 'bhb-rule__meta-coord' }, [
           el('span', {
             class: 'bhb-rule__coord bhb-mono',
