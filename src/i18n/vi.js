@@ -58,6 +58,7 @@ export default {
   'steps.moveAll': 'Chuyển các bước đang hiện sang…',
   'steps.allSteps': 'Tất cả bước',
   'steps.filter': 'Chỉ hiện một hoạt động',
+  'steps.hints': 'Cách chụp bước và chạy thử hoạt động',
   'steps.delete': 'Xoá bước',
 
   'screens.title': 'Màn hình',

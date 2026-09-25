@@ -32,6 +32,15 @@ export function createMarkerLayer(deps) {
   /** What the last render drew, so a hover can tell a repaint from a relight. */
   let drawnFilter = null;
   let drawnVisible = false;
+  /**
+   * Which markers were on screen last time.
+   *
+   * The layer is rebuilt on every tick, so an animation on the marker itself
+   * would replay forever. A marker only bounces the first time it appears.
+   *
+   * @type {Set<string>}
+   */
+  let drawnIds = new Set();
 
   function ensureLayer() {
     if (!layer) {
@@ -62,6 +71,9 @@ export function createMarkerLayer(deps) {
     }
     if (state.hoveredStepId === step.id) {
       classes.push('bhb-mark--hovered');
+    }
+    if (!drawnIds.has(step.id)) {
+      classes.push('bhb-mark--arriving');
     }
     if (state.dryRun) {
       const verdict = state.dryRun.scores[step.id];
@@ -104,6 +116,7 @@ export function createMarkerLayer(deps) {
       node.style.display = 'none';
       node.replaceChildren();
       nodes.clear();
+      drawnIds = new Set();
       drawnVisible = false;
       drawnFilter = null;
       return;
@@ -129,6 +142,7 @@ export function createMarkerLayer(deps) {
       .filter(Boolean);
 
     node.replaceChildren(...marks);
+    drawnIds = new Set(nodes.keys());
     drawnFilter = only;
     drawnVisible = true;
   }

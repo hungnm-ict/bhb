@@ -58,6 +58,7 @@ export default {
   'steps.moveAll': 'Move the steps shown to…',
   'steps.allSteps': 'All steps',
   'steps.filter': 'Show only one activity',
+  'steps.hints': 'How capture and dry runs work',
   'steps.delete': 'Delete',
 
   'screens.title': 'Screens',

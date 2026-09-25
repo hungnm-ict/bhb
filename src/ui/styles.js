@@ -662,6 +662,9 @@ const CSS = `
    sitting on top of. Faded rather than hidden on purpose: the button doing the
    fading is on the panel, and a hidden one would drop the hover that holds it. */
 .bhb-panel.is-peeking { opacity: .12; }
+/* Only on the first frame a marker exists: the layer is rebuilt every tick. */
+.bhb-mark--arriving { animation: bhb-mark-drop .45s cubic-bezier(.2, 1.4, .4, 1); }
+
 .bhb-mark--previewing {
   border-color: var(--bhb-live);
   animation: bhb-pulse .8s ease-out infinite;
@@ -777,6 +780,13 @@ const CSS = `
 .bhb-toast__swatch {
   width: 13px; height: 13px; flex: none;
   border: 1px solid rgba(255, 255, 255, .35); border-radius: 4px;
+}
+
+@keyframes bhb-mark-drop {
+  0%   { transform: translate(-50%, -160%) scale(.6); opacity: 0; }
+  55%  { transform: translate(-50%, -38%) scale(1.12); opacity: 1; }
+  75%  { transform: translate(-50%, -56%) scale(.97); }
+  100% { transform: translate(-50%, -50%) scale(1); }
 }
 
 @keyframes bhb-pulse {
