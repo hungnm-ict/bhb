@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.31.6
+// @version      0.32.0
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @icon         data:image/png;base64,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
@@ -15,11 +15,13 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.31.6" : "dev";
+  var VERSION = true ? "0.32.0" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
   var STORAGE_KEY_STATS = "bhb.stats.v1";
+  var LOG_WRITE_MS = 4e3;
+  var STORAGE_KEY_LOG = "bhb.log.v1";
   var STORAGE_KEY_LEGACY_RULES = "bh_script_rules_v1";
   var DEFAULT_COLOR_TOLERANCE = 15;
   var INTERVAL_AUTO_STOP_CHECK = 5e3;
@@ -59,6 +61,411 @@
   });
   function keyLabel(key) {
     return key.length === 1 ? key.toUpperCase() : key;
+  }
+
+  // src/core/color.js
+  function toHexByte(value) {
+    return value.toString(16).padStart(2, "0");
+  }
+  function rgbToHex(rgb) {
+    return "#" + toHexByte(rgb.r) + toHexByte(rgb.g) + toHexByte(rgb.b);
+  }
+  function hexToRgb(hex) {
+    const clean = hex.replace("#", "");
+    return {
+      r: parseInt(clean.slice(0, 2), 16),
+      g: parseInt(clean.slice(2, 4), 16),
+      b: parseInt(clean.slice(4, 6), 16)
+    };
+  }
+  function colorMatches(actual, expected, tolerance) {
+    return Math.abs(actual.r - expected.r) <= tolerance && Math.abs(actual.g - expected.g) <= tolerance && Math.abs(actual.b - expected.b) <= tolerance;
+  }
+
+  // src/core/pixel.js
+  function readPixel(gl, x, y) {
+    const data = new Uint8Array(4);
+    try {
+      gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, data);
+    } catch {
+      return null;
+    }
+    return { r: data[0], g: data[1], b: data[2] };
+  }
+
+  // src/core/coords.js
+  var ScaleMode = Object.freeze({
+    ABSOLUTE: "absolute",
+    SCALE: "scale"
+  });
+  function getBufferSize(canvas) {
+    return { width: canvas.width, height: canvas.height };
+  }
+  function resolvePoint(point, buffer, mode = ScaleMode.SCALE) {
+    if (mode === ScaleMode.ABSOLUTE || !point.bw || !point.bh) {
+      return { x: point.x, y: point.y };
+    }
+    return {
+      x: Math.round(point.x / point.bw * buffer.width),
+      y: Math.round(point.y / point.bh * buffer.height)
+    };
+  }
+  function isLegacyPoint(point) {
+    return !point.bw || !point.bh;
+  }
+  function clientToBuffer(canvas, clientX, clientY) {
+    const rect = canvas.getBoundingClientRect();
+    const relX = (clientX - rect.left) / rect.width;
+    const relY = (rect.bottom - clientY) / rect.height;
+    return {
+      x: Math.round(relX * canvas.width),
+      y: Math.round(relY * canvas.height)
+    };
+  }
+  function bufferToClient(canvas, bufferX, bufferY, knownRect) {
+    const rect = knownRect || canvas.getBoundingClientRect();
+    return {
+      clientX: rect.left + bufferX / canvas.width * rect.width,
+      clientY: rect.bottom - bufferY / canvas.height * rect.height
+    };
+  }
+  function isInsideCanvas(canvas, clientX, clientY) {
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) {
+      return false;
+    }
+    return clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom;
+  }
+
+  // src/core/region.js
+  var GRID = 4;
+  var DEFAULT_MIN_RATIO = 0.75;
+  function readRegion(gl, x, y, w, h) {
+    const width = Math.max(1, Math.round(w));
+    const height = Math.max(1, Math.round(h));
+    const data = new Uint8Array(width * height * 4);
+    try {
+      gl.readPixels(Math.round(x), Math.round(y), width, height, gl.RGBA, gl.UNSIGNED_BYTE, data);
+    } catch {
+      return null;
+    }
+    return { x: Math.round(x), y: Math.round(y), w: width, h: height, data };
+  }
+  function sampleRegion(region, dx, dy) {
+    const col = Math.min(region.w - 1, Math.max(0, Math.round(dx * (region.w - 1))));
+    const row = Math.min(region.h - 1, Math.max(0, Math.round(dy * (region.h - 1))));
+    const offset = (row * region.w + col) * 4;
+    return { r: region.data[offset], g: region.data[offset + 1], b: region.data[offset + 2] };
+  }
+  var DEFAULT_CHANGE_RATIO = 0.02;
+  function regionsDiffer(left, right, tolerance, changeRatio = DEFAULT_CHANGE_RATIO) {
+    if (!left || !right) {
+      return true;
+    }
+    if (left.w !== right.w || left.h !== right.h) {
+      return true;
+    }
+    const pixels = left.w * left.h;
+    if (pixels === 0) {
+      return false;
+    }
+    let moved = 0;
+    for (let offset = 0; offset < pixels * 4; offset += 4) {
+      if (Math.abs(left.data[offset] - right.data[offset]) > tolerance || Math.abs(left.data[offset + 1] - right.data[offset + 1]) > tolerance || Math.abs(left.data[offset + 2] - right.data[offset + 2]) > tolerance) {
+        moved += 1;
+      }
+    }
+    return moved / pixels > changeRatio;
+  }
+  function captureFingerprint(gl, rect) {
+    const region = readRegion(gl, rect.x, rect.y, rect.w, rect.h);
+    if (!region) {
+      return null;
+    }
+    const samples = [];
+    for (let row = 0; row < GRID; row += 1) {
+      for (let col = 0; col < GRID; col += 1) {
+        const dx = (col + 0.5) / GRID;
+        const dy = (row + 0.5) / GRID;
+        samples.push({ dx, dy, hex: rgbToHex(sampleRegion(region, dx, dy)) });
+      }
+    }
+    return { x: region.x, y: region.y, w: region.w, h: region.h, bw: rect.bw, bh: rect.bh, samples };
+  }
+  function resolveRect(fp, buffer, mode) {
+    const origin = resolvePoint(fp, buffer, mode);
+    if (!fp.bw || !fp.bh) {
+      return { x: origin.x, y: origin.y, w: fp.w, h: fp.h };
+    }
+    return {
+      x: origin.x,
+      y: origin.y,
+      w: Math.max(1, Math.round(fp.w / fp.bw * buffer.width)),
+      h: Math.max(1, Math.round(fp.h / fp.bh * buffer.height))
+    };
+  }
+  function matchFingerprint(gl, fp, buffer, mode, tolerance = DEFAULT_COLOR_TOLERANCE, minRatio = DEFAULT_MIN_RATIO) {
+    const samples = fp.samples || [];
+    if (samples.length === 0) {
+      return { matched: false, ratio: 0 };
+    }
+    const rect = resolveRect(fp, buffer, mode);
+    const region = readRegion(gl, rect.x, rect.y, rect.w, rect.h);
+    if (!region) {
+      return { matched: false, ratio: 0 };
+    }
+    let hits = 0;
+    for (const sample of samples) {
+      const actual = sampleRegion(region, sample.dx, sample.dy);
+      if (colorMatches(actual, hexToRgb(sample.hex), tolerance)) {
+        hits += 1;
+      }
+    }
+    const ratio = hits / samples.length;
+    return { matched: ratio >= minRatio, ratio };
+  }
+  function isRegionPoint(point) {
+    return Array.isArray(point.samples) && point.samples.length > 0;
+  }
+  function matchPoint(gl, point, hex, buffer, mode, tolerance, minRatio) {
+    if (isRegionPoint(point)) {
+      const rect = resolveRect(point, buffer, mode);
+      const result = matchFingerprint(gl, point, buffer, mode, tolerance, minRatio);
+      return {
+        matched: result.matched,
+        ratio: result.ratio,
+        // The click lands in the middle of the region, not on its corner.
+        point: { x: rect.x + Math.round(rect.w / 2), y: rect.y + Math.round(rect.h / 2) }
+      };
+    }
+    const resolved = resolvePoint(point, buffer, mode);
+    const pixel = readPixel(gl, resolved.x, resolved.y);
+    if (!pixel) {
+      return { matched: false, ratio: 0, point: resolved };
+    }
+    const expected = hexToRgb(hex);
+    const matched = colorMatches(pixel, expected, tolerance);
+    const drift = Math.max(
+      Math.abs(pixel.r - expected.r),
+      Math.abs(pixel.g - expected.g),
+      Math.abs(pixel.b - expected.b)
+    );
+    return { matched, ratio: matched ? 1 : 0, point: resolved, drift, seen: rgbToHex(pixel) };
+  }
+
+  // src/bot/step.js
+  var StepKind = Object.freeze({
+    CLICK: "click",
+    WAIT: "wait",
+    COUNT: "count"
+  });
+  function createStepId() {
+    return `r${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
+  }
+  function createStep(overrides = {}) {
+    return {
+      id: createStepId(),
+      label: "",
+      points: [],
+      hex: null,
+      tolerance: DEFAULT_COLOR_TOLERANCE,
+      enabled: true,
+      screens: [],
+      activity: null,
+      /**
+       * Seconds to sit still after this step clicks.
+       *
+       * A dungeon run takes a minute; polling three times a second through it
+       * reads the same frame over and over. This is what the hard-coded Re-run
+       * mode used to do after clicking, kept as a property of the step that
+       * starts the fight rather than a mode of its own.
+       */
+      restSec: 0,
+      kind: StepKind.CLICK,
+      /**
+       * For a wait step: how many of its points may still match before it lets
+       * the sequence through. Waiting on four empty party slots with this at 2
+       * is "wait until three players are here", whichever seats they took.
+       */
+      maxMatches: 0,
+      /**
+       * For a count step: how many times its region must settle at a new
+       * picture before the sequence goes on. Seven is an Invasion's waves.
+       */
+      countTo: 0,
+      /**
+       * Seconds without a single change before the count gives up and moves on.
+       *
+       * Since the last change, not since the count began, so a slow battle is
+       * never cut off part-way. Kept under the auto-stop on purpose: the two
+       * clocks race, and the one that should win is the one that loses a lap
+       * rather than the whole run.
+       */
+      countCap: 120,
+      /** Skip instead of waiting when it does not match — a box already ticked. */
+      optional: false,
+      /**
+       * Clicking this one means the resource is spent.
+       *
+       * A screen could already say so; a step could not, and capturing a whole
+       * screen to express "the Play button went grey" is more work than the
+       * fact deserves.
+       */
+      endsRun: false,
+      ...overrides
+    };
+  }
+  var AUTO_LABEL = /^(Step|Bước)\s+(\d+)$/;
+  function renumberAutoLabels(steps) {
+    const seen = /* @__PURE__ */ new Map();
+    let hasChanged = false;
+    for (const step of steps) {
+      const group = step.activity || "";
+      const position = (seen.get(group) || 0) + 1;
+      seen.set(group, position);
+      const match = AUTO_LABEL.exec(step.label || "");
+      if (!match) {
+        continue;
+      }
+      const renamed = `${match[1]} ${position}`;
+      if (renamed !== step.label) {
+        step.label = renamed;
+        hasChanged = true;
+      }
+    }
+    return hasChanged;
+  }
+  function isStepReady(step) {
+    if (!step.enabled || step.points.length === 0) {
+      return false;
+    }
+    if (step.kind === StepKind.COUNT) {
+      return step.points.some(isRegionPoint);
+    }
+    return Boolean(step.hex) || step.points.every(isRegionPoint);
+  }
+  function colorForPoint(step, point) {
+    return point.hex || step.hex;
+  }
+  function pointsByPlace(step) {
+    const places = /* @__PURE__ */ new Map();
+    for (const point of step.points) {
+      const key = `${point.x},${point.y},${point.bw || 0},${point.bh || 0}`;
+      const group = places.get(key);
+      if (group) {
+        group.push(point);
+      } else {
+        places.set(key, [point]);
+      }
+    }
+    return [...places.values()];
+  }
+
+  // src/core/report.js
+  function clock(at) {
+    const when = new Date(at);
+    const pad = (value) => String(value).padStart(2, "0");
+    return `${pad(when.getHours())}:${pad(when.getMinutes())}:${pad(when.getSeconds())}`;
+  }
+  function describeMinutes(ms) {
+    const minutes = Math.round((Number(ms) || 0) / 6e4);
+    return minutes >= 60 ? `${Math.floor(minutes / 60)}h ${minutes % 60}m` : `${minutes}m`;
+  }
+  function describePoint(point) {
+    if (isRegionPoint(point)) {
+      return `${point.x},${point.y} ${point.w}×${point.h}`;
+    }
+    return `${point.x},${point.y}`;
+  }
+  function describeStep(step, position) {
+    const parts = [`${position}. ${step.label || step.id}`];
+    if (step.kind === StepKind.COUNT) {
+      parts.push(`count ${step.countTo || 0}`, `cap ${step.countCap || 0}s`);
+    } else if (step.kind === StepKind.WAIT) {
+      parts.push(`wait ≤${step.maxMatches || 0}`);
+    } else if (step.endsRun) {
+      parts.push("click, ends run");
+    } else if (step.optional) {
+      parts.push("click if present");
+    } else {
+      parts.push("click");
+    }
+    parts.push(step.activity || "loose");
+    if (step.hex) {
+      parts.push(step.hex);
+    }
+    parts.push(`tol ${step.tolerance}`);
+    if (Number(step.restSec) > 0) {
+      parts.push(`rest ${step.restSec}s`);
+    }
+    if (!step.enabled) {
+      parts.push("OFF");
+    }
+    const places = (step.points || []).map(describePoint).join(" | ");
+    return `  ${parts.join("  ·  ")}
+     ${places || "nothing captured"}`;
+  }
+  function describeLogEntry(entry) {
+    const what = entry.label || entry.kind;
+    const where = entry.point ? `  @${entry.point.x},${entry.point.y}` : "";
+    return `  ${clock(entry.at)}  ${entry.kind.padEnd(8)} ${what}${where}`;
+  }
+  function buildReport(input) {
+    const settings = input.settings || {};
+    const lock = settings.canvasLock || {};
+    const notify = settings.notify || {};
+    const stats = input.stats || {};
+    const canvas = input.canvas;
+    const lines = [`BHB v${input.version}  ·  ${(/* @__PURE__ */ new Date()).toISOString()}`, ""];
+    lines.push("SETUP");
+    lines.push(
+      `  canvas       ${canvas ? `${canvas.width}×${canvas.height} → ${Math.round(canvas.clientWidth)}×${Math.round(canvas.clientHeight)}` : "none"}`
+    );
+    lines.push(`  scale mode   ${settings.scaleMode}`);
+    lines.push(
+      `  canvas lock  ${lock.enabled ? `on, ${lock.width}×${lock.height}` : "off"}`
+    );
+    lines.push(`  watchdog     ${settings.watchdog ? "on" : "off"}`);
+    lines.push(`  keep alive   ${settings.keepAlive ? "on" : "off"}`);
+    lines.push(`  frames       ${settings.multiplyFrames ? "multiplied" : "plain"}`);
+    lines.push(
+      `  alerts       ${notify.enabled ? "on" : "off"}, channel ${notify.discordWebhook || notify.telegramToken ? "set" : "none"}`
+    );
+    lines.push("");
+    lines.push("SESSION");
+    lines.push(`  running      ${describeMinutes(stats.runningMs)}`);
+    lines.push(`  clicks       ${stats.clicks || 0}`);
+    lines.push(`  resyncs      ${stats.resyncs || 0}`);
+    lines.push(`  hangs        ${stats.hangs || 0}`);
+    lines.push(`  queue rounds ${stats.rounds || 0}`);
+    lines.push("");
+    const activities = input.activities || [];
+    lines.push(`QUEUE (${activities.filter((one) => one.enabled).length} on)`);
+    for (const activity of activities) {
+      lines.push(`  ${activity.enabled ? "✓" : "·"} ${activity.id}  ${activity.name}`);
+    }
+    if (activities.length === 0) {
+      lines.push("  none");
+    }
+    lines.push("");
+    const steps = input.steps || [];
+    lines.push(`STEPS (${steps.length})`);
+    for (const [index, step] of steps.entries()) {
+      lines.push(describeStep(step, index + 1));
+    }
+    if (steps.length === 0) {
+      lines.push("  none");
+    }
+    lines.push("");
+    const log = input.log || [];
+    lines.push(`LOG (${log.length}, oldest first)`);
+    for (const entry of [...log].reverse()) {
+      lines.push(describeLogEntry(entry));
+    }
+    if (log.length === 0) {
+      lines.push("  none");
+    }
+    return lines.join("\n");
   }
 
   // src/core/canvas.js
@@ -418,196 +825,6 @@
     }
   }
 
-  // src/core/color.js
-  function toHexByte(value) {
-    return value.toString(16).padStart(2, "0");
-  }
-  function rgbToHex(rgb) {
-    return "#" + toHexByte(rgb.r) + toHexByte(rgb.g) + toHexByte(rgb.b);
-  }
-  function hexToRgb(hex) {
-    const clean = hex.replace("#", "");
-    return {
-      r: parseInt(clean.slice(0, 2), 16),
-      g: parseInt(clean.slice(2, 4), 16),
-      b: parseInt(clean.slice(4, 6), 16)
-    };
-  }
-  function colorMatches(actual, expected, tolerance) {
-    return Math.abs(actual.r - expected.r) <= tolerance && Math.abs(actual.g - expected.g) <= tolerance && Math.abs(actual.b - expected.b) <= tolerance;
-  }
-
-  // src/core/pixel.js
-  function readPixel(gl, x, y) {
-    const data = new Uint8Array(4);
-    try {
-      gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, data);
-    } catch {
-      return null;
-    }
-    return { r: data[0], g: data[1], b: data[2] };
-  }
-
-  // src/core/coords.js
-  var ScaleMode = Object.freeze({
-    ABSOLUTE: "absolute",
-    SCALE: "scale"
-  });
-  function getBufferSize(canvas) {
-    return { width: canvas.width, height: canvas.height };
-  }
-  function resolvePoint(point, buffer, mode = ScaleMode.SCALE) {
-    if (mode === ScaleMode.ABSOLUTE || !point.bw || !point.bh) {
-      return { x: point.x, y: point.y };
-    }
-    return {
-      x: Math.round(point.x / point.bw * buffer.width),
-      y: Math.round(point.y / point.bh * buffer.height)
-    };
-  }
-  function isLegacyPoint(point) {
-    return !point.bw || !point.bh;
-  }
-  function clientToBuffer(canvas, clientX, clientY) {
-    const rect = canvas.getBoundingClientRect();
-    const relX = (clientX - rect.left) / rect.width;
-    const relY = (rect.bottom - clientY) / rect.height;
-    return {
-      x: Math.round(relX * canvas.width),
-      y: Math.round(relY * canvas.height)
-    };
-  }
-  function bufferToClient(canvas, bufferX, bufferY, knownRect) {
-    const rect = knownRect || canvas.getBoundingClientRect();
-    return {
-      clientX: rect.left + bufferX / canvas.width * rect.width,
-      clientY: rect.bottom - bufferY / canvas.height * rect.height
-    };
-  }
-  function isInsideCanvas(canvas, clientX, clientY) {
-    const rect = canvas.getBoundingClientRect();
-    if (rect.width <= 0 || rect.height <= 0) {
-      return false;
-    }
-    return clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom;
-  }
-
-  // src/core/region.js
-  var GRID = 4;
-  var DEFAULT_MIN_RATIO = 0.75;
-  function readRegion(gl, x, y, w, h) {
-    const width = Math.max(1, Math.round(w));
-    const height = Math.max(1, Math.round(h));
-    const data = new Uint8Array(width * height * 4);
-    try {
-      gl.readPixels(Math.round(x), Math.round(y), width, height, gl.RGBA, gl.UNSIGNED_BYTE, data);
-    } catch {
-      return null;
-    }
-    return { x: Math.round(x), y: Math.round(y), w: width, h: height, data };
-  }
-  function sampleRegion(region, dx, dy) {
-    const col = Math.min(region.w - 1, Math.max(0, Math.round(dx * (region.w - 1))));
-    const row = Math.min(region.h - 1, Math.max(0, Math.round(dy * (region.h - 1))));
-    const offset = (row * region.w + col) * 4;
-    return { r: region.data[offset], g: region.data[offset + 1], b: region.data[offset + 2] };
-  }
-  var DEFAULT_CHANGE_RATIO = 0.02;
-  function regionsDiffer(left, right, tolerance, changeRatio = DEFAULT_CHANGE_RATIO) {
-    if (!left || !right) {
-      return true;
-    }
-    if (left.w !== right.w || left.h !== right.h) {
-      return true;
-    }
-    const pixels = left.w * left.h;
-    if (pixels === 0) {
-      return false;
-    }
-    let moved = 0;
-    for (let offset = 0; offset < pixels * 4; offset += 4) {
-      if (Math.abs(left.data[offset] - right.data[offset]) > tolerance || Math.abs(left.data[offset + 1] - right.data[offset + 1]) > tolerance || Math.abs(left.data[offset + 2] - right.data[offset + 2]) > tolerance) {
-        moved += 1;
-      }
-    }
-    return moved / pixels > changeRatio;
-  }
-  function captureFingerprint(gl, rect) {
-    const region = readRegion(gl, rect.x, rect.y, rect.w, rect.h);
-    if (!region) {
-      return null;
-    }
-    const samples = [];
-    for (let row = 0; row < GRID; row += 1) {
-      for (let col = 0; col < GRID; col += 1) {
-        const dx = (col + 0.5) / GRID;
-        const dy = (row + 0.5) / GRID;
-        samples.push({ dx, dy, hex: rgbToHex(sampleRegion(region, dx, dy)) });
-      }
-    }
-    return { x: region.x, y: region.y, w: region.w, h: region.h, bw: rect.bw, bh: rect.bh, samples };
-  }
-  function resolveRect(fp, buffer, mode) {
-    const origin = resolvePoint(fp, buffer, mode);
-    if (!fp.bw || !fp.bh) {
-      return { x: origin.x, y: origin.y, w: fp.w, h: fp.h };
-    }
-    return {
-      x: origin.x,
-      y: origin.y,
-      w: Math.max(1, Math.round(fp.w / fp.bw * buffer.width)),
-      h: Math.max(1, Math.round(fp.h / fp.bh * buffer.height))
-    };
-  }
-  function matchFingerprint(gl, fp, buffer, mode, tolerance = DEFAULT_COLOR_TOLERANCE, minRatio = DEFAULT_MIN_RATIO) {
-    const samples = fp.samples || [];
-    if (samples.length === 0) {
-      return { matched: false, ratio: 0 };
-    }
-    const rect = resolveRect(fp, buffer, mode);
-    const region = readRegion(gl, rect.x, rect.y, rect.w, rect.h);
-    if (!region) {
-      return { matched: false, ratio: 0 };
-    }
-    let hits = 0;
-    for (const sample of samples) {
-      const actual = sampleRegion(region, sample.dx, sample.dy);
-      if (colorMatches(actual, hexToRgb(sample.hex), tolerance)) {
-        hits += 1;
-      }
-    }
-    const ratio = hits / samples.length;
-    return { matched: ratio >= minRatio, ratio };
-  }
-  function isRegionPoint(point) {
-    return Array.isArray(point.samples) && point.samples.length > 0;
-  }
-  function matchPoint(gl, point, hex, buffer, mode, tolerance, minRatio) {
-    if (isRegionPoint(point)) {
-      const rect = resolveRect(point, buffer, mode);
-      const result = matchFingerprint(gl, point, buffer, mode, tolerance, minRatio);
-      return {
-        matched: result.matched,
-        ratio: result.ratio,
-        // The click lands in the middle of the region, not on its corner.
-        point: { x: rect.x + Math.round(rect.w / 2), y: rect.y + Math.round(rect.h / 2) }
-      };
-    }
-    const resolved = resolvePoint(point, buffer, mode);
-    const pixel = readPixel(gl, resolved.x, resolved.y);
-    if (!pixel) {
-      return { matched: false, ratio: 0, point: resolved };
-    }
-    const expected = hexToRgb(hex);
-    const matched = colorMatches(pixel, expected, tolerance);
-    const drift = Math.max(
-      Math.abs(pixel.r - expected.r),
-      Math.abs(pixel.g - expected.g),
-      Math.abs(pixel.b - expected.b)
-    );
-    return { matched, ratio: matched ? 1 : 0, point: resolved, drift, seen: rgbToHex(pixel) };
-  }
-
   // src/core/input.js
   var locked = false;
   var clickObserver = null;
@@ -727,114 +944,6 @@
       locked = false;
     }, CLICK_LOCKOUT_MS);
     return true;
-  }
-
-  // src/bot/step.js
-  var StepKind = Object.freeze({
-    CLICK: "click",
-    WAIT: "wait",
-    COUNT: "count"
-  });
-  function createStepId() {
-    return `r${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
-  }
-  function createStep(overrides = {}) {
-    return {
-      id: createStepId(),
-      label: "",
-      points: [],
-      hex: null,
-      tolerance: DEFAULT_COLOR_TOLERANCE,
-      enabled: true,
-      screens: [],
-      activity: null,
-      /**
-       * Seconds to sit still after this step clicks.
-       *
-       * A dungeon run takes a minute; polling three times a second through it
-       * reads the same frame over and over. This is what the hard-coded Re-run
-       * mode used to do after clicking, kept as a property of the step that
-       * starts the fight rather than a mode of its own.
-       */
-      restSec: 0,
-      kind: StepKind.CLICK,
-      /**
-       * For a wait step: how many of its points may still match before it lets
-       * the sequence through. Waiting on four empty party slots with this at 2
-       * is "wait until three players are here", whichever seats they took.
-       */
-      maxMatches: 0,
-      /**
-       * For a count step: how many times its region must settle at a new
-       * picture before the sequence goes on. Seven is an Invasion's waves.
-       */
-      countTo: 0,
-      /**
-       * Seconds without a single change before the count gives up and moves on.
-       *
-       * Since the last change, not since the count began, so a slow battle is
-       * never cut off part-way. Kept under the auto-stop on purpose: the two
-       * clocks race, and the one that should win is the one that loses a lap
-       * rather than the whole run.
-       */
-      countCap: 120,
-      /** Skip instead of waiting when it does not match — a box already ticked. */
-      optional: false,
-      /**
-       * Clicking this one means the resource is spent.
-       *
-       * A screen could already say so; a step could not, and capturing a whole
-       * screen to express "the Play button went grey" is more work than the
-       * fact deserves.
-       */
-      endsRun: false,
-      ...overrides
-    };
-  }
-  var AUTO_LABEL = /^(Step|Bước)\s+(\d+)$/;
-  function renumberAutoLabels(steps) {
-    const seen = /* @__PURE__ */ new Map();
-    let hasChanged = false;
-    for (const step of steps) {
-      const group = step.activity || "";
-      const position = (seen.get(group) || 0) + 1;
-      seen.set(group, position);
-      const match = AUTO_LABEL.exec(step.label || "");
-      if (!match) {
-        continue;
-      }
-      const renamed = `${match[1]} ${position}`;
-      if (renamed !== step.label) {
-        step.label = renamed;
-        hasChanged = true;
-      }
-    }
-    return hasChanged;
-  }
-  function isStepReady(step) {
-    if (!step.enabled || step.points.length === 0) {
-      return false;
-    }
-    if (step.kind === StepKind.COUNT) {
-      return step.points.some(isRegionPoint);
-    }
-    return Boolean(step.hex) || step.points.every(isRegionPoint);
-  }
-  function colorForPoint(step, point) {
-    return point.hex || step.hex;
-  }
-  function pointsByPlace(step) {
-    const places = /* @__PURE__ */ new Map();
-    for (const point of step.points) {
-      const key = `${point.x},${point.y},${point.bw || 0},${point.bh || 0}`;
-      const group = places.get(key);
-      if (group) {
-        group.push(point);
-      } else {
-        places.set(key, [point]);
-      }
-    }
-    return [...places.values()];
   }
 
   // src/bot/screen.js
@@ -2064,6 +2173,9 @@
       // Screens are a rarely-needed refinement, so the tab stays out of the way
       // until someone asks for it. Stored screens keep gating steps either way.
       showScreens: stored.showScreens === true,
+      // On by default: the watchdog reloads the page exactly when the log was
+      // about to be worth reading.
+      keepLog: stored.keepLog !== false,
       // Drift belongs to a boost, not to the account: carrying hours of it into
       // another character is what conjures a daily reset out of nothing.
       keepAlive: stored.keepAlive !== false,
@@ -2076,6 +2188,16 @@
       // Which settings section is expanded; it is usually the same one twice.
       openSection: typeof stored.openSection === "string" ? stored.openSection : null
     };
+  }
+  function loadLog() {
+    const stored = readJson(STORAGE_KEY_LOG);
+    return Array.isArray(stored) ? stored : [];
+  }
+  function saveLog(entries) {
+    return writeJson(STORAGE_KEY_LOG, entries);
+  }
+  function clearStoredLog() {
+    return writeJson(STORAGE_KEY_LOG, []);
   }
   function saveSettings(settings) {
     return writeJson(STORAGE_KEY_SETTINGS, settings);
@@ -2464,6 +2586,9 @@
     "log.title": "Nhật ký",
     "log.empty": "Chưa có gì. Bật một hoạt động để bắt đầu.",
     "log.clear": "Xoá",
+    "log.report": "⎘ Chép báo cáo",
+    "log.reportHint": "Một khối text gồm phiên bản, cài đặt, bộ bước và log này — để gửi cho người đang tìm lỗi.",
+    "settings.keepLog": "Giữ log qua lần tải lại trang",
     "log.clicked": "Click {label}",
     "log.busy": "Khớp {label}, đang bận",
     "log.screen": "Màn hình: {label}",
@@ -2713,6 +2838,9 @@
     "log.title": "Activity",
     "log.empty": "Nothing yet. Start a task to see what the bot does.",
     "log.clear": "Clear",
+    "log.report": "⎘ Copy a report",
+    "log.reportHint": "A block of text holding the build, the settings, the steps and this log — for someone diagnosing a problem.",
+    "settings.keepLog": "Keep the log across a reload",
     "log.clicked": "Clicked {label}",
     "log.busy": "Matched {label}, busy",
     "log.screen": "Screen: {label}",
@@ -4226,7 +4354,7 @@
     HELP: "help"
   });
   var LOG_LIMIT = 200;
-  function createUiStore() {
+  function createUiStore(restoredLog = []) {
     const emitter = createEmitter();
     const state = {
       panelOpen: false,
@@ -4282,7 +4410,7 @@
        */
       dryRun: null,
       /** @type {object[]} newest first */
-      log: []
+      log: Array.isArray(restoredLog) ? restoredLog.slice(0, LOG_LIMIT) : []
     };
     const HIGHLIGHT_KEYS = /* @__PURE__ */ new Set(["selectedStepId", "hoveredStepId", "previewStepId"]);
     function emit() {
@@ -5839,7 +5967,8 @@
       settings.sizeBadge,
       settings.fpsBadge,
       settings.scaleMode === ScaleMode.ABSOLUTE,
-      settings.showScreens
+      settings.showScreens,
+      settings.keepLog
     ];
     return { n: switches.filter(Boolean).length, total: switches.length };
   }
@@ -5984,6 +6113,11 @@
             settings.showScreens,
             (value) => deps.updateSettings({ showScreens: value })
           ),
+          toggleRow(
+            "settings.keepLog",
+            settings.keepLog,
+            (value) => deps.updateSettings({ keepLog: value })
+          ),
           el("p", { class: "bhb-note", text: t("settings.watchdogHint") }),
           el("p", { class: "bhb-note", text: t("settings.keepAliveHint") })
         ])
@@ -6051,7 +6185,7 @@
     resource: "⛔",
     notify: "★"
   };
-  function clock(at) {
+  function clock2(at) {
     const date = new Date(at);
     return [date.getHours(), date.getMinutes(), date.getSeconds()].map((part) => String(part).padStart(2, "0")).join(":");
   }
@@ -6146,23 +6280,42 @@
       )
     ]);
   }
+  var reportBox = null;
   function renderLogTab(deps) {
     const entries = deps.store.get().log;
     const stats = renderStats(deps);
     const clear = el("button", { class: "bhb-btn", text: t("log.clear") });
     clear.addEventListener("click", () => {
       deps.store.clearLog();
+      deps.clearStoredLog();
       deps.refresh();
     });
+    if (!reportBox) {
+      reportBox = el("textarea", { class: "bhb-transfer bhb-mono" });
+      reportBox.rows = 4;
+      reportBox.spellcheck = false;
+      reportBox.placeholder = t("log.reportHint");
+    }
+    const report = el("button", { class: "bhb-btn", text: t("log.report") });
+    report.addEventListener("click", () => {
+      reportBox.value = deps.buildReport();
+      reportBox.focus();
+      reportBox.select();
+    });
+    const reportRow = el("div", { class: "bhb-field" }, [
+      el("div", { class: "bhb-btnrow" }, [report]),
+      reportBox
+    ]);
     if (entries.length === 0) {
       return el("div", { class: "bhb-tab" }, [
         stats,
+        reportRow,
         el("p", { class: "bhb-empty", text: t("log.empty") })
       ]);
     }
     const rows2 = entries.map(
       (entry) => el("div", { class: `bhb-log__row bhb-log__row--${entry.kind}` }, [
-        el("span", { class: "bhb-log__time bhb-mono", text: clock(entry.at) }),
+        el("span", { class: "bhb-log__time bhb-mono", text: clock2(entry.at) }),
         el("span", { class: "bhb-log__icon", text: KIND_ICON[entry.kind] || "·" }),
         el("span", { class: "bhb-log__text", text: describeEntry(entry) }),
         el("span", {
@@ -6173,6 +6326,7 @@
     );
     return el("div", { class: "bhb-tab" }, [
       stats,
+      reportRow,
       el("div", { class: "bhb-field__head" }, [
         el("span", { class: "bhb-label", text: `${t("log.title")} · ${entries.length}` }),
         clear
@@ -6765,7 +6919,7 @@
     const getScreens = () => getActiveProfile(profileState).screens;
     const getActivities = () => getActiveProfile(profileState).activities;
     const persist = () => saveProfiles(profileState);
-    const store = createUiStore();
+    const store = createUiStore(settings.keepLog ? loadLog() : []);
     const watchdog = createWatchdog();
     const stats = createStats();
     const notifier = createNotifier({
@@ -6908,6 +7062,16 @@
       profiles: profileActions,
       settings,
       getReloadCount: () => watchdog.reloadCount(),
+      clearStoredLog,
+      buildReport: () => buildReport({
+        version: VERSION,
+        settings,
+        canvas: getCanvas(),
+        stats: stats.snapshot(),
+        activities: getActivities(),
+        steps: getSteps(),
+        log: store.get().log
+      }),
       getStats: () => stats.snapshot(),
       resetStats: () => stats.reset(),
       sendTestAlert: () => {
@@ -6985,10 +7149,21 @@
     if (settings.keepAlive) {
       installKeepAlive(() => pumpFrame());
     }
+    let logWriteTimer = null;
+    function persistLog() {
+      if (!settings.keepLog || logWriteTimer !== null) {
+        return;
+      }
+      logWriteTimer = realSetTimeout(() => {
+        logWriteTimer = null;
+        saveLog(store.get().log);
+      }, LOG_WRITE_MS);
+    }
     setClickObserver(showClickFlash);
     engine.on("change", () => refresh());
     engine.on("action", (entry) => {
       store.log(entry);
+      persistLog();
       stats.record(entry);
       if (settings.notify.events.includes(entry.kind)) {
         notifier.notify(`${t("app.name")} · ${describeEntry(entry)}`, entry.kind);
