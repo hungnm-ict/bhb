@@ -531,12 +531,14 @@ const CSS = `
    they crush each other, so the row is two: identity above, wiring below. */
 .bhb-step--stacked { flex-direction: column; align-items: stretch; gap: 5px; }
 .bhb-rule__main { display: flex; align-items: center; gap: 7px; }
-.bhb-rule__meta { display: flex; align-items: center; gap: 6px; padding-left: 21px; }
+/* Wraps rather than squeezing: two behaviours whose names start alike are
+   indistinguishable once the select is narrow enough to clip them. */
+.bhb-rule__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding-left: 21px; }
 .bhb-rule__meta .bhb-tabs__ver {
   font-size: var(--bhb-fs-xs); line-height: 1.35; text-align: right; opacity: .75;
   padding-right: 2px; white-space: nowrap;
 }
-.bhb-rule__gate { flex: 1; min-width: 0; max-width: none; }
+.bhb-rule__gate { flex: 1 1 128px; min-width: 128px; max-width: none; }
 
 /* --- Log ---------------------------------------------------------------- */
 
