@@ -54,7 +54,7 @@ import { createQueueEditor } from './bot/queue-editor.js';
 import { createDryRunner } from './bot/dry-run-runner.js';
 import { setLanguage, t } from './i18n/index.js';
 import { installStyles } from './ui/styles.js';
-import { createUiStore, Tab } from './ui/store.js';
+import { createUiStore, Tab, resolveStepFilter } from './ui/store.js';
 import { createHud } from './ui/hud.js';
 import { createPanel } from './ui/panel/index.js';
 import { describeEntry } from './ui/panel/log.js';
@@ -120,7 +120,10 @@ function bootstrap() {
     persist,
     report: engine.setMessage,
     // A filter of null means All steps, and a new step there belongs to nobody.
-    getCaptureActivity: () => store.get().stepFilter || null,
+    // The same answer the Steps tab shows, or a capture lands somewhere the
+    // user was not looking and has to be gone and found.
+    getCaptureActivity: () =>
+      resolveStepFilter(store.get().stepFilter, settings.runTarget, getActivities()) || null,
     // The status line is in a corner; the user is looking at the button they
     // just pointed at, so the confirmation goes there.
     onCaptured: ({ step, clientX, clientY, isSettled }) => {
