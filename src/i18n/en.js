@@ -102,7 +102,7 @@ export default {
   'settings.multiplyFramesHint': 'On: a boost runs the game loop several times per frame, which is what actually speeds it up and what costs the frame rate. Off: only the clock is stretched, the way a native speed hack does it — no frames are lost, but the game may clamp the stretched delta and barely speed up at all. Try both and watch the fps.',
   'settings.keepAliveHint':
     'A window covered edge to edge stops being painted, and the game stops with it. This drives the game loop by hand instead. Takes effect after a reload.',
-  'settings.sizeBadge': 'Show the canvas size in the corner',
+  'settings.sizeBadge': 'Show the build number in the corner',
   'settings.fpsBadge': 'Show the frame rate over the game',
   'settings.absoluteCoords': 'Use raw coordinates (do not rescale steps)',
   'settings.showScreens': 'Show the screens tab',
@@ -123,8 +123,7 @@ export default {
   'queue.inSettings': 'The order and the on/off switches live in the Settings tab.',
   'steps.next': 'The step the bot is waiting for',
   'log.resync': 'Lost the thread — picking up at {label}',
-  'size.same': 'The framebuffer the game draws into — steps store their coordinates in it',
-  'size.scaled': 'Framebuffer size → displayed size. They differ when the game is being scaled',
+  'size.version': 'The build that is running',
   'steps.driftHint': 'Read {hex} here — that far from the stored colour. Above the tolerance, widen it or capture again.',
   'steps.legacyBadge': 'recapture',
   'steps.legacyWarning':
