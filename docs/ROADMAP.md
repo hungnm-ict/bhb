@@ -100,6 +100,12 @@ chỉ đúng trên máy đã bắt chúng, và màu thì không quy đổi đư�
 - [x] **World Boss tách solo / team** — hai chuỗi khác nhau, không phải một chuỗi
       kèm tuỳ chọn
 
+- [x] **Bước "Đếm đổi"** — khoanh một ô, đợi nó đổi nội dung N lần rồi mới đi
+      tiếp. Invasion không bao giờ thắng được, chỉ cần giết 21 quái là đủ
+      thưởng, nên chuỗi của nó là: vào trận, đếm 7 wave, tắt auto, bấm ✕, thoát,
+      chạy lại. Ô số wave đổi mỗi wave, và bot không cần đọc được con số —
+      đổi là đổi, ở mức nào cũng thế
+
 **Còn nợ:** bước thật cho từng hoạt động — vẫn phải bắt trực tiếp trên game.
 
 ---
