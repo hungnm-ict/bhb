@@ -256,8 +256,9 @@ function countBehaviour(settings) {
     settings.sizeBadge,
     settings.fpsBadge,
     settings.scaleMode === ScaleMode.ABSOLUTE,
+    settings.showScreens,
   ];
-  return switches.filter(Boolean).length;
+  return { n: switches.filter(Boolean).length, total: switches.length };
 }
 
 export function renderSettingsTab(deps) {
@@ -335,6 +336,7 @@ export function renderSettingsTab(deps) {
     deps.refresh();
   });
 
+  const behaviourCount = countBehaviour(settings);
   const reloads = deps.getReloadCount();
 
   const notify = settings.notify;
@@ -366,7 +368,7 @@ export function renderSettingsTab(deps) {
       deps,
       'behaviour',
       'settings.behaviour',
-      t('settings.onCount', { n: countBehaviour(settings), total: 5 }),
+      t('settings.onCount', behaviourCount),
       () =>
         el('div', { class: 'bhb-field' }, [
           toggleRow(
@@ -392,6 +394,9 @@ export function renderSettingsTab(deps) {
           ),
           toggleRow('settings.absoluteCoords', settings.scaleMode === ScaleMode.ABSOLUTE, (value) =>
             deps.updateSettings({ scaleMode: value ? ScaleMode.ABSOLUTE : ScaleMode.SCALE })
+          ),
+          toggleRow('settings.showScreens', settings.showScreens, (value) =>
+            deps.updateSettings({ showScreens: value })
           ),
           el('p', { class: 'bhb-note', text: t('settings.watchdogHint') }),
           el('p', { class: 'bhb-note', text: t('settings.keepAliveHint') }),

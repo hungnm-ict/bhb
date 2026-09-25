@@ -84,12 +84,18 @@ export function createPanel(deps) {
     return node;
   }
 
+  /** Off by default: the tab is a refinement most sessions never open. */
+  function screensVisible() {
+    return Boolean(deps.settings?.showScreens);
+  }
+
   function renderBody(tab) {
     if (tab === Tab.STEPS) {
       return renderStepsTab(deps);
     }
     if (tab === Tab.SCREENS) {
-      return renderScreensTab(deps);
+      // The tab can be switched off while it is the one being shown.
+      return screensVisible() ? renderScreensTab(deps) : renderTasksTab(deps);
     }
     if (tab === Tab.SETTINGS) {
       return renderSettingsTab(deps);
@@ -152,7 +158,7 @@ export function createPanel(deps) {
     /** @type {HTMLElement | null} */
     let activeTab = null;
 
-    const tabs = TABS.map(([id, labelKey]) => {
+    const tabs = TABS.filter(([id]) => id !== Tab.SCREENS || screensVisible()).map(([id, labelKey]) => {
       const button = el('button', {
         class: `bhb-tabbtn ${id === Tab.HELP ? 'bhb-tabbtn--help' : ''} ${
           state.tab === id ? 'is-active' : ''

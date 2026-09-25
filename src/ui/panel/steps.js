@@ -453,7 +453,7 @@ export function renderStepsTab(deps) {
             : null,
         ]),
         activities.length > 0 ? slot : null,
-        deps.getScreens().length > 0 ? gate : null,
+        deps.settings.showScreens && deps.getScreens().length > 0 ? gate : null,
       ]),
     ]);
 
