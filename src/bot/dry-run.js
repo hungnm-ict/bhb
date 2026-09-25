@@ -49,6 +49,11 @@ export function scoreStepDetail(step, gl, buffer, scaleMode, screenId) {
   if (!stepAllowedOn(step, screenId)) {
     return { verdict: 'gated' };
   }
+  // A count watches its region change; "does this still look like what was
+  // captured" is not a question it has an answer to.
+  if (step.kind === StepKind.COUNT) {
+    return { verdict: 'counting' };
+  }
 
   let nearest = null;
   for (const storedPoint of step.points) {

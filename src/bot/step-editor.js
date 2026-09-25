@@ -8,6 +8,7 @@ import {
   isInsideCanvas,
   getBufferSize,
 } from '../core/coords.js';
+import { captureFingerprint } from '../core/region.js';
 import { realRequestAnimationFrame } from '../core/timers.js';
 import { HOVER_RESET_POINT } from '../core/constants.js';
 import { trackCursor, getCursor } from '../core/cursor.js';
@@ -231,7 +232,12 @@ export function createStepEditor(deps) {
     if (!step) {
       return;
     }
-    step.kind = kind === StepKind.WAIT ? StepKind.WAIT : StepKind.CLICK;
+    step.kind =
+      kind === StepKind.WAIT
+        ? StepKind.WAIT
+        : kind === StepKind.COUNT
+          ? StepKind.COUNT
+          : StepKind.CLICK;
     step.endsRun = step.kind === StepKind.CLICK && endsRun === true;
     // Ending the run implies skipping when absent: see the engine's cursor.
     step.optional = step.kind === StepKind.CLICK && (optional === true || step.endsRun);
@@ -246,6 +252,64 @@ export function createStepEditor(deps) {
     }
     step.maxMatches = Math.max(0, Math.min(20, Math.round(Number(count) || 0)));
     deps.persist();
+  }
+
+  /** A count step's two numbers: how many changes, and when to give up. */
+  function setCount(stepId, { countTo, countCap }) {
+    const step = find(stepId);
+    if (!step) {
+      return;
+    }
+    if (countTo !== undefined) {
+      step.countTo = Math.max(0, Math.min(99, Math.round(Number(countTo) || 0)));
+    }
+    if (countCap !== undefined) {
+      step.countCap = Math.max(0, Math.min(3600, Math.round(Number(countCap) || 0)));
+    }
+    deps.persist();
+  }
+
+  /**
+   * Store a dragged rectangle as the one region a count step watches.
+   *
+   * A count has exactly one place to look, so this replaces rather than adds —
+   * unlike `＋`, which is how a wait step gains another party slot.
+   *
+   * @param {{ left: number, top: number, width: number, height: number }} rect
+   */
+  function captureRegion(rect, stepId) {
+    const step = find(stepId);
+    if (!step) {
+      return null;
+    }
+    const target = getRenderTarget();
+    if (!target) {
+      deps.report(t('msg.noCanvas'));
+      return null;
+    }
+
+    const { canvas, gl } = target;
+    // Client space has its origin top-left, buffer space bottom-left.
+    const origin = clientToBuffer(canvas, rect.left, rect.top + rect.height);
+    const far = clientToBuffer(canvas, rect.left + rect.width, rect.top);
+    const buffer = getBufferSize(canvas);
+
+    const fingerprint = captureFingerprint(gl, {
+      x: origin.x,
+      y: origin.y,
+      w: Math.max(1, far.x - origin.x),
+      h: Math.max(1, far.y - origin.y),
+      bw: buffer.width,
+      bh: buffer.height,
+    });
+    if (!fingerprint) {
+      deps.report(t('msg.noWebgl'));
+      return null;
+    }
+
+    step.points = [fingerprint];
+    deps.persist();
+    return step;
   }
 
   /** Drop one place from a step, by the index `pointsByPlace` reports. */
@@ -326,6 +390,8 @@ export function createStepEditor(deps) {
     setRest,
     setBehaviour,
     setMaxMatches,
+    setCount,
+    captureRegion,
     removePlace,
     setActivity,
     remove,
