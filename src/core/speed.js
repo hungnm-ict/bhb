@@ -308,11 +308,24 @@ function installFrameMultiplier() {
    */
   let drivenUpTo = 0;
 
-  window.requestAnimationFrame = function (callback) {
-    if (bursting) {
-      pending = callback;
-      return 1;
-    }
+  /**
+   * Whether the loop is being carried by hand right now.
+   *
+   * Without it every hand-driven frame had to wait out `STALL_MS` again,
+   * because driving one counts as a frame arriving — which capped a minimised
+   * game at four frames a second. While no real frame has come back, the pump's
+   * own cadence is the cadence.
+   */
+  let handDriving = false;
+
+  /**
+   * Book a frame, and remember it is owed.
+   *
+   * Every route to the next frame goes through here, because `waiting` is the
+   * only record the hand-driven pump has to work from: a frame booked without
+   * it is a frame nobody can rescue when the browser stops delivering.
+   */
+  function scheduleFrame(callback) {
     const id = (frameSeq += 1);
     waiting = { id, callback };
     return realRequestAnimationFrame(() => {
@@ -321,9 +334,18 @@ function installFrameMultiplier() {
       }
       lastFrameAt = realPerformanceNow();
       waiting = null;
+      handDriving = false;
       realFrames += 1;
       runBurst(callback);
     });
+  }
+
+  window.requestAnimationFrame = function (callback) {
+    if (bursting) {
+      pending = callback;
+      return 1;
+    }
+    return scheduleFrame(callback);
   };
 
   /**
@@ -344,13 +366,14 @@ function installFrameMultiplier() {
     if (!waiting || bursting) {
       return false;
     }
-    if (realPerformanceNow() - lastFrameAt < STALL_MS) {
+    if (!handDriving && realPerformanceNow() - lastFrameAt < STALL_MS) {
       return false;
     }
 
     const { id, callback } = waiting;
     waiting = null;
     drivenUpTo = id;
+    handDriving = true;
     lastFrameAt = realPerformanceNow();
     runBurst(callback);
     return true;
@@ -399,13 +422,11 @@ function installFrameMultiplier() {
     if (pending) {
       const next = pending;
       pending = null;
-      // A real frame, and the one the loop rides while boosted: the game
-      // re-registered from inside the burst, so it never went back through the
-      // patched `requestAnimationFrame` where deliveries are counted.
-      realRequestAnimationFrame(() => {
-        realFrames += 1;
-        runBurst(next);
-      });
+      // The frame the loop rides while boosted. Booked the same way as any
+      // other, or a minimised window would strand it: the game re-registered
+      // from inside the burst, so it never passed the patched
+      // `requestAnimationFrame`, and the pump had nothing to drive.
+      scheduleFrame(next);
     }
   }
 }

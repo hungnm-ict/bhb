@@ -24,13 +24,14 @@ vi.mock('../src/core/timers.js', () => ({
   },
 }));
 
-const { installSpeedHack, pumpFrame } = await import('../src/core/speed.js');
+const { installSpeedHack, pumpFrame, setSpeed } = await import('../src/core/speed.js');
 const { STALL_MS } = await import('../src/core/speed.js');
 
 beforeEach(() => {
   clock = 0;
   scheduled = [];
   installSpeedHack();
+  setSpeed(1);
 });
 
 /** Deliver every frame the browser is holding. */
@@ -74,6 +75,44 @@ describe('hand-driven frames', () => {
   it('drives nothing when the game has no frame outstanding', () => {
     clock += 5000;
     expect(pumpFrame(), 'no loop is running; there is nothing to drive').toBe(false);
+  });
+
+  it('keeps driving a boosted loop, which books its frames from inside a burst', () => {
+    // The burst path used to book its own frame directly, leaving nothing for
+    // the pump to find — so a minimised window froze the game at any speed
+    // above 1×, the speed it is actually left running at.
+    setSpeed(5);
+    const loop = vi.fn(() => window.requestAnimationFrame(loop));
+    window.requestAnimationFrame(loop);
+
+    clock += 16;
+    deliverFrames();
+    const afterFirstFrame = loop.mock.calls.length;
+    expect(afterFirstFrame, 'a burst runs the loop several times').toBeGreaterThan(1);
+
+    // The window is minimised now: nothing is delivered from here on.
+    clock += 1000;
+    expect(pumpFrame(), 'the burst left a frame for the pump to drive').toBe(true);
+    expect(loop.mock.calls.length).toBeGreaterThan(afterFirstFrame);
+
+    const afterPump = loop.mock.calls.length;
+    clock += 1000;
+    expect(pumpFrame()).toBe(true);
+    expect(loop.mock.calls.length, 'and the chain keeps going').toBeGreaterThan(afterPump);
+  });
+
+  it('runs at the pump\'s own cadence once it is carrying the loop', () => {
+    // Driving a frame by hand counts as one arriving, so waiting out the stall
+    // again each time capped a minimised game at four frames a second.
+    const loop = vi.fn(() => window.requestAnimationFrame(loop));
+    window.requestAnimationFrame(loop);
+
+    clock += 1000;
+    expect(pumpFrame()).toBe(true);
+
+    clock += 16;
+    expect(pumpFrame(), 'no real frame came back, so it keeps carrying').toBe(true);
+    expect(loop).toHaveBeenCalledTimes(2);
   });
 
   it('stands down as soon as real frames come back', () => {
