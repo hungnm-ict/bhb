@@ -146,6 +146,7 @@ export function createMarkerLayer(deps) {
     for (const [stepId, marker] of nodes) {
       marker.classList.toggle('bhb-mark--selected', state.selectedStepId === stepId);
       marker.classList.toggle('bhb-mark--hovered', state.hoveredStepId === stepId);
+      marker.classList.toggle('bhb-mark--previewing', state.previewStepId === stepId);
     }
   }
 

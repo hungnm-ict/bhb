@@ -216,7 +216,7 @@ export function createPanel(deps) {
     const state = deps.store.get();
     highlightSteps(state);
     if (node) {
-      node.classList.toggle('is-peeking', state.hoveredStepId !== null);
+      node.classList.toggle('is-peeking', state.previewStepId !== null);
     }
   }
 

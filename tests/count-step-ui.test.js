@@ -82,7 +82,7 @@ describe('a count step in the panel', () => {
 });
 
 describe('peeking past the panel', () => {
-  it('fades the panel while a step is hovered, and back when it is not', async () => {
+  it('fades the panel while a step is being previewed, and back when it is not', async () => {
     const { createPanel } = await import('../src/ui/panel/index.js');
     const { Tab } = await import('../src/ui/store.js');
 
@@ -124,12 +124,25 @@ describe('peeking past the panel', () => {
     const node = document.querySelector('.bhb-panel');
     expect(node.classList.contains('is-peeking')).toBe(false);
 
+    // Merely crossing a row must not move the panel — that flicker is why
+    // previewing became a button of its own.
     store.hoverStep(step.id);
+    panel.highlight();
+    expect(node.classList.contains('is-peeking')).toBe(false);
+
+    store.previewStep(step.id);
     panel.highlight();
     expect(node.classList.contains('is-peeking')).toBe(true);
 
-    store.hoverStep(null);
+    store.previewStep(null);
     panel.highlight();
     expect(node.classList.contains('is-peeking')).toBe(false);
+  });
+
+  it('gives every step a preview button that arms on hover', () => {
+    const step = createStep({ label: 'one' });
+    const node = render(step);
+    const button = node.querySelector('.bhb-step__peek');
+    expect(button).not.toBeNull();
   });
 });
