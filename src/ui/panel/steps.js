@@ -36,6 +36,8 @@ export function highlightSteps(state) {
 /** Kept across renders: the tab rebuilds every tick, and a box that emptied
  *  itself under the user's hands would be unusable. */
 let packBox = null;
+/** The three paragraphs explaining capture: read once, then in the way. */
+let areHintsOpen = false;
 /** What this tab last wrote into the box, so a paste is never overwritten. */
 let packedValue = null;
 
@@ -102,6 +104,16 @@ export function renderStepsTab(deps) {
     deps.refresh();
   });
 
+  const hintToggle = el('button', {
+    class: `bhb-icon bhb-steps__hints ${areHintsOpen ? 'is-on' : ''}`,
+    title: t('steps.hints'),
+    text: '?',
+  });
+  hintToggle.addEventListener('click', () => {
+    areHintsOpen = !areHintsOpen;
+    deps.refresh();
+  });
+
   const filterSelect = el('select', { class: 'bhb-rule__gate', title: t('steps.filter') });
   // Activities first: they are what the list is usually being narrowed to. The
   // two catch-alls sit at the bottom, where widening out again is one reach.
@@ -110,6 +122,11 @@ export function renderStepsTab(deps) {
     option.value = activity.id;
     filterSelect.append(option);
   }
+  // The two below the line are not modes to farm; they are how a step set is
+  // read and exported whole.
+  const divider = el('option', { text: '──────────' });
+  divider.disabled = true;
+  filterSelect.append(divider);
   for (const [value, label] of [['', t('steps.loose')], ['__all__', t('steps.allSteps')]]) {
     const option = el('option', { text: label });
     option.value = value;
@@ -235,6 +252,7 @@ export function renderStepsTab(deps) {
   const head = el('div', { class: 'bhb-field' }, [
     el('div', { class: 'bhb-field__head' }, [
       el('span', { class: 'bhb-label', text: `${t('overlay.steps')} · ${steps.length}` }),
+      hintToggle,
       filterSelect,
     ]),
     el('div', { class: 'bhb-btnrow' }, [moveAll]),
@@ -244,9 +262,9 @@ export function renderStepsTab(deps) {
     el('div', { class: 'bhb-btnrow' }, [exportButton, importButton]),
     transfer,
     note,
-    el('p', { class: 'bhb-note', text: t('steps.captureHint') }),
-    el('p', { class: 'bhb-note', text: t('steps.armHint') }),
-    el('p', { class: 'bhb-note', text: t('steps.dryRunHint') }),
+    areHintsOpen ? el('p', { class: 'bhb-note', text: t('steps.captureHint') }) : null,
+    areHintsOpen ? el('p', { class: 'bhb-note', text: t('steps.armHint') }) : null,
+    areHintsOpen ? el('p', { class: 'bhb-note', text: t('steps.dryRunHint') }) : null,
     legacyCount > 0
       ? el('p', { class: 'bhb-note bhb-note--warn', text: t('steps.legacyWarning', { n: legacyCount }) })
       : null,
@@ -426,7 +444,7 @@ export function renderStepsTab(deps) {
     const preview = el('button', {
       class: 'bhb-icon bhb-step__peek',
       title: t('steps.preview'),
-      text: '\u25ce',
+      text: '\u25c9',
     });
     preview.addEventListener('mouseenter', () => deps.store.previewStep(step.id));
     preview.addEventListener('mouseleave', () => deps.store.previewStep(null));
@@ -480,11 +498,13 @@ export function renderStepsTab(deps) {
         el('span', { class: 'bhb-rule__swatch', style: { background: step.hex || 'transparent' } }),
         name,
         el('span', { class: 'bhb-rule__actions' }, [
-          preview,
           isCount ? drawRegion : addPlace,
           toggle,
           up,
           down,
+          // Next to delete rather than first: it is the one button here that
+          // is safe to hit by accident, and the one beside it is not.
+          preview,
           remove,
         ]),
       ]),

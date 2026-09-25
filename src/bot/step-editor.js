@@ -165,7 +165,7 @@ export function createStepEditor(deps) {
         // Captured into whichever activity the Steps tab is filtered to: the
         // user picked Dungeon and then went hunting for Dungeon's buttons.
         step = createStep({
-          label: t('step.defaultLabel', { n: steps.length + 1 }),
+          label: nextLabel(),
           points,
           hex: restingHex,
           activity: deps.getCaptureActivity ? deps.getCaptureActivity() : null,
@@ -256,6 +256,21 @@ export function createStepEditor(deps) {
     }
     step.maxMatches = Math.max(0, Math.min(20, Math.round(Number(count) || 0)));
     deps.persist();
+  }
+
+  /**
+   * What to call the next step.
+   *
+   * Numbered within the activity it belongs to, not across the whole list: a
+   * profile with eight activities in it made Invasion's first step "Step 41",
+   * and the number on the row beside it said 1.
+   */
+  function nextLabel() {
+    const into = deps.getCaptureActivity ? deps.getCaptureActivity() : null;
+    const siblings = deps
+      .getSteps()
+      .filter((step) => (step.activity || null) === (into || null));
+    return t('step.defaultLabel', { n: siblings.length + 1 });
   }
 
   /** A count step's two numbers: how many changes, and when to give up. */
@@ -401,6 +416,7 @@ export function createStepEditor(deps) {
     setRest,
     setBehaviour,
     setMaxMatches,
+    nextLabel,
     setCount,
     captureRegion,
     removePlace,

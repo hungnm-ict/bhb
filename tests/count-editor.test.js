@@ -138,3 +138,41 @@ describe('the cap and the box size', () => {
     expect(said).toHaveLength(0);
   });
 });
+
+describe('what a new step is called', () => {
+  it('numbers within the activity it is captured into, not the whole list', async () => {
+    const { createStepEditor: makeEditor } = await import('../src/bot/step-editor.js');
+    const steps = [
+      createStep({ label: 'Step 1', activity: 'pvp' }),
+      createStep({ label: 'Step 2', activity: 'pvp' }),
+      createStep({ label: 'Step 1', activity: 'invasion' }),
+    ];
+    const editor = makeEditor({
+      getSteps: () => steps,
+      persist: () => {},
+      report: () => {},
+      getScaleMode: () => 'scale',
+      getCaptureActivity: () => 'invasion',
+    });
+
+    // The default locale is Vietnamese; what matters is the number.
+    expect(editor.nextLabel()).toMatch(/\b2$/);
+  });
+
+  it('numbers the loose set on its own too', async () => {
+    const { createStepEditor: makeEditor } = await import('../src/bot/step-editor.js');
+    const steps = [
+      createStep({ label: 'Step 1', activity: 'pvp' }),
+      createStep({ label: 'Step 2', activity: 'pvp' }),
+    ];
+    const editor = makeEditor({
+      getSteps: () => steps,
+      persist: () => {},
+      report: () => {},
+      getScaleMode: () => 'scale',
+      getCaptureActivity: () => null,
+    });
+
+    expect(editor.nextLabel()).toMatch(/\b1$/);
+  });
+});
