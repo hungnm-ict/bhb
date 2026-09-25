@@ -35,6 +35,43 @@ function isTypingField(target) {
   return target.offsetWidth > 1 && target.offsetHeight > 1;
 }
 
+/** Our own surfaces. A key typed in one of these belongs to us, not the game. */
+const OWN_SURFACES = '.bhb-panel, .bhb-probes, .bhb-drag, .bhb-hud';
+
+/**
+ * Keep the game's ears off our own fields.
+ *
+ * Unity listens for keys on the document and cancels the ones it recognises,
+ * which ate every character typed into a step's name box — the text went
+ * nowhere and the game moved instead. Capture on the window runs before any
+ * listener further down the tree whoever registered first, so this is the one
+ * place the key can be taken out of the game's path.
+ *
+ * Propagation is stopped and the key is never cancelled: a default action does
+ * not need a listener, so the character still lands in the field.
+ *
+ * @returns {() => void} removes the listeners
+ */
+export function shieldOwnFields() {
+  function guard(event) {
+    const target = event.target;
+    if (!(target instanceof Element) || !target.closest(OWN_SURFACES)) {
+      return;
+    }
+    event.stopImmediatePropagation();
+  }
+
+  const types = ['keydown', 'keyup', 'keypress'];
+  for (const type of types) {
+    window.addEventListener(type, guard, true);
+  }
+  return () => {
+    for (const type of types) {
+      window.removeEventListener(type, guard, true);
+    }
+  };
+}
+
 export function installHotkeys(bindings) {
   function onKeyDown(event) {
     // Never steal keys while the user is typing somewhere.
