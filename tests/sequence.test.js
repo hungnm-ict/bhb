@@ -8,11 +8,18 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const clicks = [];
 
+/** Stands in for the debounce and the off-canvas guard inside the real one. */
+let swallowClicks = false;
+
 vi.mock('../src/core/input.js', () => ({
   clickBufferPoint: (_canvas, point) => {
+    if (swallowClicks) {
+      return false;
+    }
     clicks.push(point.x);
     return true;
   },
+  dispatchKey: () => {},
   setClickObserver: () => {},
 }));
 
@@ -87,6 +94,7 @@ function build(steps) {
 
 beforeEach(() => {
   clicks.length = 0;
+  swallowClicks = false;
   lit = new Set();
   now = 1_000_000;
 });
@@ -321,6 +329,27 @@ describe('waiting on a count, not a seat', () => {
     engine.start(TaskId.SCRIPT);
 
     expect(clicks, 'one place matching is one, not two').toEqual([900]);
+    engine.stop();
+  });
+});
+
+describe('a click that never went out', () => {
+  it('leaves the cursor where it was, rather than counting the step done', () => {
+    // clickBufferPoint says no when it is inside its own debounce or the point
+    // is off canvas. The colour matched, but nothing was sent — and a step the
+    // game never heard about is not a step that has been done.
+    lit = new Set([100, 200]);
+    const engine = build([stepAt(100, 'one'), stepAt(200, 'two')]);
+
+    swallowClicks = true;
+    engine.start(TaskId.SCRIPT);
+    engine.tick();
+    engine.tick();
+    expect(clicks, 'nothing was sent').toEqual([]);
+
+    swallowClicks = false;
+    engine.tick();
+    expect(clicks, 'still on the first step, not the second').toEqual([100]);
     engine.stop();
   });
 });

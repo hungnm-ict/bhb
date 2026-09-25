@@ -2,7 +2,8 @@ import { getRenderTarget } from './canvas.js';
 import { matchPoint, readRegion, resolveRect, isRegionPoint, regionsDiffer } from './region.js';
 import { clickBufferPoint, dispatchKey } from './input.js';
 import { getBufferSize } from './coords.js';
-import { isStepReady, colorForPoint, StepKind, pointsByPlace } from '../bot/step.js';
+import { isStepReady, colorForPoint, StepKind, pointsByPlace, speedForStep } from '../bot/step.js';
+import { getSpeed, setSpeed, snapSpeed } from './speed.js';
 import { detectScreen, stepAllowedOn } from '../bot/screen.js';
 import { stepsForActivity, looseSteps } from '../bot/activity.js';
 import { createEmitter } from './events.js';
@@ -657,10 +658,16 @@ export function createEngine(deps) {
       }
 
       if (point) {
-        cursor.index = (at + 1) % steps.length;
-        cursor.missingSince = 0;
-        foundOurWay();
-        return { step: expected, point, clicked: clickBufferPoint(canvas, point) };
+        const clicked = clickBufferPoint(canvas, point);
+        // Only a click that went out moves the cursor. The debounce and the
+        // off-canvas guard both say no without the game hearing anything, and
+        // a step the game never heard about has not been done.
+        if (clicked) {
+          cursor.index = (at + 1) % steps.length;
+          cursor.missingSince = 0;
+          foundOurWay();
+        }
+        return { step: expected, point, clicked };
       }
 
       // Nothing here. The cursor remembers the first step it could not do, so
@@ -714,11 +721,15 @@ export function createEngine(deps) {
       return null;
     }
 
+    const clicked = clickBufferPoint(canvas, candidate.point);
+    if (!clicked) {
+      return null;
+    }
     report('resync', { label: candidate.step.label || candidate.step.id });
     cursor.index = (candidate.index + 1) % steps.length;
     cursor.missingSince = 0;
     foundOurWay();
-    return { ...candidate, clicked: clickBufferPoint(canvas, candidate.point) };
+    return { ...candidate, clicked };
   }
 
   /**
@@ -863,6 +874,15 @@ export function createEngine(deps) {
 
     if (hit.clicked) {
       state.lastActionAt = realNow();
+      // A battle is worth running at speed and the buttons around it are not.
+      const asked = speedForStep(hit.step);
+      if (asked !== null) {
+        const wanted = snapSpeed(asked);
+        if (wanted !== getSpeed()) {
+          setSpeed(wanted);
+          setMessage(`${hit.step.label || hit.step.id}: speed ${wanted}×`);
+        }
+      }
       const rest = Number(hit.step.restSec) || 0;
       if (rest > 0) {
         restingUntil = realNow() + rest * 1000;
