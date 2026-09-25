@@ -23,6 +23,34 @@ export const LOG_LIMIT = 200;
 /**
  * @param {object[]} [restoredLog] entries from a previous page, newest first
  */
+/**
+ * Which activity the Steps tab is showing, and so where a capture lands.
+ *
+ * `undefined` means the user has not narrowed anything yet, and then the tab
+ * follows whatever Run is set to run — which is what they came to edit. Once
+ * a filter is chosen it wins, including the choice to see everything.
+ *
+ * Shared with the capture path on purpose: a step filed somewhere other than
+ * the list the user was looking at is a step they have to go and find.
+ *
+ * @param {string | null | undefined} chosen the stored filter
+ * @param {string | null} runTarget
+ * @param {{ id: string }[]} activities
+ * @returns {string | null} an activity id, '' for the loose set, null for all
+ */
+export function resolveStepFilter(chosen, runTarget, activities = []) {
+  if (chosen !== undefined) {
+    return chosen;
+  }
+  if (runTarget === 'script') {
+    return '';
+  }
+  if (!runTarget || runTarget === 'runAll') {
+    return null;
+  }
+  return activities.some((activity) => activity.id === runTarget) ? runTarget : null;
+}
+
 export function createUiStore(restoredLog = []) {
   const emitter = createEmitter();
 
