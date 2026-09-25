@@ -99,6 +99,25 @@ function readLive(step, deps, screenId) {
   );
 }
 
+/**
+ * What to show before the user has narrowed anything.
+ *
+ * A profile with twenty steps across eight activities opened on a list nobody
+ * was working in. Whatever Run is set to run is what they came here to edit.
+ *
+ * @returns {string | null} an activity id, '' for the loose set, null for all
+ */
+function filterForRunTarget(deps) {
+  const target = deps.getRunTarget ? deps.getRunTarget() : null;
+  if (target === 'script') {
+    return '';
+  }
+  if (!target || target === 'runAll') {
+    return null;
+  }
+  return deps.getActivities().some((activity) => activity.id === target) ? target : null;
+}
+
 export function renderStepsTab(deps) {
   const all = deps.getSteps();
   const engineState = deps.getEngineState();
@@ -107,7 +126,7 @@ export function renderStepsTab(deps) {
   const state = deps.store.get();
   const activities = deps.getActivities();
   // Eight activities' steps in one list is unreadable, so the table is filtered.
-  const filter = state.stepFilter;
+  const filter = state.stepFilter === undefined ? filterForRunTarget(deps) : state.stepFilter;
   const steps = filter === null ? all : all.filter((step) => (step.activity || '') === filter);
 
   // The hotkey is armed here rather than always live: `0` sits beside the keys
