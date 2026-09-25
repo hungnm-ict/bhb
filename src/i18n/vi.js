@@ -39,7 +39,7 @@ export default {
   'steps.transferHint': 'Ô này luôn sẵn nội dung theo bộ lọc đang hiện. Dán vào sẽ thay các hoạt động đó ở cửa sổ này, các hoạt động khác giữ nguyên.',
   'steps.importFailed': 'Không đọc được',
   'steps.importedButSized': 'Đã dán — nhưng bộ này bắt ở {from} còn cửa sổ đang khoá {to}, nên kiểm lại trước khi chạy thật.',
-  'steps.kindSpent': 'Bấm nếu có rồi dừng',
+  'steps.kindSpent': 'Dừng lượt chạy ở đây',
   'steps.kindSpentHint': 'Không thấy thì bỏ qua, chạy tiếp. Thấy thì bấm và coi như hết tài nguyên: đang Chạy tất cả thì sang mục kế, chạy riêng thì dừng hẳn.',
   'steps.copied': 'Đã chép {n} bước',
   'steps.copyByHand': 'Bôi đen ô rồi tự chép — trình duyệt từ chối clipboard.',

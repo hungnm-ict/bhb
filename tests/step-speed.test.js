@@ -58,3 +58,16 @@ describe('the speed field in the panel', () => {
     expect(step.speedTo).toBe(30);
   });
 });
+
+describe('the behaviour names', () => {
+  it('tell each other apart before a narrow select clips them', async () => {
+    const { t, setLanguage } = await import('../src/i18n/index.js');
+    for (const language of ['en', 'vi']) {
+      setLanguage(language);
+      const shown = ['steps.kindClick', 'steps.kindOptional', 'steps.kindWait', 'steps.kindCount', 'steps.kindSpent']
+        .map((key) => t(key).slice(0, 14));
+      expect(new Set(shown).size, `${language}: two behaviours read the same`).toBe(shown.length);
+    }
+    setLanguage('vi');
+  });
+});
