@@ -297,7 +297,10 @@ function normaliseCanvasLock(stored) {
   // falls back rather than pinning the canvas somewhere nothing was captured.
   const size = normaliseLockSize(stored);
   return {
-    enabled: Boolean(stored && stored.enabled === true),
+    // On unless turned off. A step set only means the same thing on another
+    // machine if the game rendered at the same resolution, so this is the
+    // normal case rather than the experiment it started as.
+    enabled: !stored || stored.enabled !== false,
     width: size.width,
     height: size.height,
   };

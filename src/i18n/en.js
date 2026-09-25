@@ -228,11 +228,12 @@ export default {
   'probe.hint': 'Drop a probe on a few buttons you rely on — four corners and one in the middle is enough. Then change the resolution in the game\u2019s own settings and come back: the crosshairs show where the bot would now click, and the Δ column shows how far the colour drifted. A Δ under the colour tolerance is a match. These are measurements, so they stay out of your profile export.',
   'toast.probeCaptured': '✓ probe: {label}',
 
-  'lock.title': 'Canvas size lock (experimental)',
+  'lock.title': 'Canvas size lock',
   'lock.enabled': 'Pin the game to a fixed size',
-  'lock.hint': 'The game then renders at 640×400 whatever the window does, so the colours the bot reads are identical on every machine — which is what makes a step set shareable. A smaller window scales the display down to fit and the coordinates still hold. Switch it off and the game resizes with the window as before.',
+  'lock.hint': 'The game then renders at the chosen size whatever the window does, so the colours the bot reads are identical on every machine — which is what makes a step set shareable. A smaller window scales the display down to fit and the coordinates still hold. Switch it off and the game resizes with the window as before.',
   'lock.size': 'Size',
   'lock.sizeHint': 'All three are 1.6 wide, so a step set captured at one still lands at another.',
+  'lock.offWarning': 'Off: the game follows the window, so a step captured now only lands on a window this size. Steps shared with anyone else will miss.',
 
 
   'settings.onCount': '{n}/{total} on',

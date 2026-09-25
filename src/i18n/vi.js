@@ -228,11 +228,12 @@ export default {
   'probe.hint': 'Chấm vài điểm lên các nút hay dùng — bốn góc và một điểm giữa là đủ. Rồi đổi độ phân giải trong setting game và quay lại đây: chữ thập cho biết chỗ bot sẽ bấm, cột Δ cho biết màu lệch bao nhiêu so với lúc chụp. Δ nhỏ hơn sai số màu là khớp. Đây là đồ đo đạc, không đi theo file xuất bộ bước.',
   'toast.probeCaptured': '✓ điểm kiểm tra: {label}',
 
-  'lock.title': 'Khoá cỡ canvas (thử nghiệm)',
+  'lock.title': 'Khoá cỡ canvas',
   'lock.enabled': 'Ghim game ở một cỡ cố định',
-  'lock.hint': 'Bật thì game luôn vẽ ở 640×400 dù cửa sổ to nhỏ thế nào — nhờ vậy màu bot đọc được giống hệt nhau trên mọi máy, và bộ bước mới chia sẻ được. Cửa sổ nhỏ hơn thì phần hiển thị tự thu lại cho vừa, toạ độ vẫn đúng. Tắt là game co giãn theo cửa sổ như bình thường.',
+  'lock.hint': 'Bật thì game luôn vẽ ở đúng cỡ đã chọn dù cửa sổ to nhỏ thế nào — nhờ vậy màu bot đọc được giống hệt nhau trên mọi máy, và bộ bước mới chia sẻ được. Cửa sổ nhỏ hơn thì phần hiển thị tự thu lại cho vừa, toạ độ vẫn đúng. Tắt là game co giãn theo cửa sổ như bình thường.',
   'lock.size': 'Kích cỡ',
   'lock.sizeHint': 'Cả ba đều tỉ lệ 1.6, nên bộ bước bắt ở cỡ này vẫn rơi đúng chỗ ở cỡ khác.',
+  'lock.offWarning': 'Đang tắt: game chạy theo cỡ cửa sổ, nên bước chụp lúc này chỉ đúng với cửa sổ đúng cỡ này. Chia sẻ bộ bước cho người khác sẽ trượt.',
 
 
   'settings.onCount': '{n}/{total} bật',

@@ -145,6 +145,10 @@ function renderCanvasLock(deps, toggleRow) {
   return el('div', { class: 'bhb-field' }, [
     toggleRow('lock.enabled', lock.enabled, (value) => update({ enabled: value })),
     size,
+    // Only while it is off: on is the state that needs no explaining.
+    lock.enabled
+      ? null
+      : el('p', { class: 'bhb-note bhb-note--warn', text: t('lock.offWarning') }),
     el('p', { class: 'bhb-note', text: t('lock.hint') }),
     el('p', { class: 'bhb-note', text: t('lock.sizeHint') }),
   ]);
