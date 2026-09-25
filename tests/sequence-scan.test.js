@@ -278,3 +278,61 @@ describe('the last resort', () => {
     engine.stop();
   });
 });
+
+describe('a blocking step waits its turn', () => {
+  /** A count over a region that never changes, so it only ever holds. */
+  function countStep(label) {
+    return createStep({
+      label,
+      kind: StepKind.COUNT,
+      countTo: 7,
+      countCap: 120,
+      tolerance: 4,
+      points: [
+        { x: 500, y: 300, w: 20, h: 8, bw: 800, bh: 600, samples: [{ dx: 0.5, dy: 0.5, hex: '#000000' }] },
+      ],
+    });
+  }
+
+  it('does not start counting on a screen the sequence has not reached', () => {
+    // What v0.30.0 did to a real profile: the cursor sat on a step whose
+    // button had not appeared, the forward scan swept past it into the count,
+    // and the count held the whole sequence for its cap on the wrong screen.
+    lit = new Set();
+    const engine = build([stepAt(100, 'enter'), countStep('waves'), stepAt(300, 'leave')]);
+
+    engine.start(TaskId.SCRIPT);
+    advance(1000);
+    engine.tick();
+
+    expect(engine.getState().lastMessage, 'the count is not its turn').not.toContain('0/7');
+    engine.stop();
+  });
+
+  it('counts once everything before it is done', () => {
+    lit = new Set([100]);
+    const engine = build([stepAt(100, 'enter'), countStep('waves'), stepAt(300, 'leave')]);
+
+    engine.start(TaskId.SCRIPT);
+    expect(clicks).toEqual([100]);
+
+    lit = new Set();
+    advance(1000);
+    engine.tick();
+    expect(engine.getState().lastMessage).toContain('0/7');
+    engine.stop();
+  });
+
+  it('does not reach past a blocking step for a later click either', () => {
+    // The mirror danger: skipping the count to click the step that quits.
+    lit = new Set([300]);
+    const engine = build([stepAt(100, 'enter'), countStep('waves'), stepAt(300, 'leave')]);
+
+    engine.start(TaskId.SCRIPT);
+    advance(1000);
+    engine.tick();
+
+    expect(clicks, 'quitting before the waves are counted loses the reward').toEqual([]);
+    engine.stop();
+  });
+});
