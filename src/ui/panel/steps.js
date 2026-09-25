@@ -4,6 +4,9 @@ import { Keys, keyLabel } from '../../core/keys.js';
 import { StepKind, pointsByPlace } from '../../bot/step.js';
 import { isLegacyPoint } from '../../core/coords.js';
 import { startDragSelect } from '../dragselect.js';
+import { getRenderTarget } from '../../core/canvas.js';
+import { getBufferSize } from '../../core/coords.js';
+import { scoreStepDetail } from '../../bot/dry-run.js';
 import { exportSteps, importSteps, mergeSteps } from '../../bot/step-pack.js';
 
 /**
@@ -49,9 +52,35 @@ function mismatch(packLock, windowLock) {
   return packLock.width !== windowLock.width || packLock.height !== windowLock.height;
 }
 
+/**
+ * What this step's spot looks like on screen right now.
+ *
+ * A step that will not fire gives the same silence whether it is pointed at
+ * the wrong place or at the right one in the wrong shade, and those need
+ * opposite fixes. Read only for the step being previewed: it costs a
+ * `readPixels`, and the answer is only wanted about one step at a time.
+ *
+ * @returns {{ verdict: string, drift?: number, seen?: string } | null}
+ */
+function readLive(step, deps, screenId) {
+  const target = getRenderTarget();
+  if (!target) {
+    return null;
+  }
+  return scoreStepDetail(
+    step,
+    target.gl,
+    getBufferSize(target.canvas),
+    deps.settings.scaleMode,
+    screenId
+  );
+}
+
 export function renderStepsTab(deps) {
   const all = deps.getSteps();
-  const expectedStepId = deps.getEngineState().expectedStepId;
+  const engineState = deps.getEngineState();
+  const expectedStepId = engineState.expectedStepId;
+  const engineScreen = engineState.screen || null;
   const state = deps.store.get();
   const activities = deps.getActivities();
   // Eight activities' steps in one list is unreadable, so the table is filtered.
@@ -433,6 +462,24 @@ export function renderStepsTab(deps) {
       });
     });
 
+    // Only while the eye is held: this is the answer to "why will it not fire".
+    const live = state.previewStepId === step.id ? readLive(step, deps, engineScreen) : null;
+    const liveRow = live
+      ? el('div', { class: 'bhb-live' }, [
+          el('span', { class: `bhb-live__verdict is-${live.verdict}`, text: t(`steps.live.${live.verdict}`) }),
+          el('span', { class: 'bhb-live__swatch', style: { background: step.hex || 'transparent' } }),
+          el('span', { class: 'bhb-live__arrow', text: '→' }),
+          el('span', {
+            class: 'bhb-live__swatch',
+            style: { background: live.seen || 'transparent' },
+          }),
+          el('span', {
+            class: 'bhb-mono bhb-live__drift',
+            text: typeof live.drift === 'number' ? `${live.seen} · Δ${live.drift}` : live.seen || '',
+          }),
+        ])
+      : null;
+
     const places = pointsByPlace(step);
     const isWait = step.kind === StepKind.WAIT;
     const isCount = step.kind === StepKind.COUNT;
@@ -538,6 +585,7 @@ export function renderStepsTab(deps) {
         activities.length > 0 ? slot : null,
         deps.settings.showScreens && deps.getScreens().length > 0 ? gate : null,
       ]),
+      liveRow,
     ]);
 
     row.addEventListener('mouseenter', () => deps.store.hoverStep(step.id));
