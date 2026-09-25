@@ -564,6 +564,16 @@ export function createEngine(deps) {
       state.expectedStepId = expected ? expected.id : null;
       const point = matchStep(expected, gl, screenId, buffer, scaleMode);
 
+      // A wait or a count holds the sequence, and it may only do that on its
+      // own turn. With a step before it still undone, the game has not reached
+      // this screen — engaging here would count the waves of a battle that has
+      // not started, and scanning past it would quit one that has.
+      const isBlocking =
+        expected.kind === StepKind.WAIT || expected.kind === StepKind.COUNT;
+      if (isBlocking && blockedAt !== null) {
+        break;
+      }
+
       if (expected.kind === StepKind.WAIT) {
         // Counted, not spotted: "wait for a third player" is a count of empty
         // seats, and which seats they are is the game's business, not ours.
