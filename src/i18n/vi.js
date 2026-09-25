@@ -102,7 +102,7 @@ export default {
   'settings.multiplyFramesHint': 'Bật: mỗi khung hình chạy vòng lặp game nhiều lần — đây là thứ thật sự làm game nhanh lên, và cũng là thứ ăn hết FPS. Tắt: chỉ kéo giãn đồng hồ, giống cách hack tốc độ trên game cài đặt — không mất khung hình nào, nhưng game có thể kẹp delta và gần như không nhanh lên. Thử cả hai rồi nhìn fps.',
   'settings.keepAliveHint':
     'Trình duyệt ngừng vẽ khi cửa sổ bị cửa sổ khác phủ kín, và game đứng theo. Bật cái này thì bot tự lái vòng lặp của game. Cần tải lại trang sau khi đổi.',
-  'settings.sizeBadge': 'Hiện cỡ canvas ở góc màn hình',
+  'settings.sizeBadge': 'Hiện số hiệu bản dựng ở góc màn hình',
   'settings.fpsBadge': 'Hiện tốc độ khung hình trên game',
   'settings.absoluteCoords': 'Dùng toạ độ thô (không co giãn theo cỡ canvas)',
   'settings.showScreens': 'Hiện tab màn hình',
@@ -123,8 +123,7 @@ export default {
   'queue.inSettings': 'Thứ tự và bật/tắt từng hoạt động nằm ở tab Cài đặt.',
   'steps.next': 'Bước bot đang chờ',
   'log.resync': 'Lạc nhịp — bắt lại từ {label}',
-  'size.same': 'Cỡ framebuffer game vẽ ra — bước lưu toạ độ theo hệ này',
-  'size.scaled': 'Cỡ framebuffer → cỡ hiển thị. Khác nhau nghĩa là game đang được co giãn',
+  'size.version': 'Bản đang chạy',
   'steps.driftHint': 'Đọc được {hex} ở đây — lệch chừng đó so với màu đã lưu. Vượt ngưỡng thì nới ngưỡng hoặc bắt lại.',
   'steps.legacyBadge': 'bắt lại',
   'steps.legacyWarning':
