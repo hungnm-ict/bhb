@@ -94,6 +94,15 @@ export function createStep(overrides = {}) {
      * rather than the whole run.
      */
     countCap: 120,
+    /**
+     * Set the game's speed as this step fires, or 0 to leave it alone.
+     *
+     * A battle is worth running at 15x and the buttons around it are not: at
+     * speed the quit sequence is three clicks into a game that has already
+     * moved on. The step that leaves the battle turns the speed down with it,
+     * and the step that starts the next one turns it back up.
+     */
+    speedTo: 0,
     /** Skip instead of waiting when it does not match — a box already ticked. */
     optional: false,
     /**
@@ -164,6 +173,19 @@ export function isStepReady(step) {
     return step.points.some(isRegionPoint);
   }
   return Boolean(step.hex) || step.points.every(isRegionPoint);
+}
+
+/**
+ * The speed this step asks for, or null when it asks for nothing.
+ *
+ * @param {Step} step
+ * @returns {number | null}
+ */
+export function speedForStep(step) {
+  const asked = Number(step.speedTo) || 0;
+  // Snapping to a real stop belongs to whoever sets it; this file stays free
+  // of the DOM that the speed hack lives in.
+  return asked > 0 ? asked : null;
 }
 
 /** The colour to match for a given point — the point's own wins. */

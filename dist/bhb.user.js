@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.33.2
+// @version      0.34.0
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @icon         data:image/png;base64,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
@@ -15,7 +15,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.33.2" : "dev";
+  var VERSION = true ? "0.34.0" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -302,6 +302,15 @@
        * rather than the whole run.
        */
       countCap: 120,
+      /**
+       * Set the game's speed as this step fires, or 0 to leave it alone.
+       *
+       * A battle is worth running at 15x and the buttons around it are not: at
+       * speed the quit sequence is three clicks into a game that has already
+       * moved on. The step that leaves the battle turns the speed down with it,
+       * and the step that starts the next one turns it back up.
+       */
+      speedTo: 0,
       /** Skip instead of waiting when it does not match — a box already ticked. */
       optional: false,
       /**
@@ -343,6 +352,10 @@
       return step.points.some(isRegionPoint);
     }
     return Boolean(step.hex) || step.points.every(isRegionPoint);
+  }
+  function speedForStep(step) {
+    const asked = Number(step.speedTo) || 0;
+    return asked > 0 ? asked : null;
   }
   function colorForPoint(step, point) {
     return point.hex || step.hex;
@@ -1460,10 +1473,13 @@
           continue;
         }
         if (point) {
-          cursor.index = (at + 1) % steps.length;
-          cursor.missingSince = 0;
-          foundOurWay();
-          return { step: expected, point, clicked: clickBufferPoint(canvas, point) };
+          const clicked = clickBufferPoint(canvas, point);
+          if (clicked) {
+            cursor.index = (at + 1) % steps.length;
+            cursor.missingSince = 0;
+            foundOurWay();
+          }
+          return { step: expected, point, clicked };
         }
         if (blockedAt === null && !expected.optional && !expected.endsRun) {
           blockedAt = at;
@@ -1497,11 +1513,15 @@
         setMessage(`${candidate.step.label || candidate.step.id}: seen behind us, waiting to be sure`);
         return null;
       }
+      const clicked = clickBufferPoint(canvas, candidate.point);
+      if (!clicked) {
+        return null;
+      }
       report("resync", { label: candidate.step.label || candidate.step.id });
       cursor.index = (candidate.index + 1) % steps.length;
       cursor.missingSince = 0;
       foundOurWay();
-      return { ...candidate, clicked: clickBufferPoint(canvas, candidate.point) };
+      return { ...candidate, clicked };
     }
     function panic(canvas) {
       if (!deps.shouldTryEscape || !deps.shouldTryEscape()) {
@@ -1603,6 +1623,14 @@
       idleSince = realNow();
       if (hit.clicked) {
         state.lastActionAt = realNow();
+        const asked = speedForStep(hit.step);
+        if (asked !== null) {
+          const wanted = snapSpeed(asked);
+          if (wanted !== getSpeed()) {
+            setSpeed(wanted);
+            setMessage(`${hit.step.label || hit.step.id}: speed ${wanted}×`);
+          }
+        }
         const rest = Number(hit.step.restSec) || 0;
         if (rest > 0) {
           restingUntil = realNow() + rest * 1e3;
@@ -2699,6 +2727,7 @@
     "settings.on": "bật",
     "settings.off": "tắt",
     "steps.restHint": "Nghỉ bao nhiêu giây sau khi bước này bấm — dùng cho nút mở trận Dungeon/Raid, để bot khỏi dò suốt lúc đang đánh. 0 là không nghỉ.",
+    "steps.speedHint": "Đặt tốc độ game khi bước này chạy — để trống là không đụng tới. Hạ xuống cho mấy nút quanh trận đánh, nâng lên lại cho chính trận đánh.",
     "queue.runSolo": "Chạy riêng hoạt động này",
     "queue.stopSolo": "Dừng",
     "queue.noSteps": "Chưa có bước nào gán cho hoạt động này",
@@ -2956,6 +2985,7 @@
     "settings.on": "on",
     "settings.off": "off",
     "steps.restHint": "Seconds to sit still after this step clicks — for the button that starts a Dungeon or Raid run, so the bot stops looking while the fight is on. 0 means no rest.",
+    "steps.speedHint": "Set the game speed as this step fires — blank leaves it alone. Turn it down for the buttons around a battle and back up for the battle itself.",
     "queue.runSolo": "Run this activity on its own",
     "queue.stopSolo": "Stop",
     "queue.noSteps": "No steps are tagged to this activity yet",
@@ -3160,6 +3190,14 @@
       const siblings = deps.getSteps().filter((step) => (step.activity || null) === (into || null));
       return t("step.defaultLabel", { n: siblings.length + 1 });
     }
+    function setSpeedTo(stepId, speed2) {
+      const step = find(stepId);
+      if (!step) {
+        return;
+      }
+      step.speedTo = Math.max(0, Math.min(30, Math.round(Number(speed2) || 0)));
+      deps.persist();
+    }
     function setCount(stepId, { countTo, countCap }) {
       const step = find(stepId);
       if (!step) {
@@ -3274,6 +3312,7 @@
       setBehaviour,
       setMaxMatches,
       nextLabel,
+      setSpeedTo,
       setCount,
       captureRegion,
       removePlace,
@@ -5421,6 +5460,16 @@
         deps.stepEditor.setCount(step.id, { countCap: countCap.value });
         deps.refresh();
       });
+      const speedBox = el("input", { class: "bhb-rest bhb-mono", title: t("steps.speedHint") });
+      speedBox.type = "number";
+      speedBox.min = "0";
+      speedBox.max = "30";
+      speedBox.placeholder = "×";
+      speedBox.value = step.speedTo ? String(step.speedTo) : "";
+      speedBox.addEventListener("change", () => {
+        deps.stepEditor.setSpeedTo(step.id, speedBox.value);
+        deps.refresh();
+      });
       const drawRegion = el("button", {
         class: "bhb-icon bhb-step__region",
         title: t("steps.drawRegion"),
@@ -5523,7 +5572,7 @@
           behaviour,
           placeCount,
           isCount ? countTarget : isWait ? threshold : rest,
-          isCount ? countCap : null,
+          isCount ? countCap : speedBox,
           el("span", { class: "bhb-rule__meta-coord" }, [
             el("span", {
               class: "bhb-rule__coord bhb-mono",

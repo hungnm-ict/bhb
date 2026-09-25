@@ -246,6 +246,7 @@ export default {
   'settings.off': 'tắt',
 
   'steps.restHint': 'Nghỉ bao nhiêu giây sau khi bước này bấm — dùng cho nút mở trận Dungeon/Raid, để bot khỏi dò suốt lúc đang đánh. 0 là không nghỉ.',
+  'steps.speedHint': 'Đặt tốc độ game khi bước này chạy — để trống là không đụng tới. Hạ xuống cho mấy nút quanh trận đánh, nâng lên lại cho chính trận đánh.',
   'queue.runSolo': 'Chạy riêng hoạt động này',
   'queue.stopSolo': 'Dừng',
   'queue.noSteps': 'Chưa có bước nào gán cho hoạt động này',
