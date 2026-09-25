@@ -653,6 +653,27 @@ const CSS = `
 .bhb-mark--off { opacity: .4; border-color: var(--bhb-dim); }
 .bhb-mark--legacy { border-color: var(--bhb-warn); }
 
+/* The live read, under a step being previewed: stored colour → what is there
+   now, and how far apart they are. */
+.bhb-live {
+  display: flex; align-items: center; gap: 6px;
+  margin-top: 4px; padding: 4px 6px;
+  background: rgba(0, 0, 0, .3); border-radius: 6px;
+  font-size: var(--bhb-fs-xs);
+}
+.bhb-live__swatch {
+  width: 13px; height: 13px; border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, .35);
+}
+.bhb-live__arrow { color: var(--bhb-dim); }
+.bhb-live__drift { color: var(--bhb-dim); margin-left: auto; }
+.bhb-live__verdict { font-weight: 700; }
+.bhb-live__verdict.is-match { color: var(--bhb-live); }
+.bhb-live__verdict.is-miss { color: var(--bhb-danger); }
+.bhb-live__verdict.is-gated, .bhb-live__verdict.is-off { color: var(--bhb-dim); }
+.bhb-live__verdict.is-empty { color: var(--bhb-warn); }
+.bhb-live__verdict.is-counting { color: var(--bhb-accent); }
+
 /* Dry-run verdicts: what the matcher found, on the marker it found it on. */
 .bhb-mark--match { border-color: var(--bhb-live); box-shadow: 0 0 0 2px rgba(61, 220, 151, .35); }
 .bhb-mark--miss { border-color: var(--bhb-danger); opacity: .75; }
