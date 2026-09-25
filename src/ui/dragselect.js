@@ -43,6 +43,9 @@ export function startDragSelect(onDone) {
     };
   }
 
+  /** Clear of the box, and clear of the screen edges. */
+  const HINT_GAP_PX = 9;
+
   function draw(rect) {
     Object.assign(box.style, {
       display: 'block',
@@ -51,7 +54,20 @@ export function startDragSelect(onDone) {
       width: `${rect.width}px`,
       height: `${rect.height}px`,
     });
+
+    hint.style.display = 'block';
     hint.textContent = `${Math.round(rect.width)} × ${Math.round(rect.height)}`;
+
+    // Under the box, or over it when there is no room under: parked in the
+    // middle of the screen it covered the very thing being framed.
+    const size = hint.getBoundingClientRect();
+    const below = rect.top + rect.height + HINT_GAP_PX;
+    const above = rect.top - size.height - HINT_GAP_PX;
+    const top = below + size.height <= window.innerHeight || above < 0 ? below : above;
+    const left = rect.left + rect.width / 2 - size.width / 2;
+
+    hint.style.top = `${Math.max(0, top)}px`;
+    hint.style.left = `${Math.min(Math.max(0, left), window.innerWidth - size.width)}px`;
   }
 
   function finish(rect) {

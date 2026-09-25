@@ -124,7 +124,8 @@ export function createUiStore() {
 
     openPanel: () => patch({ panelOpen: true }),
     closePanel: () => patch({ panelOpen: false, hoveredStepId: null, previewStepId: null }),
-    togglePanel: () => patch({ panelOpen: !state.panelOpen }),
+    // A preview never outlives the panel it faded, whichever way it was shut.
+    togglePanel: () => patch({ panelOpen: !state.panelOpen, hoveredStepId: null, previewStepId: null }),
     setTab: (tab) => patch({ tab, panelOpen: true }),
 
     setRuleFilter: (activityId) => patch({ stepFilter: activityId }),
