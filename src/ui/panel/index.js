@@ -213,7 +213,11 @@ export function createPanel(deps) {
   }
 
   function highlight() {
-    highlightSteps(deps.store.get());
+    const state = deps.store.get();
+    highlightSteps(state);
+    if (node) {
+      node.classList.toggle('is-peeking', state.hoveredStepId !== null);
+    }
   }
 
   return { render, highlight, updateSpeed };
