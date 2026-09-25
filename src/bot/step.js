@@ -43,6 +43,7 @@ import { isRegionPoint } from '../core/region.js';
 export const StepKind = Object.freeze({
   CLICK: 'click',
   WAIT: 'wait',
+  COUNT: 'count',
 });
 
 export function createStepId() {
@@ -79,6 +80,13 @@ export function createStep(overrides = {}) {
      * is "wait until three players are here", whichever seats they took.
      */
     maxMatches: 0,
+    /**
+     * For a count step: how many times its region must settle at a new
+     * picture before the sequence goes on. Seven is an Invasion's waves.
+     */
+    countTo: 0,
+    /** Seconds before a count that is going nowhere gives up and moves on. */
+    countCap: 180,
     /** Skip instead of waiting when it does not match — a box already ticked. */
     optional: false,
     /**
@@ -100,6 +108,10 @@ export function createStep(overrides = {}) {
 export function isStepReady(step) {
   if (!step.enabled || step.points.length === 0) {
     return false;
+  }
+  // A count reads a rectangle, so a lone pixel is nothing it can watch.
+  if (step.kind === StepKind.COUNT) {
+    return step.points.some(isRegionPoint);
   }
   return Boolean(step.hex) || step.points.every(isRegionPoint);
 }
