@@ -42,7 +42,11 @@ export function createUiStore(restoredLog = []) {
      */
     previewStepId: null,
     /** @type {string | null} activity id shown in the steps table; null is all */
-    stepFilter: null,
+    /**
+     * Which activity the Steps tab is narrowed to. `null` is everything, and
+     * `undefined` is "not chosen yet" — which follows the Run tab instead.
+     */
+    stepFilter: undefined,
     /**
      * Whether the capture hotkey is armed.
      *
