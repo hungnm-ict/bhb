@@ -251,7 +251,7 @@ export default {
   'steps.countToHint': 'Ô được theo dõi phải đổi bao nhiêu lần thì mới đi tiếp',
   'steps.countCapHint': 'Quá bao nhiêu giây không đếm được thì bỏ qua',
   'steps.drawRegion': 'Khoanh ô cần theo dõi',
-  'steps.preview': 'Rê chuột vào để xem nó bấm chỗ nào',
+  'steps.preview': 'Bấm để xem nó bấm chỗ nào; rời chuột ra là panel hiện lại',
   'steps.live.match': 'đang khớp',
   'steps.live.miss': 'không khớp',
   'steps.live.gated': 'màn hình khác',
