@@ -251,7 +251,7 @@ export default {
   'steps.countToHint': 'How many times the watched box must change before the sequence goes on',
   'steps.countCapHint': 'Seconds before a count that is going nowhere gives up',
   'steps.drawRegion': 'Draw the box to watch',
-  'steps.preview': 'Hover to see where this clicks',
+  'steps.preview': 'Click to see where this clicks; move away to bring the panel back',
   'steps.live.match': 'matches now',
   'steps.live.miss': 'no match',
   'steps.live.gated': 'other screen',
