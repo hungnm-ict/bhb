@@ -18,6 +18,9 @@ vi.mock('../src/core/input.js', () => ({
 /** What every pixel of the watched region reads as, this tick. */
 let shade = 10;
 
+/** Multiplies the canvas size, for the resize-mid-count case. */
+let bufferScale = 1;
+
 let now = 1_000_000;
 
 function advance(ms) {
@@ -36,7 +39,7 @@ vi.mock('../src/core/timers.js', () => ({
 
 vi.mock('../src/core/canvas.js', () => ({
   getRenderTarget: () => ({
-    canvas: { width: 800, height: 500 },
+    canvas: { width: 800 * bufferScale, height: 500 * bufferScale },
     gl: {
       RGBA: 0,
       UNSIGNED_BYTE: 0,
@@ -45,12 +48,13 @@ vi.mock('../src/core/canvas.js', () => ({
       },
     },
   }),
-  getCanvas: () => ({ width: 800, height: 500 }),
+  getCanvas: () => ({ width: 800 * bufferScale, height: 500 * bufferScale }),
   installCanvasPatch: () => {},
 }));
 
 const { createEngine, TaskId } = await import('../src/core/engine.js');
 const { createStep, StepKind } = await import('../src/bot/step.js');
+const { COUNT_SETTLE_MS } = await import('../src/core/constants.js');
 
 const REGION_POINT = {
   x: 10,
@@ -82,6 +86,7 @@ function build(steps) {
 
 beforeEach(() => {
   shade = 10;
+  bufferScale = 1;
   now = 1_000_000;
 });
 
@@ -94,10 +99,12 @@ describe('counting in the engine', () => {
     expect(engine.getState().lastMessage).toContain('0/1');
 
     shade = 40;
+    advance(300);
     engine.tick();
-    // Differs from the mark but has not settled yet.
+    // Differs from the mark but has not held still long enough yet.
     expect(engine.getState().lastMessage).toContain('0/1');
 
+    advance(COUNT_SETTLE_MS);
     engine.tick();
     expect(engine.getState().lastMessage).toContain('1/1');
     engine.stop();
@@ -109,10 +116,12 @@ describe('counting in the engine', () => {
 
     for (const frame of [30, 50, 70]) {
       shade = frame;
+      advance(300);
       engine.tick();
     }
     expect(engine.getState().lastMessage).toContain('0/2');
 
+    advance(COUNT_SETTLE_MS);
     engine.tick();
     expect(engine.getState().lastMessage).toContain('1/2');
     engine.stop();
@@ -155,17 +164,18 @@ describe('counting in the engine', () => {
   });
 
   it('counting keeps the auto-stop clock alive', () => {
-    const engine = build([countStep({ countTo: 9 })]);
+    const engine = build([countStep({ countTo: 9, countCap: 170 })]);
     engine.start(TaskId.SCRIPT);
 
-    advance(120_000);
+    advance(100_000);
     shade = 90;
     engine.tick();
+    advance(COUNT_SETTLE_MS);
     engine.tick();
     expect(engine.getState().lastMessage).toContain('1/9');
 
     // Three minutes past the start, but only a moment past the counted wave.
-    advance(100_000);
+    advance(120_000);
     engine.checkIdle();
     expect(engine.getState().activeTask).toBe(TaskId.SCRIPT);
     engine.stop();
@@ -178,14 +188,99 @@ describe('counting in the engine', () => {
 
     shade = 60;
     engine.tick();
+    advance(COUNT_SETTLE_MS);
     engine.tick();
     expect(engine.getState().lastMessage).toContain('1/1');
 
     // Past the count, round the list, and back: the tally resets.
     engine.tick();
     shade = 80;
+    advance(COUNT_SETTLE_MS);
     engine.tick();
     expect(engine.getState().lastMessage).toContain('0/1');
+    engine.stop();
+  });
+});
+
+describe('counting survives the things a session does to it', () => {
+  it('starts a fresh tally after a stop', () => {
+    const engine = build([countStep({ countTo: 7 })]);
+    engine.start(TaskId.SCRIPT);
+
+    shade = 50;
+    engine.tick();
+    advance(1000);
+    engine.tick();
+    expect(engine.getState().lastMessage).toContain('1/7');
+
+    engine.stop();
+    // Long enough that a carried-over `since` would cap the next run at once.
+    advance(400_000);
+    engine.start(TaskId.SCRIPT);
+    expect(engine.getState().lastMessage).toContain('0/7');
+    engine.stop();
+  });
+
+  it('is never clicked by a resync', () => {
+    // A blocking first step, so the cursor gives up on it and free-scans.
+    const blocked = createStep({
+      label: 'never',
+      hex: '#ff0000',
+      tolerance: 0,
+      points: [{ x: 400, y: 250, bw: 800, bh: 500 }],
+    });
+    const engine = build([blocked, countStep({ countTo: 7 })]);
+    engine.start(TaskId.SCRIPT);
+
+    advance(20_000);
+    engine.tick();
+    expect(engine.getState().lastMessage).not.toContain('→ click');
+    engine.stop();
+  });
+
+  it('counts a wave that animates through a held frame once', () => {
+    const engine = build([countStep({ countTo: 7 })]);
+    engine.start(TaskId.SCRIPT);
+
+    // One wave: 10 → 25 held for two polls → 40, at rest.
+    shade = 25;
+    advance(300);
+    engine.tick();
+    advance(300);
+    engine.tick();
+    shade = 40;
+    advance(300);
+    engine.tick();
+    advance(300);
+    engine.tick();
+    advance(1000);
+    engine.tick();
+
+    expect(engine.getState().lastMessage).toContain('1/7');
+    engine.stop();
+  });
+
+  it('does not invent a wave when the canvas is resized', () => {
+    const engine = build([countStep({ countTo: 7 })]);
+    engine.start(TaskId.SCRIPT);
+
+    // Same picture throughout; only the rectangle's size changes under it.
+    bufferScale = 2;
+    advance(1000);
+    engine.tick();
+    advance(1000);
+    engine.tick();
+    advance(1000);
+    engine.tick();
+
+    expect(engine.getState().lastMessage).toContain('0/7');
+    engine.stop();
+  });
+
+  it('says so when it has no box to watch', () => {
+    const engine = build([countStep({ countTo: 7, points: [{ x: 1, y: 2, bw: 800, bh: 500 }] })]);
+    engine.start(TaskId.SCRIPT);
+    expect(engine.getState().lastMessage).toContain('no box');
     engine.stop();
   });
 });

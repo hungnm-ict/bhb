@@ -390,7 +390,7 @@ export function renderStepsTab(deps) {
     const countCap = el('input', { class: 'bhb-rest bhb-mono', title: t('steps.countCapHint') });
     countCap.type = 'number';
     countCap.min = '0';
-    countCap.max = '3600';
+    countCap.max = '170';
     countCap.value = String(step.countCap || 0);
     countCap.addEventListener('change', () => {
       deps.stepEditor.setCount(step.id, { countCap: countCap.value });

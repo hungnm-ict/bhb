@@ -154,6 +154,7 @@ export default {
 
   'msg.noCanvas': 'không thấy canvas',
   'msg.noWebgl': 'không có WebGL',
+  'msg.countRegionBig': 'Ô hơi to — khoanh sát vào đúng con số thay đổi thôi.',
   'msg.noMousePosition': 'chưa có vị trí chuột',
   'msg.outsideCanvas': 'con trỏ ngoài canvas',
   'msg.anchorCaptured': 'đã bắt vùng {n} cho {name}',

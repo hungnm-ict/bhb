@@ -10,7 +10,11 @@ import {
 } from '../core/coords.js';
 import { captureFingerprint } from '../core/region.js';
 import { realRequestAnimationFrame } from '../core/timers.js';
-import { HOVER_RESET_POINT } from '../core/constants.js';
+import {
+  AUTO_STOP_TIMEOUT,
+  COUNT_REGION_WARN_PX,
+  HOVER_RESET_POINT,
+} from '../core/constants.js';
 import { trackCursor, getCursor } from '../core/cursor.js';
 import { createStep, StepKind, pointsByPlace } from './step.js';
 import { t } from '../i18n/index.js';
@@ -264,7 +268,9 @@ export function createStepEditor(deps) {
       step.countTo = Math.max(0, Math.min(99, Math.round(Number(countTo) || 0)));
     }
     if (countCap !== undefined) {
-      step.countCap = Math.max(0, Math.min(3600, Math.round(Number(countCap) || 0)));
+      // A cap at or past the auto-stop never fires: the run dies first.
+      const ceiling = Math.round(AUTO_STOP_TIMEOUT / 1000) - 10;
+      step.countCap = Math.max(0, Math.min(ceiling, Math.round(Number(countCap) || 0)));
     }
     deps.persist();
   }
@@ -308,6 +314,11 @@ export function createStepEditor(deps) {
     }
 
     step.points = [fingerprint];
+    // A box dragged around the general area needs more pixels to move than a
+    // redrawn number has, and would sit at 0 forever with nothing to say why.
+    if (fingerprint.w * fingerprint.h > COUNT_REGION_WARN_PX) {
+      deps.report(t('msg.countRegionBig'));
+    }
     deps.persist();
     return step;
   }

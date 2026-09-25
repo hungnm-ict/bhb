@@ -15,6 +15,7 @@ import {
 } from './timers.js';
 import { nextPace, FIRST_PACE } from './pace.js';
 import {
+  COUNT_SETTLE_MS,
   SCRIPT_PACE_LADDER,
   INTERVAL_AUTO_STOP_CHECK,
   IDLE_ADVANCE_MS,
@@ -110,7 +111,31 @@ export function createEngine(deps) {
    * `previous` and differs from `mark`, so a number animating in is one wave
    * rather than three.
    */
-  const tally = { stepId: null, count: 0, mark: null, previous: null, since: 0 };
+  const tally = {
+    stepId: null,
+    count: 0,
+    mark: null,
+    previous: null,
+    since: 0,
+    settledSince: 0,
+  };
+
+  /**
+   * Forget the tally, buffers and all.
+   *
+   * The step id alone cannot tell one visit from the next, so anything that
+   * begins or ends a visit says so here: a lap, a stop, a start. A tally
+   * carried across a stop would quit the next Invasion four waves early, and
+   * its `since` would cap a run the moment it began.
+   */
+  function resetTally() {
+    tally.stepId = null;
+    tally.count = 0;
+    tally.mark = null;
+    tally.previous = null;
+    tally.since = 0;
+    tally.settledSince = 0;
+  }
 
   /** Read by the pacer and the clocks; set while a count step is live. */
   let isCounting = false;
@@ -290,6 +315,12 @@ export function createEngine(deps) {
     if (!isStepReady(step)) {
       return null;
     }
+    // A count's region is a picture of itself, so it always matches. Left to
+    // the free scan it would be clicked, and the sequence would walk on to
+    // "quit the fight" having counted nothing.
+    if (step.kind === StepKind.COUNT) {
+      return null;
+    }
     // Gated out before any pixel is read, which pays back the screen check.
     if (!stepAllowedOn(step, screenId)) {
       return null;
@@ -366,10 +397,8 @@ export function createEngine(deps) {
     }
 
     if (tally.stepId !== step.id) {
+      resetTally();
       tally.stepId = step.id;
-      tally.count = 0;
-      tally.mark = null;
-      tally.previous = null;
       tally.since = realNow();
     }
 
@@ -381,18 +410,25 @@ export function createEngine(deps) {
     const rect = resolveRect(watched, buffer, scaleMode);
     const reading = readRegion(gl, rect.x, rect.y, rect.w, rect.h);
     if (reading) {
-      if (!tally.mark) {
+      // A resized framebuffer reads as different at every pixel, which is a
+      // new rectangle rather than a new wave. Start again from what is there.
+      const hasResized =
+        tally.mark && (reading.w !== tally.mark.w || reading.h !== tally.mark.h);
+
+      if (!tally.mark || hasResized) {
         tally.mark = reading;
         tally.previous = reading;
-      } else {
-        const hasSettled = !regionsDiffer(reading, tally.previous, step.tolerance);
-        const hasMoved = regionsDiffer(reading, tally.mark, step.tolerance);
-        if (hasSettled && hasMoved) {
-          tally.count += 1;
-          tally.mark = reading;
-          hasCounted = true;
-        }
+        tally.settledSince = realNow();
+      } else if (regionsDiffer(reading, tally.previous, step.tolerance)) {
         tally.previous = reading;
+        tally.settledSince = realNow();
+      } else if (
+        realNow() - tally.settledSince >= COUNT_SETTLE_MS &&
+        regionsDiffer(reading, tally.mark, step.tolerance)
+      ) {
+        tally.count += 1;
+        tally.mark = reading;
+        hasCounted = true;
       }
     }
 
@@ -480,6 +516,20 @@ export function createEngine(deps) {
         continue;
       }
 
+      // Capturing a step gives it a pixel; a count needs a rectangle. Without
+      // this the sequence just stalls and then resyncs into clicking something
+      // out of turn, with "no match" as the only explanation.
+      if (
+        expected.kind === StepKind.COUNT &&
+        expected.enabled &&
+        !expected.points.some(isRegionPoint)
+      ) {
+        isCounting = true;
+        cursor.missingSince = 0;
+        setMessage(`${expected.label || expected.id}: no box to watch — draw one`);
+        return null;
+      }
+
       if (expected.kind === StepKind.COUNT && isStepReady(expected)) {
         isCounting = true;
         const verdict = runCount(expected, gl, buffer, scaleMode);
@@ -496,9 +546,7 @@ export function createEngine(deps) {
         } else if (goal > 0) {
           setMessage(`${label}: ${tally.count}/${goal}`);
         }
-        // Let go of the tally on the way out: the id alone cannot tell a
-        // second lap from the first, and a lap must start at zero.
-        tally.stepId = null;
+        resetTally();
         cursor.index = (cursor.index + 1) % steps.length;
         continue;
       }
@@ -787,6 +835,8 @@ export function createEngine(deps) {
     }
 
     pace = FIRST_PACE;
+    isCounting = false;
+    resetTally();
     schedulePoll();
     autoStopTimer = realSetInterval(checkAutoStop, INTERVAL_AUTO_STOP_CHECK);
 
@@ -807,6 +857,8 @@ export function createEngine(deps) {
     state.screenName = null;
     state.expectedStepId = null;
     cursor.key = null;
+    isCounting = false;
+    resetTally();
     setActivity(null);
 
     realClearTimeout(pollTimer);
