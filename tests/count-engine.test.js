@@ -12,6 +12,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('../src/core/input.js', () => ({
   clickBufferPoint: () => true,
+  dispatchKey: () => {},
   setClickObserver: () => {},
 }));
 
@@ -281,6 +282,43 @@ describe('counting survives the things a session does to it', () => {
     const engine = build([countStep({ countTo: 7, points: [{ x: 1, y: 2, bw: 800, bh: 500 }] })]);
     engine.start(TaskId.SCRIPT);
     expect(engine.getState().lastMessage).toContain('no box');
+    engine.stop();
+  });
+});
+
+describe('the cap measures progress, not patience', () => {
+  it('keeps waiting while waves are still arriving', () => {
+    const engine = build([countStep({ countTo: 9, countCap: 30 })]);
+    engine.start(TaskId.SCRIPT);
+
+    // A wave every 20s for two minutes: slower than the cap, but working.
+    for (let wave = 1; wave <= 6; wave += 1) {
+      shade = 10 + wave * 20;
+      advance(20_000);
+      engine.tick();
+      advance(COUNT_SETTLE_MS);
+      engine.tick();
+    }
+
+    expect(engine.getState().lastMessage).toContain('6/9');
+    expect(engine.getState().lastMessage).not.toContain('gave up');
+    engine.stop();
+  });
+
+  it('gives up when nothing has arrived for the whole cap', () => {
+    const engine = build([countStep({ countTo: 9, countCap: 30 })]);
+    engine.start(TaskId.SCRIPT);
+
+    shade = 60;
+    advance(1000);
+    engine.tick();
+    advance(COUNT_SETTLE_MS);
+    engine.tick();
+    expect(engine.getState().lastMessage).toContain('1/9');
+
+    advance(31_000);
+    engine.tick();
+    expect(engine.getState().lastMessage).toContain('gave up');
     engine.stop();
   });
 });

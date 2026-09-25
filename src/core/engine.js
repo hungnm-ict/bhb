@@ -460,6 +460,9 @@ export function createEngine(deps) {
       ) {
         tally.count += 1;
         tally.mark = reading;
+        // The cap runs from the last thing that happened, not from the start:
+        // a wave every twenty seconds is slow, not stuck.
+        tally.since = realNow();
         hasCounted = true;
       }
     }
