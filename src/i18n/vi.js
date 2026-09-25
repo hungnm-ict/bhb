@@ -56,6 +56,8 @@ export default {
   'steps.loose': 'Chỉ bước tuỳ chỉnh',
   'steps.noActivity': 'Tuỳ chỉnh',
   'steps.moveAll': 'Chuyển các bước đang hiện sang…',
+  'steps.cloneAll': 'Nhân bản các bước đang hiện sang…',
+  'steps.cloneConfirm': 'Chép {n} bước này sang {name}? Bước hiện có của {name} sẽ bị thay hết; các bước đang hiện giữ nguyên.',
   'steps.allSteps': 'Tất cả bước',
   'steps.filter': 'Chỉ hiện một hoạt động',
   'steps.hints': 'Cách chụp bước và chạy thử hoạt động',

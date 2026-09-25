@@ -7,7 +7,7 @@ import { startDragSelect } from '../dragselect.js';
 import { getRenderTarget } from '../../core/canvas.js';
 import { getBufferSize } from '../../core/coords.js';
 import { scoreStepDetail } from '../../bot/dry-run.js';
-import { exportSteps, importSteps, mergeSteps } from '../../bot/step-pack.js';
+import { exportSteps, importSteps, mergeSteps, cloneStepsInto } from '../../bot/step-pack.js';
 
 /**
  * The steps table.
@@ -235,6 +235,34 @@ export function renderStepsTab(deps) {
     deps.refresh();
   });
 
+  // Raid is Dungeon with different buttons. Moving them empties the one they
+  // came from, which is the opposite of what copying a combo over means.
+  const cloneAll = el('select', { class: 'bhb-rule__gate', title: t('steps.cloneAll') });
+  const clonePrompt = el('option', { text: t('steps.cloneAll') });
+  clonePrompt.value = '__none__';
+  cloneAll.append(clonePrompt);
+  for (const activity of activities) {
+    const option = el('option', { text: activity.name });
+    option.value = activity.id;
+    cloneAll.append(option);
+  }
+  cloneAll.value = '__none__';
+  cloneAll.disabled = steps.length === 0;
+  cloneAll.addEventListener('change', () => {
+    if (cloneAll.value === '__none__') {
+      return;
+    }
+    const into = cloneAll.value;
+    const name = activities.find((activity) => activity.id === into);
+    if (!window.confirm(t('steps.cloneConfirm', { n: steps.length, name: name ? name.name : into }))) {
+      cloneAll.value = '__none__';
+      return;
+    }
+    deps.stepEditor.replaceAll(cloneStepsInto(all, steps, into));
+    deps.store.setRuleFilter(into);
+    deps.refresh();
+  });
+
   // A legacy step cannot be rescaled, so it clicks the wrong place the moment
   // the window moves — loud enough to act on, not a ⚠ to squint at.
   const legacyCount = all.filter((step) => step.points[0] && isLegacyPoint(step.points[0])).length;
@@ -326,7 +354,7 @@ export function renderStepsTab(deps) {
       hintToggle,
       filterSelect,
     ]),
-    el('div', { class: 'bhb-btnrow' }, [moveAll]),
+    el('div', { class: 'bhb-btnrow' }, [moveAll, cloneAll]),
     arm,
     capture,
     el('div', { class: 'bhb-btnrow' }, [dryRun, pin]),
