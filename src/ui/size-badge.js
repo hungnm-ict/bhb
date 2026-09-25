@@ -1,10 +1,15 @@
 import { el, mount } from './dom.js';
 import { getCanvas } from '../core/canvas.js';
 import { t } from '../i18n/index.js';
+import { VERSION } from '../core/constants.js';
 import { realSetTimeout, realClearTimeout } from '../core/timers.js';
 
 /**
- * The live canvas size, parked in a corner.
+ * The live canvas size, parked in a corner, with the build above it.
+ *
+ * The version was only in the reference tab, which meant opening the panel to
+ * answer "am I on the build I just pushed" — the one question asked most often
+ * and the one the panel is least convenient for.
  *
  * Two numbers matter and they are not the same one: the framebuffer the bot
  * reads pixels from, and the CSS box the game is drawn into. When steps start
@@ -25,12 +30,20 @@ const NEAR_PX = 32;
 export function createSizeBadge(deps) {
   /** @type {HTMLElement | null} */
   let node = null;
+  /** @type {HTMLElement | null} the size line, the only part that changes */
+  let sizeLine = null;
   let dimTimer = null;
   let previousText = null;
 
   function ensureNode() {
     if (!node) {
-      node = mount(el('div', { class: 'bhb-size bhb-mono' }));
+      sizeLine = el('div', { class: 'bhb-size__px' });
+      node = mount(
+        el('div', { class: 'bhb-size bhb-mono' }, [
+          el('div', { class: 'bhb-size__ver', text: `v${VERSION}` }),
+          sizeLine,
+        ])
+      );
       window.addEventListener('mousemove', onMouseMove, { passive: true, capture: true });
     }
     return node;
@@ -86,14 +99,14 @@ export function createSizeBadge(deps) {
 
     // Showing one number twice only invites the question of what the second
     // one is; the arrow form appears when the two actually differ.
-    target.textContent = sameSize
+    sizeLine.textContent = sameSize
       ? `${canvas.width}×${canvas.height}`
       : `${canvas.width}×${canvas.height} → ${clientWidth}×${clientHeight}`;
     target.title = t(sameSize ? 'size.same' : 'size.scaled');
 
     // A size that just changed is the one worth reading, so a resize wakes it.
-    if (target.textContent !== previousText) {
-      previousText = target.textContent;
+    if (sizeLine.textContent !== previousText) {
+      previousText = sizeLine.textContent;
       wake();
     }
   }
