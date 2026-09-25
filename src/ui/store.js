@@ -30,6 +30,14 @@ export function createUiStore() {
     selectedStepId: null,
     /** @type {string | null} step under the cursor, in the table or on canvas */
     hoveredStepId: null,
+    /**
+     * The step whose marker is being looked at right now.
+     *
+     * Separate from `hoveredStepId` because it costs the panel: previewing
+     * takes the panel out of the way, and doing that every time the cursor
+     * crossed a row made the whole list flicker.
+     */
+    previewStepId: null,
     /** @type {string | null} activity id shown in the steps table; null is all */
     stepFilter: null,
     /**
@@ -83,7 +91,7 @@ export function createUiStore() {
    * announced separately: rebuilding the panel on every mouseenter replaced
    * the row under the cursor twice a second and felt like lag.
    */
-  const HIGHLIGHT_KEYS = new Set(['selectedStepId', 'hoveredStepId']);
+  const HIGHLIGHT_KEYS = new Set(['selectedStepId', 'hoveredStepId', 'previewStepId']);
 
   function emit() {
     emitter.emit('change', state);
@@ -115,7 +123,7 @@ export function createUiStore() {
     onHighlight: (handler) => emitter.on('highlight', handler),
 
     openPanel: () => patch({ panelOpen: true }),
-    closePanel: () => patch({ panelOpen: false, hoveredStepId: null }),
+    closePanel: () => patch({ panelOpen: false, hoveredStepId: null, previewStepId: null }),
     togglePanel: () => patch({ panelOpen: !state.panelOpen }),
     setTab: (tab) => patch({ tab, panelOpen: true }),
 
@@ -139,6 +147,7 @@ export function createUiStore() {
 
     selectStep: (id) => patch({ selectedStepId: id }),
     hoverStep: (id) => patch({ hoveredStepId: id }),
+    previewStep: (id) => patch({ previewStepId: id, hoveredStepId: id }),
 
     /** Drop any reference to a step that no longer exists. */
     forgetStep(id) {

@@ -251,6 +251,7 @@ export default {
   'steps.countToHint': 'Ô được theo dõi phải đổi bao nhiêu lần thì mới đi tiếp',
   'steps.countCapHint': 'Quá bao nhiêu giây không đếm được thì bỏ qua',
   'steps.drawRegion': 'Khoanh ô cần theo dõi',
+  'steps.preview': 'Rê chuột vào để xem nó bấm chỗ nào',
   'steps.behaviourHint': 'Bấm: thấy màu thì bấm, chưa thấy thì đợi. Bấm nếu có: không thấy thì bỏ qua luôn, sang bước sau — dùng cho ô tick sẵn như Private. Chờ đến khi hết: còn thấy màu là còn đứng chờ, mất mới đi tiếp — dùng để chờ đủ người trước khi bấm START.',
 
   'steps.addPlace': 'Thêm một chỗ nữa vào bước này (bảng sẽ ẩn đi, rê chuột rồi bấm X)',
