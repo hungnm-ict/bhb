@@ -252,6 +252,12 @@ export default {
   'steps.countCapHint': 'Quá bao nhiêu giây không đếm được thì bỏ qua',
   'steps.drawRegion': 'Khoanh ô cần theo dõi',
   'steps.preview': 'Rê chuột vào để xem nó bấm chỗ nào',
+  'steps.live.match': 'đang khớp',
+  'steps.live.miss': 'không khớp',
+  'steps.live.gated': 'màn hình khác',
+  'steps.live.off': 'đang tắt',
+  'steps.live.empty': 'chưa chụp gì',
+  'steps.live.counting': 'đang canh',
   'steps.behaviourHint': 'Bấm: thấy màu thì bấm, chưa thấy thì đợi. Bấm nếu có: không thấy thì bỏ qua luôn, sang bước sau — dùng cho ô tick sẵn như Private. Chờ đến khi hết: còn thấy màu là còn đứng chờ, mất mới đi tiếp — dùng để chờ đủ người trước khi bấm START.',
 
   'steps.addPlace': 'Thêm một chỗ nữa vào bước này (bảng sẽ ẩn đi, rê chuột rồi bấm X)',

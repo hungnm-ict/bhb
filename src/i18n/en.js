@@ -252,6 +252,12 @@ export default {
   'steps.countCapHint': 'Seconds before a count that is going nowhere gives up',
   'steps.drawRegion': 'Draw the box to watch',
   'steps.preview': 'Hover to see where this clicks',
+  'steps.live.match': 'matches now',
+  'steps.live.miss': 'no match',
+  'steps.live.gated': 'other screen',
+  'steps.live.off': 'switched off',
+  'steps.live.empty': 'nothing captured',
+  'steps.live.counting': 'watching',
   'steps.behaviourHint': 'Click: click when the colour shows, wait otherwise. Click if present: skip straight on when it does not — for a box like Private that may already be ticked. Wait until gone: hold here while the colour is there — for waiting on a party to fill before Start.',
 
   'steps.addPlace': 'Watch one more place (the panel steps aside; hover and press X)',
