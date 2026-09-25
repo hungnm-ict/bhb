@@ -36,16 +36,28 @@ export const SCRIPT_PACE_LADDER = Object.freeze([300, 600, 1000]);
 export const IDLE_ADVANCE_MS = 12000;
 
 /**
- * How long the runner waits for the step it expects before it stops trusting
- * its place in the list and takes whatever fits the screen in front of it.
+ * How long after a click before the runner will consider that it is lost.
  *
- * Wall-clock, not ticks. As ticks this was three of them, which quietly meant
- * nine seconds at one poll rate and two at another — and giving up early lands
- * the scan on the step just clicked, whose button is still on screen, so it
- * clicks it again forever. What the runner is really waiting on is the game
- * finishing a transition, and that takes the time it takes.
+ * Going backwards is never proved by what is on screen, only by time. A step
+ * already done matching again looks identical whether the game went back or
+ * the screen the bot waits for is simply still drawing — and the bot has just
+ * given the game something to do, so the benefit of the doubt is cheap.
+ *
+ * Wall-clock, not ticks. As ticks this quietly meant nine seconds at one poll
+ * rate and two at another.
  */
-export const RESYNC_AFTER_MS = 9000;
+export const BACKWARD_QUIET_MS = 2000;
+
+/**
+ * How long a step behind the cursor must keep matching before it is believed.
+ *
+ * One frame of a transition, or a colour that collides by luck, matches for a
+ * poll or two. Something the game is really showing stays.
+ */
+export const BACKWARD_STABLE_MS = 1500;
+
+/** What Run-All's idle math and the patience tests still call this. */
+export const RESYNC_AFTER_MS = BACKWARD_QUIET_MS;
 
 /**
  * How long a watched region must hold still before a count accepts it.
@@ -62,6 +74,23 @@ export const COUNT_SETTLE_MS = 700;
  * redrawn pixels inside it will never reach the change ratio.
  */
 export const COUNT_REGION_WARN_PX = 20000;
+
+/**
+ * Nothing in the whole list has matched for this long, so the game is probably
+ * showing something the steps do not describe. Both this and `PANIC_SWEEPS`
+ * must be past before Escape is tried: a count that is deliberately holding is
+ * not lost, and neither is a screen that is merely slow.
+ */
+export const PANIC_AFTER_MS = 8000;
+
+/** Full scans of the list that must come back empty before Escape is tried. */
+export const PANIC_SWEEPS = 3;
+
+/** How many Escapes before it is left to the watchdog. */
+export const PANIC_MAX_TRIES = 3;
+
+/** Between one Escape and the next; the game needs time to close a dialog. */
+export const PANIC_GAP_MS = 4000;
 
 /** Stop automation after this long with no successful click. */
 export const AUTO_STOP_TIMEOUT = 3 * 60 * 1000;
