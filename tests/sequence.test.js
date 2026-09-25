@@ -118,45 +118,42 @@ describe('step cursor', () => {
     engine.stop();
   });
 
-  it('waits for the step it expects instead of jumping ahead', () => {
-    // Only the second step's button is lit: a first-match runner would click it
-    // immediately, out of turn.
+  it('goes forward the moment a later step is the one on screen', () => {
+    // Only the second step's button is lit. The first one's screen is gone, so
+    // waiting for it is waiting for something that is not coming.
     lit = new Set([200]);
     const engine = build([stepAt(100, 'one'), stepAt(200, 'two')]);
 
     engine.start(TaskId.SCRIPT);
-    for (let i = 0; i < 12; i += 1) {
-      advance(RESYNC_AFTER_MS / 20);
-      engine.tick();
-    }
-    expect(clicks, 'still waiting its turn').toEqual([]);
+    expect(clicks, 'a button of a later screen is proof the game moved on').toEqual([200]);
     engine.stop();
   });
 
-  it('gives up its place when the expected step never comes', () => {
-    lit = new Set([200]);
+  it('will not go back on a step that was lit for only a moment', () => {
+    // The mirror of the test above: going back has no such proof, so it waits.
+    lit = new Set([100]);
     const engine = build([stepAt(100, 'one'), stepAt(200, 'two')]);
-    const entries = [];
-    engine.on('action', (entry) => entries.push(entry));
 
     engine.start(TaskId.SCRIPT);
+    clicks.length = 0;
+
     advance(RESYNC_AFTER_MS + 1);
     engine.tick();
-
-    expect(clicks, 'resynced onto the step that is actually on screen').toContain(200);
-    expect(entries.some((entry) => entry.kind === 'resync')).toBe(true);
+    expect(clicks, 'one sighting behind us is not evidence').toEqual([]);
     engine.stop();
   });
 
-  it('holds its place for the same wall-clock time however fast it polls', () => {
+  it('measures its patience in wall clock, however fast it polls', () => {
     // The bug this guards: the threshold used to count ticks, so making the
     // loop poll ten times faster made the runner give up ten times sooner —
-    // and it resynced onto the step it had just clicked, whose button was
-    // still on screen, clicking it over and over.
-    lit = new Set([200]);
+    // and it went back to the step it had just clicked, whose button was still
+    // on screen, clicking it over and over.
+    lit = new Set([100]);
     const engine = build([stepAt(100, 'one'), stepAt(200, 'two')]);
 
     engine.start(TaskId.SCRIPT);
+    clicks.length = 0;
+
     for (let i = 0; i < 30; i += 1) {
       advance(RESYNC_AFTER_MS / 60);
       engine.tick();
