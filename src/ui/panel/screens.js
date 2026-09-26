@@ -51,6 +51,25 @@ export function renderScreensTab(deps) {
     el('p', { class: 'bhb-note', text: t('screens.captureHint') }),
   ]);
 
+  // Two screens matching at once is the quietest way to break a step set: the
+  // runner takes the first, and a step gated to the second simply never comes
+  // up — which reads exactly like a step whose turn has not arrived.
+  const matching = screens.filter((screen) => {
+    const score = deps.screenEditor.probe(screen.id);
+    return Boolean(score && score.matched);
+  });
+  const clash =
+    matching.length > 1
+      ? el('p', { class: 'bhb-note bhb-note--warn bhb-screens__clash' }, [
+          el('span', {
+            text: t('screens.clash', {
+              names: matching.map((screen) => screen.name || screen.id).join(', '),
+              winner: matching[0].name || matching[0].id,
+            }),
+          }),
+        ])
+      : null;
+
   if (screens.length === 0) {
     return el('div', { class: 'bhb-tab' }, [
       head,
@@ -154,5 +173,9 @@ export function renderScreensTab(deps) {
     ]);
   });
 
-  return el('div', { class: 'bhb-tab' }, [head, el('div', { class: 'bhb-steps' }, rows)]);
+  return el('div', { class: 'bhb-tab' }, [
+    head,
+    clash,
+    el('div', { class: 'bhb-steps' }, rows),
+  ]);
 }

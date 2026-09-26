@@ -70,6 +70,7 @@ export default {
     'The panel steps aside; drag a box around something only this screen shows. Esc cancels.',
   'screens.addAnchor': 'Add another anchor',
   'screens.unnamed': '(unnamed)',
+  'screens.clash': '{names} all match right now. The bot takes the first, so it thinks it is on “{winner}” — a step gated to any of the others will never come up. Capture something only one of them shows.',
   'screens.unknown': 'unknown',
   'screens.anchors': 'Anchors',
   'screens.stopsTask': 'Out of resources — stop the task here',
