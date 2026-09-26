@@ -110,6 +110,48 @@ chỉ đúng trên máy đã bắt chúng, và màu thì không quy đổi đư�
 
 ---
 
+## Milestone 7 — Giờ lag của server *(xong)*
+
+Server game đuối vào những khung giờ cố định hằng ngày, và bot không đo được
+điều đó: canvas vẫn vẽ sáu mươi khung hình một giây trong khi request phía sau
+treo. Thứ duy nhất nó biết được là do được bảo.
+
+- [x] **Khung giờ lag, lặp hằng ngày** — điền sẵn ba khung của game này, sửa
+      thêm bớt được, theo giờ máy người dùng
+- [x] **Trong khung thì hạ tốc độ về 1x** — bắt trình duyệt vẽ mười lăm khung
+      hình cho mỗi khung thật vào đúng giờ server đang đuối là cách biến một giờ
+      chậm thành một giờ chết, mà boost lúc đó cũng không đẩy nhanh được gì
+- [x] **Trả lại tốc độ cũ khi hết khung**, trừ khi người dùng tự chỉnh trong lúc
+      đó — tay họ thắng trí nhớ của bot
+
+---
+
+## Milestone 8 — Cày qua đêm không cần người *(chưa làm)*
+
+Ba thứ còn thiếu để một đêm chạy được từ đầu tới sáng mà không ai ngồi canh.
+Cả ba đều lộ ra khi dựng chuỗi Dungeon và Invasion thật, không phải nghĩ ra.
+
+- [ ] **Cạn hết thì ngủ, đừng chết** — đi hết một vòng mà mọi hoạt động đều cạn
+      thì bot đang **dừng hẳn**, ghi `everything is spent`. Đúng cho vài tiếng,
+      sai cho cả đêm: năng lượng hồi sau một lúc mà bot đã tắt từ lâu. Phải là
+      nghỉ một khoảng rồi thử lại vòng nữa, cạn tiếp thì ngủ tiếp
+
+- [ ] **Khoá phủ định trên bước** — hiện chỉ nói được *"chỉ bắn khi đang ở màn
+      hình X"*. Không nói được *"bắn khi KHÔNG ở X"*. Nên "bấm ▶ cho tới khi tới
+      đúng zone" phải dựng bằng một màn hình cho mỗi zone rồi gắn một bước ▶ cho
+      từng cái — tám tier là tám màn hình. Có khoá phủ định thì còn hai bước
+
+- [ ] **Phát hiện lag bằng FPS** — đỉnh FPS trong ba phút rơi vào khoảng 1–20 là
+      lag, bằng 0 là treo (hai thứ này chữa khác nhau). Chắc chắn lag thì hạ tốc
+      độ về 1 rồi tải lại game và chạy tiếp chế độ cũ. Khung giờ server (M7) đã
+      bắt được phần lag theo lịch; cái này bắt phần còn lại
+
+**Vì sao cả ba nằm cùng một chỗ:** không cái nào tự nó đáng một bản phát hành,
+và cả ba cùng trả lời đúng một câu hỏi — bấm Run lúc đi ngủ thì sáng dậy nó còn
+đang chạy chứ?
+
+---
+
 ## Milestone 7 — Cập nhật không phải bấm *(chưa làm)*
 
 **Vấn đề:** Tampermonkey giữ khoảng cách tối thiểu giữa hai lần kiểm tra, và
