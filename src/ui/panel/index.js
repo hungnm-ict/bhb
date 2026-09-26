@@ -84,9 +84,14 @@ export function createPanel(deps) {
     return node;
   }
 
-  /** Off by default: the tab is a refinement most sessions never open. */
+  /**
+   * Off by default: the tab is a refinement most sessions never open.
+   *
+   * A profile that has screens in it shows the tab whatever the switch says,
+   * or they would be gating steps from somewhere unreachable.
+   */
   function screensVisible() {
-    return Boolean(deps.settings?.showScreens);
+    return Boolean(deps.settings?.showScreens) || deps.getScreens().length > 0;
   }
 
   function renderBody(tab) {
