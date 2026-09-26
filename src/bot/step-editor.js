@@ -395,11 +395,30 @@ export function createStepEditor(deps) {
   }
 
   /** Order is priority: the first matching step wins, so moving matters. */
-  function move(stepId, delta) {
+  /**
+   * Move a step one place in the list the user is looking at.
+   *
+   * The table is filtered and the stored list is not, so moving by one in the
+   * stored list swaps with a step of another activity that is not on screen —
+   * the visible order does not change, and the arrows read as broken.
+   *
+   * @param {string} stepId
+   * @param {number} delta -1 up, 1 down
+   * @param {string[]} [shownIds] the ids on screen, in the order they are shown
+   */
+  function move(stepId, delta, shownIds) {
     const steps = deps.getSteps();
+    const shown = Array.isArray(shownIds) && shownIds.length > 0 ? shownIds : steps.map((step) => step.id);
+
+    const among = shown.indexOf(stepId);
+    const neighbour = shown[among + delta];
+    if (among === -1 || neighbour === undefined) {
+      return;
+    }
+
     const from = steps.findIndex((step) => step.id === stepId);
-    const to = from + delta;
-    if (from === -1 || to < 0 || to >= steps.length) {
+    const to = steps.findIndex((step) => step.id === neighbour);
+    if (from === -1 || to === -1) {
       return;
     }
     const [step] = steps.splice(from, 1);
