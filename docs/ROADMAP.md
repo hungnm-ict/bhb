@@ -152,7 +152,7 @@ và cả ba cùng trả lời đúng một câu hỏi — bấm Run lúc đi ng�
 
 ---
 
-## Milestone 7 — Cập nhật không phải bấm *(chưa làm)*
+## Milestone 9 — Cập nhật không phải bấm *(chưa làm)*
 
 **Vấn đề:** Tampermonkey giữ khoảng cách tối thiểu giữa hai lần kiểm tra, và
 bước xác nhận cài là bắt buộc — nên vừa phát hành xong thì phải mở tab cài rồi
@@ -195,6 +195,12 @@ switching. Milestone 5 adds session stats that survive a watchdog reload, and
 Discord/Telegram alerts with a canvas screenshot — a rare drop is just a screen
 with its `notify` flag set, so it needs no vision code of its own. Milestone 6
 replaced the hard-coded modes with conditional steps: wait until a colour is
-gone, click one only if it is there, run any activity on its own. Milestone 7 is
-unbuilt — updating without the install tab, which needs a loader that would cost
-the reader the ability to see what they are about to run.
+gone, click one only if it is there, run any activity on its own. Milestone 7
+added the server's daily lag hours, told rather than measured, and takes the
+speed boost off inside them. Milestone 8 collects the three things a night
+still cannot run without, all found by building real Dungeon and Invasion
+sequences rather than by guessing: sleeping instead of stopping when every
+activity is spent, gating a step on *not* being on a screen, and telling lag
+from a hang by the frame rate. Milestone 9 is unbuilt — updating without the
+install tab, which needs a loader that would cost the reader the ability to see
+what they are about to run.
