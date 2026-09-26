@@ -26,7 +26,7 @@ function build(hooks = {}) {
     settings: {
       scaleMode: 'scale', language: 'vi', watchdog: false, keepAlive: true, sizeBadge: true,
       fpsBadge: true, multiplyFrames: true, closeAfterRound: false, showScreens: false,
-      keepLog: true, panicEscape: false, openSection: 'transfer',
+      keepLog: true, panicEscape: false, openSection: 'transfer', lagWindows: [],
       notify: { enabled: false, discordWebhook: '', telegramToken: '', telegramChat: '', withShot: true, events: [] },
       canvasLock: { enabled: true, width: 800, height: 500 },
     },

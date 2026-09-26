@@ -17,6 +17,7 @@ function build(overrides = {}) {
     sizeBadge: true,
     closeAfterRound: false,
     canvasLock: { enabled: false },
+    lagWindows: [{ from: '06:00', to: '07:00' }],
     notify: {
       enabled: false,
       discordWebhook: '',
