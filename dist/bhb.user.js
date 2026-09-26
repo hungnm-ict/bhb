@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.36.1
+// @version      0.37.0
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @icon         data:image/png;base64,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
@@ -15,11 +15,12 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.36.1" : "dev";
+  var VERSION = true ? "0.37.0" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
   var STORAGE_KEY_STATS = "bhb.stats.v1";
+  var LAG_CHECK_MS = 2e4;
   var LOG_WRITE_MS = 4e3;
   var STORAGE_KEY_LOG = "bhb.log.v1";
   var STORAGE_KEY_LEGACY_RULES = "bh_script_rules_v1";
@@ -482,6 +483,91 @@
       lines.push("  none");
     }
     return lines.join("\n");
+  }
+
+  // src/core/lag.js
+  var DEFAULT_LAG_WINDOWS = Object.freeze([
+    Object.freeze({ from: "06:00", to: "07:00" }),
+    Object.freeze({ from: "14:00", to: "15:00" }),
+    Object.freeze({ from: "22:00", to: "23:00" })
+  ]);
+  function toMinutes(text) {
+    const match = /^(\d{1,2}):(\d{1,2})$/.exec(String(text || "").trim());
+    if (!match) {
+      return null;
+    }
+    const hours = Number(match[1]);
+    const minutes = Number(match[2]);
+    if (hours > 23 || minutes > 59) {
+      return null;
+    }
+    return hours * 60 + minutes;
+  }
+  function toClock(minutes) {
+    const hours = Math.floor(minutes / 60);
+    const rest = minutes % 60;
+    return `${String(hours).padStart(2, "0")}:${String(rest).padStart(2, "0")}`;
+  }
+  function normaliseLagWindows(stored) {
+    if (!Array.isArray(stored)) {
+      return DEFAULT_LAG_WINDOWS.map((window2) => ({ ...window2 }));
+    }
+    const kept = [];
+    for (const window2 of stored) {
+      const from = window2 ? toMinutes(window2.from) : null;
+      const to = window2 ? toMinutes(window2.to) : null;
+      if (from === null || to === null) {
+        continue;
+      }
+      kept.push({ from: toClock(from), to: toClock(to) });
+    }
+    return kept;
+  }
+  function isInLagWindow(when, windows) {
+    if (!Array.isArray(windows) || windows.length === 0) {
+      return false;
+    }
+    const minutes = when.getHours() * 60 + when.getMinutes();
+    for (const window2 of windows) {
+      const from = toMinutes(window2.from);
+      const to = toMinutes(window2.to);
+      if (from === null || to === null) {
+        continue;
+      }
+      const isInside = from <= to ? minutes >= from && minutes < to : minutes >= from || minutes < to;
+      if (isInside) {
+        return true;
+      }
+    }
+    return false;
+  }
+  function createLagGuard(deps) {
+    const now = deps.now || (() => /* @__PURE__ */ new Date());
+    let isHolding = false;
+    let restoreTo = null;
+    let heldAt = null;
+    function check() {
+      const inside = isInLagWindow(now(), deps.getWindows());
+      if (inside && !isHolding) {
+        const current = deps.getSpeed();
+        isHolding = true;
+        restoreTo = current > 1 ? current : null;
+        heldAt = 1;
+        if (current > 1) {
+          deps.setSpeed(1);
+        }
+        return;
+      }
+      if (!inside && isHolding) {
+        isHolding = false;
+        if (restoreTo !== null && deps.getSpeed() === heldAt) {
+          deps.setSpeed(restoreTo);
+        }
+        restoreTo = null;
+        heldAt = null;
+      }
+    }
+    return { check, isHolding: () => isHolding };
   }
 
   // src/core/canvas.js
@@ -2217,6 +2303,9 @@
       // matched for a while" is what a long fight looks like — pressing it then
       // opens the leave-this-dungeon dialog mid-fight.
       panicEscape: stored.panicEscape === true,
+      // The hours this game's server struggles in, every day. The bot cannot
+      // measure a slow server, so it is told.
+      lagWindows: normaliseLagWindows(stored.lagWindows),
       // Drift belongs to a boost, not to the account: carrying hours of it into
       // another character is what conjures a daily reset out of nothing.
       keepAlive: stored.keepAlive !== false,
@@ -2723,6 +2812,12 @@
     "probe.hint": "Chấm vài điểm lên các nút hay dùng — bốn góc và một điểm giữa là đủ. Rồi đổi độ phân giải trong setting game và quay lại đây: chữ thập cho biết chỗ bot sẽ bấm, cột Δ cho biết màu lệch bao nhiêu so với lúc chụp. Δ nhỏ hơn sai số màu là khớp. Đây là đồ đo đạc, không đi theo file xuất bộ bước.",
     "toast.probeCaptured": "✓ điểm kiểm tra: {label}",
     "lock.title": "Khoá cỡ canvas",
+    "lag.title": "Khung giờ server hay lag",
+    "lag.count": "{n} khung mỗi ngày",
+    "lag.add": "+ Thêm khung giờ",
+    "lag.remove": "Bỏ khung này",
+    "lag.none": "Chưa đặt khung nào — tốc độ không bị hạ theo giờ.",
+    "lag.hint": "Lặp lại hằng ngày, theo giờ máy anh. Trong khung, tốc độ hạ về 1x rồi trả lại sau đó, trừ khi anh tự chỉnh. Bắt trình duyệt vẽ mười lăm khung hình cho mỗi khung thật vào đúng giờ server đang đuối là cách biến một giờ chậm thành một giờ chết.",
     "lock.enabled": "Ghim game ở một cỡ cố định",
     "lock.hint": "Bật thì game luôn vẽ ở đúng cỡ đã chọn dù cửa sổ to nhỏ thế nào — nhờ vậy màu bot đọc được giống hệt nhau trên mọi máy, và bộ bước mới chia sẻ được. Cửa sổ nhỏ hơn thì phần hiển thị tự thu lại cho vừa, toạ độ vẫn đúng. Tắt là game co giãn theo cửa sổ như bình thường.",
     "lock.size": "Kích cỡ",
@@ -2985,6 +3080,12 @@
     "probe.hint": "Drop a probe on a few buttons you rely on — four corners and one in the middle is enough. Then change the resolution in the game’s own settings and come back: the crosshairs show where the bot would now click, and the Δ column shows how far the colour drifted. A Δ under the colour tolerance is a match. These are measurements, so they stay out of your profile export.",
     "toast.probeCaptured": "✓ probe: {label}",
     "lock.title": "Canvas size lock",
+    "lag.title": "Hours the server struggles",
+    "lag.count": "{n} a day",
+    "lag.add": "+ Add an hour",
+    "lag.remove": "Drop this one",
+    "lag.none": "None set — the speed is never taken off for the clock.",
+    "lag.hint": "Every day, on this machine’s clock. Inside one of these the speed goes to 1x and comes back afterwards, unless you moved it yourself. Asking a browser for fifteen frames per real one during an hour the server is already struggling is how a slow hour becomes a dead one.",
     "lock.enabled": "Pin the game to a fixed size",
     "lock.hint": "The game then renders at the chosen size whatever the window does, so the colours the bot reads are identical on every machine — which is what makes a step set shareable. A smaller window scales the display down to fit and the coordinates still hold. Switch it off and the game resizes with the window as before.",
     "lock.size": "Size",
@@ -4266,6 +4367,9 @@
 
 /* The live read, under a step being previewed: stored colour → what is there
    now, and how far apart they are. */
+.bhb-lagrow { display: flex; align-items: center; gap: 7px; }
+.bhb-lagrow .bhb-rest { width: auto; flex: 1; text-align: center; }
+
 .bhb-live {
   display: flex; align-items: center; gap: 6px;
   margin-top: 4px; padding: 4px 6px;
@@ -6109,6 +6213,47 @@
       el("p", { class: "bhb-note", text: t("lock.sizeHint") })
     ]);
   }
+  function renderLagWindows(deps) {
+    const windows = normaliseLagWindows(deps.settings.lagWindows);
+    function update(next) {
+      deps.updateSettings({ lagWindows: next });
+      deps.refresh();
+    }
+    const rows2 = windows.map((window2, index) => {
+      function field(which) {
+        const box = el("input", { class: "bhb-rest bhb-mono" });
+        box.type = "time";
+        box.value = window2[which];
+        box.addEventListener("change", () => {
+          const next = windows.map(
+            (one, at) => at === index ? { ...one, [which]: box.value } : one
+          );
+          update(next);
+        });
+        return box;
+      }
+      const drop = el("button", { class: "bhb-icon", title: t("lag.remove"), text: "✕" });
+      drop.addEventListener("click", () => {
+        update(windows.filter((_, at) => at !== index));
+      });
+      return el("div", { class: "bhb-lagrow" }, [
+        field("from"),
+        el("span", { class: "bhb-note", text: "→" }),
+        field("to"),
+        drop
+      ]);
+    });
+    const add = el("button", { class: "bhb-btn bhb-btn--small", text: t("lag.add") });
+    add.addEventListener("click", () => {
+      update([...windows, { from: "22:00", to: "23:00" }]);
+    });
+    return el("div", { class: "bhb-field" }, [
+      ...rows2,
+      windows.length === 0 ? el("p", { class: "bhb-empty", text: t("lag.none") }) : null,
+      el("div", { class: "bhb-btnrow" }, [add]),
+      el("p", { class: "bhb-note", text: t("lag.hint") })
+    ]);
+  }
   var updateResult = { state: "idle", latest: null };
   function renderVersion(deps) {
     const check = el("button", { class: "bhb-btn bhb-btn--small", text: t("update.check") });
@@ -6389,6 +6534,13 @@
         "lock.title",
         `${t(settings.canvasLock.enabled ? "settings.on" : "settings.off")} · ${normaliseLockSize(settings.canvasLock).width}×${normaliseLockSize(settings.canvasLock).height}`,
         () => renderCanvasLock(deps, toggleRow)
+      ),
+      section(
+        deps,
+        "lag",
+        "lag.title",
+        normaliseLagWindows(settings.lagWindows).length > 0 ? t("lag.count", { n: normaliseLagWindows(settings.lagWindows).length }) : t("settings.off"),
+        () => renderLagWindows(deps)
       ),
       section(
         deps,
@@ -7426,6 +7578,11 @@
         saveLog(store.get().log);
       }, LOG_WRITE_MS);
     }
+    const lagGuard = createLagGuard({
+      getWindows: () => settings.lagWindows,
+      getSpeed,
+      setSpeed
+    });
     setClickObserver(showClickFlash);
     engine.on("change", () => refresh());
     engine.on("action", (entry) => {
@@ -7488,6 +7645,8 @@
       [Keys.SPEED_UP_ALT]: () => setSpeed(stepSpeed(getSpeed(), 1)),
       [Keys.SPEED_DOWN]: () => setSpeed(stepSpeed(getSpeed(), -1))
     });
+    lagGuard.check();
+    realSetInterval(() => lagGuard.check(), LAG_CHECK_MS);
     refresh();
     hud.wake();
     realSetInterval(refreshLive, UI_REFRESH_MS);

@@ -1,6 +1,6 @@
 {
   "name": "bhb",
-  "version": "0.36.1",
+  "version": "0.37.0",
   "description": "Automation userscript for a casual Gacha + Pokemon-catching + Fashion game",
   "type": "module",
   "private": true,

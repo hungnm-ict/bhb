@@ -8,6 +8,9 @@ export const STORAGE_KEY_SETTINGS = 'bhb.settings.v2';
 /** Upstream's key, read once to migrate a user coming from bh-scripts. */
 export const STORAGE_KEY_RESUME = 'bhb.resume.v1';
 export const STORAGE_KEY_STATS = 'bhb.stats.v1';
+/** How often the clock is read for a lag window; its unit is the minute. */
+export const LAG_CHECK_MS = 20000;
+
 /** How often the log is written out; per entry would stall a busy minute. */
 export const LOG_WRITE_MS = 4000;
 

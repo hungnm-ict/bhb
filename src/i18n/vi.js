@@ -236,6 +236,12 @@ export default {
   'toast.probeCaptured': '✓ điểm kiểm tra: {label}',
 
   'lock.title': 'Khoá cỡ canvas',
+  'lag.title': 'Khung giờ server hay lag',
+  'lag.count': '{n} khung mỗi ngày',
+  'lag.add': '+ Thêm khung giờ',
+  'lag.remove': 'Bỏ khung này',
+  'lag.none': 'Chưa đặt khung nào — tốc độ không bị hạ theo giờ.',
+  'lag.hint': 'Lặp lại hằng ngày, theo giờ máy anh. Trong khung, tốc độ hạ về 1x rồi trả lại sau đó, trừ khi anh tự chỉnh. Bắt trình duyệt vẽ mười lăm khung hình cho mỗi khung thật vào đúng giờ server đang đuối là cách biến một giờ chậm thành một giờ chết.',
   'lock.enabled': 'Ghim game ở một cỡ cố định',
   'lock.hint': 'Bật thì game luôn vẽ ở đúng cỡ đã chọn dù cửa sổ to nhỏ thế nào — nhờ vậy màu bot đọc được giống hệt nhau trên mọi máy, và bộ bước mới chia sẻ được. Cửa sổ nhỏ hơn thì phần hiển thị tự thu lại cho vừa, toạ độ vẫn đúng. Tắt là game co giãn theo cửa sổ như bình thường.',
   'lock.size': 'Kích cỡ',

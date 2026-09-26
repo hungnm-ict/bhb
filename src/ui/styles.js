@@ -657,6 +657,9 @@ const CSS = `
 
 /* The live read, under a step being previewed: stored colour → what is there
    now, and how far apart they are. */
+.bhb-lagrow { display: flex; align-items: center; gap: 7px; }
+.bhb-lagrow .bhb-rest { width: auto; flex: 1; text-align: center; }
+
 .bhb-live {
   display: flex; align-items: center; gap: 6px;
   margin-top: 4px; padding: 4px 6px;

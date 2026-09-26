@@ -25,6 +25,7 @@ function renderSettings(canvasLock, onUpdate = () => {}) {
       events: [],
     },
     openSection: 'lock',
+    lagWindows: [],
     probes: [],
   };
 
