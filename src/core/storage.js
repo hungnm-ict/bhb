@@ -5,12 +5,12 @@ import {
   STORAGE_KEY_LOG,
   DEFAULT_COLOR_TOLERANCE,
 } from './constants.js';
-import { createStep } from '../bot/step.js';
+import { createStep, renumberAutoLabels } from '../bot/step.js';
 import { ScaleMode } from './coords.js';
-import { renumberAutoLabels } from '../bot/step.js';
 import { createDefaultActivities, DEFAULT_ACTIVITIES } from '../bot/activity.js';
 import { normaliseNotifyConfig } from './notify.js';
 import { normaliseProbes } from './probe.js';
+import { normaliseLagWindows } from './lag.js';
 import { normaliseLockSize } from './canvas-lock.js';
 
 /**
@@ -337,6 +337,9 @@ export function loadSettings() {
     // matched for a while" is what a long fight looks like — pressing it then
     // opens the leave-this-dungeon dialog mid-fight.
     panicEscape: stored.panicEscape === true,
+    // The hours this game's server struggles in, every day. The bot cannot
+    // measure a slow server, so it is told.
+    lagWindows: normaliseLagWindows(stored.lagWindows),
     // Drift belongs to a boost, not to the account: carrying hours of it into
     // another character is what conjures a daily reset out of nothing.
     keepAlive: stored.keepAlive !== false,

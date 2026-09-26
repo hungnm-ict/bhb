@@ -236,6 +236,12 @@ export default {
   'toast.probeCaptured': '✓ probe: {label}',
 
   'lock.title': 'Canvas size lock',
+  'lag.title': 'Hours the server struggles',
+  'lag.count': '{n} a day',
+  'lag.add': '+ Add an hour',
+  'lag.remove': 'Drop this one',
+  'lag.none': 'None set — the speed is never taken off for the clock.',
+  'lag.hint': 'Every day, on this machine\u2019s clock. Inside one of these the speed goes to 1x and comes back afterwards, unless you moved it yourself. Asking a browser for fifteen frames per real one during an hour the server is already struggling is how a slow hour becomes a dead one.',
   'lock.enabled': 'Pin the game to a fixed size',
   'lock.hint': 'The game then renders at the chosen size whatever the window does, so the colours the bot reads are identical on every machine — which is what makes a step set shareable. A smaller window scales the display down to fit and the coordinates still hold. Switch it off and the game resizes with the window as before.',
   'lock.size': 'Size',

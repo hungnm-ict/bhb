@@ -4,6 +4,7 @@ import { ScaleMode } from '../../core/coords.js';
 import { renderQueueSection } from './queue.js';
 import { NOTIFY_EVENTS, hasNotifyTarget } from '../../core/notify.js';
 import { LOCK_SIZES, normaliseLockSize } from '../../core/canvas-lock.js';
+import { normaliseLagWindows } from '../../core/lag.js';
 import { VERSION } from '../../core/constants.js';
 import { checkForUpdate, SCRIPT_URL } from '../../core/update.js';
 import { renderProbeSection } from './probes.js';
@@ -151,6 +152,62 @@ function renderCanvasLock(deps, toggleRow) {
       : el('p', { class: 'bhb-note bhb-note--warn', text: t('lock.offWarning') }),
     el('p', { class: 'bhb-note', text: t('lock.hint') }),
     el('p', { class: 'bhb-note', text: t('lock.sizeHint') }),
+  ]);
+}
+
+/**
+ * The hours the server is known to struggle in.
+ *
+ * Told rather than measured: a slow server draws at sixty frames a second
+ * while the requests behind it hang, so there is nothing on screen to read.
+ */
+function renderLagWindows(deps) {
+  // Read through the normaliser: a settings object from an older build, or a
+  // half-built one in a test, has no list at all.
+  const windows = normaliseLagWindows(deps.settings.lagWindows);
+
+  function update(next) {
+    deps.updateSettings({ lagWindows: next });
+    deps.refresh();
+  }
+
+  const rows = windows.map((window, index) => {
+    function field(which) {
+      const box = el('input', { class: 'bhb-rest bhb-mono' });
+      box.type = 'time';
+      box.value = window[which];
+      box.addEventListener('change', () => {
+        const next = windows.map((one, at) =>
+          at === index ? { ...one, [which]: box.value } : one
+        );
+        update(next);
+      });
+      return box;
+    }
+
+    const drop = el('button', { class: 'bhb-icon', title: t('lag.remove'), text: '✕' });
+    drop.addEventListener('click', () => {
+      update(windows.filter((_, at) => at !== index));
+    });
+
+    return el('div', { class: 'bhb-lagrow' }, [
+      field('from'),
+      el('span', { class: 'bhb-note', text: '→' }),
+      field('to'),
+      drop,
+    ]);
+  });
+
+  const add = el('button', { class: 'bhb-btn bhb-btn--small', text: t('lag.add') });
+  add.addEventListener('click', () => {
+    update([...windows, { from: '22:00', to: '23:00' }]);
+  });
+
+  return el('div', { class: 'bhb-field' }, [
+    ...rows,
+    windows.length === 0 ? el('p', { class: 'bhb-empty', text: t('lag.none') }) : null,
+    el('div', { class: 'bhb-btnrow' }, [add]),
+    el('p', { class: 'bhb-note', text: t('lag.hint') }),
   ]);
 }
 
@@ -473,6 +530,16 @@ export function renderSettingsTab(deps) {
         normaliseLockSize(settings.canvasLock).width
       }×${normaliseLockSize(settings.canvasLock).height}`,
       () => renderCanvasLock(deps, toggleRow)
+    ),
+
+    section(
+      deps,
+      'lag',
+      'lag.title',
+      normaliseLagWindows(settings.lagWindows).length > 0
+        ? t('lag.count', { n: normaliseLagWindows(settings.lagWindows).length })
+        : t('settings.off'),
+      () => renderLagWindows(deps)
     ),
 
     section(

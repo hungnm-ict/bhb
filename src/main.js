@@ -10,9 +10,16 @@
  *  3. Everything else once the DOM is ready.
  */
 
-import { RESUME_DELAY, DEFAULT_COLOR_TOLERANCE, LOG_WRITE_MS, VERSION } from './core/constants.js';
+import {
+  RESUME_DELAY,
+  DEFAULT_COLOR_TOLERANCE,
+  LAG_CHECK_MS,
+  LOG_WRITE_MS,
+  VERSION,
+} from './core/constants.js';
 import { Keys } from './core/keys.js';
 import { buildReport } from './core/report.js';
+import { createLagGuard } from './core/lag.js';
 import { installCanvasPatch } from './core/canvas.js';
 import { installFocusPatch } from './core/focus.js';
 import {
@@ -377,6 +384,14 @@ function bootstrap() {
     }, LOG_WRITE_MS);
   }
 
+  // The clock is the only way to know about a slow server: the canvas keeps
+  // drawing at sixty while the requests behind it hang.
+  const lagGuard = createLagGuard({
+    getWindows: () => settings.lagWindows,
+    getSpeed,
+    setSpeed,
+  });
+
   setClickObserver(showClickFlash);
   engine.on('change', () => refresh());
   engine.on('action', (entry) => {
@@ -455,6 +470,10 @@ function bootstrap() {
     [Keys.SPEED_UP_ALT]: () => setSpeed(stepSpeed(getSpeed(), 1)),
     [Keys.SPEED_DOWN]: () => setSpeed(stepSpeed(getSpeed(), -1)),
   });
+
+  lagGuard.check();
+  // Once a minute is enough for a clock whose smallest unit is a minute.
+  realSetInterval(() => lagGuard.check(), LAG_CHECK_MS);
 
   refresh();
   hud.wake();
