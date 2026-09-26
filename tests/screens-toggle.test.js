@@ -11,7 +11,7 @@ import { createPanel } from '../src/ui/panel/index.js';
 import { createUiStore, Tab } from '../src/ui/store.js';
 import { loadSettings } from '../src/core/storage.js';
 
-function build(showScreens) {
+function build(showScreens, screens = []) {
   const store = createUiStore();
   const panel = createPanel({
     store,
@@ -23,7 +23,7 @@ function build(showScreens) {
     getSteps: () => [],
     getProbes: () => [],
     probeEditor: { scoreAll: () => ({ buffer: null, scores: [] }), clear: () => {}, remove: () => {} },
-    getScreens: () => [],
+    getScreens: () => screens,
     getActivities: () => [],
     getStats: () => ({ startedAt: Date.now(), clicks: 0, rounds: 0, resyncs: 0, hangs: 0, drops: 0, runningMs: 0, activities: {} }),
     resetStats: () => {},
@@ -72,5 +72,14 @@ describe('the screens toggle', () => {
     store.setTab(Tab.SCREENS);
     panel.render();
     expect(document.querySelector('.bhb-panel__body').children.length).toBeGreaterThan(0);
+  });
+});
+
+describe('a profile that already has screens', () => {
+  it('shows the tab whatever the switch says', () => {
+    document.body.replaceChildren();
+    const { panel } = build(false, [{ id: 's1', name: 'LOCKED', anchors: [] }]);
+    panel.render();
+    expect(tabLabels()).toContain('Màn hình');
   });
 });
