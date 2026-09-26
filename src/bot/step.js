@@ -125,6 +125,11 @@ export function createStep(overrides = {}) {
  */
 const AUTO_LABEL = /^(Step|Bước)\s+(\d+)$/;
 
+/** Was this name given out by the capture button, rather than typed? */
+export function isAutoLabel(label) {
+  return AUTO_LABEL.test(label || '');
+}
+
 /**
  * Renumber the names this file gave out so they match the row beside them.
  *

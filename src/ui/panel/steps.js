@@ -584,6 +584,19 @@ export function renderStepsTab(deps) {
     });
     releasePeek(deps.store);
 
+    const copy = el('button', {
+      class: 'bhb-icon bhb-step__copy',
+      title: t('steps.duplicate'),
+      text: '⧉',
+    });
+    copy.addEventListener('click', () => {
+      const made = deps.stepEditor.duplicate(step.id);
+      if (made) {
+        deps.store.selectStep(made.id);
+      }
+      deps.refresh();
+    });
+
     const addPlace = el('button', {
       class: 'bhb-icon',
       title: t('steps.addPlace'),
@@ -634,6 +647,7 @@ export function renderStepsTab(deps) {
         name,
         el('span', { class: 'bhb-rule__actions' }, [
           isCount ? drawRegion : addPlace,
+          copy,
           toggle,
           up,
           down,
