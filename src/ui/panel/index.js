@@ -72,6 +72,22 @@ export function createPanel(deps) {
     return active instanceof HTMLSelectElement && Boolean(node) && node.contains(active);
   }
 
+  /**
+   * A field the user is in the middle of filling in.
+   *
+   * The panel is rebuilt twice a second, and a rebuilt field is a new element:
+   * the caret goes with the old one. Half a second was long enough to rename a
+   * step if you were quick and not long enough to rename anything else. The
+   * two big boxes solved this by outliving their render; every other field is
+   * solved here, by leaving the panel alone while someone is typing in it.
+   */
+  function aFieldIsBeingUsed() {
+    const active = document.activeElement;
+    const isField =
+      active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement;
+    return isField && Boolean(node) && node.contains(active);
+  }
+
   function ensureNode() {
     if (!node) {
       node = mount(el('div', { class: 'bhb-panel' }));
@@ -125,7 +141,7 @@ export function createPanel(deps) {
     if (
       !options.force &&
       renderedTab !== null &&
-      (speedIsBeingDragged() || aDropdownIsOpen())
+      (speedIsBeingDragged() || aDropdownIsOpen() || aFieldIsBeingUsed())
     ) {
       return;
     }
