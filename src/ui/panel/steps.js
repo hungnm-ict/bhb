@@ -360,6 +360,10 @@ export function renderStepsTab(deps) {
   }
 
   rows.clear();
+  // The arrows move a step within the list on screen, not within the stored
+  // one: a filtered table is the only list the user can see.
+  const shownIds = steps.map((step) => step.id);
+
   const stepRows = steps.map((step, index) => {
     const point = step.points[0];
     const miss = state.dryRun && state.dryRun.misses ? state.dryRun.misses[step.id] : null;
@@ -414,13 +418,13 @@ export function renderStepsTab(deps) {
 
     const up = el('button', { class: 'bhb-icon', title: t('steps.moveUp'), text: '▲' });
     up.addEventListener('click', () => {
-      deps.stepEditor.move(step.id, -1);
+      deps.stepEditor.move(step.id, -1, shownIds);
       deps.refresh();
     });
 
     const down = el('button', { class: 'bhb-icon', title: t('steps.moveDown'), text: '▼' });
     down.addEventListener('click', () => {
-      deps.stepEditor.move(step.id, 1);
+      deps.stepEditor.move(step.id, 1, shownIds);
       deps.refresh();
     });
 
