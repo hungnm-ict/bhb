@@ -123,6 +123,18 @@ export function createScreenEditor(deps) {
     deps.persist();
   }
 
+  /**
+   * Swap the whole list, for a pack arriving with the steps that need it.
+   *
+   * In place: the profile holds this array, and handing it a different one
+   * would leave the profile pointing at the list nobody else can see.
+   */
+  function replaceAll(next) {
+    const screens = deps.getScreens();
+    screens.splice(0, screens.length, ...next);
+    deps.persist();
+  }
+
   /** Order is priority: the first screen whose anchors all match wins. */
   function move(screenId, delta) {
     const screens = deps.getScreens();
@@ -157,6 +169,7 @@ export function createScreenEditor(deps) {
     setMinRatio,
     removeAnchor,
     remove,
+    replaceAll,
     move,
     probe,
   };
