@@ -300,19 +300,62 @@ export function renderSettingsTab(deps) {
   const transfer = transferBox;
   transfer.placeholder = t('settings.transferHint');
 
-  const exportButton = action('settings.export', () => {
+  const transferNote = el('p', { class: 'bhb-note' });
+
+  // Selecting a wall of JSON by hand is how half of it gets left behind, so
+  // the button takes the clipboard and only falls back to a selection.
+  const exportButton = el('button', {
+    class: 'bhb-btn bhb-btn--small',
+    text: t('settings.export'),
+  });
+  exportButton.addEventListener('click', async () => {
     transfer.value = profiles.exportAll();
+    transfer.select();
+    try {
+      await navigator.clipboard.writeText(transfer.value);
+      transferNote.textContent = t('settings.copied', { n: profiles.list().length });
+    } catch {
+      transferNote.textContent = t('settings.copyByHand');
+    }
   });
 
-  const importButton = el('button', { class: 'bhb-btn bhb-btn--small', text: t('settings.import') });
-  importButton.addEventListener('click', () => {
+  function loadProfilesFrom(text) {
     try {
-      profiles.importAll(transfer.value);
+      profiles.importAll(text);
       transfer.value = '';
+      transferNote.textContent = '';
       deps.refresh();
     } catch (error) {
-      transfer.value = `${t('settings.importFailed')}: ${error.message}`;
+      transferNote.textContent = `${t('settings.importFailed')}: ${error.message}`;
     }
+  }
+
+  const importButton = el('button', { class: 'bhb-btn bhb-btn--small', text: t('settings.import') });
+  importButton.addEventListener('click', async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      transfer.value = text;
+      loadProfilesFrom(text);
+    } catch {
+      // Clipboard reads can be refused; the box is still there to paste into.
+      if (transfer.value.trim()) {
+        loadProfilesFrom(transfer.value);
+        return;
+      }
+      transferNote.textContent = t('settings.pasteByHand');
+      transfer.focus();
+    }
+  });
+
+  // Pasting straight into the box counts as asking for it to be loaded.
+  transfer.addEventListener('paste', (event) => {
+    const text = event.clipboardData && event.clipboardData.getData('text');
+    if (!text) {
+      return;
+    }
+    event.preventDefault();
+    transfer.value = text;
+    loadProfilesFrom(text);
   });
 
   // The same switch as the task tab's: a settings page of dim little circles
@@ -466,6 +509,7 @@ export function renderSettingsTab(deps) {
       el('div', { class: 'bhb-field' }, [
         transfer,
         el('div', { class: 'bhb-btnrow' }, [exportButton, importButton]),
+        transferNote,
       ])
     ),
   ]);
