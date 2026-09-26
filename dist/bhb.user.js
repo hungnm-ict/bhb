@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.34.4
+// @version      0.35.0
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @icon         data:image/png;base64,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
@@ -15,7 +15,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.34.4" : "dev";
+  var VERSION = true ? "0.35.0" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -3415,6 +3415,11 @@
       screens.splice(index, 1);
       deps.persist();
     }
+    function replaceAll(next) {
+      const screens = deps.getScreens();
+      screens.splice(0, screens.length, ...next);
+      deps.persist();
+    }
     function move(screenId, delta) {
       const screens = deps.getScreens();
       const from = screens.findIndex((screen2) => screen2.id === screenId);
@@ -3442,6 +3447,7 @@
       setMinRatio,
       removeAnchor,
       remove,
+      replaceAll,
       move,
       probe
     };
@@ -5051,12 +5057,14 @@
   // src/bot/step-pack.js
   var KIND = "bhb.steps";
   var VERSION2 = 1;
-  function exportSteps(steps, lock) {
+  function exportSteps(steps, lock, screens = []) {
+    const wanted = new Set(steps.flatMap((step) => step.screens || []));
     return JSON.stringify(
       {
         kind: KIND,
         version: VERSION2,
         lock: lock ? { width: lock.width, height: lock.height } : null,
+        screens: (screens || []).filter((screen) => wanted.has(screen.id)),
         steps
       },
       null,
@@ -5070,10 +5078,19 @@
     }
     return {
       // Fresh ids: the far side has its own steps, and two windows sharing an id
-      // is how a highlight or a dry run points at the wrong row.
+      // is how a highlight or a dry run points at the wrong row. Screens keep
+      // theirs, because that id is what a step's gate is written in.
       steps: parsed.steps.map((step) => ({ ...step, id: createStepId() })),
+      screens: Array.isArray(parsed.screens) ? parsed.screens : [],
       lock: parsed.lock || null
     };
+  }
+  function mergeScreens(existing, incoming) {
+    if (!incoming || incoming.length === 0) {
+      return existing;
+    }
+    const arriving = new Set(incoming.map((screen) => screen.id));
+    return [...existing.filter((screen) => !arriving.has(screen.id)), ...incoming];
   }
   function mergeSteps(existing, incoming) {
     const replaced = new Set(incoming.map((step) => step.activity || ""));
@@ -5278,7 +5295,7 @@
     const transfer = packBox;
     transfer.placeholder = t("steps.transferHint");
     const lock = deps.getCanvasLock ? deps.getCanvasLock() : null;
-    const packed = steps.length > 0 ? exportSteps(steps, lock) : "";
+    const packed = steps.length > 0 ? exportSteps(steps, lock, deps.getScreens()) : "";
     if (transfer.value === packedValue || transfer.value === "") {
       transfer.value = packed;
     }
@@ -5286,6 +5303,9 @@
     function load(text) {
       try {
         const pack = importSteps(text);
+        if (pack.screens.length > 0 && deps.screenEditor) {
+          deps.screenEditor.replaceAll(mergeScreens(deps.getScreens(), pack.screens));
+        }
         deps.stepEditor.replaceAll(mergeSteps(deps.getSteps(), pack.steps));
         note.textContent = mismatch(pack.lock, lock) ? t("steps.importedButSized", {
           from: `${pack.lock.width}×${pack.lock.height}`,
