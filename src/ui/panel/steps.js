@@ -8,7 +8,13 @@ import { startDragSelect } from '../dragselect.js';
 import { getRenderTarget } from '../../core/canvas.js';
 import { getBufferSize } from '../../core/coords.js';
 import { scoreStepDetail } from '../../bot/dry-run.js';
-import { exportSteps, importSteps, mergeSteps, cloneStepsInto } from '../../bot/step-pack.js';
+import {
+  exportSteps,
+  importSteps,
+  mergeSteps,
+  mergeScreens,
+  cloneStepsInto,
+} from '../../bot/step-pack.js';
 
 /**
  * The steps table.
@@ -267,7 +273,7 @@ export function renderStepsTab(deps) {
   transfer.placeholder = t('steps.transferHint');
 
   const lock = deps.getCanvasLock ? deps.getCanvasLock() : null;
-  const packed = steps.length > 0 ? exportSteps(steps, lock) : '';
+  const packed = steps.length > 0 ? exportSteps(steps, lock, deps.getScreens()) : '';
   if (transfer.value === packedValue || transfer.value === '') {
     transfer.value = packed;
   }
@@ -276,6 +282,11 @@ export function renderStepsTab(deps) {
   function load(text) {
     try {
       const pack = importSteps(text);
+      // Screens first: a step arriving with a gate needs the screen it names
+      // to already be there, or the gate points at nothing for one render.
+      if (pack.screens.length > 0 && deps.screenEditor) {
+        deps.screenEditor.replaceAll(mergeScreens(deps.getScreens(), pack.screens));
+      }
       deps.stepEditor.replaceAll(mergeSteps(deps.getSteps(), pack.steps));
       note.textContent = mismatch(pack.lock, lock)
         ? t('steps.importedButSized', {

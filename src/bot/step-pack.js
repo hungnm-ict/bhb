@@ -23,12 +23,17 @@ const VERSION = 1;
  * @param {{ width: number, height: number } | null} lock the pinned size, if any
  * @returns {string}
  */
-export function exportSteps(steps, lock) {
+export function exportSteps(steps, lock, screens = []) {
+  // Only the screens these steps are gated to. A gate is an id, so sending
+  // the steps without them leaves every gate pointing at nothing on the far
+  // side — and a gate matching no screen is silent, not loud.
+  const wanted = new Set(steps.flatMap((step) => step.screens || []));
   return JSON.stringify(
     {
       kind: KIND,
       version: VERSION,
       lock: lock ? { width: lock.width, height: lock.height } : null,
+      screens: (screens || []).filter((screen) => wanted.has(screen.id)),
       steps,
     },
     null,
@@ -48,10 +53,31 @@ export function importSteps(json) {
   }
   return {
     // Fresh ids: the far side has its own steps, and two windows sharing an id
-    // is how a highlight or a dry run points at the wrong row.
+    // is how a highlight or a dry run points at the wrong row. Screens keep
+    // theirs, because that id is what a step's gate is written in.
     steps: parsed.steps.map((step) => ({ ...step, id: createStepId() })),
+    screens: Array.isArray(parsed.screens) ? parsed.screens : [],
     lock: parsed.lock || null,
   };
+}
+
+/**
+ * Fold a pack's screens into the ones a profile already has.
+ *
+ * Matched by id and replaced, so pasting the same pack twice leaves one copy
+ * and a screen the far side tuned itself is overwritten by the one that came
+ * with the steps that depend on it.
+ *
+ * @param {import('./screen.js').Screen[]} existing
+ * @param {import('./screen.js').Screen[]} incoming
+ * @returns {import('./screen.js').Screen[]}
+ */
+export function mergeScreens(existing, incoming) {
+  if (!incoming || incoming.length === 0) {
+    return existing;
+  }
+  const arriving = new Set(incoming.map((screen) => screen.id));
+  return [...existing.filter((screen) => !arriving.has(screen.id)), ...incoming];
 }
 
 /**
