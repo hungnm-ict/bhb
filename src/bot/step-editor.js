@@ -16,7 +16,14 @@ import {
   HOVER_RESET_POINT,
 } from '../core/constants.js';
 import { trackCursor, getCursor } from '../core/cursor.js';
-import { createStep, StepKind, pointsByPlace, renumberAutoLabels } from './step.js';
+import {
+  createStep,
+  createStepId,
+  isAutoLabel,
+  StepKind,
+  pointsByPlace,
+  renumberAutoLabels,
+} from './step.js';
 import { t } from '../i18n/index.js';
 
 /**
@@ -383,6 +390,42 @@ export function createStepEditor(deps) {
     deps.persist();
   }
 
+  /**
+   * Copy a step, directly under the one it came from.
+   *
+   * Two buttons a few pixels apart on the same screen are one capture and a
+   * nudge, not two captures. Everything travels — colour, places, behaviour,
+   * activity, screen gate — because what differs is usually one number.
+   */
+  function duplicate(stepId) {
+    const steps = deps.getSteps();
+    const index = steps.findIndex((step) => step.id === stepId);
+    if (index === -1) {
+      return null;
+    }
+
+    const original = steps[index];
+    const copy = {
+      ...original,
+      id: createStepId(),
+      // Places of its own: nudging the copy must not move the original.
+      points: original.points.map((point) => ({ ...point })),
+      screens: [...(original.screens || [])],
+      // A name the capture button gave out is renumbered below; one the user
+      // wrote is theirs, and two rows reading the same is worse than a (2).
+      label: isAutoLabel(original.label)
+        ? original.label
+        : `${original.label || ''} (2)`.trim(),
+    };
+
+    steps.splice(index + 1, 0, copy);
+    // An auto name is renumbered to its new position; one the user wrote keeps
+    // the (2), which is the only way to tell the two apart in the list.
+    renumberAutoLabels(steps);
+    deps.persist();
+    return copy;
+  }
+
   function remove(stepId) {
     const steps = deps.getSteps();
     const index = steps.findIndex((step) => step.id === stepId);
@@ -455,6 +498,7 @@ export function createStepEditor(deps) {
     setCount,
     captureRegion,
     removePlace,
+    duplicate,
     setActivity,
     remove,
     move,
