@@ -46,6 +46,12 @@ describe('every tab renders', () => {
       store.setTab(tab);
       panel.render();
       expect(document.querySelector('.bhb-panel__body').children.length).toBeGreaterThan(0);
+
+      // Close has scrolled off the edge twice, once for being inside the strip
+      // and once for a language with longer labels. It sits beside it now.
+      const close = document.querySelector('.bhb-panel__close');
+      expect(close, 'there is always a way out').not.toBeNull();
+      expect(document.querySelector('.bhb-tabs').contains(close)).toBe(false);
     });
   }
 });
