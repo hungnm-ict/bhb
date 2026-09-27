@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.38.0
+// @version      0.38.1
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @icon         data:image/png;base64,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
@@ -15,7 +15,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.38.0" : "dev";
+  var VERSION = true ? "0.38.1" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -31,7 +31,7 @@
   var BACKWARD_QUIET_MS = 2e3;
   var BACKWARD_STABLE_MS = 1500;
   var COUNT_POLL_MS = 80;
-  var COUNT_DEBOUNCE_MS = 150;
+  var COUNT_STILL_MS = 240;
   var COUNT_REGION_WARN_PX = 2e4;
   var PANIC_AFTER_MS = 8e3;
   var PANIC_SWEEPS = 3;
@@ -1244,18 +1244,16 @@
       count: 0,
       /** The region as it read last poll. */
       previous: null,
-      /** Whether that poll found it unchanged — a wave is an edge off stillness. */
-      wasStill: true,
-      since: 0,
-      lastCountAt: 0
+      /** When the region last started holding still; a wave is an edge off it. */
+      stillSince: 0,
+      since: 0
     };
     function resetTally() {
       tally.stepId = null;
       tally.count = 0;
       tally.previous = null;
-      tally.wasStill = true;
+      tally.stillSince = 0;
       tally.since = 0;
-      tally.lastCountAt = 0;
     }
     let isCounting = false;
     let hasCounted = false;
@@ -1444,20 +1442,18 @@
         const hasResized = tally.previous && (reading.w !== tally.previous.w || reading.h !== tally.previous.h);
         if (!tally.previous || hasResized) {
           tally.previous = reading;
-          tally.wasStill = true;
+          tally.stillSince = realNow();
         } else if (regionsDiffer(reading, tally.previous, step.tolerance)) {
-          const isNewWave = tally.wasStill && realNow() - tally.lastCountAt >= COUNT_DEBOUNCE_MS;
-          if (isNewWave) {
+          const wasAtRest = tally.stillSince > 0 && realNow() - tally.stillSince >= COUNT_STILL_MS;
+          if (wasAtRest) {
             tally.count += 1;
-            tally.lastCountAt = realNow();
             tally.since = realNow();
             hasCounted = true;
           }
-          tally.wasStill = false;
           tally.previous = reading;
-        } else {
-          tally.wasStill = true;
-          tally.previous = reading;
+          tally.stillSince = 0;
+        } else if (tally.stillSince === 0) {
+          tally.stillSince = realNow();
         }
       }
       if (tally.count >= goal) {
@@ -2752,7 +2748,7 @@
     "help.footer": "Tự tắt sau 3 phút không click",
     "msg.noCanvas": "không thấy canvas",
     "msg.noWebgl": "không có WebGL",
-    "msg.countRegionBig": "Ô hơi to — khoanh sát vào đúng con số thay đổi thôi.",
+    "msg.countRegionBig": "Ô hơi to. Giữ nó nằm gọn bên trong khung chứa con số — phần lọt ra ngoài là cảnh trận đánh, nó tự động đậy và bị đếm thành wave không có thật.",
     "msg.noMousePosition": "chưa có vị trí chuột",
     "msg.outsideCanvas": "con trỏ ngoài canvas",
     "msg.anchorCaptured": "đã bắt vùng {n} cho {name}",
@@ -2845,7 +2841,7 @@
     "steps.kindCount": "Đếm đổi",
     "steps.countToHint": "Ô được theo dõi phải đổi bao nhiêu lần thì mới đi tiếp",
     "steps.countCapHint": "Quá bao nhiêu giây không đếm được thì bỏ qua",
-    "steps.drawRegion": "Khoanh ô cần theo dõi",
+    "steps.drawRegion": "Khoanh ô cần theo dõi. Khoanh lấy cái khung chứa con số, đừng khoanh sát chữ số: số càng lớn thì chữ số càng dịch chỗ, và ô lọt ra nền trận đánh sẽ đếm nhấp nháy thành wave.",
     "steps.preview": "Bấm để xem nó bấm chỗ nào; rời chuột ra là panel hiện lại",
     "steps.live.match": "đang khớp",
     "steps.live.miss": "không khớp",
@@ -3018,7 +3014,7 @@
     "help.footer": "Stops itself after 3 minutes without a click",
     "msg.noCanvas": "no canvas found",
     "msg.noWebgl": "no WebGL context",
-    "msg.countRegionBig": "That box is large — draw a tight one around just the number that changes.",
+    "msg.countRegionBig": "That box is large. Keep it inside the panel that holds the number — anything outside it is the scene behind, which moves on its own and reads as waves that never happened.",
     "msg.noMousePosition": "no cursor position yet",
     "msg.outsideCanvas": "cursor is outside the canvas",
     "msg.anchorCaptured": "anchor {n} captured for {name}",
@@ -3111,7 +3107,7 @@
     "steps.kindCount": "Count",
     "steps.countToHint": "How many times the watched box must change before the sequence goes on",
     "steps.countCapHint": "Seconds before a count that is going nowhere gives up",
-    "steps.drawRegion": "Draw the box to watch",
+    "steps.drawRegion": "Draw the box to watch. Frame the panel the number sits in, not the digits: the digits move as the number grows, and a box that lands half on the scene behind counts its flicker as waves.",
     "steps.preview": "Click to see where this clicks; move away to bring the panel back",
     "steps.live.match": "matches now",
     "steps.live.miss": "no match",

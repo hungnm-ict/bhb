@@ -162,7 +162,7 @@ export default {
 
   'msg.noCanvas': 'không thấy canvas',
   'msg.noWebgl': 'không có WebGL',
-  'msg.countRegionBig': 'Ô hơi to — khoanh sát vào đúng con số thay đổi thôi.',
+  'msg.countRegionBig': 'Ô hơi to. Giữ nó nằm gọn bên trong khung chứa con số — phần lọt ra ngoài là cảnh trận đánh, nó tự động đậy và bị đếm thành wave không có thật.',
   'msg.noMousePosition': 'chưa có vị trí chuột',
   'msg.outsideCanvas': 'con trỏ ngoài canvas',
   'msg.anchorCaptured': 'đã bắt vùng {n} cho {name}',
@@ -266,7 +266,7 @@ export default {
   'steps.kindCount': 'Đếm đổi',
   'steps.countToHint': 'Ô được theo dõi phải đổi bao nhiêu lần thì mới đi tiếp',
   'steps.countCapHint': 'Quá bao nhiêu giây không đếm được thì bỏ qua',
-  'steps.drawRegion': 'Khoanh ô cần theo dõi',
+  'steps.drawRegion': 'Khoanh ô cần theo dõi. Khoanh lấy cái khung chứa con số, đừng khoanh sát chữ số: số càng lớn thì chữ số càng dịch chỗ, và ô lọt ra nền trận đánh sẽ đếm nhấp nháy thành wave.',
   'steps.preview': 'Bấm để xem nó bấm chỗ nào; rời chuột ra là panel hiện lại',
   'steps.live.match': 'đang khớp',
   'steps.live.miss': 'không khớp',
