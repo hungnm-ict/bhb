@@ -203,20 +203,21 @@ export function createPanel(deps) {
 
     const help = tabs.pop();
 
-    target.replaceChildren(
-      close,
-      el('nav', { class: 'bhb-tabs' }, [
-        ...tabs,
-        el('span', { class: 'bhb-tabs__end' }, [
-          // The version left the HUD, which needed the room; it belongs where
-          // the update check already lives.
-          el('span', { class: 'bhb-tabs__ver bhb-mono', text: `v${VERSION}` }),
-          profile,
-          help,
-        ]),
+    const strip = el('nav', { class: 'bhb-tabs' }, [
+      ...tabs,
+      el('span', { class: 'bhb-tabs__end' }, [
+        // The version left the HUD, which needed the room; it belongs where
+        // the update check already lives.
+        el('span', { class: 'bhb-tabs__ver bhb-mono', text: `v${VERSION}` }),
+        profile,
+        help,
       ]),
-      body
-    );
+    ]);
+
+    // Close sits beside the strip rather than inside it or over it: inside, a
+    // long set of labels scrolled it off the edge; over it, on magic numbers,
+    // it never quite lined up with the row. A flex row does both jobs.
+    target.replaceChildren(el('div', { class: 'bhb-panel__head' }, [strip, close]), body);
 
     body.scrollTop = keptScroll;
     renderedTab = state.tab;

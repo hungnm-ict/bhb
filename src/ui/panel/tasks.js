@@ -190,14 +190,19 @@ export function renderTasksTab(deps) {
   const picked = describeTarget(deps, target);
 
   const chooser = el('select', { class: 'bhb-rule__gate', title: t('tasks.target') });
-  const script = el('option', { text: t('task.script') });
-  script.value = TaskId.SCRIPT;
-  chooser.append(script);
+  // Queue order first: those are the modes anyone came here to start. The two
+  // that are not a mode sit below a line, as they do in the Steps tab.
   for (const activity of deps.getActivities()) {
     const option = el('option', { text: activity.name });
     option.value = activity.id;
     chooser.append(option);
   }
+  const divider = el('option', { text: '──────────' });
+  divider.disabled = true;
+  chooser.append(divider);
+  const script = el('option', { text: t('task.script') });
+  script.value = TaskId.SCRIPT;
+  chooser.append(script);
   const all = el('option', { text: t('task.runAll') });
   all.value = TaskId.RUN_ALL;
   chooser.append(all);

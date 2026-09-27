@@ -176,33 +176,38 @@ const CSS = `
 .bhb-panel__profile:hover { color: var(--bhb-text); border-color: rgba(124, 92, 255, .5); }
 
 .bhb-tabs {
-  flex: none;
-  display: flex; align-items: center; gap: 0; padding: 7px 34px 0 9px;
-  border-radius: 14px 14px 0 0;
-  background: linear-gradient(90deg, rgba(124, 92, 255, .14), transparent 70%);
-  background-color: var(--bhb-bg);
+  flex: 1; min-width: 0;
+  display: flex; align-items: center; gap: 0; padding: 0 0 0 9px;
   /* Six tabs will not fit at every width, and a wrapped tab strip looks
      broken — so it scrolls sideways instead, with no visible scrollbar. */
   overflow-x: auto; scrollbar-width: none;
 }
 .bhb-tabs::-webkit-scrollbar { display: none; }
 .bhb-tabbtn {
-  flex: none; padding: 7px 5px 9px; white-space: nowrap;
+  flex: none; padding: 8px 5px; white-space: nowrap;
   background: none; border: 0; border-bottom: 2px solid transparent;
   color: var(--bhb-text); font: inherit; font-size: var(--bhb-fs-md); font-weight: 600;
   cursor: pointer;
 }
 .bhb-tabbtn:hover { color: var(--bhb-warn); }
 /* Help is not a place to work, so it reads as a mark rather than a label. */
-.bhb-tabbtn--help { padding: 7px 7px 9px; font-size: var(--bhb-fs-md); }
+.bhb-tabbtn--help { padding: 8px 7px; font-size: var(--bhb-fs-md); }
 /* Pushed to the far end: these are not places to go, they are the way out. */
 /* The strip scrolls, and close is not something to have to scroll for: this
    group stays pinned to the right edge while the tabs slide under it. Longer
    labels in another language were enough to push ✕ out of sight. */
-/* The frame's own corner, above the strip: close never scrolls away and never
-   moves when a language makes the tab labels longer. */
+/* Beside the strip, not in it: close never scrolls away however long the tab
+   labels get in another language, and the row lines it up without arithmetic. */
+.bhb-panel__head {
+  flex: none;
+  display: flex; align-items: center; gap: 2px;
+  padding-right: 8px;
+  border-radius: 14px 14px 0 0;
+  background: linear-gradient(90deg, rgba(124, 92, 255, .14), transparent 70%);
+  background-color: var(--bhb-bg);
+}
 .bhb-panel__close {
-  position: absolute; top: 5px; right: 6px; z-index: 2;
+  flex: none;
   color: var(--bhb-text);
 }
 .bhb-panel__close:hover { color: var(--bhb-danger); }
@@ -210,7 +215,7 @@ const CSS = `
 .bhb-tabs__end {
   position: sticky; right: 0;
   flex: none;
-  margin-left: auto; padding-bottom: 2px; padding-left: 8px;
+  margin-left: auto; padding-left: 8px;
   display: flex; align-items: center; gap: 5px;
   background: linear-gradient(90deg, transparent, var(--bhb-bg) 8px);
 }

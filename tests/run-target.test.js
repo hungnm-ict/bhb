@@ -69,3 +69,29 @@ describe('the Run button', () => {
     expect(tab.querySelector('.bhb-note--warn')).toBe(null);
   });
 });
+
+describe('the target dropdown', () => {
+  it('leads with the modes that are farmed, not with the loose set', () => {
+    const queue = [
+      { id: 'wb', name: 'World Boss' },
+      { id: 'dungeon', name: 'Dungeon' },
+    ];
+    const tab = renderTasksTab({
+      getEngineState: () => ({ activeTask: null, round: 0, remainingMs: 0, activity: null }),
+      getSteps: () => [],
+      getActivities: () => queue,
+      getRunTarget: () => 'wb',
+      setRunTarget: () => {},
+      runSelected: () => {},
+      refresh: () => {},
+    });
+
+    const values = [...tab.querySelectorAll('select option')]
+      .filter((option) => !option.disabled)
+      .map((option) => option.value);
+
+    // Queue order first; the two that are not a mode sit below, where the
+    // Steps tab already puts them.
+    expect(values).toEqual(['wb', 'dungeon', TaskId.SCRIPT, TaskId.RUN_ALL]);
+  });
+});
