@@ -340,6 +340,8 @@ export function loadSettings() {
     // The hours this game's server struggles in, every day. The bot cannot
     // measure a slow server, so it is told.
     lagWindows: normaliseLagWindows(stored.lagWindows),
+    // The two stops past 10x. Off unless asked for: see SAFE_SPEED_STEPS.
+    fastSpeeds: stored.fastSpeeds === true,
     // Drift belongs to a boost, not to the account: carrying hours of it into
     // another character is what conjures a daily reset out of nothing.
     keepAlive: stored.keepAlive !== false,

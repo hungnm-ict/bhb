@@ -67,6 +67,9 @@ describe('speed range', () => {
 
   it('snaps to the nearest stop and clamps to [0.1, 20]', async () => {
     const speed = await import('../src/core/speed.js');
+    // The two stops past 10x are opt-in; which stops exist is the business of
+    // tests/speed-unlock.test.js. This one is about snapping between them.
+    speed.setSpeedUnlocked(true);
 
     speed.setSpeed(0.4);
     expect(speed.getSpeed()).toBe(0.5);

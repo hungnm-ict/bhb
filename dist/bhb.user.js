@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.37.2
+// @version      0.38.0
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @icon         data:image/png;base64,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
@@ -15,7 +15,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.37.2" : "dev";
+  var VERSION = true ? "0.38.0" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -45,6 +45,7 @@
   var CLICK_HOVER_RESET_MS = 100;
   var HOVER_RESET_POINT = { x: 5, y: 5 };
   var SPEED_STEPS = [0.1, 0.5, 1, 2, 5, 10, 15, 20];
+  var SAFE_SPEED_STEPS = SPEED_STEPS.filter((stop) => stop <= 10);
   var DRY_RUN_STEP_MS = 700;
   var NOTIFY_COOLDOWN_MS = 60 * 1e3;
   var NOTIFY_SHOT_QUALITY = 0.7;
@@ -751,17 +752,27 @@
       listener(speed);
     }
   }
+  var stops = SAFE_SPEED_STEPS;
+  function getSpeedStops() {
+    return stops;
+  }
+  function setSpeedUnlocked(unlocked) {
+    stops = unlocked ? SPEED_STEPS : SAFE_SPEED_STEPS;
+    if (speed > stops[stops.length - 1]) {
+      setSpeed(stops[stops.length - 1]);
+    }
+  }
   function snapSpeed(value) {
-    return SPEED_STEPS.reduce(
+    return stops.reduce(
       (best, stop) => Math.abs(stop - value) < Math.abs(best - value) ? stop : best
     );
   }
   function stepSpeed(current, direction) {
     const index = speedIndex(current) + direction;
-    return SPEED_STEPS[Math.max(0, Math.min(SPEED_STEPS.length - 1, index))];
+    return stops[Math.max(0, Math.min(stops.length - 1, index))];
   }
   function speedIndex(value) {
-    return SPEED_STEPS.indexOf(snapSpeed(value));
+    return stops.indexOf(snapSpeed(value));
   }
   function formatSpeed(value) {
     return Number.isInteger(value) ? String(value) : value.toFixed(1);
@@ -793,11 +804,6 @@
   var gameClock = null;
   function getClockDrift() {
     return gameClock ? gameClock.drift() : 0;
-  }
-  function resetClock() {
-    if (gameClock) {
-      gameClock.reset();
-    }
   }
   function installSpeedHack() {
     const virtualDateNow = createVirtualClock(realNow);
@@ -2306,6 +2312,8 @@
       // The hours this game's server struggles in, every day. The bot cannot
       // measure a slow server, so it is told.
       lagWindows: normaliseLagWindows(stored.lagWindows),
+      // The two stops past 10x. Off unless asked for: see SAFE_SPEED_STEPS.
+      fastSpeeds: stored.fastSpeeds === true,
       // Drift belongs to a boost, not to the account: carrying hours of it into
       // another character is what conjures a daily reset out of nothing.
       keepAlive: stored.keepAlive !== false,
@@ -2618,10 +2626,6 @@
     "hud.fps": "Khung hình mỗi giây",
     "overlay.fps": "FPS",
     "overlay.clock": "ĐỒNG HỒ GAME",
-    "tasks.resetClock": "Kéo về",
-    "tasks.resetClockHint": "Kéo đồng hồ của game về đúng giờ thật. Chỉ làm lúc nghỉ giữa chừng — đổi tài khoản, chạy xong một vòng — đừng làm giữa trận: đồng hồ giật lùi, và game sẽ ngồi im chờ mọi hẹn giờ cho tới khi giờ thật đuổi kịp.",
-    "overlay.canvas": "Canvas",
-    "overlay.autoStop": "Tự tắt sau",
     "overlay.steps": "Bước",
     "overlay.noSteps": "Chưa có bước nào. Rê chuột lên nút trong game rồi bấm Bắt bước.",
     "overlay.needsRecapture": "Bước cũ, chưa có cỡ canvas — nên bắt lại",
@@ -2725,6 +2729,7 @@
     "log.report": "⎘ Chép báo cáo",
     "log.reportHint": "Một khối text gồm phiên bản, cài đặt, bộ bước và log này — để gửi cho người đang tìm lỗi.",
     "settings.keepLog": "Giữ log qua lần tải lại trang",
+    "settings.fastSpeeds": "Mở khoá mốc 15x và 20x trên thanh tốc độ",
     "settings.panicEscape": "Bấm Esc khi không có gì khớp",
     "settings.panicEscapeWarning": "Esc cũng chính là phím thoát trận của game, mà một trận đánh dài trông y hệt như bị kẹt — cái này sẽ có lúc mở hộp thoại rời dungeon giữa trận. Kẹt thật thì đã có lớp khác lo: run tự dừng sau ba phút, và watchdog tải lại trang.",
     "log.clicked": "Click {label}",
@@ -2887,10 +2892,6 @@
     "hud.fps": "Frames per second",
     "overlay.fps": "FPS",
     "overlay.clock": "GAME CLOCK",
-    "tasks.resetClock": "Put it back",
-    "tasks.resetClockHint": "Snap the game clock back to real time. Do it between things — switching account, finishing a run — never mid-fight: the clock jumps backwards, and the game sits on every timer it holds until real time catches up.",
-    "overlay.canvas": "Canvas",
-    "overlay.autoStop": "Auto-stop in",
     "overlay.steps": "Steps",
     "overlay.noSteps": "No steps yet. Hover a button in the game, then hit Capture.",
     "overlay.needsRecapture": "Captured before sizes were recorded — recapture it",
@@ -2994,6 +2995,7 @@
     "log.report": "⎘ Copy a report",
     "log.reportHint": "A block of text holding the build, the settings, the steps and this log — for someone diagnosing a problem.",
     "settings.keepLog": "Keep the log across a reload",
+    "settings.fastSpeeds": "Offer 15x and 20x on the speed slider",
     "settings.panicEscape": "Press Escape when nothing matches",
     "settings.panicEscapeWarning": "Escape is also this game’s quit key, and a long fight looks exactly like being stuck — this will sometimes open the leave-this-dungeon dialog mid-battle. Being truly stuck is already handled: the run auto-stops after three minutes, and the watchdog reloads.",
     "log.clicked": "Clicked {label}",
@@ -4894,7 +4896,7 @@
     speedControl.slider.value = String(index);
     speedControl.slider.style.setProperty(
       "--bhb-fill",
-      `${index / (SPEED_STEPS.length - 1) * 100}%`
+      `${index / (getSpeedStops().length - 1) * 100}%`
     );
     speedControl.readout.textContent = `${formatSpeed(speed2)}×`;
     speedControl.readout.className = `bhb-speed ${speed2 > 1 ? "is-boosted" : ""}`;
@@ -4932,25 +4934,12 @@
     }
     return `+${Math.floor(minutes / 60)}h${String(minutes % 60).padStart(2, "0")}m`;
   }
-  function formatRemaining(ms) {
-    const total = Math.floor(ms / 1e3);
-    return `${Math.floor(total / 60)}m${String(total % 60).padStart(2, "0")}s`;
-  }
   function describeFrames() {
     const { real, effective } = getFrameRates();
     if (getSpeed() <= 1) {
       return `${real} fps`;
     }
     return `${real} fps · ${formatSpeed(Math.round(effective * 10) / 10)}× real · ${getFrameBudget()}ms`;
-  }
-  function describeCanvas() {
-    const canvas = getCanvas();
-    if (!canvas) {
-      return "—";
-    }
-    return `${canvas.width}×${canvas.height} → ${Math.round(canvas.clientWidth)}×${Math.round(
-      canvas.clientHeight
-    )}`;
   }
   function readyActivityCount(deps) {
     const steps = deps.getSteps();
@@ -4960,15 +4949,6 @@
     const engine = deps.getEngineState();
     const speed2 = getSpeed();
     const drift = getClockDrift();
-    const resetClockButton = el("button", {
-      class: "bhb-btn bhb-btn--tiny",
-      title: t("tasks.resetClockHint"),
-      text: t("tasks.resetClock")
-    });
-    resetClockButton.addEventListener("click", () => {
-      resetClock();
-      deps.refresh();
-    });
     const target = deps.getRunTarget();
     const picked = describeTarget(deps, target);
     const chooser = el("select", { class: "bhb-rule__gate", title: t("tasks.target") });
@@ -5015,10 +4995,10 @@
       const slider2 = el("input", { class: "bhb-slider" });
       slider2.type = "range";
       slider2.min = "0";
-      slider2.max = String(SPEED_STEPS.length - 1);
+      slider2.max = String(getSpeedStops().length - 1);
       slider2.step = "1";
       slider2.addEventListener("input", () => {
-        setSpeed(SPEED_STEPS[Number(slider2.value)]);
+        setSpeed(getSpeedStops()[Number(slider2.value)]);
       });
       slider2.addEventListener("pointerdown", () => {
         isDraggingSpeed = true;
@@ -5034,12 +5014,12 @@
     const { slider, readout } = speedControl;
     updateSpeedDisplay();
     function stopOffset(index) {
-      return `${index / (SPEED_STEPS.length - 1) * 100}%`;
+      return `${index / (getSpeedStops().length - 1) * 100}%`;
     }
     const ticks = el(
       "div",
       { class: "bhb-speedticks" },
-      SPEED_STEPS.map(
+      getSpeedStops().map(
         (stop, index) => el("span", {
           class: `bhb-speedticks__tick ${LABELLED_SPEEDS.includes(stop) ? "is-major" : ""}`,
           style: { left: stopOffset(index) }
@@ -5091,18 +5071,10 @@
           el("span", {
             class: `bhb-mono ${drift >= DRIFT_WARN_MS ? "bhb-drift--far" : ""}`,
             text: formatDrift(drift)
-          }),
-          drift >= 1e3 ? resetClockButton : null
+          })
         ]),
         el("dt", { text: t("overlay.fps") }),
-        el("dd", { class: "bhb-mono", text: describeFrames() }),
-        el("dt", { text: t("overlay.canvas") }),
-        el("dd", { class: "bhb-mono", text: describeCanvas() }),
-        el("dt", { text: t("overlay.autoStop") }),
-        el("dd", {
-          class: "bhb-mono",
-          text: engine.activeTask ? formatRemaining(engine.remainingMs) : "—"
-        })
+        el("dd", { class: "bhb-mono", text: describeFrames() })
       ])
     ]);
   }
@@ -5853,12 +5825,12 @@
         deps.screenEditor.rename(screen.id, name.value.trim());
         deps.refresh();
       });
-      const stops = el("button", {
+      const stops2 = el("button", {
         class: `bhb-icon ${screen.stopsTask ? "is-danger-on" : ""}`,
         title: t("screens.stopsTask"),
         text: "⏹"
       });
-      stops.addEventListener("click", () => {
+      stops2.addEventListener("click", () => {
         deps.screenEditor.setStopsTask(screen.id, !screen.stopsTask);
         deps.refresh();
       });
@@ -5919,7 +5891,7 @@
             title: t("screens.ratioHint"),
             text: probe ? probe.ratio.toFixed(2) : "—"
           }),
-          el("span", { class: "bhb-rule__actions" }, [stops, alertToggle, add, up, down, remove])
+          el("span", { class: "bhb-rule__actions" }, [stops2, alertToggle, add, up, down, remove])
         ]),
         el("div", { class: "bhb-screen__tune" }, [
           el("span", { class: "bhb-note", text: `${t("screens.anchors")} ${screen.anchors.length}` }),
@@ -6355,7 +6327,8 @@
       settings.scaleMode === ScaleMode.ABSOLUTE,
       settings.showScreens,
       settings.keepLog,
-      settings.panicEscape
+      settings.panicEscape,
+      settings.fastSpeeds
     ];
     return { n: switches.filter(Boolean).length, total: switches.length };
   }
@@ -6540,6 +6513,11 @@
             "settings.keepLog",
             settings.keepLog,
             (value) => deps.updateSettings({ keepLog: value })
+          ),
+          toggleRow(
+            "settings.fastSpeeds",
+            settings.fastSpeeds,
+            (value) => deps.updateSettings({ fastSpeeds: value })
           ),
           toggleRow(
             "settings.panicEscape",
@@ -7522,6 +7500,9 @@
       },
       updateSettings: (changes) => {
         Object.assign(settings, changes);
+        if ("fastSpeeds" in changes) {
+          setSpeedUnlocked(settings.fastSpeeds === true);
+        }
         saveSettings(settings);
         if (changes.language) {
           setLanguage(changes.language);
@@ -7601,6 +7582,7 @@
         saveLog(store.get().log);
       }, LOG_WRITE_MS);
     }
+    setSpeedUnlocked(settings.fastSpeeds === true);
     const lagGuard = createLagGuard({
       getWindows: () => settings.lagWindows,
       getSpeed,
