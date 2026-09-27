@@ -8,7 +8,7 @@ import {
 describe('activityCode', () => {
   it('gives each built-in activity a badge that fits the HUD', () => {
     const codes = createDefaultActivities().map((activity) => activityCode(activity));
-    expect(codes).toEqual(['WB-S', 'WB-T', 'DUN', 'RAID', 'PVP', 'TG', 'INV', 'EXP', 'GVG']);
+    expect(codes).toEqual(['WB-S', 'WB-T', 'DUN', 'RAID', 'PVP', 'TRI', 'GAUN', 'INV', 'EXP', 'GVG']);
   });
 
   it('keeps the two World Boss modes apart', () => {
