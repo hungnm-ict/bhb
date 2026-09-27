@@ -162,7 +162,7 @@ export default {
 
   'msg.noCanvas': 'no canvas found',
   'msg.noWebgl': 'no WebGL context',
-  'msg.countRegionBig': 'That box is large — draw a tight one around just the number that changes.',
+  'msg.countRegionBig': 'That box is large. Keep it inside the panel that holds the number — anything outside it is the scene behind, which moves on its own and reads as waves that never happened.',
   'msg.noMousePosition': 'no cursor position yet',
   'msg.outsideCanvas': 'cursor is outside the canvas',
   'msg.anchorCaptured': 'anchor {n} captured for {name}',
@@ -266,7 +266,7 @@ export default {
   'steps.kindCount': 'Count',
   'steps.countToHint': 'How many times the watched box must change before the sequence goes on',
   'steps.countCapHint': 'Seconds before a count that is going nowhere gives up',
-  'steps.drawRegion': 'Draw the box to watch',
+  'steps.drawRegion': 'Draw the box to watch. Frame the panel the number sits in, not the digits: the digits move as the number grows, and a box that lands half on the scene behind counts its flicker as waves.',
   'steps.preview': 'Click to see where this clicks; move away to bring the panel back',
   'steps.live.match': 'matches now',
   'steps.live.miss': 'no match',

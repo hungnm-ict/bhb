@@ -78,13 +78,17 @@ export const RESYNC_AFTER_MS = BACKWARD_QUIET_MS;
 export const COUNT_POLL_MS = 80;
 
 /**
- * The shortest gap between two counted waves.
+ * How long the region must have been still before a change counts as a wave.
  *
- * A number that animates in can pause part-way and read as still for a poll,
- * which would split one wave into two. No real pair of waves arrives this
- * close together, so the debounce costs nothing and closes that door.
+ * Not a debounce between counts but a condition on the stillness before one,
+ * which is the difference between "it moved" and "it was at rest and then it
+ * moved". At an 80ms poll, one still reading is 80ms — a flicker clears that,
+ * and a flickering box counted seven waves inside two real ones.
+ *
+ * Shorter than the shortest wave and longer than any flicker: the cost of
+ * getting it wrong is undercounting, which quits late and still pays in full.
  */
-export const COUNT_DEBOUNCE_MS = 150;
+export const COUNT_STILL_MS = 240;
 
 /**
  * A count region bigger than this is almost certainly a drag around the

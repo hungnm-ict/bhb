@@ -196,9 +196,11 @@ describe('counting survives the things a session does to it', () => {
     const engine = build([countStep({ countTo: 7 })]);
     engine.start(TaskId.SCRIPT);
 
-    shade = 50;
-    engine.tick();
+    // Still for a moment first, or the change is not a wave leaving rest.
     advance(1000);
+    engine.tick();
+    shade = 50;
+    advance(300);
     engine.tick();
     expect(engine.getState().lastMessage).toContain('1/7');
 
@@ -227,21 +229,22 @@ describe('counting survives the things a session does to it', () => {
     engine.stop();
   });
 
-  it('absorbs a frame that pauses briefly on its way in', () => {
+  it('ignores a box that flickers rather than counting it seven times over', () => {
+    // What a region framed for a two-digit wave does on an account whose waves
+    // are three: it sits half over the animated scene and twitches. Every
+    // twitch used to be a wave.
     const engine = build([countStep({ countTo: 7 })]);
     engine.start(TaskId.SCRIPT);
 
-    // One wave arriving through an intermediate frame, inside the debounce.
-    shade = 25;
-    advance(60);
-    engine.tick();
-    advance(60);
-    engine.tick();
-    shade = 40;
-    advance(60);
-    engine.tick();
+    for (let twitch = 0; twitch < 30; twitch += 1) {
+      shade = twitch % 2 === 0 ? 25 : 40;
+      advance(80);
+      engine.tick();
+      advance(80);
+      engine.tick();
+    }
 
-    expect(engine.getState().lastMessage).toContain('1/7');
+    expect(engine.getState().lastMessage, 'a twitch is not a wave').toContain('0/7');
     engine.stop();
   });
 

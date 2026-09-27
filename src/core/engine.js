@@ -18,7 +18,7 @@ import { nextPace, FIRST_PACE } from './pace.js';
 import {
   BACKWARD_QUIET_MS,
   BACKWARD_STABLE_MS,
-  COUNT_DEBOUNCE_MS,
+  COUNT_STILL_MS,
   COUNT_POLL_MS,
   PANIC_AFTER_MS,
   PANIC_GAP_MS,
@@ -123,10 +123,9 @@ export function createEngine(deps) {
     count: 0,
     /** The region as it read last poll. */
     previous: null,
-    /** Whether that poll found it unchanged — a wave is an edge off stillness. */
-    wasStill: true,
+    /** When the region last started holding still; a wave is an edge off it. */
+    stillSince: 0,
     since: 0,
-    lastCountAt: 0,
   };
 
   /**
@@ -141,9 +140,8 @@ export function createEngine(deps) {
     tally.stepId = null;
     tally.count = 0;
     tally.previous = null;
-    tally.wasStill = true;
+    tally.stillSince = 0;
     tally.since = 0;
-    tally.lastCountAt = 0;
   }
 
   /** Read by the pacer and the clocks; set while a count step is live. */
@@ -454,27 +452,26 @@ export function createEngine(deps) {
 
       if (!tally.previous || hasResized) {
         tally.previous = reading;
-        tally.wasStill = true;
+        tally.stillSince = realNow();
       } else if (regionsDiffer(reading, tally.previous, step.tolerance)) {
-        // A wave is the moment the region leaves stillness, not the moment it
-        // comes to rest somewhere new: waiting for rest missed every wave that
-        // ended before the rest could be confirmed, which at speed is most of
-        // them. A number still animating is already moving, so it cannot start
-        // a second wave — and the debounce covers a pause part-way through.
-        const isNewWave =
-          tally.wasStill && realNow() - tally.lastCountAt >= COUNT_DEBOUNCE_MS;
-        if (isNewWave) {
+        // A wave is the moment the region leaves stillness — not the moment it
+        // comes to rest somewhere new, which at speed is a rest that never gets
+        // confirmed before the next wave. But the stillness has to have lasted:
+        // one still poll is 80ms, which a flickering box clears several times a
+        // second. A box framed for a two-digit wave counted seven inside two
+        // real ones on an account whose waves are three digits.
+        const wasAtRest =
+          tally.stillSince > 0 && realNow() - tally.stillSince >= COUNT_STILL_MS;
+        if (wasAtRest) {
           tally.count += 1;
-          tally.lastCountAt = realNow();
           // The cap runs from the last wave, not from the first.
           tally.since = realNow();
           hasCounted = true;
         }
-        tally.wasStill = false;
         tally.previous = reading;
-      } else {
-        tally.wasStill = true;
-        tally.previous = reading;
+        tally.stillSince = 0;
+      } else if (tally.stillSince === 0) {
+        tally.stillSince = realNow();
       }
     }
 
