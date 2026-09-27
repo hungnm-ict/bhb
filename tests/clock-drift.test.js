@@ -18,14 +18,13 @@ vi.mock('../src/core/timers.js', () => ({
   realRequestAnimationFrame: () => 1,
 }));
 
-const { installSpeedHack, setSpeed, getClockDrift, resetClock } = await import('../src/core/speed.js');
+const { installSpeedHack, setSpeed, getClockDrift } = await import('../src/core/speed.js');
 
 describe('the game clock', () => {
   beforeEach(() => {
     installSpeedHack();
     setSpeed(1);
     Date.now();
-    resetClock();
   });
 
   it('runs ahead while boosted', () => {
@@ -35,18 +34,6 @@ describe('the game clock', () => {
     Date.now();
 
     expect(getClockDrift()).toBe(540_000); // ten minutes lived, nine of them owed
-  });
-
-  it('is put back where it belongs on demand', () => {
-    setSpeed(10);
-    Date.now();
-    clock += 60_000;
-    Date.now();
-
-    resetClock();
-
-    expect(getClockDrift()).toBe(0);
-    expect(Date.now()).toBe(clock);
   });
 
   it('never runs backwards on its own', () => {
@@ -65,7 +52,6 @@ describe('coming back down from a boost', () => {
     installSpeedHack();
     setSpeed(1);
     Date.now();
-    resetClock();
   });
 
   it('never moves the game clock backwards', () => {
@@ -83,7 +69,7 @@ describe('coming back down from a boost', () => {
     expect(afterDrop).toBeGreaterThanOrEqual(beforeDrop);
   });
 
-  it('keeps the drift it earned, for the user to clear on purpose', () => {
+  it('keeps the drift it earned rather than paying it back', () => {
     setSpeed(10);
     Date.now();
     clock += 60_000;
@@ -92,9 +78,6 @@ describe('coming back down from a boost', () => {
     setSpeed(1);
     Date.now();
 
-    expect(getClockDrift(), 'nine minutes owed, still owed').toBe(540_000);
-
-    resetClock();
-    expect(getClockDrift(), 'and gone once asked for').toBe(0);
+    expect(getClockDrift(), 'nine minutes owed, and owed they stay').toBe(540_000);
   });
 });

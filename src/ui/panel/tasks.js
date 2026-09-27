@@ -6,13 +6,13 @@ import {
   setSpeed,
   formatSpeed,
   speedIndex,
+  getSpeedStops,
   stepSpeed,
   getFrameRates,
   getFrameBudget,
   getClockDrift,
-  resetClock,
 } from '../../core/speed.js';
-import { SPEED_STEPS } from '../../core/constants.js';
+
 import { getCanvas } from '../../core/canvas.js';
 import { stepsForActivity } from '../../bot/activity.js';
 import { Keys, keyLabel } from '../../core/keys.js';
@@ -53,7 +53,7 @@ export function updateSpeedDisplay() {
   speedControl.slider.value = String(index);
   speedControl.slider.style.setProperty(
     '--bhb-fill',
-    `${(index / (SPEED_STEPS.length - 1)) * 100}%`
+    `${(index / (getSpeedStops().length - 1)) * 100}%`
   );
   speedControl.readout.textContent = `${formatSpeed(speed)}×`;
   speedControl.readout.className = `bhb-speed ${speed > 1 ? 'is-boosted' : ''}`;
@@ -112,10 +112,6 @@ function formatDrift(ms) {
   return `+${Math.floor(minutes / 60)}h${String(minutes % 60).padStart(2, '0')}m`;
 }
 
-function formatRemaining(ms) {
-  const total = Math.floor(ms / 1000);
-  return `${Math.floor(total / 60)}m${String(total % 60).padStart(2, '0')}s`;
-}
 
 /**
  * Live framebuffer size next to the displayed size — when steps start missing,
@@ -138,15 +134,6 @@ function describeFrames() {
   return `${real} fps · ${formatSpeed(Math.round(effective * 10) / 10)}× real · ${getFrameBudget()}ms`;
 }
 
-function describeCanvas() {
-  const canvas = getCanvas();
-  if (!canvas) {
-    return '—';
-  }
-  return `${canvas.width}×${canvas.height} → ${Math.round(canvas.clientWidth)}×${Math.round(
-    canvas.clientHeight
-  )}`;
-}
 
 /**
  * How many enabled activities Run-All could actually do something with.
@@ -176,15 +163,6 @@ export function renderTasksTab(deps) {
   const speed = getSpeed();
 
   const drift = getClockDrift();
-  const resetClockButton = el('button', {
-    class: 'bhb-btn bhb-btn--tiny',
-    title: t('tasks.resetClockHint'),
-    text: t('tasks.resetClock'),
-  });
-  resetClockButton.addEventListener('click', () => {
-    resetClock();
-    deps.refresh();
-  });
 
   const target = deps.getRunTarget();
   const picked = describeTarget(deps, target);
@@ -249,10 +227,10 @@ export function renderTasksTab(deps) {
     slider.type = 'range';
     // The stops are not evenly spaced, so the slider rides their index.
     slider.min = '0';
-    slider.max = String(SPEED_STEPS.length - 1);
+    slider.max = String(getSpeedStops().length - 1);
     slider.step = '1';
     slider.addEventListener('input', () => {
-      setSpeed(SPEED_STEPS[Number(slider.value)]);
+      setSpeed(getSpeedStops()[Number(slider.value)]);
     });
 
     slider.addEventListener('pointerdown', () => {
@@ -275,7 +253,7 @@ export function renderTasksTab(deps) {
 
   /** Where the track is, as a percentage, for a stop's tick and its label. */
   function stopOffset(index) {
-    return `${(index / (SPEED_STEPS.length - 1)) * 100}%`;
+    return `${(index / (getSpeedStops().length - 1)) * 100}%`;
   }
 
   // Drawn by hand: Chrome renders a `<datalist>`'s marks so faintly that the
@@ -283,7 +261,7 @@ export function renderTasksTab(deps) {
   const ticks = el(
     'div',
     { class: 'bhb-speedticks' },
-    SPEED_STEPS.map((stop, index) =>
+    getSpeedStops().map((stop, index) =>
       el('span', {
         class: `bhb-speedticks__tick ${LABELLED_SPEEDS.includes(stop) ? 'is-major' : ''}`,
         style: { left: stopOffset(index) },
@@ -341,17 +319,9 @@ export function renderTasksTab(deps) {
           class: `bhb-mono ${drift >= DRIFT_WARN_MS ? 'bhb-drift--far' : ''}`,
           text: formatDrift(drift),
         }),
-        drift >= 1000 ? resetClockButton : null,
       ]),
       el('dt', { text: t('overlay.fps') }),
       el('dd', { class: 'bhb-mono', text: describeFrames() }),
-      el('dt', { text: t('overlay.canvas') }),
-      el('dd', { class: 'bhb-mono', text: describeCanvas() }),
-      el('dt', { text: t('overlay.autoStop') }),
-      el('dd', {
-        class: 'bhb-mono',
-        text: engine.activeTask ? formatRemaining(engine.remainingMs) : '—',
-      }),
     ]),
   ]);
 }

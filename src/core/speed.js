@@ -5,7 +5,7 @@ import {
   realSetInterval,
   realRequestAnimationFrame,
 } from './timers.js';
-import { SPEED_STEPS } from './constants.js';
+import { SPEED_STEPS, SAFE_SPEED_STEPS } from './constants.js';
 
 /**
  * Speed hack.
@@ -176,8 +176,30 @@ export function setSpeed(next) {
 }
 
 /** @param {number} value */
+/** Which stops the slider offers. See `SAFE_SPEED_STEPS`. */
+let stops = SAFE_SPEED_STEPS;
+
+export function getSpeedStops() {
+  return stops;
+}
+
+/**
+ * Offer the two stops past 10x, or take them away.
+ *
+ * Taking them away brings the speed down with them: a speed the slider cannot
+ * show is a speed nobody can undo.
+ *
+ * @param {boolean} unlocked
+ */
+export function setSpeedUnlocked(unlocked) {
+  stops = unlocked ? SPEED_STEPS : SAFE_SPEED_STEPS;
+  if (speed > stops[stops.length - 1]) {
+    setSpeed(stops[stops.length - 1]);
+  }
+}
+
 export function snapSpeed(value) {
-  return SPEED_STEPS.reduce((best, stop) =>
+  return stops.reduce((best, stop) =>
     Math.abs(stop - value) < Math.abs(best - value) ? stop : best
   );
 }
@@ -185,12 +207,12 @@ export function snapSpeed(value) {
 /** The neighbouring stop in a direction, for the hotkeys and the +/- buttons. */
 export function stepSpeed(current, direction) {
   const index = speedIndex(current) + direction;
-  return SPEED_STEPS[Math.max(0, Math.min(SPEED_STEPS.length - 1, index))];
+  return stops[Math.max(0, Math.min(stops.length - 1, index))];
 }
 
 /** The index of a speed among the stops, for a stepped slider. */
 export function speedIndex(value) {
-  return SPEED_STEPS.indexOf(snapSpeed(value));
+  return stops.indexOf(snapSpeed(value));
 }
 
 /** Whole speeds read as "2×", fractional ones keep the single decimal. */
@@ -242,19 +264,6 @@ export function getClockDrift() {
   return gameClock ? gameClock.drift() : 0;
 }
 
-/**
- * Snap the game's clock back to real time.
- *
- * Drift belongs to a session, not to an account: carry hours of it into
- * another character and the game hands out a daily reset that never happened.
- * Time jumps backwards here, so it is for between things — switching accounts,
- * finishing a run — rather than mid-fight.
- */
-export function resetClock() {
-  if (gameClock) {
-    gameClock.reset();
-  }
-}
 
 export function installSpeedHack() {
   const virtualDateNow = createVirtualClock(realNow);

@@ -132,6 +132,15 @@ export const HOVER_RESET_POINT = { x: 5, y: 5 };
 /** The speed slider's stops; anything set in between snaps to the nearest. */
 export const SPEED_STEPS = [0.1, 0.5, 1, 2, 5, 10, 15, 20];
 
+/**
+ * The stops offered unless the two past 10x are asked for.
+ *
+ * Twenty frames per real one is not twenty times the farming on most machines
+ * — the frame budget gives back what it can and the rest is heat. Worse, it is
+ * the surest way to turn a slow hour into a dead one, so it is opt-in.
+ */
+export const SAFE_SPEED_STEPS = SPEED_STEPS.filter((stop) => stop <= 10);
+
 /** How long a dry run lingers on each step — fast enough not to bore, slow
  *  enough to follow. */
 export const DRY_RUN_STEP_MS = 700;

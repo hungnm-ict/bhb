@@ -78,7 +78,7 @@ describe('settings sections', () => {
     const text = summaries(node).join('|');
 
     expect(text, 'the active profile').toContain('Main');
-    expect(text, 'how many behaviour switches are on').toContain('3/10');
+    expect(text, 'how many behaviour switches are on').toContain('3/11');
     expect(text, 'only the enabled activities count').toContain('1');
   });
 

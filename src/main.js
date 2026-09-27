@@ -27,6 +27,7 @@ import {
   setFrameMultiplier,
   getSpeed,
   setSpeed,
+  setSpeedUnlocked,
   onSpeedChange,
   stepSpeed,
   pumpFrame,
@@ -281,6 +282,9 @@ function bootstrap() {
     },
     updateSettings: (changes) => {
       Object.assign(settings, changes);
+      if ('fastSpeeds' in changes) {
+        setSpeedUnlocked(settings.fastSpeeds === true);
+      }
       saveSettings(settings);
       if (changes.language) {
         setLanguage(changes.language);
@@ -386,6 +390,8 @@ function bootstrap() {
 
   // The clock is the only way to know about a slow server: the canvas keeps
   // drawing at sixty while the requests behind it hang.
+  setSpeedUnlocked(settings.fastSpeeds === true);
+
   const lagGuard = createLagGuard({
     getWindows: () => settings.lagWindows,
     getSpeed,

@@ -320,6 +320,7 @@ function countBehaviour(settings) {
     settings.showScreens,
     settings.keepLog,
     settings.panicEscape,
+    settings.fastSpeeds,
   ];
   return { n: switches.filter(Boolean).length, total: switches.length };
 }
@@ -506,6 +507,9 @@ export function renderSettingsTab(deps) {
           ),
           toggleRow('settings.keepLog', settings.keepLog, (value) =>
             deps.updateSettings({ keepLog: value })
+          ),
+          toggleRow('settings.fastSpeeds', settings.fastSpeeds, (value) =>
+            deps.updateSettings({ fastSpeeds: value })
           ),
           toggleRow('settings.panicEscape', settings.panicEscape, (value) =>
             deps.updateSettings({ panicEscape: value })
