@@ -41,7 +41,7 @@ describe('migration to the current schema', () => {
     localStorage.setItem(STORAGE_KEY_PROFILES, JSON.stringify(V2));
 
     const state = loadProfiles();
-    expect(state.version).toBe(5);
+    expect(state.version).toBe(6);
     expect(state.activeProfileId).toBe('main');
     expect(state.profiles[0].steps).toEqual(V2.profiles[0].rules);
     expect(state.profiles[0].screens).toEqual([]);
@@ -52,7 +52,7 @@ describe('migration to the current schema', () => {
 
   it('migrates an imported v2 export the same way', () => {
     const state = importProfiles(JSON.stringify(V2));
-    expect(state.version).toBe(5);
+    expect(state.version).toBe(6);
     expect(state.profiles[0].steps).toHaveLength(1);
     expect(state.profiles[0].screens).toEqual([]);
     expect(state.profiles[0].activities).toHaveLength(DEFAULT_ACTIVITIES.length);

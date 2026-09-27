@@ -189,7 +189,7 @@ Cái giá, và là lý do chưa làm:
 Milestone 1 (foundations) is done. Milestone 2 adds region matching and screen-state
 detection — the reliability layer everything else needs. Milestone 3 is **auto-regen**:
 per-activity runners plus a reorderable priority queue (World Boss solo and team →
-Dungeon → Raid → PVP → Trials/Gauntlet → Invasion → Expedition → GVG) looping until
+Dungeon → Raid → PVP → Trials → Gauntlet → Invasion → Expedition → GVG) looping until
 resources run out. Milestone 4 covers lag detection with auto-restart and character-slot
 switching. Milestone 5 adds session stats that survive a watchdog reload, and
 Discord/Telegram alerts with a canvas screenshot — a rare drop is just a screen

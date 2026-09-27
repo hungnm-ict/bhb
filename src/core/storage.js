@@ -11,6 +11,7 @@ import { createDefaultActivities, DEFAULT_ACTIVITIES } from '../bot/activity.js'
 import { normaliseNotifyConfig } from './notify.js';
 import { normaliseProbes } from './probe.js';
 import { normaliseLagWindows } from './lag.js';
+import { cloneStepsInto } from '../bot/step-pack.js';
 import { normaliseLockSize } from './canvas-lock.js';
 
 /**
@@ -31,7 +32,7 @@ import { normaliseLockSize } from './canvas-lock.js';
  * export from any earlier version still loads with everything it had.
  */
 
-const SCHEMA_VERSION = 5;
+const SCHEMA_VERSION = 6;
 
 /** @returns {ProfileState} */
 function createDefaultState() {
@@ -176,7 +177,42 @@ function normaliseState(candidate) {
     ? candidate.activeProfileId
     : profiles[0].id;
 
+  // Migrations run off the version the file was written with, so they run
+  // once rather than on every load.
+  if ((Number(candidate.version) || 0) < 6) {
+    for (const profile of profiles) {
+      splitGauntletFromTrials(profile);
+    }
+  }
+
   return { version: SCHEMA_VERSION, activeProfileId: active, profiles };
+}
+
+/**
+ * Trials and Gauntlet used to be one slot called "Trials / Gauntlet".
+ *
+ * They are two places with two entrances, so one slot could only ever farm
+ * one of them. Splitting them must not cost anyone the sequence they already
+ * captured: the old slot keeps its steps and the new one starts as a copy,
+ * switched off, because those steps point at the other entrance until someone
+ * re-captures the one or two that differ.
+ *
+ * @param {Profile} profile
+ */
+function splitGauntletFromTrials(profile) {
+  const trials = profile.activities.find((activity) => activity.id === 'trials');
+  const gauntlet = profile.activities.find((activity) => activity.id === 'gauntlet');
+  if (trials && trials.name === 'Trials / Gauntlet') {
+    trials.name = 'Trials';
+  }
+  if (!gauntlet) {
+    return;
+  }
+
+  const source = profile.steps.filter((step) => step.activity === 'trials');
+  if (source.length > 0) {
+    profile.steps = cloneStepsInto(profile.steps, source, 'gauntlet');
+  }
 }
 
 /** @returns {ProfileState} */
