@@ -28,13 +28,25 @@ function canvasBox() {
  * @param {HTMLElement} node
  * @returns {boolean} whether the canvas was there to hang off
  */
+/**
+ * The canvas corner, but never past the window's own.
+ *
+ * The canvas is pinned to a fixed size, so a window narrower than the game
+ * scrolls and the canvas runs off the edge. Following it there takes the
+ * readouts with it — and a narrow window is exactly when the frame rate and
+ * what the bot is doing are the only things worth the space.
+ */
+function onScreen(offset) {
+  return Math.max(CANVAS_INSET, Math.round(offset) + CANVAS_INSET);
+}
+
 export function anchorTopLeft(node) {
   const box = canvasBox();
   if (!box) {
     return false;
   }
-  node.style.left = `${Math.round(box.left) + CANVAS_INSET}px`;
-  node.style.top = `${Math.round(box.top) + CANVAS_INSET}px`;
+  node.style.left = `${onScreen(box.left)}px`;
+  node.style.top = `${onScreen(box.top)}px`;
   return true;
 }
 
@@ -49,7 +61,7 @@ export function anchorTopRight(node) {
   }
   // Measured from the window's right edge, so the node never needs its own
   // width — which it does not have until after it is laid out.
-  node.style.right = `${Math.round(window.innerWidth - box.right) + CANVAS_INSET}px`;
-  node.style.top = `${Math.round(box.top) + CANVAS_INSET}px`;
+  node.style.right = `${onScreen(window.innerWidth - box.right)}px`;
+  node.style.top = `${onScreen(box.top)}px`;
   return true;
 }
