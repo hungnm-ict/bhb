@@ -2,6 +2,7 @@ import { getRenderTarget } from '../core/canvas.js';
 import { captureFingerprint } from '../core/region.js';
 import { clientToBuffer, getBufferSize } from '../core/coords.js';
 import { createScreen, scoreScreen } from './screen.js';
+import { slotsForBoss } from './worldboss.js';
 import { t } from '../i18n/index.js';
 
 /**
@@ -104,6 +105,69 @@ export function createScreenEditor(deps) {
     deps.persist();
   }
 
+  function setIsParty(screenId, isParty) {
+    const screen = find(screenId);
+    if (!screen) {
+      return;
+    }
+    screen.isParty = Boolean(isParty);
+    deps.persist();
+  }
+
+  function setBossId(screenId, bossId) {
+    const screen = find(screenId);
+    if (!screen) {
+      return;
+    }
+    screen.bossId = bossId || null;
+    deps.persist();
+  }
+
+  /**
+   * Store the party list's geometry from one drag over it, top row to the
+   * bottom of the last.
+   *
+   * The pitch is a starting guess, not a measurement: dividing the drag by
+   * the seat count only works if the drag's edges sat exactly on the first
+   * row's top and the last row's bottom, and a user's drag rarely does. It is
+   * why the slider exists — the guess gets the lines close, the user's eye
+   * does the rest.
+   *
+   * @param {{ left: number, top: number, width: number, height: number }} rect
+   */
+  function captureListFrame(rect, screenId) {
+    const screen = find(screenId);
+    if (!screen) {
+      return null;
+    }
+    const target = getRenderTarget();
+    if (!target) {
+      deps.report(t('msg.noCanvas'));
+      return null;
+    }
+
+    const { canvas } = target;
+    const top = clientToBuffer(canvas, rect.left, rect.top);
+    const bottom = clientToBuffer(canvas, rect.left, rect.top + rect.height);
+    const buffer = getBufferSize(canvas);
+    const slots = slotsForBoss(screen.bossId);
+
+    screen.listTop = top.y;
+    screen.pitch = Math.max(1, Math.round((top.y - bottom.y) / slots));
+    screen.listBh = buffer.height;
+    deps.persist();
+    return screen;
+  }
+
+  function setPitch(screenId, pitch) {
+    const screen = find(screenId);
+    if (!screen) {
+      return;
+    }
+    screen.pitch = Math.max(1, Math.round(Number(pitch) || 1));
+    deps.persist();
+  }
+
   function removeAnchor(screenId, index) {
     const screen = find(screenId);
     if (!screen || index < 0 || index >= screen.anchors.length) {
@@ -167,6 +231,10 @@ export function createScreenEditor(deps) {
     setStopsTask,
     setNotify,
     setMinRatio,
+    setIsParty,
+    setBossId,
+    captureListFrame,
+    setPitch,
     removeAnchor,
     remove,
     replaceAll,

@@ -71,6 +71,11 @@ export default {
   'screens.anchors': 'Vùng',
   'screens.stopsTask': 'Hết tài nguyên — dừng hoạt động ở màn hình này',
   'screens.ratioHint': 'Tỉ lệ điểm mẫu đang khớp',
+  'screens.isParty': 'Đây là màn hình party — mỗi hàng chứa một thành viên, không phải một nút cố định',
+  'screens.bossHint': 'Chọn World Boss nào, để bot biết party có bao nhiêu ghế',
+  'screens.bossUnset': 'Chọn World Boss…',
+  'screens.captureList': 'Bắt khung danh sách party',
+  'screens.pitchHint': 'Khoảng cách giữa hai hàng, tính bằng pixel — chỉnh tới khi một chỗ đã bắt rơi đúng mọi hàng',
   'screen.defaultName': 'Màn hình {n}',
 
   'queue.title': 'Hàng đợi hoạt động',
@@ -277,10 +282,16 @@ export default {
   'steps.behaviourHint': 'Bấm: thấy màu thì bấm, chưa thấy thì đợi. Bấm nếu có: không thấy thì bỏ qua luôn, sang bước sau — dùng cho ô tick sẵn như Private. Chờ đến khi hết: còn thấy màu là còn đứng chờ, mất mới đi tiếp — dùng để chờ đủ người trước khi bấm START.',
 
   'steps.addPlace': 'Thêm một chỗ nữa vào bước này (bảng sẽ ẩn đi, rê chuột rồi bấm X)',
+  'steps.addSlotPlace': 'Kéo khung quanh một ghế trong party — ở màn hình party, mọi ghế của boss đều được dò',
   'steps.duplicate': 'Nhân bản bước này xuống ngay dưới. Đổi activity của bản sao là nó sang hoạt động khác.',
   'steps.placeCount': 'Số chỗ bước này nhìn vào',
   'steps.maxMatchesHint': 'Còn đứng chờ khi số chỗ vẫn thấy màu NHIỀU HƠN số này. Bốn ô mời + đặt 2 nghĩa là chờ đến khi đủ 3 người, ai ngồi ô nào cũng được.',
+  'steps.minMatchesHint': 'Còn đứng chờ cho tới khi ÍT NHẤT bấy nhiêu chỗ thấy màu — một khuôn mặt bắt một lần, dò xuống mọi ghế của boss.',
+  'steps.waitForHint': 'Chờ đến khi hết: còn thấy màu là còn đứng chờ (một ghế trống dần trống). Chờ đến khi có: đứng chờ tới khi màu xuất hiện (một người bạn vào party).',
+  'steps.waitForGone': 'chờ đến khi hết',
+  'steps.waitForPresent': 'chờ đến khi có',
   'msg.placeAdded': 'đã thêm chỗ vào bước — giờ nhìn {n} chỗ',
+  'msg.slotCaptured': 'đã bắt ghế — giờ bước này nhìn {n} chỗ',
 
   'update.title': 'Phiên bản',
   'update.check': 'Kiểm tra bản mới',

@@ -1,7 +1,7 @@
 import { hexToRgb, colorMatches, rgbToHex } from './color.js';
 import { DEFAULT_COLOR_TOLERANCE } from './constants.js';
 import { readPixel } from './pixel.js';
-import { resolvePoint } from './coords.js';
+import { resolvePoint, ScaleMode } from './coords.js';
 
 /**
  * Region matching.
@@ -16,6 +16,9 @@ import { resolvePoint } from './coords.js';
  * @typedef {import('./color.js').Rgb} Rgb
  * @typedef {{ dx: number, dy: number, hex: string }} Sample dx/dy in 0..1
  * @typedef {{ x: number, y: number, w: number, h: number, bw?: number, bh?: number, samples: Sample[] }} Fingerprint
+ * @typedef {{ listTop: number, pitch: number, bh?: number, slots: number }} Slotting a
+ *   party list's geometry: row one's top edge, the gap between rows, and how
+ *   many rows the boss seats
  */
 
 /** Samples per axis when capturing. 16 in total; 4 may be wrong by default. */
@@ -151,6 +154,56 @@ export function resolveRect(fp, buffer, mode) {
 }
 
 /**
+ * Every row of a party list, given the row one point was captured from.
+ *
+ * The game stacks seats at a fixed pitch and leaves the slack below the last
+ * one, so a list is not its own height divided by the seat count. Two numbers
+ * describe it exactly: where row one's top edge sits, and how far apart the
+ * rows are. From those, the row a capture landed in is arithmetic, and every
+ * other row is that same rectangle moved by whole pitches — which keeps a
+ * sloppy drag sloppy in the same way on every row rather than drifting.
+ *
+ * @param {Fingerprint} fp
+ * @param {{ width: number, height: number }} buffer
+ * @param {string} [mode]
+ * @param {Slotting | null} [slotting]
+ * @returns {Array<{ x: number, y: number, w: number, h: number }>}
+ */
+export function resolveSlotRects(fp, buffer, mode, slotting) {
+  const base = resolveRect(fp, buffer, mode);
+  const slots = Math.max(1, Math.round((slotting && slotting.slots) || 1));
+  if (!slotting || slots < 2 || !slotting.pitch) {
+    return [base];
+  }
+
+  // The pitch was measured on the framebuffer the screen was calibrated on,
+  // so it rescales exactly as the rectangle above it did.
+  const scale =
+    mode === ScaleMode.ABSOLUTE || !slotting.bh ? 1 : buffer.height / slotting.bh;
+  const pitch = slotting.pitch * scale;
+  if (pitch <= 0) {
+    return [base];
+  }
+  const listTop = slotting.listTop * scale;
+
+  const captured = Math.min(
+    slots - 1,
+    Math.max(0, Math.round((listTop - (base.y + base.h)) / pitch))
+  );
+
+  const rects = [];
+  for (let index = 0; index < slots; index += 1) {
+    rects.push({
+      x: base.x,
+      y: Math.round(base.y + (captured - index) * pitch),
+      w: base.w,
+      h: base.h,
+    });
+  }
+  return rects;
+}
+
+/**
  * Score a fingerprint against what is on screen now.
  *
  * @param {WebGLRenderingContext} gl
@@ -174,7 +227,25 @@ export function matchFingerprint(
     return { matched: false, ratio: 0 };
   }
 
-  const rect = resolveRect(fp, buffer, mode);
+  return scoreRect(gl, samples, resolveRect(fp, buffer, mode), tolerance, minRatio);
+}
+
+/**
+ * Score a sample grid against one rectangle on the live framebuffer.
+ *
+ * Split out from `matchFingerprint` because a slotted point scores the same
+ * grid against several rectangles, and resolving the fingerprint once per
+ * rectangle would undo the point of knowing where the rows are.
+ *
+ * @returns {{ matched: boolean, ratio: number }}
+ */
+export function scoreRect(
+  gl,
+  samples,
+  rect,
+  tolerance = DEFAULT_COLOR_TOLERANCE,
+  minRatio = DEFAULT_MIN_RATIO
+) {
   const region = readRegion(gl, rect.x, rect.y, rect.w, rect.h);
   if (!region) {
     return { matched: false, ratio: 0 };
@@ -214,15 +285,36 @@ export function isRegionPoint(point) {
  *   drift?: number, seen?: string }} `drift` is how far the worst channel was
  *   from the stored colour, which is what a near miss needs to say out loud
  */
-export function matchPoint(gl, point, hex, buffer, mode, tolerance, minRatio) {
+export function matchPoint(gl, point, hex, buffer, mode, tolerance, minRatio, slotting) {
   if (isRegionPoint(point)) {
-    const rect = resolveRect(point, buffer, mode);
-    const result = matchFingerprint(gl, point, buffer, mode, tolerance, minRatio);
+    const rects = point.perSlot
+      ? resolveSlotRects(point, buffer, mode, slotting)
+      : [resolveRect(point, buffer, mode)];
+
+    let best = { matched: false, ratio: 0 };
+    let bestRect = rects[0];
+    for (const rect of rects) {
+      const result = scoreRect(gl, point.samples, rect, tolerance, minRatio);
+      if (result.matched) {
+        best = result;
+        bestRect = rect;
+        break;
+      }
+      if (result.ratio > best.ratio) {
+        best = result;
+        bestRect = rect;
+      }
+    }
+
     return {
-      matched: result.matched,
-      ratio: result.ratio,
-      // The click lands in the middle of the region, not on its corner.
-      point: { x: rect.x + Math.round(rect.w / 2), y: rect.y + Math.round(rect.h / 2) },
+      matched: best.matched,
+      ratio: best.ratio,
+      // The click lands in the middle of the region, not on its corner — and
+      // on a slotted point, in the middle of the row that actually matched.
+      point: {
+        x: bestRect.x + Math.round(bestRect.w / 2),
+        y: bestRect.y + Math.round(bestRect.h / 2),
+      },
     };
   }
 

@@ -21,6 +21,7 @@ import {
   createStepId,
   isAutoLabel,
   StepKind,
+  WaitFor,
   pointsByPlace,
   renumberAutoLabels,
 } from './step.js';
@@ -355,6 +356,61 @@ export function createStepEditor(deps) {
     return step;
   }
 
+  /**
+   * Store a dragged rectangle as a new place a wait step watches down every
+   * party seat, not just the one it was dragged over.
+   *
+   * Separate from `captureRegion`: a count has one place and this replaces
+   * it, a wait gains places one at a time and this adds to them, the same as
+   * the cursor-driven places `captureAtCursor` appends.
+   *
+   * @param {{ left: number, top: number, width: number, height: number }} rect
+   */
+  function captureSlotRegion(rect, stepId) {
+    const step = find(stepId);
+    if (!step) {
+      return null;
+    }
+    const target = getRenderTarget();
+    if (!target) {
+      deps.report(t('msg.noCanvas'));
+      return null;
+    }
+
+    const { canvas, gl } = target;
+    const origin = clientToBuffer(canvas, rect.left, rect.top + rect.height);
+    const far = clientToBuffer(canvas, rect.left + rect.width, rect.top);
+    const buffer = getBufferSize(canvas);
+
+    const fingerprint = captureFingerprint(gl, {
+      x: origin.x,
+      y: origin.y,
+      w: Math.max(1, far.x - origin.x),
+      h: Math.max(1, far.y - origin.y),
+      bw: buffer.width,
+      bh: buffer.height,
+    });
+    if (!fingerprint) {
+      deps.report(t('msg.noWebgl'));
+      return null;
+    }
+
+    step.points.push({ ...fingerprint, perSlot: true });
+    deps.persist();
+    deps.report(t('msg.slotCaptured', { n: pointsByPlace(step).length }));
+    return step;
+  }
+
+  /** A wait step's direction: hold while present, or hold until present. */
+  function setWaitFor(stepId, waitFor) {
+    const step = find(stepId);
+    if (!step) {
+      return;
+    }
+    step.waitFor = waitFor === WaitFor.PRESENT ? WaitFor.PRESENT : WaitFor.GONE;
+    deps.persist();
+  }
+
   /** Drop one place from a step, by the index `pointsByPlace` reports. */
   function removePlace(stepId, placeIndex) {
     const step = find(stepId);
@@ -497,6 +553,8 @@ export function createStepEditor(deps) {
     setSpeedTo,
     setCount,
     captureRegion,
+    captureSlotRegion,
+    setWaitFor,
     removePlace,
     duplicate,
     setActivity,

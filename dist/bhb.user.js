@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.39.1
+// @version      0.40.0
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @icon         data:image/png;base64,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
@@ -15,7 +15,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.39.1" : "dev";
+  var VERSION = true ? "0.40.0" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -206,12 +206,41 @@
       h: Math.max(1, Math.round(fp.h / fp.bh * buffer.height))
     };
   }
+  function resolveSlotRects(fp, buffer, mode, slotting) {
+    const base = resolveRect(fp, buffer, mode);
+    const slots = Math.max(1, Math.round(slotting && slotting.slots || 1));
+    if (!slotting || slots < 2 || !slotting.pitch) {
+      return [base];
+    }
+    const scale = mode === ScaleMode.ABSOLUTE || !slotting.bh ? 1 : buffer.height / slotting.bh;
+    const pitch = slotting.pitch * scale;
+    if (pitch <= 0) {
+      return [base];
+    }
+    const listTop = slotting.listTop * scale;
+    const captured = Math.min(
+      slots - 1,
+      Math.max(0, Math.round((listTop - (base.y + base.h)) / pitch))
+    );
+    const rects = [];
+    for (let index = 0; index < slots; index += 1) {
+      rects.push({
+        x: base.x,
+        y: Math.round(base.y + (captured - index) * pitch),
+        w: base.w,
+        h: base.h
+      });
+    }
+    return rects;
+  }
   function matchFingerprint(gl, fp, buffer, mode, tolerance = DEFAULT_COLOR_TOLERANCE, minRatio = DEFAULT_MIN_RATIO) {
     const samples = fp.samples || [];
     if (samples.length === 0) {
       return { matched: false, ratio: 0 };
     }
-    const rect = resolveRect(fp, buffer, mode);
+    return scoreRect(gl, samples, resolveRect(fp, buffer, mode), tolerance, minRatio);
+  }
+  function scoreRect(gl, samples, rect, tolerance = DEFAULT_COLOR_TOLERANCE, minRatio = DEFAULT_MIN_RATIO) {
     const region = readRegion(gl, rect.x, rect.y, rect.w, rect.h);
     if (!region) {
       return { matched: false, ratio: 0 };
@@ -229,15 +258,32 @@
   function isRegionPoint(point) {
     return Array.isArray(point.samples) && point.samples.length > 0;
   }
-  function matchPoint(gl, point, hex, buffer, mode, tolerance, minRatio) {
+  function matchPoint(gl, point, hex, buffer, mode, tolerance, minRatio, slotting) {
     if (isRegionPoint(point)) {
-      const rect = resolveRect(point, buffer, mode);
-      const result = matchFingerprint(gl, point, buffer, mode, tolerance, minRatio);
+      const rects = point.perSlot ? resolveSlotRects(point, buffer, mode, slotting) : [resolveRect(point, buffer, mode)];
+      let best = { matched: false, ratio: 0 };
+      let bestRect = rects[0];
+      for (const rect of rects) {
+        const result = scoreRect(gl, point.samples, rect, tolerance, minRatio);
+        if (result.matched) {
+          best = result;
+          bestRect = rect;
+          break;
+        }
+        if (result.ratio > best.ratio) {
+          best = result;
+          bestRect = rect;
+        }
+      }
       return {
-        matched: result.matched,
-        ratio: result.ratio,
-        // The click lands in the middle of the region, not on its corner.
-        point: { x: rect.x + Math.round(rect.w / 2), y: rect.y + Math.round(rect.h / 2) }
+        matched: best.matched,
+        ratio: best.ratio,
+        // The click lands in the middle of the region, not on its corner — and
+        // on a slotted point, in the middle of the row that actually matched.
+        point: {
+          x: bestRect.x + Math.round(bestRect.w / 2),
+          y: bestRect.y + Math.round(bestRect.h / 2)
+        }
       };
     }
     const resolved = resolvePoint(point, buffer, mode);
@@ -260,6 +306,10 @@
     CLICK: "click",
     WAIT: "wait",
     COUNT: "count"
+  });
+  var WaitFor = Object.freeze({
+    GONE: "gone",
+    PRESENT: "present"
   });
   function createStepId() {
     return `r${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
@@ -290,6 +340,13 @@
        * is "wait until three players are here", whichever seats they took.
        */
       maxMatches: 0,
+      /**
+       * Whether that threshold is a ceiling to fall under or a floor to reach.
+       *
+       * A floor of zero would let every wait through at once, so `PRESENT`
+       * reads a threshold of zero as one: the plain meaning of "wait for them".
+       */
+      waitFor: WaitFor.GONE,
       /**
        * For a count step: how many times its region must settle at a new
        * picture before the sequence goes on. Seven is an Invasion's waves.
@@ -361,6 +418,13 @@
   function speedForStep(step) {
     const asked = Number(step.speedTo) || 0;
     return asked > 0 ? asked : null;
+  }
+  function waitSatisfied(step, matched) {
+    const threshold = Math.max(0, Math.round(Number(step.maxMatches) || 0));
+    if (step.waitFor === WaitFor.PRESENT) {
+      return matched >= Math.max(1, threshold);
+    }
+    return matched <= threshold;
   }
   function colorForPoint(step, point) {
     return point.hex || step.hex;
@@ -1054,6 +1118,24 @@
     return true;
   }
 
+  // src/bot/worldboss.js
+  var WORLD_BOSSES = Object.freeze([
+    { id: "orlag", name: "Orlag Clan", slots: 5, tiers: [3, 10, 11, 12] },
+    { id: "nether", name: "Netherworld", slots: 3, tiers: [3, 10, 11, 12, 13] },
+    { id: "melvin", name: "Melvin Factory", slots: 4, tiers: [10, 11] },
+    { id: "exterm", name: "3XT3RM1N4T10N", slots: 3, tiers: [10, 11] },
+    { id: "brimstone", name: "Brimstone Syndicate", slots: 3, tiers: [11, 12] },
+    { id: "titans", name: "Titans Attack!", slots: 3, tiers: [11, 12, 13, 14, 15, 16] },
+    { id: "abyss", name: "The Ignited Abyss", slots: 3, tiers: [13, 14, 15, 16, 17, 18] },
+    { id: "nordic", name: "Nordic Dream", slots: 4, tiers: [16, 17, 18, 19, 20, 21] },
+    { id: "beef", name: "Notorious Beef", slots: 4, tiers: [18, 19, 20, 21] },
+    { id: "goodall", name: "Project: Goodall", slots: 4, tiers: [7, 14, 21] }
+  ]);
+  function slotsForBoss(bossId) {
+    const boss = WORLD_BOSSES.find((candidate) => candidate.id === bossId);
+    return boss ? boss.slots : 1;
+  }
+
   // src/bot/screen.js
   function createScreenId() {
     return `s${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
@@ -1067,6 +1149,11 @@
       tolerance: DEFAULT_COLOR_TOLERANCE,
       stopsTask: false,
       notify: false,
+      isParty: false,
+      bossId: null,
+      listTop: 0,
+      pitch: 0,
+      listBh: 0,
       ...overrides
     };
   }
@@ -1086,6 +1173,17 @@
       }
     }
     return { matched: true, ratio: weakest };
+  }
+  function slottingFor(screen) {
+    if (!screen || !screen.isParty || !screen.pitch) {
+      return null;
+    }
+    return {
+      listTop: screen.listTop,
+      pitch: screen.pitch,
+      bh: screen.listBh,
+      slots: slotsForBoss(screen.bossId)
+    };
   }
   function detectScreen(gl, screens, buffer, mode) {
     for (const screen of screens || []) {
@@ -1259,6 +1357,7 @@
       tally.since = 0;
     }
     let isCounting = false;
+    let isAwaitingHere = false;
     let hasCounted = false;
     const lost = {
       candidateId: null,
@@ -1369,6 +1468,7 @@
       };
     }
     let nearest = null;
+    let slotting = null;
     function matchStep(step, gl, screenId, buffer, scaleMode) {
       if (!isStepReady(step)) {
         return null;
@@ -1386,7 +1486,9 @@
           colorForPoint(step, storedPoint),
           buffer,
           scaleMode,
-          step.tolerance
+          step.tolerance,
+          void 0,
+          slotting
         );
         if (hit.matched) {
           return hit.point;
@@ -1409,21 +1511,38 @@
       }
       let seen = 0;
       for (const place of pointsByPlace(step)) {
-        const matched = place.some(
-          (storedPoint) => matchPoint(
-            gl,
-            storedPoint,
-            colorForPoint(step, storedPoint),
-            buffer,
-            scaleMode,
-            step.tolerance
-          ).matched
-        );
-        if (matched) {
-          seen += 1;
+        const rows2 = isSlottedPlace(place) ? Math.max(1, Math.round(slotting.slots)) : 1;
+        for (let row = 0; row < rows2; row += 1) {
+          if (matchPlaceRow(place, step, gl, buffer, scaleMode, row, rows2)) {
+            seen += 1;
+          }
         }
       }
       return seen;
+    }
+    function isSlottedPlace(place) {
+      return Boolean(slotting) && place.some((point) => point.perSlot && isRegionPoint(point));
+    }
+    function matchPlaceRow(place, step, gl, buffer, scaleMode, row, rows2) {
+      return place.some((storedPoint) => {
+        if (rows2 > 1 && storedPoint.perSlot && isRegionPoint(storedPoint)) {
+          const rect = resolveSlotRects(storedPoint, buffer, scaleMode, slotting)[row];
+          return rect ? scoreRect(gl, storedPoint.samples, rect, step.tolerance).matched : false;
+        }
+        if (row > 0) {
+          return false;
+        }
+        return matchPoint(
+          gl,
+          storedPoint,
+          colorForPoint(step, storedPoint),
+          buffer,
+          scaleMode,
+          step.tolerance,
+          void 0,
+          slotting
+        ).matched;
+      });
     }
     function runCount(step, gl, buffer, scaleMode) {
       const watched = step.points.find(isRegionPoint);
@@ -1531,12 +1650,10 @@
           break;
         }
         if (expected.kind === StepKind.WAIT) {
-          const stillThere = countPlaces(expected, gl, screenId, buffer, scaleMode);
-          if (stillThere > (expected.maxMatches || 0)) {
+          const seen = countPlaces(expected, gl, screenId, buffer, scaleMode);
+          if (!waitSatisfied(expected, seen)) {
             cursor.missingSince = 0;
-            setMessage(
-              `${expected.label || expected.id}: waiting (${stillThere} left)`
-            );
+            setMessage(`${expected.label || expected.id}: waiting (${seen})`);
             return null;
           }
           continue;
@@ -1691,10 +1808,15 @@
         return false;
       }
       const task = TASKS[state.activeTask];
+      slotting = slottingFor(screen);
       nearest = null;
       isCounting = false;
+      isAwaitingHere = false;
       hasCounted = false;
-      const hit = runSequence(task.getSteps(), target.canvas, target.gl, state.screen);
+      const steps = task.getSteps();
+      const hit = runSequence(steps, target.canvas, target.gl, state.screen);
+      const expectedStep = state.expectedStepId ? steps.find((step) => step.id === state.expectedStepId) : null;
+      isAwaitingHere = Boolean(expectedStep) && stepAllowedOn(expectedStep, state.screen);
       if (hasCounted) {
         idleSince = realNow();
         state.lastActionAt = realNow();
@@ -1758,7 +1880,7 @@
         const wasResting = restingUntil > realNow();
         const clicked = tick();
         if (!wasResting) {
-          pace = nextPace(pace, clicked || screenJustChanged || isCounting);
+          pace = nextPace(pace, clicked || screenJustChanged || isCounting || isAwaitingHere);
         }
         screenJustChanged = false;
         if (state.activeTask) {
@@ -2747,6 +2869,11 @@
     "screens.anchors": "Vùng",
     "screens.stopsTask": "Hết tài nguyên — dừng hoạt động ở màn hình này",
     "screens.ratioHint": "Tỉ lệ điểm mẫu đang khớp",
+    "screens.isParty": "Đây là màn hình party — mỗi hàng chứa một thành viên, không phải một nút cố định",
+    "screens.bossHint": "Chọn World Boss nào, để bot biết party có bao nhiêu ghế",
+    "screens.bossUnset": "Chọn World Boss…",
+    "screens.captureList": "Bắt khung danh sách party",
+    "screens.pitchHint": "Khoảng cách giữa hai hàng, tính bằng pixel — chỉnh tới khi một chỗ đã bắt rơi đúng mọi hàng",
     "screen.defaultName": "Màn hình {n}",
     "queue.title": "Hàng đợi hoạt động",
     "queue.start": "Chạy tất cả",
@@ -2931,10 +3058,16 @@
     "steps.live.counting": "đang canh",
     "steps.behaviourHint": "Bấm: thấy màu thì bấm, chưa thấy thì đợi. Bấm nếu có: không thấy thì bỏ qua luôn, sang bước sau — dùng cho ô tick sẵn như Private. Chờ đến khi hết: còn thấy màu là còn đứng chờ, mất mới đi tiếp — dùng để chờ đủ người trước khi bấm START.",
     "steps.addPlace": "Thêm một chỗ nữa vào bước này (bảng sẽ ẩn đi, rê chuột rồi bấm X)",
+    "steps.addSlotPlace": "Kéo khung quanh một ghế trong party — ở màn hình party, mọi ghế của boss đều được dò",
     "steps.duplicate": "Nhân bản bước này xuống ngay dưới. Đổi activity của bản sao là nó sang hoạt động khác.",
     "steps.placeCount": "Số chỗ bước này nhìn vào",
     "steps.maxMatchesHint": "Còn đứng chờ khi số chỗ vẫn thấy màu NHIỀU HƠN số này. Bốn ô mời + đặt 2 nghĩa là chờ đến khi đủ 3 người, ai ngồi ô nào cũng được.",
+    "steps.minMatchesHint": "Còn đứng chờ cho tới khi ÍT NHẤT bấy nhiêu chỗ thấy màu — một khuôn mặt bắt một lần, dò xuống mọi ghế của boss.",
+    "steps.waitForHint": "Chờ đến khi hết: còn thấy màu là còn đứng chờ (một ghế trống dần trống). Chờ đến khi có: đứng chờ tới khi màu xuất hiện (một người bạn vào party).",
+    "steps.waitForGone": "chờ đến khi hết",
+    "steps.waitForPresent": "chờ đến khi có",
     "msg.placeAdded": "đã thêm chỗ vào bước — giờ nhìn {n} chỗ",
+    "msg.slotCaptured": "đã bắt ghế — giờ bước này nhìn {n} chỗ",
     "update.title": "Phiên bản",
     "update.check": "Kiểm tra bản mới",
     "update.checking": "Đang kiểm tra…",
@@ -3013,6 +3146,11 @@
     "screens.anchors": "Anchors",
     "screens.stopsTask": "Out of resources — stop the task here",
     "screens.ratioHint": "Share of samples matching right now",
+    "screens.isParty": "This is a party list — its rows carry a team mate, not a fixed button",
+    "screens.bossHint": "Which World Boss, so the bot knows how many seats the party has",
+    "screens.bossUnset": "Pick a World Boss…",
+    "screens.captureList": "Capture the party list",
+    "screens.pitchHint": "Pixels between one row and the next — nudge until a captured seat lands on every row",
     "screen.defaultName": "Screen {n}",
     "queue.title": "Activity queue",
     "queue.start": "Run all activities",
@@ -3197,10 +3335,16 @@
     "steps.live.counting": "watching",
     "steps.behaviourHint": "Click: click when the colour shows, wait otherwise. Click if present: skip straight on when it does not — for a box like Private that may already be ticked. Wait until gone: hold here while the colour is there — for waiting on a party to fill before Start.",
     "steps.addPlace": "Watch one more place (the panel steps aside; hover and press X)",
+    "steps.addSlotPlace": "Drag a box around one party seat — on a party screen, every seat the boss has is watched for it",
     "steps.duplicate": "Copy this step, just below. Change the copy’s activity to send it to another one.",
     "steps.placeCount": "How many places this step watches",
     "steps.maxMatchesHint": "Hold while MORE than this many places still show the colour. Four invite buttons with this at 2 means wait for a third player, whichever seats they take.",
+    "steps.minMatchesHint": "Hold until AT LEAST this many places show the colour — a face captured once, watched down every seat the boss has.",
+    "steps.waitForHint": "Wait until gone: hold while the colour is there (an empty seat emptying). Wait until present: hold until it turns up (a team mate arriving).",
+    "steps.waitForGone": "wait until gone",
+    "steps.waitForPresent": "wait until present",
     "msg.placeAdded": "place added — the step now watches {n}",
+    "msg.slotCaptured": "seat captured — the step now watches {n} place(s)",
     "update.title": "Version",
     "update.check": "Check for a new build",
     "update.checking": "Checking…",
@@ -3437,6 +3581,45 @@
       deps.persist();
       return step;
     }
+    function captureSlotRegion(rect, stepId) {
+      const step = find(stepId);
+      if (!step) {
+        return null;
+      }
+      const target = getRenderTarget();
+      if (!target) {
+        deps.report(t("msg.noCanvas"));
+        return null;
+      }
+      const { canvas, gl } = target;
+      const origin = clientToBuffer(canvas, rect.left, rect.top + rect.height);
+      const far = clientToBuffer(canvas, rect.left + rect.width, rect.top);
+      const buffer = getBufferSize(canvas);
+      const fingerprint = captureFingerprint(gl, {
+        x: origin.x,
+        y: origin.y,
+        w: Math.max(1, far.x - origin.x),
+        h: Math.max(1, far.y - origin.y),
+        bw: buffer.width,
+        bh: buffer.height
+      });
+      if (!fingerprint) {
+        deps.report(t("msg.noWebgl"));
+        return null;
+      }
+      step.points.push({ ...fingerprint, perSlot: true });
+      deps.persist();
+      deps.report(t("msg.slotCaptured", { n: pointsByPlace(step).length }));
+      return step;
+    }
+    function setWaitFor(stepId, waitFor) {
+      const step = find(stepId);
+      if (!step) {
+        return;
+      }
+      step.waitFor = waitFor === WaitFor.PRESENT ? WaitFor.PRESENT : WaitFor.GONE;
+      deps.persist();
+    }
     function removePlace(stepId, placeIndex) {
       const step = find(stepId);
       if (!step) {
@@ -3535,6 +3718,8 @@
       setSpeedTo,
       setCount,
       captureRegion,
+      captureSlotRegion,
+      setWaitFor,
       removePlace,
       duplicate,
       setActivity,
@@ -3613,6 +3798,51 @@
       screen.minRatio = Math.min(1, Math.max(0, minRatio));
       deps.persist();
     }
+    function setIsParty(screenId, isParty) {
+      const screen = find(screenId);
+      if (!screen) {
+        return;
+      }
+      screen.isParty = Boolean(isParty);
+      deps.persist();
+    }
+    function setBossId(screenId, bossId) {
+      const screen = find(screenId);
+      if (!screen) {
+        return;
+      }
+      screen.bossId = bossId || null;
+      deps.persist();
+    }
+    function captureListFrame(rect, screenId) {
+      const screen = find(screenId);
+      if (!screen) {
+        return null;
+      }
+      const target = getRenderTarget();
+      if (!target) {
+        deps.report(t("msg.noCanvas"));
+        return null;
+      }
+      const { canvas } = target;
+      const top = clientToBuffer(canvas, rect.left, rect.top);
+      const bottom = clientToBuffer(canvas, rect.left, rect.top + rect.height);
+      const buffer = getBufferSize(canvas);
+      const slots = slotsForBoss(screen.bossId);
+      screen.listTop = top.y;
+      screen.pitch = Math.max(1, Math.round((top.y - bottom.y) / slots));
+      screen.listBh = buffer.height;
+      deps.persist();
+      return screen;
+    }
+    function setPitch(screenId, pitch) {
+      const screen = find(screenId);
+      if (!screen) {
+        return;
+      }
+      screen.pitch = Math.max(1, Math.round(Number(pitch) || 1));
+      deps.persist();
+    }
     function removeAnchor(screenId, index) {
       const screen = find(screenId);
       if (!screen || index < 0 || index >= screen.anchors.length) {
@@ -3660,6 +3890,10 @@
       setStopsTask,
       setNotify,
       setMinRatio,
+      setIsParty,
+      setBossId,
+      captureListFrame,
+      setPitch,
       removeAnchor,
       remove,
       replaceAll,
@@ -5707,7 +5941,40 @@
         deps.store.closePanel();
         deps.refresh();
       });
-      const threshold = el("input", { class: "bhb-rest bhb-mono", title: t("steps.maxMatchesHint") });
+      const addSlotPlace = el("button", {
+        class: "bhb-icon",
+        title: t("steps.addSlotPlace"),
+        text: "▦"
+      });
+      addSlotPlace.addEventListener("click", () => {
+        deps.store.closePanel();
+        deps.refresh();
+        startDragSelect((rect) => {
+          if (rect) {
+            deps.stepEditor.captureSlotRegion(rect, step.id);
+          }
+          deps.store.openPanel();
+          deps.refresh();
+        });
+      });
+      const direction = el("select", { class: "bhb-rule__gate", title: t("steps.waitForHint") });
+      for (const [value, labelKey] of [
+        ["gone", "steps.waitForGone"],
+        ["present", "steps.waitForPresent"]
+      ]) {
+        const option = el("option", { text: t(labelKey) });
+        option.value = value;
+        direction.append(option);
+      }
+      direction.value = step.waitFor === "present" ? "present" : "gone";
+      direction.addEventListener("change", () => {
+        deps.stepEditor.setWaitFor(step.id, direction.value);
+        deps.refresh();
+      });
+      const threshold = el("input", {
+        class: "bhb-rest bhb-mono",
+        title: step.waitFor === "present" ? t("steps.minMatchesHint") : t("steps.maxMatchesHint")
+      });
       threshold.type = "number";
       threshold.min = "0";
       threshold.max = "20";
@@ -5741,6 +6008,7 @@
           name,
           el("span", { class: "bhb-rule__actions" }, [
             isCount ? drawRegion : addPlace,
+            isWait ? addSlotPlace : null,
             copy,
             toggle,
             up,
@@ -5753,6 +6021,7 @@
         ]),
         el("div", { class: "bhb-rule__meta" }, [
           behaviour,
+          isWait ? direction : null,
           placeCount,
           isCount ? countTarget : isWait ? threshold : rest,
           isCount ? countCap : speedBox,
@@ -5892,6 +6161,60 @@
         deps.screenEditor.setMinRatio(screen.id, Number(ratio.value));
         deps.refresh();
       });
+      const partyToggle = el("button", {
+        class: `bhb-icon ${screen.isParty ? "is-notify-on" : ""}`,
+        title: t("screens.isParty"),
+        text: "⛭"
+      });
+      partyToggle.addEventListener("click", () => {
+        deps.screenEditor.setIsParty(screen.id, !screen.isParty);
+        deps.refresh();
+      });
+      const party = screen.isParty ? (() => {
+        const bossSelect = el("select", { class: "bhb-rule__gate", title: t("screens.bossHint") });
+        const blank = el("option", { text: t("screens.bossUnset") });
+        blank.value = "";
+        bossSelect.append(blank);
+        for (const boss of WORLD_BOSSES) {
+          const option = el("option", { text: `${boss.name} (${boss.slots})` });
+          option.value = boss.id;
+          bossSelect.append(option);
+        }
+        bossSelect.value = screen.bossId || "";
+        bossSelect.addEventListener("change", () => {
+          deps.screenEditor.setBossId(screen.id, bossSelect.value || null);
+          deps.refresh();
+        });
+        const captureList = el("button", {
+          class: "bhb-btn",
+          text: t("screens.captureList")
+        });
+        captureList.addEventListener("click", () => {
+          deps.store.closePanel();
+          deps.refresh();
+          startDragSelect((rect) => {
+            if (rect) {
+              deps.screenEditor.captureListFrame(rect, screen.id);
+            }
+            deps.store.openPanel();
+            deps.refresh();
+          });
+        });
+        const pitch = el("input", { class: "bhb-rest bhb-mono", title: t("screens.pitchHint") });
+        pitch.type = "number";
+        pitch.min = "1";
+        pitch.max = "400";
+        pitch.value = String(screen.pitch || 0);
+        pitch.addEventListener("change", () => {
+          deps.screenEditor.setPitch(screen.id, pitch.value);
+          deps.refresh();
+        });
+        return el("div", { class: "bhb-screen__party" }, [
+          bossSelect,
+          captureList,
+          pitch
+        ]);
+      })() : null;
       const classes = ["bhb-step", "bhb-screen"];
       if (active2 === screen.id) {
         classes.push("is-active");
@@ -5912,13 +6235,22 @@
             title: t("screens.ratioHint"),
             text: probe ? probe.ratio.toFixed(2) : "—"
           }),
-          el("span", { class: "bhb-rule__actions" }, [stops2, alertToggle, add, up, down, remove])
+          el("span", { class: "bhb-rule__actions" }, [
+            stops2,
+            alertToggle,
+            partyToggle,
+            add,
+            up,
+            down,
+            remove
+          ])
         ]),
         el("div", { class: "bhb-screen__tune" }, [
           el("span", { class: "bhb-note", text: `${t("screens.anchors")} ${screen.anchors.length}` }),
           ratio,
           el("span", { class: "bhb-mono bhb-note", text: screen.minRatio.toFixed(2) })
-        ])
+        ]),
+        party
       ]);
     });
     return el("div", { class: "bhb-tab" }, [

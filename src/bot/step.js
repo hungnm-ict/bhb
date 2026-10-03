@@ -19,6 +19,8 @@ import { isRegionPoint } from '../core/region.js';
  * @property {number} [w] region width; a point with `samples` is matched as one
  * @property {number} [h]
  * @property {import('../core/region.js').Sample[]} [samples]
+ * @property {boolean} [perSlot] read this rectangle once per party seat, not
+ *   once: a team mate keeps their face when they change rows
  *
  * @typedef {object} Step
  * @property {string} id
@@ -44,6 +46,20 @@ export const StepKind = Object.freeze({
   CLICK: 'click',
   WAIT: 'wait',
   COUNT: 'count',
+});
+
+/**
+ * Which way round a wait step reads its places.
+ *
+ * `GONE` is the original and the default: hold while the colour is there,
+ * which is how "wait until the party fills" is said, the empty seat's INVITE
+ * button being the colour. `PRESENT` is the mirror, and it is the only way to
+ * say "wait until this particular team mate turns up" — their face is the
+ * colour, and its arrival is the condition.
+ */
+export const WaitFor = Object.freeze({
+  GONE: 'gone',
+  PRESENT: 'present',
 });
 
 export function createStepId() {
@@ -80,6 +96,13 @@ export function createStep(overrides = {}) {
      * is "wait until three players are here", whichever seats they took.
      */
     maxMatches: 0,
+    /**
+     * Whether that threshold is a ceiling to fall under or a floor to reach.
+     *
+     * A floor of zero would let every wait through at once, so `PRESENT`
+     * reads a threshold of zero as one: the plain meaning of "wait for them".
+     */
+    waitFor: WaitFor.GONE,
     /**
      * For a count step: how many times its region must settle at a new
      * picture before the sequence goes on. Seven is an Invasion's waves.
@@ -191,6 +214,21 @@ export function speedForStep(step) {
   // Snapping to a real stop belongs to whoever sets it; this file stays free
   // of the DOM that the speed hack lives in.
   return asked > 0 ? asked : null;
+}
+
+/**
+ * Has a wait step's condition been met?
+ *
+ * @param {Step} step
+ * @param {number} matched how many of its places show their colour now
+ * @returns {boolean}
+ */
+export function waitSatisfied(step, matched) {
+  const threshold = Math.max(0, Math.round(Number(step.maxMatches) || 0));
+  if (step.waitFor === WaitFor.PRESENT) {
+    return matched >= Math.max(1, threshold);
+  }
+  return matched <= threshold;
 }
 
 /** The colour to match for a given point — the point's own wins. */
