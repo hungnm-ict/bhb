@@ -610,7 +610,48 @@ export function renderStepsTab(deps) {
       deps.refresh();
     });
 
-    const threshold = el('input', { class: 'bhb-rest bhb-mono', title: t('steps.maxMatchesHint') });
+    // A face, not a button: one party seat's region, read down every seat the
+    // boss has. This is how "wait for this team mate" is captured, as opposed
+    // to `addPlace`'s single pixel, which is how "wait for an empty seat" is.
+    const addSlotPlace = el('button', {
+      class: 'bhb-icon',
+      title: t('steps.addSlotPlace'),
+      text: '▦',
+    });
+    addSlotPlace.addEventListener('click', () => {
+      deps.store.closePanel();
+      deps.refresh();
+      startDragSelect((rect) => {
+        if (rect) {
+          deps.stepEditor.captureSlotRegion(rect, step.id);
+        }
+        deps.store.openPanel();
+        deps.refresh();
+      });
+    });
+
+    // Which way the threshold reads: a ceiling to fall under (seats clearing)
+    // or a floor to reach (a face turning up, wherever it sits).
+    const direction = el('select', { class: 'bhb-rule__gate', title: t('steps.waitForHint') });
+    for (const [value, labelKey] of [
+      ['gone', 'steps.waitForGone'],
+      ['present', 'steps.waitForPresent'],
+    ]) {
+      const option = el('option', { text: t(labelKey) });
+      option.value = value;
+      direction.append(option);
+    }
+    direction.value = step.waitFor === 'present' ? 'present' : 'gone';
+    direction.addEventListener('change', () => {
+      deps.stepEditor.setWaitFor(step.id, direction.value);
+      deps.refresh();
+    });
+
+    const threshold = el('input', {
+      class: 'bhb-rest bhb-mono',
+      title:
+        step.waitFor === 'present' ? t('steps.minMatchesHint') : t('steps.maxMatchesHint'),
+    });
     threshold.type = 'number';
     threshold.min = '0';
     threshold.max = '20';
@@ -647,6 +688,7 @@ export function renderStepsTab(deps) {
         name,
         el('span', { class: 'bhb-rule__actions' }, [
           isCount ? drawRegion : addPlace,
+          isWait ? addSlotPlace : null,
           copy,
           toggle,
           up,
@@ -659,6 +701,7 @@ export function renderStepsTab(deps) {
       ]),
       el('div', { class: 'bhb-rule__meta' }, [
         behaviour,
+        isWait ? direction : null,
         placeCount,
         isCount ? countTarget : isWait ? threshold : rest,
         isCount ? countCap : speedBox,

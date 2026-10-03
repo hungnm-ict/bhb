@@ -71,6 +71,11 @@ export default {
   'screens.anchors': 'Anchors',
   'screens.stopsTask': 'Out of resources — stop the task here',
   'screens.ratioHint': 'Share of samples matching right now',
+  'screens.isParty': 'This is a party list — its rows carry a team mate, not a fixed button',
+  'screens.bossHint': 'Which World Boss, so the bot knows how many seats the party has',
+  'screens.bossUnset': 'Pick a World Boss…',
+  'screens.captureList': 'Capture the party list',
+  'screens.pitchHint': 'Pixels between one row and the next — nudge until a captured seat lands on every row',
   'screen.defaultName': 'Screen {n}',
 
   'queue.title': 'Activity queue',
@@ -277,10 +282,16 @@ export default {
   'steps.behaviourHint': 'Click: click when the colour shows, wait otherwise. Click if present: skip straight on when it does not — for a box like Private that may already be ticked. Wait until gone: hold here while the colour is there — for waiting on a party to fill before Start.',
 
   'steps.addPlace': 'Watch one more place (the panel steps aside; hover and press X)',
+  'steps.addSlotPlace': 'Drag a box around one party seat — on a party screen, every seat the boss has is watched for it',
   'steps.duplicate': 'Copy this step, just below. Change the copy\u2019s activity to send it to another one.',
   'steps.placeCount': 'How many places this step watches',
   'steps.maxMatchesHint': 'Hold while MORE than this many places still show the colour. Four invite buttons with this at 2 means wait for a third player, whichever seats they take.',
+  'steps.minMatchesHint': 'Hold until AT LEAST this many places show the colour — a face captured once, watched down every seat the boss has.',
+  'steps.waitForHint': 'Wait until gone: hold while the colour is there (an empty seat emptying). Wait until present: hold until it turns up (a team mate arriving).',
+  'steps.waitForGone': 'wait until gone',
+  'steps.waitForPresent': 'wait until present',
   'msg.placeAdded': 'place added — the step now watches {n}',
+  'msg.slotCaptured': 'seat captured — the step now watches {n} place(s)',
 
   'update.title': 'Version',
   'update.check': 'Check for a new build',

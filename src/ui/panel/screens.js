@@ -1,6 +1,7 @@
 import { el } from '../dom.js';
 import { t } from '../../i18n/index.js';
 import { startDragSelect } from '../dragselect.js';
+import { WORLD_BOSSES } from '../../bot/worldboss.js';
 
 /**
  * The screens tab.
@@ -142,6 +143,70 @@ export function renderScreensTab(deps) {
       deps.refresh();
     });
 
+    // A party screen names its own slot geometry, so a point captured on one
+    // team mate's seat reads every seat the boss has, whichever one they are
+    // sitting in today.
+    const partyToggle = el('button', {
+      class: `bhb-icon ${screen.isParty ? 'is-notify-on' : ''}`,
+      title: t('screens.isParty'),
+      text: '⛭',
+    });
+    partyToggle.addEventListener('click', () => {
+      deps.screenEditor.setIsParty(screen.id, !screen.isParty);
+      deps.refresh();
+    });
+
+    const party = screen.isParty
+      ? (() => {
+          const bossSelect = el('select', { class: 'bhb-rule__gate', title: t('screens.bossHint') });
+          const blank = el('option', { text: t('screens.bossUnset') });
+          blank.value = '';
+          bossSelect.append(blank);
+          for (const boss of WORLD_BOSSES) {
+            const option = el('option', { text: `${boss.name} (${boss.slots})` });
+            option.value = boss.id;
+            bossSelect.append(option);
+          }
+          bossSelect.value = screen.bossId || '';
+          bossSelect.addEventListener('change', () => {
+            deps.screenEditor.setBossId(screen.id, bossSelect.value || null);
+            deps.refresh();
+          });
+
+          const captureList = el('button', {
+            class: 'bhb-btn',
+            text: t('screens.captureList'),
+          });
+          captureList.addEventListener('click', () => {
+            deps.store.closePanel();
+            deps.refresh();
+            startDragSelect((rect) => {
+              if (rect) {
+                deps.screenEditor.captureListFrame(rect, screen.id);
+              }
+              deps.store.openPanel();
+              deps.refresh();
+            });
+          });
+
+          const pitch = el('input', { class: 'bhb-rest bhb-mono', title: t('screens.pitchHint') });
+          pitch.type = 'number';
+          pitch.min = '1';
+          pitch.max = '400';
+          pitch.value = String(screen.pitch || 0);
+          pitch.addEventListener('change', () => {
+            deps.screenEditor.setPitch(screen.id, pitch.value);
+            deps.refresh();
+          });
+
+          return el('div', { class: 'bhb-screen__party' }, [
+            bossSelect,
+            captureList,
+            pitch,
+          ]);
+        })()
+      : null;
+
     const classes = ['bhb-step', 'bhb-screen'];
     if (active === screen.id) {
       classes.push('is-active');
@@ -163,13 +228,22 @@ export function renderScreensTab(deps) {
           title: t('screens.ratioHint'),
           text: probe ? probe.ratio.toFixed(2) : '—',
         }),
-        el('span', { class: 'bhb-rule__actions' }, [stops, alertToggle, add, up, down, remove]),
+        el('span', { class: 'bhb-rule__actions' }, [
+          stops,
+          alertToggle,
+          partyToggle,
+          add,
+          up,
+          down,
+          remove,
+        ]),
       ]),
       el('div', { class: 'bhb-screen__tune' }, [
         el('span', { class: 'bhb-note', text: `${t('screens.anchors')} ${screen.anchors.length}` }),
         ratio,
         el('span', { class: 'bhb-mono bhb-note', text: screen.minRatio.toFixed(2) }),
       ]),
+      party,
     ]);
   });
 

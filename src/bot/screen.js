@@ -1,4 +1,5 @@
 import { matchFingerprint, DEFAULT_MIN_RATIO } from '../core/region.js';
+import { slotsForBoss } from './worldboss.js';
 import { DEFAULT_COLOR_TOLERANCE } from '../core/constants.js';
 
 /**
@@ -22,6 +23,12 @@ import { DEFAULT_COLOR_TOLERANCE } from '../core/constants.js';
  * @property {number} tolerance
  * @property {boolean} stopsTask
  * @property {boolean} notify announce it to Discord/Telegram when it appears
+ * @property {boolean} isParty whether this screen shows a party list
+ * @property {string | null} bossId which World Boss, which is what says how
+ *   many seats the list has
+ * @property {number} listTop buffer y of the top edge of the first row
+ * @property {number} pitch buffer pixels between one row and the next
+ * @property {number} listBh framebuffer height the two above were measured at
  */
 
 export function createScreenId() {
@@ -38,6 +45,11 @@ export function createScreen(overrides = {}) {
     tolerance: DEFAULT_COLOR_TOLERANCE,
     stopsTask: false,
     notify: false,
+    isParty: false,
+    bossId: null,
+    listTop: 0,
+    pitch: 0,
+    listBh: 0,
     ...overrides,
   };
 }
@@ -66,6 +78,28 @@ export function scoreScreen(gl, screen, buffer, mode) {
     }
   }
   return { matched: true, ratio: weakest };
+}
+
+/**
+ * The party geometry a screen describes, or null when it describes none.
+ *
+ * Null is the answer for every screen that is not a party list, and it is
+ * what makes a slotted point behave as the plain rectangle it was before:
+ * one row is one row.
+ *
+ * @param {Screen | null | undefined} screen
+ * @returns {import('../core/region.js').Slotting | null}
+ */
+export function slottingFor(screen) {
+  if (!screen || !screen.isParty || !screen.pitch) {
+    return null;
+  }
+  return {
+    listTop: screen.listTop,
+    pitch: screen.pitch,
+    bh: screen.listBh,
+    slots: slotsForBoss(screen.bossId),
+  };
 }
 
 /**

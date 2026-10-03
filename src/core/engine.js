@@ -1,10 +1,25 @@
 import { getRenderTarget } from './canvas.js';
-import { matchPoint, readRegion, resolveRect, isRegionPoint, regionsDiffer } from './region.js';
+import {
+  matchPoint,
+  readRegion,
+  resolveRect,
+  resolveSlotRects,
+  scoreRect,
+  isRegionPoint,
+  regionsDiffer,
+} from './region.js';
 import { clickBufferPoint, dispatchKey } from './input.js';
 import { getBufferSize } from './coords.js';
-import { isStepReady, colorForPoint, StepKind, pointsByPlace, speedForStep } from '../bot/step.js';
+import {
+  isStepReady,
+  colorForPoint,
+  StepKind,
+  pointsByPlace,
+  speedForStep,
+  waitSatisfied,
+} from '../bot/step.js';
 import { getSpeed, setSpeed, snapSpeed } from './speed.js';
-import { detectScreen, stepAllowedOn } from '../bot/screen.js';
+import { detectScreen, stepAllowedOn, slottingFor } from '../bot/screen.js';
 import { stepsForActivity, looseSteps } from '../bot/activity.js';
 import { createEmitter } from './events.js';
 import {
@@ -146,6 +161,17 @@ export function createEngine(deps) {
 
   /** Read by the pacer and the clocks; set while a count step is live. */
   let isCounting = false;
+  /**
+   * Is the sequence standing in front of a button its own screen owns, just
+   * waiting for the colour to turn up?
+   *
+   * The back-off ladder measures a screen that has not changed, which is the
+   * right thing to back off from — but a party screen sitting on its own Start
+   * step is not idle, it is parked at the door. Treating that the same as a
+   * dead screen costs up to a second between the condition being met and the
+   * next look, every single time, because the step before it never clicks.
+   */
+  let isAwaitingHere = false;
   let hasCounted = false;
 
   /**
@@ -345,6 +371,16 @@ export function createEngine(deps) {
    */
   let nearest = null;
 
+  /**
+   * The party geometry of the screen on show, or null off a party screen.
+   *
+   * Kept beside `nearest` rather than threaded through four signatures: it is
+   * a fact about this tick, and every reader of it is inside this tick.
+   *
+   * @type {import('./region.js').Slotting | null}
+   */
+  let slotting = null;
+
   function matchStep(step, gl, screenId, buffer, scaleMode) {
     if (!isStepReady(step)) {
       return null;
@@ -367,7 +403,9 @@ export function createEngine(deps) {
         colorForPoint(step, storedPoint),
         buffer,
         scaleMode,
-        step.tolerance
+        step.tolerance,
+        undefined,
+        slotting
       );
       if (hit.matched) {
         return hit.point;
@@ -401,22 +439,53 @@ export function createEngine(deps) {
     }
     let seen = 0;
     for (const place of pointsByPlace(step)) {
-      const matched = place.some(
-        (storedPoint) =>
-          matchPoint(
-            gl,
-            storedPoint,
-            colorForPoint(step, storedPoint),
-            buffer,
-            scaleMode,
-            step.tolerance
-          ).matched
-      );
-      if (matched) {
-        seen += 1;
+      // One slotted place is as many places as the party has seats: it is the
+      // same rectangle read down every row, which is what "three seats still
+      // empty" and "the team mate is here somewhere" are both counting.
+      const rows = isSlottedPlace(place) ? Math.max(1, Math.round(slotting.slots)) : 1;
+      for (let row = 0; row < rows; row += 1) {
+        if (matchPlaceRow(place, step, gl, buffer, scaleMode, row, rows)) {
+          seen += 1;
+        }
       }
     }
     return seen;
+  }
+
+  /** @param {object[]} place */
+  function isSlottedPlace(place) {
+    return Boolean(slotting) && place.some((point) => point.perSlot && isRegionPoint(point));
+  }
+
+  /**
+   * Does one row of one place show its colour?
+   *
+   * A place holds the resting colour and the hovered one, so any of them is
+   * the place. A point in the group that is not slotted has one row only, and
+   * it is row zero: it describes a fixed spot, not a seat.
+   */
+  function matchPlaceRow(place, step, gl, buffer, scaleMode, row, rows) {
+    return place.some((storedPoint) => {
+      if (rows > 1 && storedPoint.perSlot && isRegionPoint(storedPoint)) {
+        const rect = resolveSlotRects(storedPoint, buffer, scaleMode, slotting)[row];
+        return rect
+          ? scoreRect(gl, storedPoint.samples, rect, step.tolerance).matched
+          : false;
+      }
+      if (row > 0) {
+        return false;
+      }
+      return matchPoint(
+        gl,
+        storedPoint,
+        colorForPoint(step, storedPoint),
+        buffer,
+        scaleMode,
+        step.tolerance,
+        undefined,
+        slotting
+      ).matched;
+    });
   }
 
   /**
@@ -609,12 +678,10 @@ export function createEngine(deps) {
       if (expected.kind === StepKind.WAIT) {
         // Counted, not spotted: "wait for a third player" is a count of empty
         // seats, and which seats they are is the game's business, not ours.
-        const stillThere = countPlaces(expected, gl, screenId, buffer, scaleMode);
-        if (stillThere > (expected.maxMatches || 0)) {
+        const seen = countPlaces(expected, gl, screenId, buffer, scaleMode);
+        if (!waitSatisfied(expected, seen)) {
           cursor.missingSince = 0;
-          setMessage(
-            `${expected.label || expected.id}: waiting (${stillThere} left)`
-          );
+          setMessage(`${expected.label || expected.id}: waiting (${seen})`);
           return null;
         }
         continue;
@@ -837,10 +904,21 @@ export function createEngine(deps) {
     }
 
     const task = TASKS[state.activeTask];
+    slotting = slottingFor(screen);
     nearest = null;
     isCounting = false;
+    isAwaitingHere = false;
     hasCounted = false;
-    const hit = runSequence(task.getSteps(), target.canvas, target.gl, state.screen);
+    const steps = task.getSteps();
+    const hit = runSequence(steps, target.canvas, target.gl, state.screen);
+
+    // Known only after the scan: `expectedStepId` is the cursor's own step,
+    // and whether its screen is the one on show now is exactly what decides
+    // whether the lull ahead is a wait-for-the-game or a wait-for-nothing.
+    const expectedStep = state.expectedStepId
+      ? steps.find((step) => step.id === state.expectedStepId)
+      : null;
+    isAwaitingHere = Boolean(expectedStep) && stepAllowedOn(expectedStep, state.screen);
 
     // A counted wave is the bot working, not the bot stuck: without this the
     // queue moves on after 12s and the run auto-stops after three minutes.
@@ -939,7 +1017,7 @@ export function createEngine(deps) {
       // A new screen is a new set of buttons to look for, so the back-off has
       // nothing to stand on: what it measures is a screen that has not changed.
       if (!wasResting) {
-        pace = nextPace(pace, clicked || screenJustChanged || isCounting);
+        pace = nextPace(pace, clicked || screenJustChanged || isCounting || isAwaitingHere);
       }
       screenJustChanged = false;
       if (state.activeTask) {
