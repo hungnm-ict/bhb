@@ -14,3 +14,33 @@ describe('createScreen: triggerActivity', () => {
     expect(createScreen({ triggerActivity: 'raid' }).triggerActivity).toBe('raid');
   });
 });
+
+describe('screenEditor.setTriggerActivity', () => {
+  it('sets it', async () => {
+    const { createScreenEditor } = await import('../src/bot/screen-editor.js');
+    const screens = [createScreen({ id: 'a' })];
+    const editor = createScreenEditor({ getScreens: () => screens, persist: () => {} });
+
+    editor.setTriggerActivity('a', 'raid');
+
+    expect(screens[0].triggerActivity).toBe('raid');
+  });
+
+  it('clears it with null', async () => {
+    const { createScreenEditor } = await import('../src/bot/screen-editor.js');
+    const screens = [createScreen({ id: 'a', triggerActivity: 'raid' })];
+    const editor = createScreenEditor({ getScreens: () => screens, persist: () => {} });
+
+    editor.setTriggerActivity('a', null);
+
+    expect(screens[0].triggerActivity).toBeNull();
+  });
+
+  it('does nothing for a screen that is not there', async () => {
+    const { createScreenEditor } = await import('../src/bot/screen-editor.js');
+    const screens = [createScreen({ id: 'a' })];
+    const editor = createScreenEditor({ getScreens: () => screens, persist: () => {} });
+
+    expect(() => editor.setTriggerActivity('gone', 'raid')).not.toThrow();
+  });
+});
