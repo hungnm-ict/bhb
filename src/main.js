@@ -225,7 +225,12 @@ function bootstrap() {
     }
   };
 
-  const hud = createHud({ getEngineState: engine.getState, store });
+  const hud = createHud({
+    getEngineState: engine.getState,
+    store,
+    getRunTarget: () => settings.runTarget,
+    getActivities,
+  });
 
   const profileActions = {
     list: () => profileState.profiles.map(({ id, name }) => ({ id, name })),

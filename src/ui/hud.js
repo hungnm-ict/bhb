@@ -4,6 +4,7 @@ import { t } from '../i18n/index.js';
 import { getSpeed, formatSpeed } from '../core/speed.js';
 import { AUTO_STOP_TIMEOUT } from '../core/constants.js';
 import { activityCode } from '../bot/activity.js';
+import { resolveRunTarget } from '../core/engine.js';
 import { realSetTimeout, realClearTimeout } from '../core/timers.js';
 
 /**
@@ -32,6 +33,10 @@ const STUCK_AFTER_MS = 4000;
  * @param {object} deps
  * @param {() => object} deps.getEngineState
  * @param {ReturnType<import('./store.js').createUiStore>} deps.store
+ * @param {() => string | null} [deps.getRunTarget] so an idle strip can show
+ *   an activity the screen-autoswitch poll just picked, same as if the user
+ *   had picked it themselves
+ * @param {() => { id: string }[]} [deps.getActivities]
  */
 /** The badge: the activity when there is one, else the mode being run. */
 function runCode(engine) {
@@ -118,9 +123,23 @@ export function createHud(deps) {
     } ${isFaded ? 'bhb-hud--dim' : ''}`;
     target.title = stuck ? engine.lastMessage || '' : '';
 
-    // Stopped, the mode is a plan rather than a fact — the panel is where a
-    // plan belongs. The strip keeps only the dot.
-    const code = running ? runCode(engine) : null;
+    // Stopped, the mode is a plan rather than a fact and would normally
+    // leave only the dot — except the screen-autoswitch poll runs even
+    // while idle, so a tagged screen on show right now is worth saying out
+    // loud, the same as if the user had picked it from the dropdown. It
+    // never starts anything by itself; this is only ever a label.
+    const idleActivity =
+      !running && deps.getRunTarget && deps.getActivities
+        ? resolveRunTarget(deps.getRunTarget(), deps.getActivities()).activityId
+        : null;
+    const idleActivityInfo = idleActivity
+      ? deps.getActivities().find((activity) => activity.id === idleActivity)
+      : null;
+    const code = running
+      ? runCode(engine)
+      : idleActivityInfo
+        ? activityCode(idleActivityInfo)
+        : null;
 
     const restSeconds = Math.round(engine.activityRestSeconds || 0);
 
@@ -130,7 +149,9 @@ export function createHud(deps) {
         ? el('span', {
             class: 'bhb-hud__code',
             text: code,
-            title: engine.activityName || t(`task.${engine.activeTask}`),
+            title: running
+              ? engine.activityName || t(`task.${engine.activeTask}`)
+              : idleActivityInfo.name,
           })
         : null,
       // Always shown, running or not: the one thing a glance at a stopped

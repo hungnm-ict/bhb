@@ -8,7 +8,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { createHud } from '../src/ui/hud.js';
 import { AUTO_STOP_TIMEOUT } from '../src/core/constants.js';
 
-function hudWith(engineState) {
+function hudWith(engineState, { runTarget = null, activities = [] } = {}) {
   // mount() appends to documentElement, so a strip from an earlier test would
   // still be the one querySelector finds.
   for (const stale of document.querySelectorAll('.bhb-hud')) {
@@ -18,7 +18,12 @@ function hudWith(engineState) {
     get: () => ({ panelOpen: false }),
     togglePanel: () => {},
   };
-  const hud = createHud({ getEngineState: () => engineState, store });
+  const hud = createHud({
+    getEngineState: () => engineState,
+    store,
+    getRunTarget: () => runTarget,
+    getActivities: () => activities,
+  });
   hud.render();
   return document.querySelector('.bhb-hud');
 }
@@ -102,6 +107,26 @@ describe('HUD', () => {
   it('falls back to the mode when a run has no activity of its own', () => {
     const node = hudWith(engine({ activeTask: 'script', activity: null, activityName: null }));
     expect(node.querySelector('.bhb-hud__code').textContent).toBe('SET');
+  });
+
+  it('shows the Run target as a badge while idle, if it names an activity', () => {
+    // The screen-autoswitch poll runs even while idle and quietly updates
+    // the Run target to match a tagged screen on show; the strip saying so
+    // is only ever a label, never a reason to start anything by itself.
+    const node = hudWith(
+      engine({ activeTask: null, activity: null, remainingMs: 0 }),
+      { runTarget: 'worldbossteam', activities: [{ id: 'worldbossteam', name: 'World Boss (team)' }] }
+    );
+    expect(node.querySelector('.bhb-hud__code').textContent).toBe('WB-T');
+    expect(node.querySelector('.bhb-hud__code').title).toBe('World Boss (team)');
+  });
+
+  it('shows nothing idle when the Run target is a task, not an activity', () => {
+    const node = hudWith(
+      engine({ activeTask: null, activity: null, remainingMs: 0 }),
+      { runTarget: 'runAll', activities: [{ id: 'worldbossteam', name: 'World Boss (team)' }] }
+    );
+    expect(node.querySelector('.bhb-hud__code')).toBeNull();
   });
 
   it('shows the learned fight length once one exists', () => {
