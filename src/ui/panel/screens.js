@@ -2,6 +2,7 @@ import { el } from '../dom.js';
 import { t } from '../../i18n/index.js';
 import { startDragSelect } from '../dragselect.js';
 import { WORLD_BOSSES } from '../../bot/worldboss.js';
+import { Keys, keyLabel } from '../../core/keys.js';
 
 /**
  * The screens tab.
@@ -40,6 +41,22 @@ export function renderScreensTab(deps) {
   ]);
   captureButton.addEventListener('click', () => capture(null));
 
+  // Armed here rather than always live, same reasoning as the Steps tab's
+  // own X key: a stray S press starts a drag nobody asked for otherwise.
+  // The button above is explicit, so it always works regardless.
+  const isScreenCaptureArmed = deps.store.get().isScreenCaptureArmed;
+  const arm = el('button', {
+    class: `bhb-task bhb-task--wrap ${isScreenCaptureArmed ? 'is-on' : ''}`,
+  }, [
+    el('span', { class: 'bhb-task__switch' }),
+    el('span', { class: 'bhb-task__label', text: t('screens.armCapture') }),
+    el('span', { class: 'bhb-kbd', text: keyLabel(Keys.CAPTURE_SCREEN) }),
+  ]);
+  arm.addEventListener('click', () => {
+    deps.store.armScreenCapture(!isScreenCaptureArmed);
+    deps.refresh();
+  });
+
   const head = el('div', { class: 'bhb-field' }, [
     el('div', { class: 'bhb-field__head' }, [
       el('span', { class: 'bhb-label', text: `${t('screens.title')} · ${screens.length}` }),
@@ -48,6 +65,7 @@ export function renderScreensTab(deps) {
         text: deps.getEngineState().screenName || t('screens.unknown'),
       }),
     ]),
+    arm,
     captureButton,
     el('p', { class: 'bhb-note', text: t('screens.captureHint') }),
   ]);

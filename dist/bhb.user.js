@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.41.2
+// @version      0.41.3
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @icon         data:image/png;base64,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
@@ -15,7 +15,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.41.2" : "dev";
+  var VERSION = true ? "0.41.3" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -56,6 +56,7 @@
     PANEL: "`",
     RUN: "r",
     CAPTURE: "x",
+    CAPTURE_SCREEN: "s",
     SPEED_RESET: "0",
     SPEED_UP: "=",
     SPEED_UP_ALT: "+",
@@ -65,34 +66,101 @@
     return key.length === 1 ? key.toUpperCase() : key;
   }
 
-  // src/core/color.js
-  function toHexByte(value) {
-    return value.toString(16).padStart(2, "0");
+  // src/ui/dom.js
+  function el(tag, props = {}, children = []) {
+    const node = document.createElement(tag);
+    if (props.class) {
+      node.className = props.class;
+    }
+    if (props.text !== void 0) {
+      node.textContent = props.text;
+    }
+    if (props.title) {
+      node.title = props.title;
+    }
+    if (props.style) {
+      Object.assign(node.style, props.style);
+    }
+    for (const child of children) {
+      if (child === null || child === void 0) {
+        continue;
+      }
+      node.append(child);
+    }
+    return node;
   }
-  function rgbToHex(rgb) {
-    return "#" + toHexByte(rgb.r) + toHexByte(rgb.g) + toHexByte(rgb.b);
+  function mount(node) {
+    (document.documentElement || document.body).append(node);
+    return node;
   }
-  function hexToRgb(hex) {
-    const clean = hex.replace("#", "");
-    return {
-      r: parseInt(clean.slice(0, 2), 16),
-      g: parseInt(clean.slice(2, 4), 16),
-      b: parseInt(clean.slice(4, 6), 16)
-    };
-  }
-  function colorMatches(actual, expected, tolerance) {
-    return Math.abs(actual.r - expected.r) <= tolerance && Math.abs(actual.g - expected.g) <= tolerance && Math.abs(actual.b - expected.b) <= tolerance;
+  function chipGroup({ options, value, onChange, className = "" }) {
+    const wrap = el("div", { class: `bhb-chips ${className}`.trim() });
+    for (const option of options) {
+      const chip = el("button", {
+        class: `bhb-chip ${option.value === value ? "is-active" : ""}`.trim(),
+        text: option.label,
+        title: option.title
+      });
+      chip.type = "button";
+      chip.disabled = Boolean(option.disabled);
+      chip.addEventListener("click", () => {
+        if (option.value !== value) {
+          onChange(option.value);
+        }
+      });
+      wrap.append(chip);
+    }
+    return wrap;
   }
 
-  // src/core/pixel.js
-  function readPixel(gl, x, y) {
-    const data = new Uint8Array(4);
-    try {
-      gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, data);
-    } catch {
+  // src/core/canvas.js
+  var cachedCanvas = null;
+  var cachedContext = null;
+  var WEBGL_TYPES = ["webgl", "webgl2", "experimental-webgl"];
+  function installCanvasPatch() {
+    const original2 = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function(type, attributes) {
+      if (WEBGL_TYPES.includes(type)) {
+        attributes = { ...attributes || {}, preserveDrawingBuffer: true };
+      }
+      return original2.call(this, type, attributes);
+    };
+  }
+  function getCanvas() {
+    return document.querySelector("#unity-canvas") || document.querySelector("canvas");
+  }
+  function getGl(canvas) {
+    if (!canvas) {
       return null;
     }
-    return { r: data[0], g: data[1], b: data[2] };
+    if (cachedCanvas === canvas && cachedContext) {
+      return cachedContext;
+    }
+    let context = null;
+    try {
+      for (const type of ["webgl2", "webgl", "experimental-webgl"]) {
+        context = canvas.getContext(type, { preserveDrawingBuffer: true });
+        if (context) {
+          break;
+        }
+      }
+    } catch {
+      context = null;
+    }
+    cachedCanvas = canvas;
+    cachedContext = context;
+    return context;
+  }
+  function getRenderTarget() {
+    const canvas = getCanvas();
+    if (!canvas) {
+      return null;
+    }
+    const gl = getGl(canvas);
+    if (!gl) {
+      return null;
+    }
+    return { canvas, gl };
   }
 
   // src/core/coords.js
@@ -137,6 +205,131 @@
       return false;
     }
     return clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom;
+  }
+
+  // src/ui/dragselect.js
+  var MIN_SIDE_PX = 6;
+  function startDragSelect(onDone) {
+    const canvas = getCanvas();
+    if (!canvas) {
+      onDone(null);
+      return () => {
+      };
+    }
+    const layer = mount(el("div", { class: "bhb-drag" }));
+    const box = el("div", { class: "bhb-drag__box" });
+    const hint = el("div", { class: "bhb-drag__hint" });
+    layer.append(box, hint);
+    let startX = null;
+    let startY = null;
+    let finished = false;
+    function rectFrom(x, y) {
+      return {
+        left: Math.min(startX, x),
+        top: Math.min(startY, y),
+        width: Math.abs(x - startX),
+        height: Math.abs(y - startY)
+      };
+    }
+    const HINT_GAP_PX = 9;
+    function draw(rect) {
+      Object.assign(box.style, {
+        display: "block",
+        left: `${rect.left}px`,
+        top: `${rect.top}px`,
+        width: `${rect.width}px`,
+        height: `${rect.height}px`
+      });
+      hint.style.display = "block";
+      hint.textContent = `${Math.round(rect.width)} × ${Math.round(rect.height)}`;
+      const size = hint.getBoundingClientRect();
+      const below = rect.top + rect.height + HINT_GAP_PX;
+      const above = rect.top - size.height - HINT_GAP_PX;
+      const top = below + size.height <= window.innerHeight || above < 0 ? below : above;
+      const left = rect.left + rect.width / 2 - size.width / 2;
+      hint.style.top = `${Math.max(0, top)}px`;
+      hint.style.left = `${Math.min(Math.max(0, left), window.innerWidth - size.width)}px`;
+    }
+    function finish(rect) {
+      if (finished) {
+        return;
+      }
+      finished = true;
+      window.removeEventListener("mousedown", onDown, true);
+      window.removeEventListener("mousemove", onMove, true);
+      window.removeEventListener("mouseup", onUp, true);
+      window.removeEventListener("keydown", onKey, true);
+      layer.remove();
+      onDone(rect);
+    }
+    function onDown(event) {
+      if (!isInsideCanvas(canvas, event.clientX, event.clientY)) {
+        finish(null);
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      startX = event.clientX;
+      startY = event.clientY;
+      draw(rectFrom(startX, startY));
+    }
+    function onMove(event) {
+      if (startX === null) {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      draw(rectFrom(event.clientX, event.clientY));
+    }
+    function onUp(event) {
+      if (startX === null) {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      const rect = rectFrom(event.clientX, event.clientY);
+      finish(rect.width >= MIN_SIDE_PX && rect.height >= MIN_SIDE_PX ? rect : null);
+    }
+    function onKey(event) {
+      if (event.key === "Escape") {
+        finish(null);
+      }
+    }
+    window.addEventListener("mousedown", onDown, true);
+    window.addEventListener("mousemove", onMove, true);
+    window.addEventListener("mouseup", onUp, true);
+    window.addEventListener("keydown", onKey, true);
+    return () => finish(null);
+  }
+
+  // src/core/color.js
+  function toHexByte(value) {
+    return value.toString(16).padStart(2, "0");
+  }
+  function rgbToHex(rgb) {
+    return "#" + toHexByte(rgb.r) + toHexByte(rgb.g) + toHexByte(rgb.b);
+  }
+  function hexToRgb(hex) {
+    const clean = hex.replace("#", "");
+    return {
+      r: parseInt(clean.slice(0, 2), 16),
+      g: parseInt(clean.slice(2, 4), 16),
+      b: parseInt(clean.slice(4, 6), 16)
+    };
+  }
+  function colorMatches(actual, expected, tolerance) {
+    return Math.abs(actual.r - expected.r) <= tolerance && Math.abs(actual.g - expected.g) <= tolerance && Math.abs(actual.b - expected.b) <= tolerance;
+  }
+
+  // src/core/pixel.js
+  function readPixel(gl, x, y) {
+    const data = new Uint8Array(4);
+    try {
+      gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, data);
+    } catch {
+      return null;
+    }
+    return { r: data[0], g: data[1], b: data[2] };
   }
 
   // src/core/region.js
@@ -680,56 +873,6 @@
       }
     }
     return { check, isHolding: () => isHolding };
-  }
-
-  // src/core/canvas.js
-  var cachedCanvas = null;
-  var cachedContext = null;
-  var WEBGL_TYPES = ["webgl", "webgl2", "experimental-webgl"];
-  function installCanvasPatch() {
-    const original2 = HTMLCanvasElement.prototype.getContext;
-    HTMLCanvasElement.prototype.getContext = function(type, attributes) {
-      if (WEBGL_TYPES.includes(type)) {
-        attributes = { ...attributes || {}, preserveDrawingBuffer: true };
-      }
-      return original2.call(this, type, attributes);
-    };
-  }
-  function getCanvas() {
-    return document.querySelector("#unity-canvas") || document.querySelector("canvas");
-  }
-  function getGl(canvas) {
-    if (!canvas) {
-      return null;
-    }
-    if (cachedCanvas === canvas && cachedContext) {
-      return cachedContext;
-    }
-    let context = null;
-    try {
-      for (const type of ["webgl2", "webgl", "experimental-webgl"]) {
-        context = canvas.getContext(type, { preserveDrawingBuffer: true });
-        if (context) {
-          break;
-        }
-      }
-    } catch {
-      context = null;
-    }
-    cachedCanvas = canvas;
-    cachedContext = context;
-    return context;
-  }
-  function getRenderTarget() {
-    const canvas = getCanvas();
-    if (!canvas) {
-      return null;
-    }
-    const gl = getGl(canvas);
-    if (!gl) {
-      return null;
-    }
-    return { canvas, gl };
   }
 
   // src/core/focus.js
@@ -2947,6 +3090,7 @@
     "screens.title": "Màn hình",
     "screens.empty": "Chưa có màn hình nào. Bắt một cái để bot biết nó đang ở đâu.",
     "screens.capture": "Bắt vùng nhận diện",
+    "screens.armCapture": "Bật chế độ bắt vùng, cho phép phím S",
     "screens.captureHint": "Bảng điều khiển sẽ nhường chỗ; kéo một khung quanh thứ chỉ màn hình này có. Esc để huỷ.",
     "screens.addAnchor": "Thêm vùng nhận diện",
     "screens.unnamed": "(chưa đặt tên)",
@@ -3035,6 +3179,8 @@
     "help.sectionSpeed": "Tốc độ",
     "help.run": "Chạy hoặc dừng chế độ đang chọn ở tab Chạy",
     "help.capture": "Bắt bước tại con trỏ",
+    "help.sectionScreens": "Màn hình",
+    "help.captureScreen": "Bắt vùng nhận diện (kéo một khung)",
     "help.togglePanel": "Mở/đóng bảng điều khiển",
     "help.speedUp": "Nhanh hơn (mốc kế tiếp)",
     "help.speedDown": "Chậm lại (mốc trước đó)",
@@ -3227,6 +3373,7 @@
     "screens.title": "Screens",
     "screens.empty": "No screens yet. Capture one so the bot knows where it is.",
     "screens.capture": "Capture a screen anchor",
+    "screens.armCapture": "Capture mode: enables the S key",
     "screens.captureHint": "The panel steps aside; drag a box around something only this screen shows. Esc cancels.",
     "screens.addAnchor": "Add another anchor",
     "screens.unnamed": "(unnamed)",
@@ -3315,6 +3462,8 @@
     "help.sectionSpeed": "Speed",
     "help.run": "Start or stop whatever the Run tab is set to",
     "help.capture": "Capture a step at the cursor",
+    "help.sectionScreens": "Screens",
+    "help.captureScreen": "Capture a screen anchor (drag a box)",
     "help.togglePanel": "Open/close the control panel",
     "help.speedUp": "Speed up (next stop)",
     "help.speedDown": "Slow down (previous stop)",
@@ -5106,6 +5255,8 @@
        * `0` mid-fight that captures whatever happened to be under the cursor.
        */
       isCaptureArmed: false,
+      /** Same reasoning as `isCaptureArmed`, for the Screens tab's own key. */
+      isScreenCaptureArmed: false,
       /**
        * A step waiting for one more place.
        *
@@ -5170,6 +5321,7 @@
       setTab: (tab) => patch({ tab, panelOpen: true }),
       setRuleFilter: (activityId) => patch({ stepFilter: activityId }),
       armCapture: (armed) => patch({ isCaptureArmed: armed }),
+      armScreenCapture: (armed) => patch({ isScreenCaptureArmed: armed }),
       awaitPlaceFor: (stepId) => patch({ pendingPlaceStepId: stepId }),
       pinMarkers: (pinned) => patch({ areMarkersPinned: pinned }),
       awaitProbe: (awaiting) => patch({ isAwaitingProbe: awaiting }),
@@ -5232,53 +5384,6 @@
         return state.hoveredStepId;
       }
     };
-  }
-
-  // src/ui/dom.js
-  function el(tag, props = {}, children = []) {
-    const node = document.createElement(tag);
-    if (props.class) {
-      node.className = props.class;
-    }
-    if (props.text !== void 0) {
-      node.textContent = props.text;
-    }
-    if (props.title) {
-      node.title = props.title;
-    }
-    if (props.style) {
-      Object.assign(node.style, props.style);
-    }
-    for (const child of children) {
-      if (child === null || child === void 0) {
-        continue;
-      }
-      node.append(child);
-    }
-    return node;
-  }
-  function mount(node) {
-    (document.documentElement || document.body).append(node);
-    return node;
-  }
-  function chipGroup({ options, value, onChange, className = "" }) {
-    const wrap = el("div", { class: `bhb-chips ${className}`.trim() });
-    for (const option of options) {
-      const chip = el("button", {
-        class: `bhb-chip ${option.value === value ? "is-active" : ""}`.trim(),
-        text: option.label,
-        title: option.title
-      });
-      chip.type = "button";
-      chip.disabled = Boolean(option.disabled);
-      chip.addEventListener("click", () => {
-        if (option.value !== value) {
-          onChange(option.value);
-        }
-      });
-      wrap.append(chip);
-    }
-    return wrap;
   }
 
   // src/ui/anchor.js
@@ -5604,101 +5709,6 @@
         el("dd", { class: "bhb-mono", text: describeFrames() })
       ])
     ]);
-  }
-
-  // src/ui/dragselect.js
-  var MIN_SIDE_PX = 6;
-  function startDragSelect(onDone) {
-    const canvas = getCanvas();
-    if (!canvas) {
-      onDone(null);
-      return () => {
-      };
-    }
-    const layer = mount(el("div", { class: "bhb-drag" }));
-    const box = el("div", { class: "bhb-drag__box" });
-    const hint = el("div", { class: "bhb-drag__hint" });
-    layer.append(box, hint);
-    let startX = null;
-    let startY = null;
-    let finished = false;
-    function rectFrom(x, y) {
-      return {
-        left: Math.min(startX, x),
-        top: Math.min(startY, y),
-        width: Math.abs(x - startX),
-        height: Math.abs(y - startY)
-      };
-    }
-    const HINT_GAP_PX = 9;
-    function draw(rect) {
-      Object.assign(box.style, {
-        display: "block",
-        left: `${rect.left}px`,
-        top: `${rect.top}px`,
-        width: `${rect.width}px`,
-        height: `${rect.height}px`
-      });
-      hint.style.display = "block";
-      hint.textContent = `${Math.round(rect.width)} × ${Math.round(rect.height)}`;
-      const size = hint.getBoundingClientRect();
-      const below = rect.top + rect.height + HINT_GAP_PX;
-      const above = rect.top - size.height - HINT_GAP_PX;
-      const top = below + size.height <= window.innerHeight || above < 0 ? below : above;
-      const left = rect.left + rect.width / 2 - size.width / 2;
-      hint.style.top = `${Math.max(0, top)}px`;
-      hint.style.left = `${Math.min(Math.max(0, left), window.innerWidth - size.width)}px`;
-    }
-    function finish(rect) {
-      if (finished) {
-        return;
-      }
-      finished = true;
-      window.removeEventListener("mousedown", onDown, true);
-      window.removeEventListener("mousemove", onMove, true);
-      window.removeEventListener("mouseup", onUp, true);
-      window.removeEventListener("keydown", onKey, true);
-      layer.remove();
-      onDone(rect);
-    }
-    function onDown(event) {
-      if (!isInsideCanvas(canvas, event.clientX, event.clientY)) {
-        finish(null);
-        return;
-      }
-      event.preventDefault();
-      event.stopPropagation();
-      startX = event.clientX;
-      startY = event.clientY;
-      draw(rectFrom(startX, startY));
-    }
-    function onMove(event) {
-      if (startX === null) {
-        return;
-      }
-      event.preventDefault();
-      event.stopPropagation();
-      draw(rectFrom(event.clientX, event.clientY));
-    }
-    function onUp(event) {
-      if (startX === null) {
-        return;
-      }
-      event.preventDefault();
-      event.stopPropagation();
-      const rect = rectFrom(event.clientX, event.clientY);
-      finish(rect.width >= MIN_SIDE_PX && rect.height >= MIN_SIDE_PX ? rect : null);
-    }
-    function onKey(event) {
-      if (event.key === "Escape") {
-        finish(null);
-      }
-    }
-    window.addEventListener("mousedown", onDown, true);
-    window.addEventListener("mousemove", onMove, true);
-    window.addEventListener("mouseup", onUp, true);
-    window.addEventListener("keydown", onKey, true);
-    return () => finish(null);
   }
 
   // src/ui/panel/steps.js
@@ -6326,6 +6336,18 @@
       el("span", { text: t("screens.capture") })
     ]);
     captureButton.addEventListener("click", () => capture(null));
+    const isScreenCaptureArmed = deps.store.get().isScreenCaptureArmed;
+    const arm = el("button", {
+      class: `bhb-task bhb-task--wrap ${isScreenCaptureArmed ? "is-on" : ""}`
+    }, [
+      el("span", { class: "bhb-task__switch" }),
+      el("span", { class: "bhb-task__label", text: t("screens.armCapture") }),
+      el("span", { class: "bhb-kbd", text: keyLabel(Keys.CAPTURE_SCREEN) })
+    ]);
+    arm.addEventListener("click", () => {
+      deps.store.armScreenCapture(!isScreenCaptureArmed);
+      deps.refresh();
+    });
     const head = el("div", { class: "bhb-field" }, [
       el("div", { class: "bhb-field__head" }, [
         el("span", { class: "bhb-label", text: `${t("screens.title")} · ${screens.length}` }),
@@ -6334,6 +6356,7 @@
           text: deps.getEngineState().screenName || t("screens.unknown")
         })
       ]),
+      arm,
       captureButton,
       el("p", { class: "bhb-note", text: t("screens.captureHint") })
     ]);
@@ -7368,6 +7391,12 @@
       ]
     },
     {
+      title: "help.sectionScreens",
+      entries: [
+        [keyLabel(Keys.CAPTURE_SCREEN), "help.captureScreen"]
+      ]
+    },
+    {
       title: "help.sectionUi",
       entries: [
         [keyLabel(Keys.PANEL), "help.togglePanel"]
@@ -8246,6 +8275,21 @@
             store.awaitPlaceFor(null);
             store.openPanel();
           }
+          refresh();
+        });
+      },
+      [Keys.CAPTURE_SCREEN]: () => {
+        if (!store.get().isScreenCaptureArmed) {
+          engine.setMessage(t("msg.captureDisarmed"));
+          return;
+        }
+        store.closePanel();
+        refresh();
+        startDragSelect((rect) => {
+          if (rect) {
+            screenEditor.captureAnchor(rect, null);
+          }
+          store.openPanel();
           refresh();
         });
       },

@@ -84,6 +84,9 @@ export function createUiStore(restoredLog = []) {
      */
     isCaptureArmed: false,
 
+    /** Same reasoning as `isCaptureArmed`, for the Screens tab's own key. */
+    isScreenCaptureArmed: false,
+
     /**
      * A step waiting for one more place.
      *
@@ -166,6 +169,7 @@ export function createUiStore(restoredLog = []) {
     setRuleFilter: (activityId) => patch({ stepFilter: activityId }),
 
     armCapture: (armed) => patch({ isCaptureArmed: armed }),
+    armScreenCapture: (armed) => patch({ isScreenCaptureArmed: armed }),
 
     awaitPlaceFor: (stepId) => patch({ pendingPlaceStepId: stepId }),
 

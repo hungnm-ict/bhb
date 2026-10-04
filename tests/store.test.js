@@ -148,3 +148,22 @@ describe('capture arming', () => {
   });
 });
 
+describe('screen capture arming', () => {
+  it('starts disarmed, so a stray S cannot capture on a fresh load', () => {
+    expect(createUiStore().get().isScreenCaptureArmed).toBe(false);
+  });
+
+  it('arms and disarms, telling views to redraw', () => {
+    const store = createUiStore();
+    const seen = [];
+    store.subscribe((state) => seen.push(state.isScreenCaptureArmed));
+
+    store.armScreenCapture(true);
+    expect(store.get().isScreenCaptureArmed).toBe(true);
+
+    store.armScreenCapture(false);
+    expect(store.get().isScreenCaptureArmed).toBe(false);
+    expect(seen).toEqual([true, false]);
+  });
+});
+

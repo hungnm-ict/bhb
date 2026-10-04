@@ -18,6 +18,7 @@ import {
   VERSION,
 } from './core/constants.js';
 import { Keys } from './core/keys.js';
+import { startDragSelect } from './ui/dragselect.js';
 import { buildReport } from './core/report.js';
 import { createLagGuard } from './core/lag.js';
 import { installCanvasPatch } from './core/canvas.js';
@@ -469,6 +470,23 @@ function bootstrap() {
           store.awaitPlaceFor(null);
           store.openPanel();
         }
+        refresh();
+      });
+    },
+    [Keys.CAPTURE_SCREEN]: () => {
+      if (!store.get().isScreenCaptureArmed) {
+        engine.setMessage(t('msg.captureDisarmed'));
+        return;
+      }
+      // The panel covers the game, so it gets out of the way for the drag,
+      // same as the Screens tab's own button does.
+      store.closePanel();
+      refresh();
+      startDragSelect((rect) => {
+        if (rect) {
+          screenEditor.captureAnchor(rect, null);
+        }
+        store.openPanel();
         refresh();
       });
     },
