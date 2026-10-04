@@ -517,10 +517,29 @@ export function renderStepsTab(deps) {
       deps.refresh();
     });
 
+    // Only meaningful once restAuto is on, and off by default even then: a
+    // step whose own reappearance matters (a Re-run button that also closes
+    // the fight before it) wants the number without the blind window.
+    const restAutoBlindToggle = step.restAuto
+      ? (() => {
+          const toggle = el('button', {
+            class: `bhb-icon ${step.restAutoBlind ? 'is-on' : ''}`,
+            title: t('steps.restAutoBlindHint'),
+            text: '⏸',
+          });
+          toggle.addEventListener('click', () => {
+            deps.stepEditor.setRestAutoBlind(step.id, !step.restAutoBlind);
+            deps.refresh();
+          });
+          return toggle;
+        })()
+      : null;
+
     const restGroup = el('span', { class: 'bhb-rule__restgroup' }, [
       rest,
       restAutoToggle,
       endsTimerToggle,
+      restAutoBlindToggle,
     ]);
 
     // How many changes to wait out, and how long before giving up on them.

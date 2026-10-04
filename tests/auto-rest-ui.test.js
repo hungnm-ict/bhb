@@ -20,7 +20,12 @@ function renderInto(step, stepEditorOverrides = {}) {
     getScreens: () => [],
     getCanvasLock: () => ({ width: 640, height: 400 }),
     settings: { scaleMode: 'scale', showScreens: false },
-    stepEditor: { setRestAuto: vi.fn(), setEndsTimer: vi.fn(), ...stepEditorOverrides },
+    stepEditor: {
+      setRestAuto: vi.fn(),
+      setEndsTimer: vi.fn(),
+      setRestAutoBlind: vi.fn(),
+      ...stepEditorOverrides,
+    },
     dryRunner: { start: () => {}, stop: () => {} },
     refresh: () => {},
   });
@@ -73,5 +78,36 @@ describe('the restAuto / endsTimer toggles', () => {
     findByGlyph(tab, '⏹').click();
 
     expect(setEndsTimer).toHaveBeenCalledWith('a', true);
+  });
+
+  it('shows no blind-rest toggle until restAuto is on', () => {
+    const step = createStep({ id: 'a', label: 'Start', restAuto: false });
+    const tab = renderInto(step);
+
+    expect(findByGlyph(tab, '⏸')).toBeUndefined();
+  });
+
+  it('shows the blind-rest toggle once restAuto is on, off by default', () => {
+    const step = createStep({ id: 'a', label: 'Start', restAuto: true });
+    const tab = renderInto(step);
+
+    expect(findByGlyph(tab, '⏸').classList.contains('is-on')).toBe(false);
+  });
+
+  it('shows the blind-rest toggle on when the step already has it', () => {
+    const step = createStep({ id: 'a', label: 'Start', restAuto: true, restAutoBlind: true });
+    const tab = renderInto(step);
+
+    expect(findByGlyph(tab, '⏸').classList.contains('is-on')).toBe(true);
+  });
+
+  it('calls setRestAutoBlind with the flipped value on click', () => {
+    const step = createStep({ id: 'a', label: 'Start', restAuto: true, restAutoBlind: false });
+    const setRestAutoBlind = vi.fn();
+    const tab = renderInto(step, { setRestAutoBlind });
+
+    findByGlyph(tab, '⏸').click();
+
+    expect(setRestAutoBlind).toHaveBeenCalledWith('a', true);
   });
 });

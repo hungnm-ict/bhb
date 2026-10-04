@@ -1001,11 +1001,15 @@ export function createEngine(deps) {
       // costs nothing but a few extra scan ticks when the fight does run
       // that long, and lets a fight that runs its usual length be caught
       // close to when it actually ends.
+      // Measuring never needs the blind window: the clock runs whether the
+      // engine is reading the screen or not. A restAuto step only sits
+      // through it if restAutoBlind says to, same as a manually-typed
+      // restSec always has for a step that is not restAuto at all.
       const currentSpeedTo = Number(hit.step.speedTo) || 0;
       const rest = hit.step.restAuto
-        ? hit.step.restSpeedTo === currentSpeedTo
+        ? hit.step.restAutoBlind && hit.step.restSpeedTo === currentSpeedTo
           ? Number(hit.step.restObserved) || 0
-          : 0 // the learned average is from a different speed; it says nothing yet
+          : 0 // not asked for, or the learned average is from a different speed
         : Number(hit.step.restSec) || 0;
       if (rest > 0) {
         restingUntil = realNow() + rest * 1000;

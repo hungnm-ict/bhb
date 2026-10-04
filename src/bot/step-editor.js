@@ -455,6 +455,21 @@ export function createStepEditor(deps) {
     deps.persist();
   }
 
+  /**
+   * Whether a restAuto step also sits through the fight blind, rather than
+   * just timing it. Its own switch: no other step is affected, since it is
+   * a preference about this one step's own blind window, not a slot two
+   * steps compete for the way `restAuto`/`endsTimer` do.
+   */
+  function setRestAutoBlind(stepId, enabled) {
+    const step = find(stepId);
+    if (!step) {
+      return;
+    }
+    step.restAutoBlind = enabled;
+    deps.persist();
+  }
+
   /** Turn `endsTimer` on for one step, off for every other in its activity. */
   function setEndsTimer(stepId, enabled) {
     const step = find(stepId);
@@ -642,6 +657,7 @@ export function createStepEditor(deps) {
     setScreens,
     setRest,
     setRestAuto,
+    setRestAutoBlind,
     setEndsTimer,
     recordAutoRest,
     setBehaviour,

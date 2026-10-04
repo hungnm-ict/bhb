@@ -110,6 +110,53 @@ describe('measuring a fight', () => {
     engine.stop();
   });
 
+  it('does not blind-rest by default, even once a duration is learned', () => {
+    // Measuring never needed the blind window: the clock runs whether the
+    // engine is reading the screen or not. A step whose own reappearance
+    // matters (a Re-run button that also closes the previous fight's timer)
+    // must keep scanning, or it misses itself showing up early.
+    const start = stepAt(100, 'start', {
+      activity: 'dungeon',
+      restAuto: true,
+      restObserved: 80, // already learned from an earlier session
+    });
+    const end = stepAt(200, 'end', { activity: 'dungeon', endsTimer: true });
+    const engine = build([start, end]);
+
+    lit = new Set([100]);
+    engine.start(TaskId.SOLO, 'dungeon');
+
+    expect(
+      engine.getState().restingMs,
+      'measuring must not blind the scan by default'
+    ).toBe(0);
+
+    // The real end shows up long before the learned 80s would have elapsed.
+    advance(5_000);
+    lit = new Set([200]);
+    const clicked = engine.tick();
+
+    expect(clicked, 'the end must be caught immediately, not after a blind wait').toBe(true);
+    engine.stop();
+  });
+
+  it('blind-rests for the learned duration once restAutoBlind is turned on', () => {
+    const start = stepAt(100, 'start', {
+      activity: 'dungeon',
+      restAuto: true,
+      restAutoBlind: true,
+      restObserved: 80,
+    });
+    const end = stepAt(200, 'end', { activity: 'dungeon', endsTimer: true });
+    const engine = build([start, end]);
+
+    lit = new Set([100]);
+    engine.start(TaskId.SOLO, 'dungeon');
+
+    expect(engine.getState().restingMs).toBeGreaterThan(0);
+    engine.stop();
+  });
+
   it('does not let the rest climb toward the ceiling run after run', () => {
     // Resting for the padded restSec, then measuring click-to-click, bakes
     // the pad into the next measurement too: a 40s fight rested 46s is
@@ -117,8 +164,9 @@ describe('measuring a fight', () => {
     // the rest plus however long the scan took to notice, never the true
     // fight length, and never less than last time's rest. Compounded by
     // the 15% pad every time, that climbs toward the auto-stop ceiling
-    // within about 30 fights of the same real length.
-    const start = stepAt(100, 'start', { activity: 'dungeon', restAuto: true });
+    // within about 30 fights of the same real length. Only reachable with
+    // restAutoBlind on: off, this step never blind-rests at all.
+    const start = stepAt(100, 'start', { activity: 'dungeon', restAuto: true, restAutoBlind: true });
     const end = stepAt(200, 'end', { activity: 'dungeon', endsTimer: true });
     const engine = build([start, end], (stepId, measurement) => {
       Object.assign(start, measurement);
