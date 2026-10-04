@@ -1,4 +1,4 @@
-import { DEFAULT_COLOR_TOLERANCE } from '../core/constants.js';
+import { DEFAULT_COLOR_TOLERANCE, AUTO_STOP_TIMEOUT } from '../core/constants.js';
 import { isRegionPoint } from '../core/region.js';
 
 /**
@@ -136,6 +136,27 @@ export function createStep(overrides = {}) {
      * fact deserves.
      */
     endsRun: false,
+    /**
+     * Learn this step's `restSec` from the fight it actually runs, instead
+     * of it being typed in. Meaningless without a matching `endsTimer` step
+     * in the same activity to say when the fight is over.
+     */
+    restAuto: false,
+    /**
+     * Clicking this step is the signal that the fight a `restAuto` step in
+     * this same activity started is over. One per activity; see
+     * `recordAutoRest` in `step-editor.js` for how the pair is kept to one.
+     */
+    endsTimer: false,
+    /**
+     * Hidden running estimate of the fight length, in seconds. Never shown
+     * in the Steps tab — `restSec` is what the engine reads and what the
+     * user sees; this is only the memory behind it.
+     */
+    restObserved: 0,
+    /** The step's `speedTo` the last time `restObserved` was updated. A
+     *  fight timed at one speed is not a sample of a fight at another. */
+    restSpeedTo: 0,
     ...overrides,
   };
 }
@@ -229,6 +250,47 @@ export function waitSatisfied(step, matched) {
     return matched >= Math.max(1, threshold);
   }
   return matched <= threshold;
+}
+
+/** Seconds a learned rest may never reach — past this it would be the
+ *  auto-stop timing itself out, not a fight ending. */
+export const REST_CEILING_SEC = Math.round(AUTO_STOP_TIMEOUT / 1000) - 10;
+
+/** How much of the newest fight's length survives into the running estimate. */
+const REST_EMA_WEIGHT = 0.3;
+
+/** How much the learned number is padded, to absorb ordinary run-to-run
+ *  variance without the bot waking into a fight still finishing. */
+const REST_PAD = 1.15;
+
+/**
+ * Fold one measured fight into a `restAuto` step's learned duration.
+ *
+ * @param {{ restObserved: number, restSpeedTo: number }} step the two
+ *   fields this reads off the step that was timed
+ * @param {number} elapsedSec this run's measured fight length
+ * @param {number} speedTo the step's current `speedTo`
+ * @returns {{ restSec: number, restObserved: number, restSpeedTo: number } | null}
+ *   null means the sample looked nothing like a normal fight and was
+ *   thrown away rather than applied
+ */
+export function computeAutoRest(step, elapsedSec, speedTo) {
+  if (elapsedSec > REST_CEILING_SEC) {
+    return null;
+  }
+  // A fight timed at one speed says nothing about another: start fresh
+  // rather than average two different things together.
+  const observed =
+    step.restSpeedTo !== speedTo
+      ? elapsedSec
+      : step.restObserved === 0
+        ? elapsedSec
+        : step.restObserved * (1 - REST_EMA_WEIGHT) + elapsedSec * REST_EMA_WEIGHT;
+  return {
+    restObserved: observed,
+    restSpeedTo: speedTo,
+    restSec: Math.min(REST_CEILING_SEC, Math.round(observed * REST_PAD)),
+  };
 }
 
 /** The colour to match for a given point — the point's own wins. */
