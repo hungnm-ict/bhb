@@ -72,6 +72,8 @@ export default {
   'screens.anchors': 'Anchors',
   'screens.stopsTask': 'Out of resources — stop the task here',
   'screens.ratioHint': 'Share of samples matching right now',
+  'screens.triggerHint': 'When this screen is the only one on show, the Run target switches to this activity. It never presses Run by itself.',
+  'screens.triggerUnset': '(none)',
   'screens.isParty': 'This is a party list — its rows carry a team mate, not a fixed button',
   'screens.bossHint': 'Which World Boss, so the bot knows how many seats the party has',
   'screens.bossUnset': 'Pick a World Boss…',

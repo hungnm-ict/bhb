@@ -35,6 +35,7 @@ import {
 } from './core/speed.js';
 import { installKeepAlive } from './core/keepalive.js';
 import { createEngine, TaskId, resolveRunTarget } from './core/engine.js';
+import { createAutoSwitch } from './core/autoswitch.js';
 import { setClickObserver } from './core/input.js';
 import {
   loadProfiles,
@@ -148,10 +149,24 @@ function bootstrap() {
     },
   });
 
+  function setRunTarget(target) {
+    settings.runTarget = target;
+    saveSettings(settings);
+  }
+
   const screenEditor = createScreenEditor({
     getScreens,
     persist,
     report: engine.setMessage,
+    getScaleMode: () => settings.scaleMode,
+  });
+
+  createAutoSwitch({
+    getScreens,
+    getActivities,
+    getEngineState: engine.getState,
+    getRunTarget: () => settings.runTarget,
+    setRunTarget,
     getScaleMode: () => settings.scaleMode,
   });
 
@@ -307,10 +322,7 @@ function bootstrap() {
     getEngineState: engine.getState,
     toggleTask: engine.toggle,
     getRunTarget: () => settings.runTarget,
-    setRunTarget: (target) => {
-      settings.runTarget = target;
-      saveSettings(settings);
-    },
+    setRunTarget,
     runSelected: () => runSelected(),
     runActivity: (activityId) => {
       const engineState = engine.getState();
