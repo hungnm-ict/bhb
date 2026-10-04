@@ -3146,6 +3146,7 @@
     "screens.armCapture": "Bật chế độ bắt vùng, cho phép phím S",
     "screens.captureHint": "Bảng điều khiển sẽ nhường chỗ; kéo một khung quanh thứ chỉ màn hình này có. Esc để huỷ.",
     "screens.addAnchor": "Thêm vùng nhận diện",
+    "screens.duplicate": "Nhân bản screen này, kèm toàn bộ anchor",
     "screens.unnamed": "(chưa đặt tên)",
     "screens.clash": "{names} đang cùng khớp. Bot lấy cái đầu tiên nên nó cho rằng đang ở “{winner}” — bước nào khoá vào mấy cái còn lại sẽ không bao giờ tới lượt. Hãy chụp vào chỗ chỉ một màn hình mới có.",
     "screens.unknown": "chưa rõ",
@@ -3431,6 +3432,7 @@
     "screens.armCapture": "Capture mode: enables the S key",
     "screens.captureHint": "The panel steps aside; drag a box around something only this screen shows. Esc cancels.",
     "screens.addAnchor": "Add another anchor",
+    "screens.duplicate": "Copy this screen, anchors and all",
     "screens.unnamed": "(unnamed)",
     "screens.clash": "{names} all match right now. The bot takes the first, so it thinks it is on “{winner}” — a step gated to any of the others will never come up. Capture something only one of them shows.",
     "screens.unknown": "unknown",
@@ -4243,6 +4245,26 @@
       screen.anchors.splice(index, 1);
       deps.persist();
     }
+    function duplicate(screenId) {
+      const original2 = find(screenId);
+      if (!original2) {
+        return null;
+      }
+      const screens = deps.getScreens();
+      const { id, ...rest } = original2;
+      const copy = createScreen({
+        ...rest,
+        // Anchors of its own: tuning the copy must not touch the original's.
+        anchors: original2.anchors.map((anchor) => ({
+          ...anchor,
+          samples: anchor.samples.map((sample) => ({ ...sample }))
+        })),
+        name: `${original2.name || t("screen.defaultName", { n: screens.length + 1 })} (2)`.trim()
+      });
+      screens.push(copy);
+      deps.persist();
+      return copy;
+    }
     function remove(screenId) {
       const screens = deps.getScreens();
       const index = screens.findIndex((screen) => screen.id === screenId);
@@ -4289,6 +4311,7 @@
       setPitch,
       removeAnchor,
       remove,
+      duplicate,
       replaceAll,
       move,
       probe
@@ -6480,6 +6503,22 @@
       });
       const add = el("button", { class: "bhb-icon", title: t("screens.addAnchor"), text: "＋" });
       add.addEventListener("click", () => capture(screen.id));
+      const copy = el("button", { class: "bhb-icon", title: t("screens.duplicate"), text: "⧉" });
+      copy.addEventListener("click", () => {
+        const made = deps.screenEditor.duplicate(screen.id);
+        deps.refresh();
+        if (made) {
+          const row = document.querySelector(`[data-screen-id="${CSS.escape(made.id)}"]`);
+          const field = row ? row.querySelector(".bhb-rule__name") : null;
+          if (row) {
+            row.scrollIntoView({ block: "nearest" });
+          }
+          if (field instanceof HTMLInputElement) {
+            field.focus();
+            field.select();
+          }
+        }
+      });
       const up = el("button", { class: "bhb-icon", title: t("steps.moveUp"), text: "▲" });
       up.addEventListener("click", () => {
         deps.screenEditor.move(screen.id, -1);
@@ -6607,6 +6646,7 @@
             alertToggle,
             partyToggle,
             add,
+            copy,
             up,
             down,
             remove
