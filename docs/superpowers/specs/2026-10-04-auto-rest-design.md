@@ -41,11 +41,20 @@ Two independent booleans on `Step`:
 
 Both are opt-in, default `false`; every existing profile is unaffected.
 
-A `restAuto` step and the `endsTimer` step(s) that close it out are matched
-by `step.activity`: only an `endsTimer` step in the **same activity** ends
-a pending timer. Two activities can each have their own start/end pair
-without crosstalk. A step can be both, in principle (not disallowed, just
-unusual); nothing stops it, but the common case is two different steps.
+**Exactly one of each per activity.** An activity gets one `restAuto` step
+and one `endsTimer` step, never two of either — there is one fight to time
+per activity, not several. Turning the toggle on for a step turns it off
+on every other step sharing that `activity`, in the same editor action, so
+the constraint holds by construction rather than by a rule the engine has
+to notice and recover from. The loose Script set (`activity: null`) is its
+own group for this purpose, same as everywhere else `step.activity` groups
+steps.
+
+This also settles Run-All: it runs the same steps Solo would for whichever
+activity has its turn (`stepsForActivity`, unchanged), so it is already
+using that activity's one pair — there is nothing Run-All-specific to
+configure. What one activity learned, every task that runs it (Script tag,
+Solo, Run-All) benefits from, because it is the same step either way.
 
 ### Measuring
 
@@ -122,7 +131,9 @@ average that might be stale by however long it was off.
 
 - Steps tab: a small toggle button next to the existing rest-seconds input,
   for `restAuto`, visible for `CLICK`-kind steps. A second, similar toggle
-  for `endsTimer`.
+  for `endsTimer`. Turning either on clears it from every other step in the
+  same activity in that one action, so the one-pair-per-activity rule is
+  never something the user has to remember or clean up by hand.
 - HUD pill: once a `restAuto` step for the running activity has a nonzero
   `restObserved`, the pill shows it next to the speed badge (e.g. `DUN 10x
   · ~42s`), always, whether or not the bot is resting right now. Nothing is
@@ -175,6 +186,10 @@ search steps itself.
 - `src/bot/step.js`: defaults for the four new fields; `recordAutoRest`-
   equivalent pure helper for the EMA/ceiling/discard math, unit tested the
   way `pointsByPlace`/`waitSatisfied` already are.
+- `src/bot/step-editor.js`: setting `restAuto` (or `endsTimer`) on a step
+  clears it from every other step with the same `activity`, including the
+  loose-Script group (`activity: null`) and across different activities
+  staying independent.
 - `src/core/engine.js`: an engine-level test (same harness as
   `tests/sequence-scan.test.js`) that clicks a `restAuto` step, advances
   fake time, clicks an `endsTimer` step, and asserts the step's `restSec`/
