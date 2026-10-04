@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.40.1
+// @version      0.40.2
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @icon         data:image/png;base64,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
@@ -15,7 +15,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.40.1" : "dev";
+  var VERSION = true ? "0.40.2" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -1202,12 +1202,12 @@
 
   // src/bot/activity.js
   var DEFAULT_ACTIVITIES = Object.freeze([
+    { id: "dungeon", name: "Dungeon", enabled: true },
+    { id: "raid", name: "Raid", enabled: true },
     // Solo and team are two different sequences, not one with a setting: the
     // team lobby has a party to wait for and a Private box to get right.
     { id: "worldboss", name: "World Boss (solo)", enabled: true },
     { id: "worldbossteam", name: "World Boss (team)", enabled: false },
-    { id: "dungeon", name: "Dungeon", enabled: true },
-    { id: "raid", name: "Raid", enabled: true },
     { id: "pvp", name: "PVP", enabled: true },
     // Two places with two entrances; one slot could only ever farm one of them.
     { id: "trials", name: "Trials", enabled: true },
@@ -2882,7 +2882,7 @@
     "queue.stepCount": "Số bước thuộc hoạt động này",
     "queue.closeAfterRound": "Đóng game sau khi xong một vòng",
     "queue.restoreOrder": "Khôi phục thứ tự mặc định",
-    "queue.restoreOrderHint": "World Boss trước, rồi Dungeon, Raid, PVP, TG, Invasion, Expedition, GVG. Giữ nguyên bật/tắt và tên đã đặt.",
+    "queue.restoreOrderHint": "Dungeon và Raid trước, rồi World Boss, PVP, TG, Invasion, Expedition, GVG. Giữ nguyên bật/tắt và tên đã đặt.",
     "queue.hint": "Chạy từ trên xuống, bỏ qua cái đã hết tài nguyên, rồi quay lại từ đầu. Gán bước cho hoạt động ở tab Bước.",
     "settings.profiles": "Hồ sơ",
     "settings.profilesHint": "Mỗi hồ sơ có bước, màn hình và hàng đợi riêng — mỗi nhân vật một hồ sơ. Tài khoản khác thì chỉ cần một browser profile khác.",
@@ -3159,7 +3159,7 @@
     "queue.stepCount": "Steps tagged to this activity",
     "queue.closeAfterRound": "Close the game after a full round",
     "queue.restoreOrder": "Restore the default order",
-    "queue.restoreOrderHint": "World Boss first, then Dungeon, Raid, PVP, Trials, Invasion, Expedition, GVG. Switches and names are kept.",
+    "queue.restoreOrderHint": "Dungeon and Raid first, then World Boss, PVP, Trials, Invasion, Expedition, GVG. Switches and names are kept.",
     "queue.hint": "Runs top to bottom, skips what is out of resources, and starts again. Tag steps to an activity in the Steps tab.",
     "settings.profiles": "Profiles",
     "settings.profilesHint": "A profile holds its own steps, screens and queue — one per character. A second account just needs a second browser profile.",
@@ -4563,10 +4563,6 @@
 /* Wraps rather than squeezing: two behaviours whose names start alike are
    indistinguishable once the select is narrow enough to clip them. */
 .bhb-rule__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding-left: 21px; }
-.bhb-rule__meta .bhb-tabs__ver {
-  font-size: var(--bhb-fs-xs); line-height: 1.35; text-align: right; opacity: .75;
-  padding-right: 2px; white-space: nowrap;
-}
 .bhb-rule__gate { flex: 1 1 128px; min-width: 128px; max-width: none; }
 
 /* --- Log ---------------------------------------------------------------- */
@@ -4752,6 +4748,23 @@
   font-family: var(--bhb-font); font-size: var(--bhb-fs-sm);
 }
 .bhb-textarea { height: 72px; resize: vertical; font-family: var(--bhb-mono); font-size: var(--bhb-fs-xs); }
+/* A dropdown's few-choices sibling: every option in view, one tap to switch. */
+.bhb-chips {
+  display: flex; gap: 2px;
+  background-color: var(--bhb-bg-soft); border: 1px solid var(--bhb-line); border-radius: 7px;
+  padding: 2px;
+}
+.bhb-chip {
+  flex: 1; padding: 5px 8px; border: none; border-radius: 5px;
+  background: transparent; color: var(--bhb-dim);
+  font-family: var(--bhb-font); font-size: var(--bhb-fs-sm); cursor: pointer;
+}
+.bhb-chip:hover:not(:disabled):not(.is-active) { color: var(--bhb-text); }
+.bhb-chip.is-active { background: rgba(var(--bhb-accent-rgb), .28); color: var(--bhb-text); font-weight: 600; }
+.bhb-chip:disabled { opacity: .4; cursor: default; }
+/* Sitting among compact selects in a wrapping row, not spanning a column. */
+.bhb-chips--inline { width: auto; }
+.bhb-chips--inline .bhb-chip { flex: none; }
 .bhb-btnrow { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
 .bhb-btn--small { flex: 1; min-width: 64px; padding: 6px 10px; font-size: var(--bhb-fs-sm); }
 .bhb-queue__row.is-active { border-color: var(--bhb-live); }
@@ -5081,6 +5094,25 @@
   function mount(node) {
     (document.documentElement || document.body).append(node);
     return node;
+  }
+  function chipGroup({ options, value, onChange, className = "" }) {
+    const wrap = el("div", { class: `bhb-chips ${className}`.trim() });
+    for (const option of options) {
+      const chip = el("button", {
+        class: `bhb-chip ${option.value === value ? "is-active" : ""}`.trim(),
+        text: option.label,
+        title: option.title
+      });
+      chip.type = "button";
+      chip.disabled = Boolean(option.disabled);
+      chip.addEventListener("click", () => {
+        if (option.value !== value) {
+          onChange(option.value);
+        }
+      });
+      wrap.append(chip);
+    }
+    return wrap;
   }
 
   // src/ui/anchor.js
@@ -5967,20 +5999,19 @@
           deps.refresh();
         });
       });
-      const direction = el("select", { class: "bhb-rule__gate", title: t("steps.waitForHint") });
-      for (const [value, labelKey] of [
-        ["gone", "steps.waitForGone"],
-        ["present", "steps.waitForPresent"]
-      ]) {
-        const option = el("option", { text: t(labelKey) });
-        option.value = value;
-        direction.append(option);
-      }
-      direction.value = step.waitFor === "present" ? "present" : "gone";
-      direction.addEventListener("change", () => {
-        deps.stepEditor.setWaitFor(step.id, direction.value);
-        deps.refresh();
+      const direction = chipGroup({
+        options: [
+          { value: "gone", label: t("steps.waitForGone") },
+          { value: "present", label: t("steps.waitForPresent") }
+        ],
+        value: step.waitFor === "present" ? "present" : "gone",
+        onChange: (next) => {
+          deps.stepEditor.setWaitFor(step.id, next);
+          deps.refresh();
+        },
+        className: "bhb-chips--inline"
       });
+      direction.title = t("steps.waitForHint");
       const threshold = el("input", {
         class: "bhb-rest bhb-mono",
         title: step.waitFor === "present" ? t("steps.minMatchesHint") : t("steps.maxMatchesHint")
@@ -6553,18 +6584,19 @@
       deps.refresh();
     }
     const chosen = normaliseLockSize(lock);
-    const size = el("select", { class: "bhb-select", title: t("lock.size") });
-    for (const offered of LOCK_SIZES) {
-      const option = el("option", { text: `${offered.width}×${offered.height}` });
-      option.value = `${offered.width}x${offered.height}`;
-      size.append(option);
-    }
-    size.value = `${chosen.width}x${chosen.height}`;
-    size.disabled = !lock.enabled;
-    size.addEventListener("change", () => {
-      const [width, height] = size.value.split("x").map(Number);
-      update({ width, height });
+    const size = chipGroup({
+      options: LOCK_SIZES.map((offered) => ({
+        value: `${offered.width}x${offered.height}`,
+        label: `${offered.width}×${offered.height}`,
+        disabled: !lock.enabled
+      })),
+      value: `${chosen.width}x${chosen.height}`,
+      onChange: (next) => {
+        const [width, height] = next.split("x").map(Number);
+        update({ width, height });
+      }
     });
+    size.title = t("lock.size");
     return el("div", { class: "bhb-field" }, [
       toggleRow("lock.enabled", lock.enabled, (value) => update({ enabled: value })),
       size,
@@ -6785,16 +6817,16 @@
       });
       return row;
     }
-    const languagePicker = el("select", { class: "bhb-select" });
-    for (const [code, label] of [["vi", "Tiếng Việt"], ["en", "English"]]) {
-      const option = el("option", { text: label });
-      option.value = code;
-      languagePicker.append(option);
-    }
-    languagePicker.value = getLanguage();
-    languagePicker.addEventListener("change", () => {
-      deps.updateSettings({ language: languagePicker.value });
-      deps.refresh();
+    const languagePicker = chipGroup({
+      options: [
+        { value: "vi", label: "Tiếng Việt" },
+        { value: "en", label: "English" }
+      ],
+      value: getLanguage(),
+      onChange: (language) => {
+        deps.updateSettings({ language });
+        deps.refresh();
+      }
     });
     const behaviourCount = countBehaviour(settings);
     const reloads = deps.getReloadCount();
@@ -7262,9 +7294,9 @@
       const strip = el("nav", { class: "bhb-tabs" }, [
         ...tabs,
         el("span", { class: "bhb-tabs__end" }, [
-          // The version left the HUD, which needed the room; it belongs where
-          // the update check already lives.
-          el("span", { class: "bhb-tabs__ver bhb-mono", text: `v${VERSION}` }),
+          // The version used to repeat here too, and a longer translated tab
+          // label (Log → Nhật ký) crowded it into an overlap. It already has a
+          // row of its own in Settings, so one copy is enough.
           profile,
           help
         ])

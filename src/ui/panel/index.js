@@ -2,7 +2,6 @@ import { el, mount } from '../dom.js';
 import { anchorTopRight } from '../anchor.js';
 import { t } from '../../i18n/index.js';
 import { Tab } from '../store.js';
-import { VERSION } from '../../core/constants.js';
 import { renderTasksTab, updateSpeedDisplay, speedIsBeingDragged } from './tasks.js';
 import { renderStepsTab, highlightSteps } from './steps.js';
 import { renderScreensTab } from './screens.js';
@@ -206,9 +205,9 @@ export function createPanel(deps) {
     const strip = el('nav', { class: 'bhb-tabs' }, [
       ...tabs,
       el('span', { class: 'bhb-tabs__end' }, [
-        // The version left the HUD, which needed the room; it belongs where
-        // the update check already lives.
-        el('span', { class: 'bhb-tabs__ver bhb-mono', text: `v${VERSION}` }),
+        // The version used to repeat here too, and a longer translated tab
+        // label (Log → Nhật ký) crowded it into an overlap. It already has a
+        // row of its own in Settings, so one copy is enough.
         profile,
         help,
       ]),

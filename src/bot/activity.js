@@ -15,18 +15,22 @@
 /**
  * The order a session actually runs in, best first.
  *
- * World Boss opens on a timer somebody else set, so it goes first or it is
- * missed; the rest descend by what an hour spent on them is worth. Only the
- * default — the queue is reorderable, and a profile that has been reordered
- * keeps its own order.
+ * Dungeon and Raid lead: they are the two every session runs regardless, so
+ * they are what a fresh queue should reach first rather than last. World Boss
+ * still opens on a timer somebody else set and can still be missed sitting
+ * behind them — that trade is accepted on purpose for the default, and
+ * anyone it costs drags it back above with the queue's own reordering. The
+ * rest descend by what an hour spent on them is worth. Only the default —
+ * the queue is reorderable, and a profile that has been reordered keeps its
+ * own order.
  */
 export const DEFAULT_ACTIVITIES = Object.freeze([
+  { id: 'dungeon', name: 'Dungeon', enabled: true },
+  { id: 'raid', name: 'Raid', enabled: true },
   // Solo and team are two different sequences, not one with a setting: the
   // team lobby has a party to wait for and a Private box to get right.
   { id: 'worldboss', name: 'World Boss (solo)', enabled: true },
   { id: 'worldbossteam', name: 'World Boss (team)', enabled: false },
-  { id: 'dungeon', name: 'Dungeon', enabled: true },
-  { id: 'raid', name: 'Raid', enabled: true },
   { id: 'pvp', name: 'PVP', enabled: true },
   // Two places with two entrances; one slot could only ever farm one of them.
   { id: 'trials', name: 'Trials', enabled: true },

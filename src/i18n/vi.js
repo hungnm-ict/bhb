@@ -85,7 +85,7 @@ export default {
   'queue.stepCount': 'Số bước thuộc hoạt động này',
   'queue.closeAfterRound': 'Đóng game sau khi xong một vòng',
   'queue.restoreOrder': 'Khôi phục thứ tự mặc định',
-  'queue.restoreOrderHint': 'World Boss trước, rồi Dungeon, Raid, PVP, TG, Invasion, Expedition, GVG. Giữ nguyên bật/tắt và tên đã đặt.',
+  'queue.restoreOrderHint': 'Dungeon và Raid trước, rồi World Boss, PVP, TG, Invasion, Expedition, GVG. Giữ nguyên bật/tắt và tên đã đặt.',
   'queue.hint':
     'Chạy từ trên xuống, bỏ qua cái đã hết tài nguyên, rồi quay lại từ đầu. Gán bước cho hoạt động ở tab Bước.',
 

@@ -1,4 +1,4 @@
-import { el } from '../dom.js';
+import { el, chipGroup } from '../dom.js';
 import { t, getLanguage } from '../../i18n/index.js';
 import { ScaleMode } from '../../core/coords.js';
 import { renderQueueSection } from './queue.js';
@@ -130,18 +130,19 @@ function renderCanvasLock(deps, toggleRow) {
   }
 
   const chosen = normaliseLockSize(lock);
-  const size = el('select', { class: 'bhb-select', title: t('lock.size') });
-  for (const offered of LOCK_SIZES) {
-    const option = el('option', { text: `${offered.width}×${offered.height}` });
-    option.value = `${offered.width}x${offered.height}`;
-    size.append(option);
-  }
-  size.value = `${chosen.width}x${chosen.height}`;
-  size.disabled = !lock.enabled;
-  size.addEventListener('change', () => {
-    const [width, height] = size.value.split('x').map(Number);
-    update({ width, height });
+  const size = chipGroup({
+    options: LOCK_SIZES.map((offered) => ({
+      value: `${offered.width}x${offered.height}`,
+      label: `${offered.width}×${offered.height}`,
+      disabled: !lock.enabled,
+    })),
+    value: `${chosen.width}x${chosen.height}`,
+    onChange: (next) => {
+      const [width, height] = next.split('x').map(Number);
+      update({ width, height });
+    },
   });
+  size.title = t('lock.size');
 
   return el('div', { class: 'bhb-field' }, [
     toggleRow('lock.enabled', lock.enabled, (value) => update({ enabled: value })),
@@ -431,16 +432,16 @@ export function renderSettingsTab(deps) {
     return row;
   }
 
-  const languagePicker = el('select', { class: 'bhb-select' });
-  for (const [code, label] of [['vi', 'Tiếng Việt'], ['en', 'English']]) {
-    const option = el('option', { text: label });
-    option.value = code;
-    languagePicker.append(option);
-  }
-  languagePicker.value = getLanguage();
-  languagePicker.addEventListener('change', () => {
-    deps.updateSettings({ language: languagePicker.value });
-    deps.refresh();
+  const languagePicker = chipGroup({
+    options: [
+      { value: 'vi', label: 'Tiếng Việt' },
+      { value: 'en', label: 'English' },
+    ],
+    value: getLanguage(),
+    onChange: (language) => {
+      deps.updateSettings({ language });
+      deps.refresh();
+    },
   });
 
   const behaviourCount = countBehaviour(settings);
