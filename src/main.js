@@ -121,6 +121,7 @@ function bootstrap() {
     closeGame: () => window.close(),
     shouldRecoverFromHang: () => settings.watchdog,
     recoverFromHang: (task) => watchdog.recover(task, engine.getState().activity),
+    recordRestMeasurement: (stepId, measurement) => stepEditor.recordAutoRest(stepId, measurement),
   });
 
   const stepEditor = createStepEditor({
