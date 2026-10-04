@@ -123,6 +123,16 @@ export function createScreenEditor(deps) {
     deps.persist();
   }
 
+  /** Which activity this Screen means for auto-switching, or none. */
+  function setTriggerActivity(screenId, activityId) {
+    const screen = find(screenId);
+    if (!screen) {
+      return;
+    }
+    screen.triggerActivity = activityId || null;
+    deps.persist();
+  }
+
   /**
    * Store the party list's geometry from one drag over it, top row to the
    * bottom of the last.
@@ -233,6 +243,7 @@ export function createScreenEditor(deps) {
     setMinRatio,
     setIsParty,
     setBossId,
+    setTriggerActivity,
     captureListFrame,
     setPitch,
     removeAnchor,
