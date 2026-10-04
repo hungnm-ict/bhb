@@ -540,6 +540,7 @@ const CSS = `
    indistinguishable once the select is narrow enough to clip them. */
 .bhb-rule__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding-left: 21px; }
 .bhb-rule__gate { flex: 1 1 128px; min-width: 128px; max-width: none; }
+.bhb-rule__restgroup { display: flex; align-items: center; gap: 4px; }
 
 /* --- Log ---------------------------------------------------------------- */
 

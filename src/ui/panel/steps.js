@@ -494,6 +494,35 @@ export function renderStepsTab(deps) {
       deps.refresh();
     });
 
+    // Learn the number above from how long the fight actually runs, instead
+    // of it being typed in — see `restAuto`/`endsTimer` in step.js.
+    const restAutoToggle = el('button', {
+      class: `bhb-icon ${step.restAuto ? 'is-on' : ''}`,
+      title: t('steps.restAutoHint'),
+      text: '⏱',
+    });
+    restAutoToggle.addEventListener('click', () => {
+      deps.stepEditor.setRestAuto(step.id, !step.restAuto);
+      deps.refresh();
+    });
+
+    // Marks the fight a restAuto step started as over.
+    const endsTimerToggle = el('button', {
+      class: `bhb-icon ${step.endsTimer ? 'is-on' : ''}`,
+      title: t('steps.endsTimerHint'),
+      text: '⏹',
+    });
+    endsTimerToggle.addEventListener('click', () => {
+      deps.stepEditor.setEndsTimer(step.id, !step.endsTimer);
+      deps.refresh();
+    });
+
+    const restGroup = el('span', { class: 'bhb-rule__restgroup' }, [
+      rest,
+      restAutoToggle,
+      endsTimerToggle,
+    ]);
+
     // How many changes to wait out, and how long before giving up on them.
     const countTarget = el('input', { class: 'bhb-rest bhb-mono', title: t('steps.countToHint') });
     countTarget.type = 'number';
@@ -702,7 +731,7 @@ export function renderStepsTab(deps) {
         behaviour,
         isWait ? direction : null,
         placeCount,
-        isCount ? countTarget : isWait ? threshold : rest,
+        isCount ? countTarget : isWait ? threshold : restGroup,
         isCount ? countCap : speedBox,
         el('span', { class: 'bhb-rule__meta-coord' }, [
           el('span', {
