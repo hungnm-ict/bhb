@@ -87,6 +87,19 @@ export function createPanel(deps) {
     return isField && Boolean(node) && node.contains(active);
   }
 
+  /**
+   * The Screens tab rebuilds on a timer so its live ✓/✗ column stays
+   * current, and every rebuild swaps in a brand new `.bhb-panel__body`
+   * node. The scroll offset is carried over onto the new node, but a
+   * trackpad's inertia is tied to the old one: the swap cuts a scroll
+   * gesture short mid-flight, which read as "can't scroll up" because
+   * the next tick's carried-over offset then undid the little bit of
+   * travel the cut-short gesture had managed. Skipping the rebuild for a
+   * short window after the last wheel movement lets a gesture finish.
+   */
+  const SCROLL_GUARD_MS = 400;
+  let lastWheelAt = 0;
+
   function ensureNode() {
     if (!node) {
       node = mount(el('div', { class: 'bhb-panel' }));
@@ -95,8 +108,15 @@ export function createPanel(deps) {
       // select afterwards — so the redraw the choice itself asked for was the
       // one getting skipped, and the table kept showing the old filter.
       node.addEventListener('change', () => render({ force: true }));
+      node.addEventListener('wheel', () => {
+        lastWheelAt = Date.now();
+      }, { passive: true });
     }
     return node;
+  }
+
+  function isScrolling() {
+    return Date.now() - lastWheelAt < SCROLL_GUARD_MS;
   }
 
   /**
@@ -140,7 +160,7 @@ export function createPanel(deps) {
     if (
       !options.force &&
       renderedTab !== null &&
-      (speedIsBeingDragged() || aDropdownIsOpen() || aFieldIsBeingUsed())
+      (speedIsBeingDragged() || aDropdownIsOpen() || aFieldIsBeingUsed() || isScrolling())
     ) {
       return;
     }

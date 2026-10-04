@@ -1,6 +1,8 @@
 /**
  * The one new field a Screen carries for auto-switching the Run target:
  * which activity it means, or none.
+ *
+ * @vitest-environment jsdom
  */
 import { describe, it, expect } from 'vitest';
 import { createScreen } from '../src/bot/screen.js';

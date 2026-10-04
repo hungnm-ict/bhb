@@ -26,9 +26,9 @@ export function renderScreensTab(deps) {
     // The panel covers the game, so it gets out of the way for the drag.
     deps.store.closePanel();
     deps.refresh();
-    startDragSelect((rect) => {
+    startDragSelect(async (rect) => {
       if (rect) {
-        deps.screenEditor.captureAnchor(rect, screenId);
+        await deps.screenEditor.captureAnchor(rect, screenId);
       }
       deps.store.openPanel();
       deps.refresh();
@@ -259,7 +259,7 @@ export function renderScreensTab(deps) {
       classes.push('is-stopper');
     }
 
-    return el('div', { class: 'bhb-screen__wrap' }, [
+    const wrap = el('div', { class: 'bhb-screen__wrap' }, [
       el('div', { class: classes.join(' ') }, [
         el('span', { class: 'bhb-rule__n', text: String(index + 1) }),
         el('span', {
@@ -290,6 +290,8 @@ export function renderScreensTab(deps) {
       ]),
       party,
     ]);
+    wrap.dataset.screenId = screen.id;
+    return wrap;
   });
 
   return el('div', { class: 'bhb-tab' }, [

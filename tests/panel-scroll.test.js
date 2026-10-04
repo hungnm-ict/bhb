@@ -5,7 +5,7 @@
  *
  * @vitest-environment jsdom
  */
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createPanel } from '../src/ui/panel/index.js';
 import { createUiStore, Tab } from '../src/ui/store.js';
 
@@ -82,5 +82,41 @@ describe('panel scroll', () => {
     panel.render();
 
     expect(body().scrollTop).toBe(0);
+  });
+
+  it('skips a timed rebuild while a wheel gesture is still in flight', () => {
+    // Every rebuild swaps in a new body node; inertia tied to the old one
+    // cuts short mid-gesture, which read as the scrollbar refusing to
+    // move. Pausing the rebuild for a moment after the last wheel event
+    // lets the gesture land first.
+    const { store, panel } = build();
+    store.openPanel();
+    panel.render();
+    const firstBody = body();
+
+    firstBody.dispatchEvent(new Event('wheel', { bubbles: true }));
+    panel.render();
+
+    expect(body(), 'same node, no rebuild mid-gesture').toBe(firstBody);
+  });
+
+  it('rebuilds again once the wheel has been still for a while', () => {
+    vi.useFakeTimers();
+    try {
+      const { store, panel } = build();
+      store.openPanel();
+      panel.render();
+      const firstBody = body();
+
+      firstBody.dispatchEvent(new Event('wheel', { bubbles: true }));
+      panel.render();
+      expect(body()).toBe(firstBody);
+
+      vi.advanceTimersByTime(500);
+      panel.render();
+      expect(body(), 'the guard window has passed').not.toBe(firstBody);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

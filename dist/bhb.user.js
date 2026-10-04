@@ -4097,17 +4097,30 @@
   }
 
   // src/bot/screen-editor.js
+  var REPAINT_FRAMES2 = 2;
+  function nextFrame2() {
+    return new Promise((resolve) => realRequestAnimationFrame(() => resolve()));
+  }
   function createScreenEditor(deps) {
+    trackCursor();
     function find(screenId) {
       return deps.getScreens().find((screen) => screen.id === screenId) || null;
     }
-    function captureAnchor(rect, screenId = null) {
+    async function captureAnchor(rect, screenId = null) {
       const target = getRenderTarget();
       if (!target) {
         deps.report(t("msg.noCanvas"));
         return null;
       }
       const { canvas, gl } = target;
+      const cursor = getCursor();
+      const isCursorOverGame = cursor && isInsideCanvas(canvas, cursor.clientX, cursor.clientY);
+      if (isCursorOverGame) {
+        resetHover(canvas);
+        for (let frame = 0; frame < REPAINT_FRAMES2; frame += 1) {
+          await nextFrame2();
+        }
+      }
       const origin = clientToBuffer(canvas, rect.left, rect.top + rect.height);
       const far = clientToBuffer(canvas, rect.left + rect.width, rect.top);
       const buffer = getBufferSize(canvas);
@@ -4119,6 +4132,9 @@
         bw: buffer.width,
         bh: buffer.height
       });
+      if (isCursorOverGame) {
+        dispatchMoveTo(canvas, cursor.clientX, cursor.clientY);
+      }
       if (!fingerprint) {
         deps.report(t("msg.noWebgl"));
         return null;
@@ -4411,7 +4427,7 @@
   }
 
   // src/ui/styles.js
-  var CSS = `
+  var CSS2 = `
 .bhb-hud, .bhb-panel, .bhb-markers, .bhb-probes, .bhb-flash, .bhb-drag, .bhb-size, .bhb-fpsbadge, .bhb-toast {
   --bhb-bg: #12141c;
   --bhb-bg-soft: #1a1d29;
@@ -5266,7 +5282,7 @@
     }
     const style = document.createElement("style");
     style.id = "bhb-styles";
-    style.textContent = CSS;
+    style.textContent = CSS2;
     (document.head || document.documentElement).append(style);
     installed = true;
   }
@@ -6372,6 +6388,7 @@
       row.addEventListener("mouseenter", () => deps.store.hoverStep(step.id));
       row.addEventListener("mouseleave", () => deps.store.hoverStep(null));
       row.addEventListener("click", () => deps.store.selectStep(step.id));
+      row.dataset.stepId = step.id;
       rows.set(step.id, row);
       return row;
     });
@@ -6385,9 +6402,9 @@
     function capture(screenId) {
       deps.store.closePanel();
       deps.refresh();
-      startDragSelect((rect) => {
+      startDragSelect(async (rect) => {
         if (rect) {
-          deps.screenEditor.captureAnchor(rect, screenId);
+          await deps.screenEditor.captureAnchor(rect, screenId);
         }
         deps.store.openPanel();
         deps.refresh();
@@ -6572,7 +6589,7 @@
       if (screen.stopsTask) {
         classes.push("is-stopper");
       }
-      return el("div", { class: "bhb-screen__wrap" }, [
+      const wrap = el("div", { class: "bhb-screen__wrap" }, [
         el("div", { class: classes.join(" ") }, [
           el("span", { class: "bhb-rule__n", text: String(index + 1) }),
           el("span", {
@@ -6603,6 +6620,8 @@
         ]),
         party
       ]);
+      wrap.dataset.screenId = screen.id;
+      return wrap;
     });
     return el("div", { class: "bhb-tab" }, [
       head,
@@ -7532,12 +7551,20 @@
       const isField = active2 instanceof HTMLInputElement || active2 instanceof HTMLTextAreaElement;
       return isField && Boolean(node) && node.contains(active2);
     }
+    const SCROLL_GUARD_MS = 400;
+    let lastWheelAt = 0;
     function ensureNode() {
       if (!node) {
         node = mount(el("div", { class: "bhb-panel" }));
         node.addEventListener("change", () => render({ force: true }));
+        node.addEventListener("wheel", () => {
+          lastWheelAt = Date.now();
+        }, { passive: true });
       }
       return node;
+    }
+    function isScrolling() {
+      return Date.now() - lastWheelAt < SCROLL_GUARD_MS;
     }
     function screensVisible() {
       return Boolean(deps.settings?.showScreens) || deps.getScreens().length > 0;
@@ -7563,7 +7590,7 @@
     function render(options = {}) {
       const target = ensureNode();
       const state = deps.store.get();
-      if (!options.force && renderedTab !== null && (speedIsBeingDragged() || aDropdownIsOpen() || aFieldIsBeingUsed())) {
+      if (!options.force && renderedTab !== null && (speedIsBeingDragged() || aDropdownIsOpen() || aFieldIsBeingUsed() || isScrolling())) {
         return;
       }
       if (!state.panelOpen) {
@@ -8143,6 +8170,21 @@
       sizeBadge.render();
       fpsBadge.render();
     };
+    function focusCapturedRow(kind, id) {
+      if (!store.get().panelOpen) {
+        return;
+      }
+      const row = document.querySelector(`[data-${kind}-id="${CSS.escape(id)}"]`);
+      if (!row) {
+        return;
+      }
+      row.scrollIntoView({ block: "nearest" });
+      const name = row.querySelector(".bhb-rule__name");
+      if (name instanceof HTMLInputElement) {
+        name.focus();
+        name.select();
+      }
+    }
     const LIVE_TABS = /* @__PURE__ */ new Set([Tab.TASKS, Tab.SCREENS]);
     const refreshLive = () => {
       hud.render();
@@ -8363,12 +8405,15 @@
           return;
         }
         const pending = store.get().pendingPlaceStepId;
-        stepEditor.captureAtCursor(pending).then(() => {
+        stepEditor.captureAtCursor(pending).then((step) => {
           if (pending) {
             store.awaitPlaceFor(null);
             store.openPanel();
           }
           refresh();
+          if (!pending && step) {
+            focusCapturedRow("step", step.id);
+          }
         });
       },
       [Keys.CAPTURE_SCREEN]: () => {
@@ -8378,12 +8423,13 @@
         }
         store.closePanel();
         refresh();
-        startDragSelect((rect) => {
-          if (rect) {
-            screenEditor.captureAnchor(rect, null);
-          }
+        startDragSelect(async (rect) => {
+          const created = rect ? await screenEditor.captureAnchor(rect, null) : null;
           store.openPanel();
           refresh();
+          if (created) {
+            focusCapturedRow("screen", created.id);
+          }
         });
       },
       [Keys.SPEED_RESET]: () => setSpeed(1),

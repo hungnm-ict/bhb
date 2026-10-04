@@ -212,6 +212,33 @@ function bootstrap() {
     fpsBadge.render();
   };
 
+  /**
+   * Land on a just-captured row: scroll it into view and put the cursor in
+   * its name field, text selected, so renaming is the very next keystroke.
+   *
+   * Only while the panel is already open: a hotkey capture made while
+   * playing with the panel closed must stay out of the way, the same
+   * reasoning that keeps it from popping the panel open in the first place.
+   *
+   * @param {'step' | 'screen'} kind
+   * @param {string} id
+   */
+  function focusCapturedRow(kind, id) {
+    if (!store.get().panelOpen) {
+      return;
+    }
+    const row = document.querySelector(`[data-${kind}-id="${CSS.escape(id)}"]`);
+    if (!row) {
+      return;
+    }
+    row.scrollIntoView({ block: 'nearest' });
+    const name = row.querySelector('.bhb-rule__name');
+    if (name instanceof HTMLInputElement) {
+      name.focus();
+      name.select();
+    }
+  }
+
   /** Tabs whose contents change on their own: a countdown, a live probe. */
   const LIVE_TABS = new Set([Tab.TASKS, Tab.SCREENS]);
 
@@ -482,12 +509,15 @@ function bootstrap() {
       }
       // A pending ＋ means this capture belongs to a step that already exists.
       const pending = store.get().pendingPlaceStepId;
-      stepEditor.captureAtCursor(pending).then(() => {
+      stepEditor.captureAtCursor(pending).then((step) => {
         if (pending) {
           store.awaitPlaceFor(null);
           store.openPanel();
         }
         refresh();
+        if (!pending && step) {
+          focusCapturedRow('step', step.id);
+        }
       });
     },
     [Keys.CAPTURE_SCREEN]: () => {
@@ -499,12 +529,13 @@ function bootstrap() {
       // same as the Screens tab's own button does.
       store.closePanel();
       refresh();
-      startDragSelect((rect) => {
-        if (rect) {
-          screenEditor.captureAnchor(rect, null);
-        }
+      startDragSelect(async (rect) => {
+        const created = rect ? await screenEditor.captureAnchor(rect, null) : null;
         store.openPanel();
         refresh();
+        if (created) {
+          focusCapturedRow('screen', created.id);
+        }
       });
     },
     [Keys.SPEED_RESET]: () => setSpeed(1),
