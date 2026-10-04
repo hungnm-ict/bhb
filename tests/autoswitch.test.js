@@ -81,14 +81,14 @@ function screenFor(color, activityId) {
   });
 }
 
-function build({ screens = [], activities = [], restingMs = 0, runTarget = null }) {
+function build({ screens = [], activities = [], restingMs = 0, activeTask = null, runTarget = null }) {
   const setRunTarget = vi.fn((target) => {
     runTarget = target;
   });
   const autoSwitch = createAutoSwitch({
     getScreens: () => screens,
     getActivities: () => activities,
-    getEngineState: () => ({ restingMs }),
+    getEngineState: () => ({ restingMs, activeTask }),
     getRunTarget: () => runTarget,
     setRunTarget,
     getScaleMode: () => 'scale',
@@ -97,11 +97,15 @@ function build({ screens = [], activities = [], restingMs = 0, runTarget = null 
     autoSwitch,
     setRunTarget,
     setResting: (ms) => { restingMs = ms; },
+    setActiveTask: (task) => { activeTask = task; },
     // A manual pick from the Run tab's own dropdown, not something this
     // poll called, so setRunTarget (the spy) must not record it.
     pickManually: (target) => { runTarget = target; },
   };
 }
+
+/** The poll only forgets a match after this many consecutive misses. */
+const MISSES_TO_FORGET = 3;
 
 beforeEach(() => {
   frame = () => ({ r: 0, g: 0, b: 0 });
@@ -158,15 +162,42 @@ describe('the auto-switch poll', () => {
 
     expect(setRunTarget, 'the same still-matching Screen must not force raid back').not.toHaveBeenCalled();
 
-    // The dialog closes, then the same Raid dialog opens again later,
-    // this is a new occasion to apply the switch, overriding the manual
+    // The dialog closes for long enough to count as genuinely gone (not
+    // just one flickered frame), then the same Raid dialog opens again
+    // later: a new occasion to apply the switch, overriding the manual
     // pick made while it was last open.
     frame = () => ({ r: 0, g: 0, b: 0 });
-    tick();
+    for (let i = 0; i < MISSES_TO_FORGET; i += 1) {
+      tick();
+    }
     frame = () => RED;
     tick();
 
     expect(setRunTarget, 'reopening the dialog applies the switch again').toHaveBeenCalledWith('raid');
+  });
+
+  it('does not forget a match on a single flickered miss', () => {
+    // One bad tick (a toast, a transition frame) must not be enough to
+    // re-arm the trigger and fight a manual pick made while the real
+    // screen never actually left.
+    const raid = screenFor(RED, 'raid');
+    const { setRunTarget, pickManually } = build({
+      screens: [raid],
+      activities: [{ id: 'raid', name: 'Raid' }],
+    });
+
+    frame = () => RED;
+    tick();
+    expect(setRunTarget).toHaveBeenCalledTimes(1);
+
+    setRunTarget.mockClear();
+    pickManually('worldboss');
+    frame = () => ({ r: 0, g: 0, b: 0 }); // one flickered miss, short of the threshold
+    tick();
+    frame = () => RED; // the real screen is still there
+    tick();
+
+    expect(setRunTarget, 'a single miss must not re-apply raid').not.toHaveBeenCalled();
   });
 
   it('resets its memory on un-match, so a later real change is still caught', () => {
@@ -187,13 +218,34 @@ describe('the auto-switch poll', () => {
     expect(setRunTarget).toHaveBeenCalledTimes(1);
 
     frame = () => ({ r: 0, g: 0, b: 0 });
-    tick();
+    for (let i = 0; i < MISSES_TO_FORGET; i += 1) {
+      tick();
+    }
     pickManually('worldboss'); // something else claims it while Raid is off screen
     frame = () => RED;
     tick();
 
     expect(setRunTarget).toHaveBeenCalledTimes(2);
     expect(setRunTarget).toHaveBeenNthCalledWith(2, 'raid');
+  });
+
+  it('does nothing while another task is actively running', () => {
+    // The Run button and its hotkey decide Stop-vs-Run by comparing the
+    // Run target against what the engine is doing, so changing the
+    // target mid-task would turn the user's own Stop control into
+    // "start something else" instead.
+    const raid = screenFor(RED, 'raid');
+    const { setRunTarget } = build({
+      screens: [raid],
+      activities: [{ id: 'raid', name: 'Raid' }],
+      activeTask: 'runAll',
+      runTarget: 'worldboss',
+    });
+
+    frame = () => RED;
+    tick();
+
+    expect(setRunTarget).not.toHaveBeenCalled();
   });
 
   it('switches to a different trigger Screen the very next tick', () => {

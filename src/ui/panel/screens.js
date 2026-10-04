@@ -181,7 +181,7 @@ export function renderScreensTab(deps) {
     // crashing: a bare option carrying just that stale id does it.
     if (
       screen.triggerActivity &&
-      !triggerSelect.querySelector(`option[value="${screen.triggerActivity}"]`)
+      ![...triggerSelect.options].some((option) => option.value === screen.triggerActivity)
     ) {
       const stale = el('option', { text: screen.triggerActivity });
       stale.value = screen.triggerActivity;
