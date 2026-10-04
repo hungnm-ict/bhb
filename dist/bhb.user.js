@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.40.3
+// @version      0.41.0
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @icon         data:image/png;base64,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
@@ -15,7 +15,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.40.3" : "dev";
+  var VERSION = true ? "0.41.0" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -380,6 +380,27 @@
        * fact deserves.
        */
       endsRun: false,
+      /**
+       * Learn this step's `restSec` from the fight it actually runs, instead
+       * of it being typed in. Meaningless without a matching `endsTimer` step
+       * in the same activity to say when the fight is over.
+       */
+      restAuto: false,
+      /**
+       * Clicking this step is the signal that the fight a `restAuto` step in
+       * this same activity started is over. One per activity; see
+       * `recordAutoRest` in `step-editor.js` for how the pair is kept to one.
+       */
+      endsTimer: false,
+      /**
+       * Hidden running estimate of the fight length, in seconds. Never shown
+       * in the Steps tab — `restSec` is what the engine reads and what the
+       * user sees; this is only the memory behind it.
+       */
+      restObserved: 0,
+      /** The step's `speedTo` the last time `restObserved` was updated. A
+       *  fight timed at one speed is not a sample of a fight at another. */
+      restSpeedTo: 0,
       ...overrides
     };
   }
@@ -425,6 +446,20 @@
       return matched >= Math.max(1, threshold);
     }
     return matched <= threshold;
+  }
+  var REST_CEILING_SEC = Math.round(AUTO_STOP_TIMEOUT / 1e3) - 10;
+  var REST_EMA_WEIGHT = 0.3;
+  var REST_PAD = 1.15;
+  function computeAutoRest(step, elapsedSec, speedTo) {
+    if (elapsedSec > REST_CEILING_SEC) {
+      return null;
+    }
+    const observed = step.restSpeedTo !== speedTo ? elapsedSec : step.restObserved === 0 ? elapsedSec : step.restObserved * (1 - REST_EMA_WEIGHT) + elapsedSec * REST_EMA_WEIGHT;
+    return {
+      restObserved: observed,
+      restSpeedTo: speedTo,
+      restSec: Math.min(REST_CEILING_SEC, Math.round(observed * REST_PAD))
+    };
   }
   function colorForPoint(step, point) {
     return point.hex || step.hex;
@@ -1334,12 +1369,23 @@
       activityName: null,
       /** @type {string | null} id of the step the runner is waiting for */
       expectedStepId: null,
-      round: 0
+      round: 0,
+      /** The running activity's learned fight length, in seconds; 0 if it
+       *  has no `restAuto` step or nothing has been measured yet. */
+      activityRestSeconds: 0
     };
     let spent = /* @__PURE__ */ new Set();
     let queueIndex = 0;
     let idleSince = 0;
     const cursor = { key: null, index: 0, missingSince: 0 };
+    const restTimers = /* @__PURE__ */ new Map();
+    function restGroupKey(activityId) {
+      return activityId || "";
+    }
+    function restAutoStepFor(activityId) {
+      const steps = activityId ? stepsForActivity(deps.getScriptSteps(), activityId) : looseSteps(deps.getScriptSteps());
+      return steps.find((step) => step.restAuto) || null;
+    }
     const tally = {
       stepId: null,
       count: 0,
@@ -1402,6 +1448,8 @@
     function setActivity(activity) {
       state.activity = activity ? activity.id : null;
       state.activityName = activity ? activity.name : null;
+      const restAutoStep = restAutoStepFor(state.activity);
+      state.activityRestSeconds = restAutoStep ? restAutoStep.restObserved || 0 : 0;
     }
     function advanceQueue(why) {
       const queue = activities();
@@ -1464,7 +1512,8 @@
         round: state.round,
         restingMs: Math.max(0, restingUntil - realNow()),
         spent: [...spent],
-        remainingMs: state.activeTask ? Math.max(0, AUTO_STOP_TIMEOUT - (realNow() - state.lastActionAt)) : 0
+        remainingMs: state.activeTask ? Math.max(0, AUTO_STOP_TIMEOUT - (realNow() - state.lastActionAt)) : 0,
+        activityRestSeconds: state.activityRestSeconds
       };
     }
     let nearest = null;
@@ -1852,6 +1901,27 @@
           restingUntil = realNow() + rest * 1e3;
           setMessage(`${hit.step.label || hit.step.id}: resting ${rest}s`);
         }
+        const groupKey = restGroupKey(hit.step.activity);
+        if (hit.step.endsTimer) {
+          const pending = restTimers.get(groupKey);
+          if (pending) {
+            restTimers.delete(groupKey);
+            const timedStep = steps.find((candidate) => candidate.id === pending.stepId);
+            if (timedStep) {
+              const elapsedSec = (realNow() - pending.startedAt) / 1e3;
+              const measured = computeAutoRest(timedStep, elapsedSec, Number(timedStep.speedTo) || 0);
+              if (measured) {
+                state.activityRestSeconds = measured.restObserved;
+                if (deps.recordRestMeasurement) {
+                  deps.recordRestMeasurement(timedStep.id, measured);
+                }
+              }
+            }
+          }
+        }
+        if (hit.step.restAuto) {
+          restTimers.set(groupKey, { stepId: hit.step.id, startedAt: realNow() });
+        }
       }
       report(hit.clicked ? "click" : "busy", {
         stepId: hit.step.id,
@@ -1929,6 +1999,7 @@
       idleSince = realNow();
       cursor.key = null;
       state.expectedStepId = null;
+      restTimers.clear();
       state.round = taskId === TaskId.RUN_ALL ? 1 : 0;
       if (taskId === TaskId.SOLO) {
         const solo = (deps.getActivities ? deps.getActivities() : []).find(
@@ -1959,6 +2030,7 @@
       state.screenName = null;
       state.expectedStepId = null;
       cursor.key = null;
+      restTimers.clear();
       isCounting = false;
       resetTally();
       foundOurWay();
@@ -3037,6 +3109,8 @@
     "settings.on": "bật",
     "settings.off": "tắt",
     "steps.restHint": "Nghỉ bao nhiêu giây sau khi bước này bấm — dùng cho nút mở trận Dungeon/Raid, để bot khỏi dò suốt lúc đang đánh. 0 là không nghỉ.",
+    "steps.restAutoHint": 'Tự học thời gian nghỉ của bước này từ trận thật, thay vì gõ tay đoán số. Cần một bước khác trong cùng activity đánh dấu "kết thúc giờ" để biết trận đã xong.',
+    "steps.endsTimerHint": 'Đánh dấu trận mà bước "tự học nghỉ" đã bắt đầu, nay đã xong. Mỗi activity chỉ 1 bước này — bật ở đây sẽ tự tắt ở chỗ khác.',
     "steps.speedHint": "Đặt tốc độ game khi bước này chạy — để trống là không đụng tới. Hạ xuống cho mấy nút quanh trận đánh, nâng lên lại cho chính trận đánh.",
     "queue.runSolo": "Chạy riêng hoạt động này",
     "queue.stopSolo": "Dừng",
@@ -3314,6 +3388,8 @@
     "settings.on": "on",
     "settings.off": "off",
     "steps.restHint": "Seconds to sit still after this step clicks — for the button that starts a Dungeon or Raid run, so the bot stops looking while the fight is on. 0 means no rest.",
+    "steps.restAutoHint": "Learn this step’s rest time from how long the fight actually runs, instead of typing a guess. Needs one step in this activity marked “ends the timer” so the bot knows when the fight is over.",
+    "steps.endsTimerHint": "Marks the fight a “learn the rest time” step started as over. One per activity — turning it on here turns it off wherever else it was.",
     "steps.speedHint": "Set the game speed as this step fires — blank leaves it alone. Turn it down for the buttons around a battle and back up for the battle itself.",
     "queue.runSolo": "Run this activity on its own",
     "queue.stopSolo": "Stop",
@@ -3633,12 +3709,55 @@
       step.points = step.points.filter((point) => !doomed.includes(point));
       deps.persist();
     }
+    function sameActivityGroup(step) {
+      return deps.getSteps().filter(
+        (other) => other !== step && (other.activity || "") === (step.activity || "")
+      );
+    }
+    function setRestAuto(stepId, enabled) {
+      const step = find(stepId);
+      if (!step) {
+        return;
+      }
+      if (enabled) {
+        for (const other of sameActivityGroup(step)) {
+          other.restAuto = false;
+        }
+        step.restObserved = 0;
+      }
+      step.restAuto = enabled;
+      deps.persist();
+    }
+    function setEndsTimer(stepId, enabled) {
+      const step = find(stepId);
+      if (!step) {
+        return;
+      }
+      if (enabled) {
+        for (const other of sameActivityGroup(step)) {
+          other.endsTimer = false;
+        }
+      }
+      step.endsTimer = enabled;
+      deps.persist();
+    }
+    function recordAutoRest(stepId, { restSec, restObserved, restSpeedTo }) {
+      const step = find(stepId);
+      if (!step || !step.restAuto) {
+        return;
+      }
+      step.restSec = restSec;
+      step.restObserved = restObserved;
+      step.restSpeedTo = restSpeedTo;
+      deps.persist();
+    }
     function setRest(stepId, seconds) {
       const step = find(stepId);
       if (!step) {
         return;
       }
       step.restSec = Math.max(0, Math.min(600, Math.round(Number(seconds) || 0)));
+      step.restAuto = false;
       deps.persist();
     }
     function setActivity(stepId, activityId) {
@@ -3712,6 +3831,9 @@
       setEnabled,
       setScreens,
       setRest,
+      setRestAuto,
+      setEndsTimer,
+      recordAutoRest,
       setBehaviour,
       setMaxMatches,
       nextLabel,
@@ -4144,6 +4266,9 @@
   font-family: var(--bhb-mono); font-size: var(--bhb-fs-sm); color: var(--bhb-dim);
 }
 .bhb-hud__speed.is-boosted { color: var(--bhb-cyan); font-weight: 700; }
+.bhb-hud__rest {
+  font-family: var(--bhb-mono); font-size: var(--bhb-fs-sm); color: var(--bhb-dim);
+}
 /* Nothing is landing. The frame carries it, so the strip keeps its width. */
 .bhb-hud--stuck {
   border-color: rgba(255, 180, 87, .85);
@@ -4564,6 +4689,7 @@
    indistinguishable once the select is narrow enough to clip them. */
 .bhb-rule__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding-left: 21px; }
 .bhb-rule__gate { flex: 1 1 128px; min-width: 128px; max-width: none; }
+.bhb-rule__restgroup { display: flex; align-items: center; gap: 4px; }
 
 /* --- Log ---------------------------------------------------------------- */
 
@@ -5205,6 +5331,7 @@
       target.className = `bhb-hud ${running ? "bhb-hud--live" : ""} ${stuck ? "bhb-hud--stuck" : ""} ${isFaded ? "bhb-hud--dim" : ""}`;
       target.title = stuck ? engine.lastMessage || "" : "";
       const code = running ? runCode(engine) : null;
+      const restSeconds = Math.round(engine.activityRestSeconds || 0);
       const parts = [
         el("span", { class: "bhb-hud__dot" }),
         code ? el("span", {
@@ -5218,7 +5345,11 @@
         el("span", {
           class: `bhb-hud__speed ${speed2 > 1 ? "is-boosted" : ""}`,
           text: `${formatSpeed(speed2)}×`
-        })
+        }),
+        // The running activity's learned fight length, once one exists —
+        // nothing before the first measurement, so a step with no restAuto
+        // pair adds nothing here.
+        restSeconds > 0 ? el("span", { class: "bhb-hud__rest", text: `~${restSeconds}s` }) : null
       ].filter(Boolean);
       if (running && engine.activity) {
         target.dataset.activity = engine.activity;
@@ -5889,6 +6020,29 @@
         deps.stepEditor.setRest(step.id, rest.value);
         deps.refresh();
       });
+      const restAutoToggle = el("button", {
+        class: `bhb-icon ${step.restAuto ? "is-on" : ""}`,
+        title: t("steps.restAutoHint"),
+        text: "⏱"
+      });
+      restAutoToggle.addEventListener("click", () => {
+        deps.stepEditor.setRestAuto(step.id, !step.restAuto);
+        deps.refresh();
+      });
+      const endsTimerToggle = el("button", {
+        class: `bhb-icon ${step.endsTimer ? "is-on" : ""}`,
+        title: t("steps.endsTimerHint"),
+        text: "⏹"
+      });
+      endsTimerToggle.addEventListener("click", () => {
+        deps.stepEditor.setEndsTimer(step.id, !step.endsTimer);
+        deps.refresh();
+      });
+      const restGroup = el("span", { class: "bhb-rule__restgroup" }, [
+        rest,
+        restAutoToggle,
+        endsTimerToggle
+      ]);
       const countTarget = el("input", { class: "bhb-rest bhb-mono", title: t("steps.countToHint") });
       countTarget.type = "number";
       countTarget.min = "0";
@@ -6065,7 +6219,7 @@
           behaviour,
           isWait ? direction : null,
           placeCount,
-          isCount ? countTarget : isWait ? threshold : rest,
+          isCount ? countTarget : isWait ? threshold : restGroup,
           isCount ? countCap : speedBox,
           el("span", { class: "bhb-rule__meta-coord" }, [
             el("span", {
@@ -7749,7 +7903,8 @@
       shouldCloseAfterRound: () => settings.closeAfterRound,
       closeGame: () => window.close(),
       shouldRecoverFromHang: () => settings.watchdog,
-      recoverFromHang: (task) => watchdog.recover(task, engine.getState().activity)
+      recoverFromHang: (task) => watchdog.recover(task, engine.getState().activity),
+      recordRestMeasurement: (stepId, measurement) => stepEditor.recordAutoRest(stepId, measurement)
     });
     const stepEditor = createStepEditor({
       getSteps,
