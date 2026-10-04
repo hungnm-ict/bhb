@@ -17,6 +17,7 @@ import {
   pointsByPlace,
   speedForStep,
   waitSatisfied,
+  computeAutoRest,
 } from '../bot/step.js';
 import { getSpeed, setSpeed, snapSpeed } from './speed.js';
 import { detectScreen, stepAllowedOn, slottingFor } from '../bot/screen.js';
@@ -114,6 +115,9 @@ export function createEngine(deps) {
     /** @type {string | null} id of the step the runner is waiting for */
     expectedStepId: null,
     round: 0,
+    /** The running activity's learned fight length, in seconds; 0 if it
+     *  has no `restAuto` step or nothing has been measured yet. */
+    activityRestSeconds: 0,
   };
 
   /** Activities already out of resources this round; cleared when it wraps. */
@@ -124,6 +128,27 @@ export function createEngine(deps) {
 
   /** Where the runner is in the current step list. See `runSequence`. */
   const cursor = { key: null, index: 0, missingSince: 0 };
+
+  /**
+   * One open rest-timer per activity, keyed by `step.activity || ''` —
+   * the same null-safe grouping `renumberAutoLabels` already uses. A
+   * `restAuto` step's click opens its activity's entry; the matching
+   * `endsTimer` step's click closes it. Cleared on `start()`/`stop()`.
+   */
+  const restTimers = new Map();
+
+  /** `step.activity || ''`, consistently, for the map above. */
+  function restGroupKey(activityId) {
+    return activityId || '';
+  }
+
+  /** The one `restAuto` step for an activity (or the loose set), if any. */
+  function restAutoStepFor(activityId) {
+    const steps = activityId
+      ? stepsForActivity(deps.getScriptSteps(), activityId)
+      : looseSteps(deps.getScriptSteps());
+    return steps.find((step) => step.restAuto) || null;
+  }
 
   /**
    * A count step's tally.
@@ -249,6 +274,8 @@ export function createEngine(deps) {
   function setActivity(activity) {
     state.activity = activity ? activity.id : null;
     state.activityName = activity ? activity.name : null;
+    const restAutoStep = restAutoStepFor(state.activity);
+    state.activityRestSeconds = restAutoStep ? restAutoStep.restObserved || 0 : 0;
   }
 
   /**
@@ -339,6 +366,7 @@ export function createEngine(deps) {
       remainingMs: state.activeTask
         ? Math.max(0, AUTO_STOP_TIMEOUT - (realNow() - state.lastActionAt))
         : 0,
+      activityRestSeconds: state.activityRestSeconds,
     };
   }
 
@@ -963,6 +991,32 @@ export function createEngine(deps) {
         restingUntil = realNow() + rest * 1000;
         setMessage(`${hit.step.label || hit.step.id}: resting ${rest}s`);
       }
+
+      // Closes a pending timer before opening a new one, in that order:
+      // a step that is somehow tagged both (the spec allows it) must close
+      // out whatever an earlier click opened rather than measuring its own
+      // click as a zero-length fight.
+      const groupKey = restGroupKey(hit.step.activity);
+      if (hit.step.endsTimer) {
+        const pending = restTimers.get(groupKey);
+        if (pending) {
+          restTimers.delete(groupKey);
+          const timedStep = steps.find((candidate) => candidate.id === pending.stepId);
+          if (timedStep) {
+            const elapsedSec = (realNow() - pending.startedAt) / 1000;
+            const measured = computeAutoRest(timedStep, elapsedSec, Number(timedStep.speedTo) || 0);
+            if (measured) {
+              state.activityRestSeconds = measured.restObserved;
+              if (deps.recordRestMeasurement) {
+                deps.recordRestMeasurement(timedStep.id, measured);
+              }
+            }
+          }
+        }
+      }
+      if (hit.step.restAuto) {
+        restTimers.set(groupKey, { stepId: hit.step.id, startedAt: realNow() });
+      }
     }
 
     report(hit.clicked ? 'click' : 'busy', {
@@ -1081,6 +1135,7 @@ export function createEngine(deps) {
     idleSince = realNow();
     cursor.key = null;
     state.expectedStepId = null;
+    restTimers.clear();
     state.round = taskId === TaskId.RUN_ALL ? 1 : 0;
 
     if (taskId === TaskId.SOLO) {
@@ -1116,6 +1171,7 @@ export function createEngine(deps) {
     state.screenName = null;
     state.expectedStepId = null;
     cursor.key = null;
+    restTimers.clear();
     isCounting = false;
     resetTally();
     foundOurWay();
