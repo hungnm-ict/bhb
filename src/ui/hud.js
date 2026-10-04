@@ -140,7 +140,7 @@ export function createHud(deps) {
         class: `bhb-hud__speed ${speed > 1 ? 'is-boosted' : ''}`,
         text: `${formatSpeed(speed)}×`,
       }),
-      // The running activity's learned fight length, once one exists —
+      // The running activity's learned fight length, once one exists:
       // nothing before the first measurement, so a step with no restAuto
       // pair adds nothing here.
       restSeconds > 0

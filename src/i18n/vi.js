@@ -259,7 +259,7 @@ export default {
 
   'steps.restHint': 'Nghỉ bao nhiêu giây sau khi bước này bấm — dùng cho nút mở trận Dungeon/Raid, để bot khỏi dò suốt lúc đang đánh. 0 là không nghỉ.',
   'steps.restAutoHint': 'Tự học thời gian nghỉ của bước này từ trận thật, thay vì gõ tay đoán số. Cần một bước khác trong cùng activity đánh dấu "kết thúc giờ" để biết trận đã xong.',
-  'steps.endsTimerHint': 'Đánh dấu trận mà bước "tự học nghỉ" đã bắt đầu, nay đã xong. Mỗi activity chỉ 1 bước này — bật ở đây sẽ tự tắt ở chỗ khác.',
+  'steps.endsTimerHint': 'Đánh dấu trận mà bước "tự học nghỉ" đã bắt đầu, nay đã xong. Mỗi activity chỉ 1 bước này, bật ở đây sẽ tự tắt ở chỗ khác.',
   'steps.speedHint': 'Đặt tốc độ game khi bước này chạy — để trống là không đụng tới. Hạ xuống cho mấy nút quanh trận đánh, nâng lên lại cho chính trận đánh.',
   'queue.runSolo': 'Chạy riêng hoạt động này',
   'queue.stopSolo': 'Dừng',

@@ -150,7 +150,7 @@ export function createStep(overrides = {}) {
     endsTimer: false,
     /**
      * Hidden running estimate of the fight length, in seconds. Never shown
-     * in the Steps tab — `restSec` is what the engine reads and what the
+     * in the Steps tab: `restSec` is what the engine reads and what the
      * user sees; this is only the memory behind it.
      */
     restObserved: 0,
@@ -252,7 +252,7 @@ export function waitSatisfied(step, matched) {
   return matched <= threshold;
 }
 
-/** Seconds a learned rest may never reach — past this it would be the
+/** Seconds a learned rest may never reach: past this it would be the
  *  auto-stop timing itself out, not a fight ending. */
 export const REST_CEILING_SEC = Math.round(AUTO_STOP_TIMEOUT / 1000) - 10;
 

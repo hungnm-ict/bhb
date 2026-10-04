@@ -495,7 +495,7 @@ export function renderStepsTab(deps) {
     });
 
     // Learn the number above from how long the fight actually runs, instead
-    // of it being typed in — see `restAuto`/`endsTimer` in step.js.
+    // of it being typed in. See `restAuto`/`endsTimer` in step.js.
     const restAutoToggle = el('button', {
       class: `bhb-icon ${step.restAuto ? 'is-on' : ''}`,
       title: t('steps.restAutoHint'),

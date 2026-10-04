@@ -93,6 +93,39 @@ describe('duplicate', () => {
 
     expect(steps).toHaveLength(1);
   });
+
+  it('does not copy restAuto/endsTimer onto the duplicate', () => {
+    // One pair per activity is enforced by every toggle refusing to let a
+    // second step hold it: a duplicate that kept the flag would be a
+    // second step holding it without ever touching a toggle.
+    const steps = [
+      createStep({
+        label: 'start',
+        activity: 'dungeon',
+        restAuto: true,
+        restObserved: 42,
+        restSpeedTo: 5,
+      }),
+    ];
+    const editor = editorFor(steps);
+
+    editor.duplicate(steps[0].id);
+
+    expect(steps[0].restAuto, 'the original keeps its own flag').toBe(true);
+    expect(steps[1].restAuto).toBe(false);
+    expect(steps[1].restObserved).toBe(0);
+    expect(steps[1].restSpeedTo).toBe(0);
+  });
+
+  it('does not copy endsTimer onto the duplicate either', () => {
+    const steps = [createStep({ label: 'end', activity: 'dungeon', endsTimer: true })];
+    const editor = editorFor(steps);
+
+    editor.duplicate(steps[0].id);
+
+    expect(steps[0].endsTimer).toBe(true);
+    expect(steps[1].endsTimer).toBe(false);
+  });
 });
 
 describe('the duplicate button', () => {
