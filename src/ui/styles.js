@@ -763,7 +763,10 @@ const CSS = `
 .bhb-screen__now { color: var(--bhb-live); font-size: var(--bhb-fs-xs); }
 .bhb-screen__state { width: 14px; text-align: center; color: var(--bhb-dim); }
 .bhb-screen__state.is-seen { color: var(--bhb-live); }
-.bhb-screen__tune { display: flex; align-items: center; gap: 8px; padding: 0 8px 6px; }
+.bhb-screen__tune { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 0 8px 6px; }
+/* The ratio slider's flex:1 can otherwise squeeze this dropdown down to
+   nothing in a narrow panel; wrapping keeps it a usable width instead. */
+.bhb-screen__tune .bhb-rule__gate { flex: 0 0 120px; }
 .bhb-slider--thin { flex: 1; height: 20px; }
 .bhb-slider--thin::-webkit-slider-runnable-track { height: 4px; }
 .bhb-slider--thin::-moz-range-track { height: 4px; }

@@ -5164,7 +5164,10 @@
 .bhb-screen__now { color: var(--bhb-live); font-size: var(--bhb-fs-xs); }
 .bhb-screen__state { width: 14px; text-align: center; color: var(--bhb-dim); }
 .bhb-screen__state.is-seen { color: var(--bhb-live); }
-.bhb-screen__tune { display: flex; align-items: center; gap: 8px; padding: 0 8px 6px; }
+.bhb-screen__tune { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 0 8px 6px; }
+/* The ratio slider's flex:1 can otherwise squeeze this dropdown down to
+   nothing in a narrow panel; wrapping keeps it a usable width instead. */
+.bhb-screen__tune .bhb-rule__gate { flex: 0 0 120px; }
 .bhb-slider--thin { flex: 1; height: 20px; }
 .bhb-slider--thin::-webkit-slider-runnable-track { height: 4px; }
 .bhb-slider--thin::-moz-range-track { height: 4px; }
@@ -5541,14 +5544,16 @@
       }
       target.className = `bhb-hud ${running ? "bhb-hud--live" : ""} ${stuck ? "bhb-hud--stuck" : ""} ${isFaded ? "bhb-hud--dim" : ""}`;
       target.title = stuck ? engine.lastMessage || "" : "";
-      const code = running ? runCode(engine) : null;
+      const idleActivity = !running && deps.getRunTarget && deps.getActivities ? resolveRunTarget(deps.getRunTarget(), deps.getActivities()).activityId : null;
+      const idleActivityInfo = idleActivity ? deps.getActivities().find((activity) => activity.id === idleActivity) : null;
+      const code = running ? runCode(engine) : idleActivityInfo ? activityCode(idleActivityInfo) : null;
       const restSeconds = Math.round(engine.activityRestSeconds || 0);
       const parts = [
         el("span", { class: "bhb-hud__dot" }),
         code ? el("span", {
           class: "bhb-hud__code",
           text: code,
-          title: engine.activityName || t(`task.${engine.activeTask}`)
+          title: running ? engine.activityName || t(`task.${engine.activeTask}`) : idleActivityInfo.name
         }) : null,
         // Always shown, running or not: the one thing a glance at a stopped
         // strip is for is "what did I leave the slider at", and that question
@@ -5867,14 +5872,6 @@
       deps.store.pinMarkers(!state.areMarkersPinned);
       deps.refresh();
     });
-    const capture = el("button", { class: "bhb-btn bhb-btn--primary" }, [
-      el("span", { class: "bhb-btn__dot" }),
-      el("span", { text: t("steps.capture") })
-    ]);
-    capture.addEventListener("click", async () => {
-      await deps.stepEditor.captureAtCursor();
-      deps.refresh();
-    });
     const hintToggle = el("button", {
       class: `bhb-icon bhb-steps__hints ${areHintsOpen ? "is-on" : ""}`,
       title: t("steps.hints"),
@@ -6027,7 +6024,6 @@
       ]),
       el("div", { class: "bhb-btnrow" }, [moveAll, cloneAll]),
       arm,
-      capture,
       el("div", { class: "bhb-btnrow" }, [dryRun, pin]),
       el("div", { class: "bhb-btnrow" }, [exportButton, importButton]),
       transfer,
@@ -6397,11 +6393,6 @@
         deps.refresh();
       });
     }
-    const captureButton = el("button", { class: "bhb-btn bhb-btn--primary" }, [
-      el("span", { class: "bhb-btn__dot" }),
-      el("span", { text: t("screens.capture") })
-    ]);
-    captureButton.addEventListener("click", () => capture(null));
     const isScreenCaptureArmed = deps.store.get().isScreenCaptureArmed;
     const arm = el("button", {
       class: `bhb-task bhb-task--wrap ${isScreenCaptureArmed ? "is-on" : ""}`
@@ -6423,7 +6414,6 @@
         })
       ]),
       arm,
-      captureButton,
       el("p", { class: "bhb-note", text: t("screens.captureHint") })
     ]);
     const matching = screens.filter((screen) => {
@@ -8163,7 +8153,12 @@
         panel.render();
       }
     };
-    const hud = createHud({ getEngineState: engine.getState, store });
+    const hud = createHud({
+      getEngineState: engine.getState,
+      store,
+      getRunTarget: () => settings.runTarget,
+      getActivities
+    });
     const profileActions = {
       list: () => profileState.profiles.map(({ id, name }) => ({ id, name })),
       activeId: () => getActiveProfile(profileState).id,

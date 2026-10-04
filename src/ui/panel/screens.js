@@ -35,15 +35,10 @@ export function renderScreensTab(deps) {
     });
   }
 
-  const captureButton = el('button', { class: 'bhb-btn bhb-btn--primary' }, [
-    el('span', { class: 'bhb-btn__dot' }),
-    el('span', { text: t('screens.capture') }),
-  ]);
-  captureButton.addEventListener('click', () => capture(null));
-
-  // Armed here rather than always live, same reasoning as the Steps tab's
-  // own X key: a stray S press starts a drag nobody asked for otherwise.
-  // The button above is explicit, so it always works regardless.
+  // Armed here rather than always live: a stray S press starts a drag
+  // nobody asked for otherwise. The hint below the toggle is the only
+  // other thing needed; a second, separate button to start the same drag
+  // the key already starts is one more control doing one job.
   const isScreenCaptureArmed = deps.store.get().isScreenCaptureArmed;
   const arm = el('button', {
     class: `bhb-task bhb-task--wrap ${isScreenCaptureArmed ? 'is-on' : ''}`,
@@ -66,7 +61,6 @@ export function renderScreensTab(deps) {
       }),
     ]),
     arm,
-    captureButton,
     el('p', { class: 'bhb-note', text: t('screens.captureHint') }),
   ]);
 

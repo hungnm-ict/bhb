@@ -123,7 +123,7 @@ export function renderStepsTab(deps) {
 
   // The hotkey is armed here rather than always live: `0` sits beside the keys
   // that start the bot, and a stray press mid-fight captures whatever the
-  // cursor happened to be over. The button below is explicit, so it always works.
+  // cursor happened to be over.
   const isArmed = state.isCaptureArmed;
   const arm = el('button', { class: `bhb-task bhb-task--wrap ${isArmed ? 'is-on' : ''}` }, [
     el('span', { class: 'bhb-task__switch' }),
@@ -155,15 +155,6 @@ export function renderStepsTab(deps) {
   });
   pin.addEventListener('click', () => {
     deps.store.pinMarkers(!state.areMarkersPinned);
-    deps.refresh();
-  });
-
-  const capture = el('button', { class: 'bhb-btn bhb-btn--primary' }, [
-    el('span', { class: 'bhb-btn__dot' }),
-    el('span', { text: t('steps.capture') }),
-  ]);
-  capture.addEventListener('click', async () => {
-    await deps.stepEditor.captureAtCursor();
     deps.refresh();
   });
 
@@ -353,7 +344,6 @@ export function renderStepsTab(deps) {
     ]),
     el('div', { class: 'bhb-btnrow' }, [moveAll, cloneAll]),
     arm,
-    capture,
     el('div', { class: 'bhb-btnrow' }, [dryRun, pin]),
     el('div', { class: 'bhb-btnrow' }, [exportButton, importButton]),
     transfer,
