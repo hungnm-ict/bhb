@@ -64,8 +64,19 @@ export function updateSpeedDisplay() {
  *
  * The scale is uneven, so a label has to sit over the stop it names rather than
  * at a share of the width — 1× is nowhere near the middle.
+ *
+ * 20 is in this list for when the fast stops are unlocked; locked, the
+ * slider has no 20 to sit over. Filtered against the live stops before use —
+ * see `labelledSpeeds` — so a stop that is not offered is never labelled.
  */
 const LABELLED_SPEEDS = [0.1, 1, 5, 10, 20];
+
+/** The labels to actually draw: `LABELLED_SPEEDS`, minus whichever the
+ *  slider does not currently offer. */
+function labelledSpeeds() {
+  const stops = getSpeedStops();
+  return LABELLED_SPEEDS.filter((stop) => stops.includes(stop));
+}
 
 /** Past this the game may already have rolled into another day. */
 const DRIFT_WARN_MS = 60 * 60 * 1000;
@@ -168,22 +179,29 @@ export function renderTasksTab(deps) {
   const picked = describeTarget(deps, target);
 
   const chooser = el('select', { class: 'bhb-rule__gate', title: t('tasks.target') });
-  // Queue order first: those are the modes anyone came here to start. The two
-  // that are not a mode sit below a line, as they do in the Steps tab.
+  // Run all leads, in a tray of its own: it farms the whole queue, not one
+  // mode out of it, and a line under it says so before the modes even start.
+  // Custom sits below a second line, at the foot of the modes it belongs
+  // with — it is not a mode anyone picked, it is the loose set everything
+  // starts in before it is tagged to one, and it is the modes' reordering
+  // that may one day carry it, never Run all's.
+  const all = el('option', { text: t('task.runAll') });
+  all.value = TaskId.RUN_ALL;
+  chooser.append(all);
+  const aboveModes = el('option', { text: '──────────' });
+  aboveModes.disabled = true;
+  chooser.append(aboveModes);
   for (const activity of deps.getActivities()) {
     const option = el('option', { text: activity.name });
     option.value = activity.id;
     chooser.append(option);
   }
-  const divider = el('option', { text: '──────────' });
-  divider.disabled = true;
-  chooser.append(divider);
+  const aboveCustom = el('option', { text: '──────────' });
+  aboveCustom.disabled = true;
+  chooser.append(aboveCustom);
   const script = el('option', { text: t('task.script') });
   script.value = TaskId.SCRIPT;
   chooser.append(script);
-  const all = el('option', { text: t('task.runAll') });
-  all.value = TaskId.RUN_ALL;
-  chooser.append(all);
   // A target whose activity was deleted falls back to the Script set, and the
   // dropdown has to agree with what Run would actually do.
   chooser.value = picked.taskId === TaskId.SOLO ? picked.activityId : picked.taskId;
@@ -272,7 +290,7 @@ export function renderTasksTab(deps) {
   const scale = el(
     'div',
     { class: 'bhb-speedscale bhb-mono' },
-    LABELLED_SPEEDS.map((stop) =>
+    labelledSpeeds().map((stop) =>
       el('span', {
         class: `bhb-speedscale__mark ${stop === 1 ? 'is-unity' : ''}`,
         text: `${formatSpeed(stop)}×`,

@@ -124,12 +124,13 @@ export function createHud(deps) {
             title: engine.activityName || t(`task.${engine.activeTask}`),
           })
         : null,
-      speed > 1 || running
-        ? el('span', {
-            class: `bhb-hud__speed ${speed > 1 ? 'is-boosted' : ''}`,
-            text: `${formatSpeed(speed)}×`,
-          })
-        : null,
+      // Always shown, running or not: the one thing a glance at a stopped
+      // strip is for is "what did I leave the slider at", and that question
+      // does not go away just because the number is 1× or under.
+      el('span', {
+        class: `bhb-hud__speed ${speed > 1 ? 'is-boosted' : ''}`,
+        text: `${formatSpeed(speed)}×`,
+      }),
     ].filter(Boolean);
 
     if (running && engine.activity) {

@@ -90,8 +90,8 @@ describe('the target dropdown', () => {
       .filter((option) => !option.disabled)
       .map((option) => option.value);
 
-    // Queue order first; the two that are not a mode sit below, where the
-    // Steps tab already puts them.
-    expect(values).toEqual(['wb', 'dungeon', TaskId.SCRIPT, TaskId.RUN_ALL]);
+    // Run all leads, then queue order, then Custom below a line — it is not
+    // a mode anyone picked, it is the loose set everything starts in.
+    expect(values).toEqual([TaskId.RUN_ALL, 'wb', 'dungeon', TaskId.SCRIPT]);
   });
 });
