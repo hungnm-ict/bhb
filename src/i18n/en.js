@@ -258,6 +258,8 @@ export default {
   'settings.off': 'off',
 
   'steps.restHint': 'Seconds to sit still after this step clicks — for the button that starts a Dungeon or Raid run, so the bot stops looking while the fight is on. 0 means no rest.',
+  'steps.restAutoHint': 'Learn this step’s rest time from how long the fight actually runs, instead of typing a guess. Needs one step in this activity marked “ends the timer” so the bot knows when the fight is over.',
+  'steps.endsTimerHint': 'Marks the fight a “learn the rest time” step started as over. One per activity — turning it on here turns it off wherever else it was.',
   'steps.speedHint': 'Set the game speed as this step fires — blank leaves it alone. Turn it down for the buttons around a battle and back up for the battle itself.',
   'queue.runSolo': 'Run this activity on its own',
   'queue.stopSolo': 'Stop',
