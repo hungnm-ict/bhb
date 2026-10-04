@@ -539,10 +539,6 @@ const CSS = `
 /* Wraps rather than squeezing: two behaviours whose names start alike are
    indistinguishable once the select is narrow enough to clip them. */
 .bhb-rule__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding-left: 21px; }
-.bhb-rule__meta .bhb-tabs__ver {
-  font-size: var(--bhb-fs-xs); line-height: 1.35; text-align: right; opacity: .75;
-  padding-right: 2px; white-space: nowrap;
-}
 .bhb-rule__gate { flex: 1 1 128px; min-width: 128px; max-width: none; }
 
 /* --- Log ---------------------------------------------------------------- */
@@ -728,6 +724,23 @@ const CSS = `
   font-family: var(--bhb-font); font-size: var(--bhb-fs-sm);
 }
 .bhb-textarea { height: 72px; resize: vertical; font-family: var(--bhb-mono); font-size: var(--bhb-fs-xs); }
+/* A dropdown's few-choices sibling: every option in view, one tap to switch. */
+.bhb-chips {
+  display: flex; gap: 2px;
+  background-color: var(--bhb-bg-soft); border: 1px solid var(--bhb-line); border-radius: 7px;
+  padding: 2px;
+}
+.bhb-chip {
+  flex: 1; padding: 5px 8px; border: none; border-radius: 5px;
+  background: transparent; color: var(--bhb-dim);
+  font-family: var(--bhb-font); font-size: var(--bhb-fs-sm); cursor: pointer;
+}
+.bhb-chip:hover:not(:disabled):not(.is-active) { color: var(--bhb-text); }
+.bhb-chip.is-active { background: rgba(var(--bhb-accent-rgb), .28); color: var(--bhb-text); font-weight: 600; }
+.bhb-chip:disabled { opacity: .4; cursor: default; }
+/* Sitting among compact selects in a wrapping row, not spanning a column. */
+.bhb-chips--inline { width: auto; }
+.bhb-chips--inline .bhb-chip { flex: none; }
 .bhb-btnrow { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
 .bhb-btn--small { flex: 1; min-width: 64px; padding: 6px 10px; font-size: var(--bhb-fs-sm); }
 .bhb-queue__row.is-active { border-color: var(--bhb-live); }

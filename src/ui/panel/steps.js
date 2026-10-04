@@ -1,4 +1,4 @@
-import { el } from '../dom.js';
+import { el, chipGroup } from '../dom.js';
 import { resolveStepFilter } from '../store.js';
 import { t } from '../../i18n/index.js';
 import { Keys, keyLabel } from '../../core/keys.js';
@@ -632,20 +632,19 @@ export function renderStepsTab(deps) {
 
     // Which way the threshold reads: a ceiling to fall under (seats clearing)
     // or a floor to reach (a face turning up, wherever it sits).
-    const direction = el('select', { class: 'bhb-rule__gate', title: t('steps.waitForHint') });
-    for (const [value, labelKey] of [
-      ['gone', 'steps.waitForGone'],
-      ['present', 'steps.waitForPresent'],
-    ]) {
-      const option = el('option', { text: t(labelKey) });
-      option.value = value;
-      direction.append(option);
-    }
-    direction.value = step.waitFor === 'present' ? 'present' : 'gone';
-    direction.addEventListener('change', () => {
-      deps.stepEditor.setWaitFor(step.id, direction.value);
-      deps.refresh();
+    const direction = chipGroup({
+      options: [
+        { value: 'gone', label: t('steps.waitForGone') },
+        { value: 'present', label: t('steps.waitForPresent') },
+      ],
+      value: step.waitFor === 'present' ? 'present' : 'gone',
+      onChange: (next) => {
+        deps.stepEditor.setWaitFor(step.id, next);
+        deps.refresh();
+      },
+      className: 'bhb-chips--inline',
     });
+    direction.title = t('steps.waitForHint');
 
     const threshold = el('input', {
       class: 'bhb-rest bhb-mono',

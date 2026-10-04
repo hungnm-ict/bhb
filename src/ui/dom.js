@@ -43,3 +43,38 @@ export function mount(node) {
   (document.documentElement || document.body).append(node);
   return node;
 }
+
+/**
+ * A segmented control: every choice visible at once, one tap to switch.
+ *
+ * A `<select>` hides the other choices behind a click and a scroll, which is
+ * wasted motion for something like a language with only two answers. Kept to
+ * a handful of options on purpose — past four or five this is a wall of
+ * buttons, and the dropdown it replaced is the one that still scales.
+ *
+ * @param {object} config
+ * @param {Array<{ value: string, label: string, title?: string, disabled?: boolean }>} config.options
+ * @param {string} config.value the option currently chosen
+ * @param {(value: string) => void} config.onChange
+ * @param {string} [config.className] extra class on the wrapping row
+ * @returns {HTMLElement}
+ */
+export function chipGroup({ options, value, onChange, className = '' }) {
+  const wrap = el('div', { class: `bhb-chips ${className}`.trim() });
+  for (const option of options) {
+    const chip = el('button', {
+      class: `bhb-chip ${option.value === value ? 'is-active' : ''}`.trim(),
+      text: option.label,
+      title: option.title,
+    });
+    chip.type = 'button';
+    chip.disabled = Boolean(option.disabled);
+    chip.addEventListener('click', () => {
+      if (option.value !== value) {
+        onChange(option.value);
+      }
+    });
+    wrap.append(chip);
+  }
+  return wrap;
+}
