@@ -120,6 +120,9 @@ const CSS = `
   font-family: var(--bhb-mono); font-size: var(--bhb-fs-sm); color: var(--bhb-dim);
 }
 .bhb-hud__speed.is-boosted { color: var(--bhb-cyan); font-weight: 700; }
+.bhb-hud__rest {
+  font-family: var(--bhb-mono); font-size: var(--bhb-fs-sm); color: var(--bhb-dim);
+}
 /* Nothing is landing. The frame carries it, so the strip keeps its width. */
 .bhb-hud--stuck {
   border-color: rgba(255, 180, 87, .85);
