@@ -122,6 +122,8 @@ export function createHud(deps) {
     // plan belongs. The strip keeps only the dot.
     const code = running ? runCode(engine) : null;
 
+    const restSeconds = Math.round(engine.activityRestSeconds || 0);
+
     const parts = [
       el('span', { class: 'bhb-hud__dot' }),
       code
@@ -138,6 +140,12 @@ export function createHud(deps) {
         class: `bhb-hud__speed ${speed > 1 ? 'is-boosted' : ''}`,
         text: `${formatSpeed(speed)}×`,
       }),
+      // The running activity's learned fight length, once one exists —
+      // nothing before the first measurement, so a step with no restAuto
+      // pair adds nothing here.
+      restSeconds > 0
+        ? el('span', { class: 'bhb-hud__rest', text: `~${restSeconds}s` })
+        : null,
     ].filter(Boolean);
 
     if (running && engine.activity) {

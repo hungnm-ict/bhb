@@ -103,4 +103,19 @@ describe('HUD', () => {
     const node = hudWith(engine({ activeTask: 'script', activity: null, activityName: null }));
     expect(node.querySelector('.bhb-hud__code').textContent).toBe('SET');
   });
+
+  it('shows the learned fight length once one exists', () => {
+    const node = hudWith(engine({ activityRestSeconds: 42 }));
+    expect(node.querySelector('.bhb-hud__rest')?.textContent).toBe('~42s');
+  });
+
+  it('shows nothing before any fight has been measured', () => {
+    const node = hudWith(engine({ activityRestSeconds: 0 }));
+    expect(node.querySelector('.bhb-hud__rest')).toBeNull();
+  });
+
+  it('rounds a fractional learned length for display', () => {
+    const node = hudWith(engine({ activityRestSeconds: 42.7 }));
+    expect(node.querySelector('.bhb-hud__rest')?.textContent).toBe('~43s');
+  });
 });
