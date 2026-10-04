@@ -1,9 +1,19 @@
 import { getRenderTarget } from '../core/canvas.js';
 import { captureFingerprint } from '../core/region.js';
-import { clientToBuffer, getBufferSize } from '../core/coords.js';
+import { clientToBuffer, getBufferSize, isInsideCanvas } from '../core/coords.js';
+import { dispatchMoveTo, resetHover } from '../core/input.js';
+import { realRequestAnimationFrame } from '../core/timers.js';
+import { trackCursor, getCursor } from '../core/cursor.js';
 import { createScreen, scoreScreen } from './screen.js';
 import { slotsForBoss } from './worldboss.js';
 import { t } from '../i18n/index.js';
+
+/** Frames to let the game repaint after the synthetic pointer moves away. */
+const REPAINT_FRAMES = 2;
+
+function nextFrame() {
+  return new Promise((resolve) => realRequestAnimationFrame(() => resolve()));
+}
 
 /**
  * Every mutation a screen can undergo, kept DOM-free so the panel stays a view.
@@ -17,6 +27,8 @@ import { t } from '../i18n/index.js';
  * @param {() => string} deps.getScaleMode
  */
 export function createScreenEditor(deps) {
+  trackCursor();
+
   function find(screenId) {
     return deps.getScreens().find((screen) => screen.id === screenId) || null;
   }
@@ -24,11 +36,19 @@ export function createScreenEditor(deps) {
   /**
    * Turn a client-space rectangle into an anchor.
    *
+   * The drag that produces `rect` ends with the real cursor still sitting
+   * wherever it was released — often right over whatever was being framed,
+   * same risk a step's single-point capture already had: if that spot is a
+   * button, the game never drops its hover highlight, and the anchor would
+   * read the lit shade instead of the resting one. The synthetic pointer
+   * does the same dodge step capture does: parked in a corner, the game
+   * repaints, the region is read, the real pointer goes back.
+   *
    * @param {{ left: number, top: number, width: number, height: number }} rect
    * @param {string | null} screenId the screen to add it to; null makes a new one
-   * @returns {import('./screen.js').Screen | null}
+   * @returns {Promise<import('./screen.js').Screen | null>}
    */
-  function captureAnchor(rect, screenId = null) {
+  async function captureAnchor(rect, screenId = null) {
     const target = getRenderTarget();
     if (!target) {
       deps.report(t('msg.noCanvas'));
@@ -36,6 +56,16 @@ export function createScreenEditor(deps) {
     }
 
     const { canvas, gl } = target;
+
+    const cursor = getCursor();
+    const isCursorOverGame = cursor && isInsideCanvas(canvas, cursor.clientX, cursor.clientY);
+    if (isCursorOverGame) {
+      resetHover(canvas);
+      for (let frame = 0; frame < REPAINT_FRAMES; frame += 1) {
+        await nextFrame();
+      }
+    }
+
     // Client space has its origin top-left, buffer space bottom-left, so the
     // rectangle's bottom edge is what becomes its origin.
     const origin = clientToBuffer(canvas, rect.left, rect.top + rect.height);
@@ -50,6 +80,10 @@ export function createScreenEditor(deps) {
       bw: buffer.width,
       bh: buffer.height,
     });
+
+    if (isCursorOverGame) {
+      dispatchMoveTo(canvas, cursor.clientX, cursor.clientY);
+    }
 
     if (!fingerprint) {
       deps.report(t('msg.noWebgl'));

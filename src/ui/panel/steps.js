@@ -774,6 +774,7 @@ export function renderStepsTab(deps) {
     row.addEventListener('mouseleave', () => deps.store.hoverStep(null));
     row.addEventListener('click', () => deps.store.selectStep(step.id));
 
+    row.dataset.stepId = step.id;
     rows.set(step.id, row);
     return row;
   });
