@@ -23,6 +23,8 @@ import { DEFAULT_COLOR_TOLERANCE } from '../core/constants.js';
  * @property {number} tolerance
  * @property {boolean} stopsTask
  * @property {boolean} notify announce it to Discord/Telegram when it appears
+ * @property {string | null} triggerActivity which activity this Screen
+ *   means; `null` for a Screen that does not drive auto-switching
  * @property {boolean} isParty whether this screen shows a party list
  * @property {string | null} bossId which World Boss, which is what says how
  *   many seats the list has
@@ -50,6 +52,12 @@ export function createScreen(overrides = {}) {
     listTop: 0,
     pitch: 0,
     listBh: 0,
+    /**
+     * The activity this Screen means, for auto-switching the Run target:
+     * see `src/core/autoswitch.js`. `null` is "no consequence", the same
+     * as every Screen before this field existed.
+     */
+    triggerActivity: null,
     ...overrides,
   };
 }
