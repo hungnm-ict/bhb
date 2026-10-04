@@ -950,10 +950,21 @@ export function createEngine(deps) {
     // Known only after the scan: `expectedStepId` is the cursor's own step,
     // and whether its screen is the one on show now is exactly what decides
     // whether the lull ahead is a wait-for-the-game or a wait-for-nothing.
+    //
+    // `stepAllowedOn` says yes for an ungated step on any screen at all,
+    // which is the right answer for whether it may fire, but the wrong one
+    // here: an ungated step is not parked at a particular door, so a screen
+    // that is not changing is still a dead one to back off from. Most
+    // steps in an ordinary profile are ungated, so skipping this check
+    // kept the whole bot at the fastest rung nearly all the time.
     const expectedStep = state.expectedStepId
       ? steps.find((step) => step.id === state.expectedStepId)
       : null;
-    isAwaitingHere = Boolean(expectedStep) && stepAllowedOn(expectedStep, state.screen);
+    isAwaitingHere =
+      Boolean(expectedStep) &&
+      Array.isArray(expectedStep.screens) &&
+      expectedStep.screens.length > 0 &&
+      stepAllowedOn(expectedStep, state.screen);
 
     // A counted wave is the bot working, not the bot stuck: without this the
     // queue moves on after 12s and the run auto-stops after three minutes.

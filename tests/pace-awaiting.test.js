@@ -157,4 +157,31 @@ describe('pace while parked on a gated step', () => {
     expect(delays.at(-1)).toBe(1000);
     engine.stop();
   });
+
+  it('backs off for a step gated to no screen at all ("Anywhere")', () => {
+    // An ungated step is allowed to fire on any screen, which is right for
+    // matching it, but wrong for deciding whether the bot is parked at a
+    // door: it is not waiting on *this* screen specifically, so a screen
+    // that is not changing is still a dead one to back off from. Most
+    // steps in an ordinary profile are ungated, so getting this wrong
+    // keeps the whole bot at the fastest rung nearly all the time.
+    const lobby = createScreen({ id: 'lobby', name: 'lobby', anchors: [anchorOf(RED)], tolerance: 0 });
+    const start = createStep({
+      label: 'Start',
+      hex: '#00ff00',
+      tolerance: 0,
+      points: [{ x: 400, y: 300, bw: 800, bh: 600 }],
+      // No `screens` at all: "Anywhere".
+    });
+    const engine = build({ steps: [start], screens: [lobby] });
+
+    frame = () => RED; // some screen is on show, Start's colour not showing yet
+
+    engine.start(TaskId.SCRIPT);
+    for (let i = 0; i < 5; i += 1) {
+      fire();
+    }
+    expect(delays.at(-1)).toBe(1000);
+    engine.stop();
+  });
 });
