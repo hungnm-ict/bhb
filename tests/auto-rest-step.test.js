@@ -14,6 +14,7 @@ describe('createStep: the auto-rest fields', () => {
     expect(step.endsTimer).toBe(false);
     expect(step.restObserved).toBe(0);
     expect(step.restSpeedTo).toBe(0);
+    expect(step.restAutoBlind).toBe(false);
   });
 });
 

@@ -143,6 +143,18 @@ export function createStep(overrides = {}) {
      */
     restAuto: false,
     /**
+     * Whether learning a fight's length also means sitting through it blind.
+     *
+     * Measuring never needs this: the clock runs whether the engine is
+     * reading the screen or not. A step whose own reappearance is the thing
+     * to catch (a Re-run button that is also where the previous fight's
+     * timer closes) wants the number without the blind window, since every
+     * second spent not looking is a second it might already be on screen.
+     * A step that genuinely starts an uninterruptible fight wants both,
+     * same as it always did by hand.
+     */
+    restAutoBlind: false,
+    /**
      * Clicking this step is the signal that the fight a `restAuto` step in
      * this same activity started is over. One per activity; see
      * `recordAutoRest` in `step-editor.js` for how the pair is kept to one.

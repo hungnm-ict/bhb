@@ -126,6 +126,37 @@ describe('recordAutoRest', () => {
   });
 });
 
+describe('setRestAutoBlind', () => {
+  it('turns on without touching any other step', () => {
+    const steps = [
+      createStep({ id: 'a', activity: 'dungeon', restAuto: true }),
+      createStep({ id: 'b', activity: 'dungeon', restAuto: false }),
+    ];
+    const editor = createStepEditor({ getSteps: () => steps, persist: () => {}, report: () => {} });
+
+    editor.setRestAutoBlind('a', true);
+
+    expect(steps[0].restAutoBlind).toBe(true);
+    expect(steps[1].restAutoBlind).toBe(false);
+  });
+
+  it('turns back off', () => {
+    const steps = [createStep({ id: 'a', restAutoBlind: true })];
+    const editor = createStepEditor({ getSteps: () => steps, persist: () => {}, report: () => {} });
+
+    editor.setRestAutoBlind('a', false);
+
+    expect(steps[0].restAutoBlind).toBe(false);
+  });
+
+  it('does nothing for a step that is not there', () => {
+    const steps = [createStep({ id: 'a' })];
+    const editor = createStepEditor({ getSteps: () => steps, persist: () => {}, report: () => {} });
+
+    expect(() => editor.setRestAutoBlind('gone', true)).not.toThrow();
+  });
+});
+
 describe('setActivity keeps one pair per activity', () => {
   it('clears restAuto on a step moved into a group that already has one', () => {
     const steps = [
