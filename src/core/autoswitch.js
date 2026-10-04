@@ -7,33 +7,46 @@ import { AUTO_SWITCH_POLL_MS } from './constants.js';
 /**
  * Auto-switch the Run target from the screen on show.
  *
- * Independent of the engine's own task scheduler on purpose: it runs
- * whether or not a task is active, because the whole point is to notice a
- * screen the user opened instead of starting anything. It never presses
- * Run, only ever changes which activity the dropdown is sitting on.
+ * Only while no task is running: the Run button and its hotkey decide
+ * Stop-vs-Run by comparing the Run target against what the engine is
+ * doing, so changing the target out from under a running task would turn
+ * the user's own Stop control into "start something else" instead.
  *
  * Edge-triggered: a Screen that keeps matching across many ticks changes
  * the Run target exactly once, the tick it started matching. Forcing it
  * back every tick while the screen just sits there would fight a user who
  * picked something else by hand in the meantime.
  *
+ * A single tick with no match, or an ambiguous one, does not by itself
+ * forget the last match: a toast, a transition frame, or the game
+ * briefly rendering two tagged screens at once must not be enough to
+ * re-arm the trigger and fight a manual pick made while the real screen
+ * never left. Only a run of consecutive misses counts as the screen
+ * genuinely gone.
+ *
  * @param {object} deps
  * @param {() => import('../bot/screen.js').Screen[]} deps.getScreens
  * @param {() => { id: string }[]} deps.getActivities
- * @param {() => { restingMs: number }} deps.getEngineState
+ * @param {() => { restingMs: number, activeTask: string | null }} deps.getEngineState
  * @param {() => string | null} deps.getRunTarget
  * @param {(target: string) => void} deps.setRunTarget
  * @param {() => string} deps.getScaleMode
  * @returns {{ stop: () => void }}
  */
 export function createAutoSwitch(deps) {
+  const MISSES_TO_FORGET = 3;
+
   /** The trigger Screen that matched last tick, or null. */
   let lastMatchedId = null;
+  let misses = 0;
 
   function tick() {
-    // Mid-fight is not a moment to go looking for a different screen, and
-    // the engine already is not reading anything itself while resting.
-    if ((deps.getEngineState().restingMs || 0) > 0) {
+    const state = deps.getEngineState();
+
+    // A running task owns the Run target's meaning until it stops; and
+    // mid-fight is not a moment to go looking for a different screen
+    // anyway, so this also covers the engine's own blind-rest window.
+    if (state.activeTask || (state.restingMs || 0) > 0) {
       return;
     }
 
@@ -57,9 +70,13 @@ export function createAutoSwitch(deps) {
     // is nothing to act on, and two or more is the same ambiguity the
     // Screens tab's own clash warning already exists to point out.
     if (matched.length !== 1) {
-      lastMatchedId = null;
+      misses += 1;
+      if (misses >= MISSES_TO_FORGET) {
+        lastMatchedId = null;
+      }
       return;
     }
+    misses = 0;
 
     const screen = matched[0];
     if (screen.id === lastMatchedId) {

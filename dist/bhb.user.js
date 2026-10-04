@@ -2217,9 +2217,12 @@
 
   // src/core/autoswitch.js
   function createAutoSwitch(deps) {
+    const MISSES_TO_FORGET = 3;
     let lastMatchedId = null;
+    let misses = 0;
     function tick() {
-      if ((deps.getEngineState().restingMs || 0) > 0) {
+      const state = deps.getEngineState();
+      if (state.activeTask || (state.restingMs || 0) > 0) {
         return;
       }
       const target = getRenderTarget();
@@ -2234,9 +2237,13 @@
         (screen2) => scoreScreen(target.gl, screen2, buffer, scaleMode).matched
       );
       if (matched.length !== 1) {
-        lastMatchedId = null;
+        misses += 1;
+        if (misses >= MISSES_TO_FORGET) {
+          lastMatchedId = null;
+        }
         return;
       }
+      misses = 0;
       const screen = matched[0];
       if (screen.id === lastMatchedId) {
         return;
@@ -6504,7 +6511,7 @@
         option.value = activity.id;
         triggerSelect.append(option);
       }
-      if (screen.triggerActivity && !triggerSelect.querySelector(`option[value="${screen.triggerActivity}"]`)) {
+      if (screen.triggerActivity && ![...triggerSelect.options].some((option) => option.value === screen.triggerActivity)) {
         const stale = el("option", { text: screen.triggerActivity });
         stale.value = screen.triggerActivity;
         triggerSelect.append(stale);
