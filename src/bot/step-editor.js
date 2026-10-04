@@ -426,13 +426,83 @@ export function createStepEditor(deps) {
     deps.persist();
   }
 
-  /** Seconds this step waits after clicking; 0 turns the wait off. */
+  /** Every other step sharing one step's activity group (null included). */
+  function sameActivityGroup(step) {
+    return deps.getSteps().filter(
+      (other) => other !== step && (other.activity || '') === (step.activity || '')
+    );
+  }
+
+  /**
+   * Turn `restAuto` on for one step, off for every other step in its
+   * activity — one learner per activity, by construction.
+   *
+   * Turning it back on starts the average fresh: an old number from before
+   * it was switched off is not assumed to still be true.
+   */
+  function setRestAuto(stepId, enabled) {
+    const step = find(stepId);
+    if (!step) {
+      return;
+    }
+    if (enabled) {
+      for (const other of sameActivityGroup(step)) {
+        other.restAuto = false;
+      }
+      step.restObserved = 0;
+    }
+    step.restAuto = enabled;
+    deps.persist();
+  }
+
+  /** Turn `endsTimer` on for one step, off for every other in its activity. */
+  function setEndsTimer(stepId, enabled) {
+    const step = find(stepId);
+    if (!step) {
+      return;
+    }
+    if (enabled) {
+      for (const other of sameActivityGroup(step)) {
+        other.endsTimer = false;
+      }
+    }
+    step.endsTimer = enabled;
+    deps.persist();
+  }
+
+  /**
+   * Write a learned measurement back onto the step the engine timed.
+   *
+   * Guarded on `restAuto` still being on: the user may have pinned a number
+   * by hand (see `setRest`) in the gap between the fight starting and this
+   * landing, and that choice must not be overwritten by a measurement it
+   * no longer asked for.
+   */
+  function recordAutoRest(stepId, { restSec, restObserved, restSpeedTo }) {
+    const step = find(stepId);
+    if (!step || !step.restAuto) {
+      return;
+    }
+    step.restSec = restSec;
+    step.restObserved = restObserved;
+    step.restSpeedTo = restSpeedTo;
+    deps.persist();
+  }
+
+  /**
+   * Seconds this step waits after clicking; 0 turns the wait off.
+   *
+   * Typing a number here is the user overriding whatever `restAuto` was
+   * doing, so it turns `restAuto` off — the engine stops overwriting a
+   * number the user just chose.
+   */
   function setRest(stepId, seconds) {
     const step = find(stepId);
     if (!step) {
       return;
     }
     step.restSec = Math.max(0, Math.min(600, Math.round(Number(seconds) || 0)));
+    step.restAuto = false;
     deps.persist();
   }
 
@@ -547,6 +617,9 @@ export function createStepEditor(deps) {
     setEnabled,
     setScreens,
     setRest,
+    setRestAuto,
+    setEndsTimer,
+    recordAutoRest,
     setBehaviour,
     setMaxMatches,
     nextLabel,
