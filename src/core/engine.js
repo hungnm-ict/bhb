@@ -130,10 +130,12 @@ export function createEngine(deps) {
   const cursor = { key: null, index: 0, missingSince: 0 };
 
   /**
-   * One open rest-timer per activity, keyed by `step.activity || ''` —
+   * One open rest-timer per activity, keyed by `step.activity || ''`,
    * the same null-safe grouping `renumberAutoLabels` already uses. A
    * `restAuto` step's click opens its activity's entry; the matching
-   * `endsTimer` step's click closes it. Cleared on `start()`/`stop()`.
+   * `endsTimer` step's click closes it. Cleared on `start()`/`stop()`, and
+   * on an activity being left behind: Run-All idling away from it already
+   * gave up, which proves nothing about how long its fight takes.
    */
   const restTimers = new Map();
 
@@ -293,6 +295,11 @@ export function createEngine(deps) {
     if (why === 'spent' && leaving) {
       spent.add(leaving.id);
     }
+    // A timer still open on the activity being left was never closed by its
+    // own endsTimer: the queue gave up on it, which proves nothing about
+    // how long a real fight takes. Closing it later would measure however
+    // long every other activity's turn took in between, not a fight.
+    restTimers.delete(restGroupKey(leaving ? leaving.id : null));
     idleSince = realNow();
     cursor.key = null;
 
@@ -986,7 +993,20 @@ export function createEngine(deps) {
           setMessage(`${hit.step.label || hit.step.id}: speed ${wanted}×`);
         }
       }
-      const rest = Number(hit.step.restSec) || 0;
+      // A restAuto step rests for its own unpadded average, not the padded
+      // restSec: resting for restSec would mean the scan never looks again
+      // until restSec has passed, so the next measurement could never read
+      // less than restSec either, a floor that only ever climbs, run after
+      // run, toward the ceiling. Resting for the shorter, unpadded number
+      // costs nothing but a few extra scan ticks when the fight does run
+      // that long, and lets a fight that runs its usual length be caught
+      // close to when it actually ends.
+      const currentSpeedTo = Number(hit.step.speedTo) || 0;
+      const rest = hit.step.restAuto
+        ? hit.step.restSpeedTo === currentSpeedTo
+          ? Number(hit.step.restObserved) || 0
+          : 0 // the learned average is from a different speed; it says nothing yet
+        : Number(hit.step.restSec) || 0;
       if (rest > 0) {
         restingUntil = realNow() + rest * 1000;
         setMessage(`${hit.step.label || hit.step.id}: resting ${rest}s`);

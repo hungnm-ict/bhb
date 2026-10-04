@@ -435,7 +435,7 @@ export function createStepEditor(deps) {
 
   /**
    * Turn `restAuto` on for one step, off for every other step in its
-   * activity — one learner per activity, by construction.
+   * activity: one learner per activity, by construction.
    *
    * Turning it back on starts the average fresh: an old number from before
    * it was switched off is not assumed to still be true.
@@ -493,7 +493,7 @@ export function createStepEditor(deps) {
    * Seconds this step waits after clicking; 0 turns the wait off.
    *
    * Typing a number here is the user overriding whatever `restAuto` was
-   * doing, so it turns `restAuto` off — the engine stops overwriting a
+   * doing, so it turns `restAuto` off: the engine stops overwriting a
    * number the user just chose.
    */
   function setRest(stepId, seconds) {
@@ -506,10 +506,27 @@ export function createStepEditor(deps) {
     deps.persist();
   }
 
+  /**
+   * Move a step to another activity.
+   *
+   * A step carrying `restAuto` or `endsTimer` loses the flag on arrival if
+   * the destination already has one holding it: one pair per activity, the
+   * same rule `setRestAuto`/`setEndsTimer` already enforce, just reached by
+   * a move instead of a toggle. The step already there is untouched: it was
+   * never part of this action.
+   */
   function setActivity(stepId, activityId) {
     const step = find(stepId);
-    if (!step) {
+    if (!step || (step.activity || null) === (activityId || null)) {
       return;
+    }
+    const destination = sameActivityGroup({ ...step, activity: activityId });
+    if (step.restAuto && destination.some((other) => other.restAuto)) {
+      step.restAuto = false;
+      step.restObserved = 0;
+    }
+    if (step.endsTimer && destination.some((other) => other.endsTimer)) {
+      step.endsTimer = false;
     }
     step.activity = activityId;
     renumberAutoLabels(deps.getSteps());
@@ -542,6 +559,13 @@ export function createStepEditor(deps) {
       label: isAutoLabel(original.label)
         ? original.label
         : `${original.label || ''} (2)`.trim(),
+      // One pair per activity is enforced by every toggle refusing to let a
+      // second step hold it: a copy that kept the flag would be a second
+      // step holding it without ever touching a toggle.
+      restAuto: false,
+      endsTimer: false,
+      restObserved: 0,
+      restSpeedTo: 0,
     };
 
     steps.splice(index + 1, 0, copy);

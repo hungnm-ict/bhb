@@ -125,3 +125,42 @@ describe('recordAutoRest', () => {
     ).not.toThrow();
   });
 });
+
+describe('setActivity keeps one pair per activity', () => {
+  it('clears restAuto on a step moved into a group that already has one', () => {
+    const steps = [
+      createStep({ id: 'a', activity: 'dungeon', restAuto: true, restObserved: 42 }),
+      createStep({ id: 'b', activity: 'raid', restAuto: true, restObserved: 10 }),
+    ];
+    const editor = createStepEditor({ getSteps: () => steps, persist: () => {}, report: () => {} });
+
+    editor.setActivity('b', 'dungeon');
+
+    expect(steps[0].restAuto, 'the step already there keeps its flag').toBe(true);
+    expect(steps[1].restAuto, 'the moved step loses its own').toBe(false);
+    expect(steps[1].restObserved).toBe(0);
+  });
+
+  it('clears endsTimer the same way', () => {
+    const steps = [
+      createStep({ id: 'a', activity: 'dungeon', endsTimer: true }),
+      createStep({ id: 'b', activity: 'raid', endsTimer: true }),
+    ];
+    const editor = createStepEditor({ getSteps: () => steps, persist: () => {}, report: () => {} });
+
+    editor.setActivity('b', 'dungeon');
+
+    expect(steps[0].endsTimer).toBe(true);
+    expect(steps[1].endsTimer).toBe(false);
+  });
+
+  it('leaves the flag alone when the destination group has none yet', () => {
+    const steps = [createStep({ id: 'a', activity: 'raid', restAuto: true, restObserved: 42 })];
+    const editor = createStepEditor({ getSteps: () => steps, persist: () => {}, report: () => {} });
+
+    editor.setActivity('a', 'dungeon');
+
+    expect(steps[0].restAuto).toBe(true);
+    expect(steps[0].restObserved).toBe(42);
+  });
+});

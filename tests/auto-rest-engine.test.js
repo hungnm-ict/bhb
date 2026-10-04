@@ -1,8 +1,8 @@
 /**
  * Timing a fight: a `restAuto` step's click opens the clock, the matching
- * `endsTimer` step's click closes it, and what happened in between — the
+ * `endsTimer` step's click closes it, and what happened in between (the
  * activity it belonged to, whether the task kept running, how long it
- * took — decides what gets written back and to which step.
+ * took) decides what gets written back and to which step.
  *
  * @vitest-environment jsdom
  */
@@ -110,11 +110,54 @@ describe('measuring a fight', () => {
     engine.stop();
   });
 
-  it('does not close a different activity\'s timer', () => {
-    // Only Run-All's queue ever puts two different activities' steps in
-    // front of the engine in the same run — Script and Solo each see one
-    // activity's steps (or the loose set) at a time, so this is the one
-    // real path that can interleave them.
+  it('does not let the rest climb toward the ceiling run after run', () => {
+    // Resting for the padded restSec, then measuring click-to-click, bakes
+    // the pad into the next measurement too: a 40s fight rested 46s is
+    // never caught before 46s has passed, so the "measurement" is really
+    // the rest plus however long the scan took to notice, never the true
+    // fight length, and never less than last time's rest. Compounded by
+    // the 15% pad every time, that climbs toward the auto-stop ceiling
+    // within about 30 fights of the same real length.
+    const start = stepAt(100, 'start', { activity: 'dungeon', restAuto: true });
+    const end = stepAt(200, 'end', { activity: 'dungeon', endsTimer: true });
+    const engine = build([start, end], (stepId, measurement) => {
+      Object.assign(start, measurement);
+    });
+
+    const TRUE_FIGHT_MS = 40_000;
+    const observedAfter = {};
+
+    lit = new Set([100]);
+    engine.start(TaskId.SOLO, 'dungeon');
+
+    for (let fight = 1; fight <= 30; fight += 1) {
+      // The true fight always takes 40s; the end screen sits there until
+      // clicked, however long the bot was blind for. The scan gets one
+      // tick's grace to notice it once free to look again, the most
+      // generous case the implementation could ask for.
+      const restingMs = engine.getState().restingMs;
+      advance(Math.max(TRUE_FIGHT_MS, restingMs) + 300);
+      lit = new Set([200]);
+      engine.tick();
+      lit = new Set([100]);
+      engine.tick(); // the next fight's own start click
+      observedAfter[fight] = start.restObserved;
+    }
+
+    expect(observedAfter[30], 'thirty fights of a 40s battle must stay near 40s').toBeLessThan(45);
+    expect(
+      observedAfter[30] - observedAfter[10],
+      'the last twenty fights must not still be climbing'
+    ).toBeLessThan(2);
+    engine.stop();
+  });
+
+  it('drops a timer for the activity Run-All leaves, rather than let it survive the detour', () => {
+    // Two things proved together: Raid's own end-timer click must not
+    // touch Dungeon's entry (a different activity), and Dungeon's entry
+    // must not still be sitting there, stale, once Run-All has idled its
+    // way past Dungeon and back: closing it then would measure the whole
+    // detour through Raid as if it were Dungeon's fight.
     const recorded = [];
     const dungeonStart = stepAt(100, 'd-start', { activity: 'dungeon', restAuto: true });
     const dungeonEnd = stepAt(150, 'd-end', { activity: 'dungeon', endsTimer: true });
@@ -140,8 +183,22 @@ describe('measuring a fight', () => {
 
     lit = new Set([200]); // raid's own end-timer step, not dungeon's
     engine.tick();
-
     expect(recorded, 'a different activity must not close this one').toEqual([]);
+
+    // Nothing matches for Raid either; the queue idles its way back to
+    // Dungeon, wrapping the two-activity queue.
+    lit = new Set();
+    advance(IDLE_ADVANCE_MS + 1000);
+    engine.tick();
+
+    // Dungeon's end-timer fires with no fresh start click since the
+    // original one: the stale timer must already be gone.
+    lit = new Set([150]);
+    engine.tick();
+    expect(
+      recorded,
+      'a timer abandoned by an idle-advance must not surface once revisited'
+    ).toEqual([]);
     engine.stop();
   });
 
@@ -201,7 +258,7 @@ describe('measuring a fight', () => {
   });
 
   it('is a silent no-op when an endsTimer step fires with nothing pending', () => {
-    // No restAuto step in this list at all — the ordinary case on almost
+    // No restAuto step in this list at all, the ordinary case on almost
     // every tick of almost every activity that has not opted into this.
     const recorded = [];
     const end = stepAt(100, 'end', { activity: 'dungeon', endsTimer: true });
