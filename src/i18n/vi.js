@@ -62,6 +62,7 @@ export default {
   'screens.title': 'Màn hình',
   'screens.empty': 'Chưa có màn hình nào. Bắt một cái để bot biết nó đang ở đâu.',
   'screens.capture': 'Bắt vùng nhận diện',
+  'screens.armCapture': 'Bật chế độ bắt vùng, cho phép phím S',
   'screens.captureHint':
     'Bảng điều khiển sẽ nhường chỗ; kéo một khung quanh thứ chỉ màn hình này có. Esc để huỷ.',
   'screens.addAnchor': 'Thêm vùng nhận diện',
@@ -160,6 +161,8 @@ export default {
   'help.sectionSpeed': 'Tốc độ',
   'help.run': 'Chạy hoặc dừng chế độ đang chọn ở tab Chạy',
   'help.capture': 'Bắt bước tại con trỏ',
+  'help.sectionScreens': 'Màn hình',
+  'help.captureScreen': 'Bắt vùng nhận diện (kéo một khung)',
   'help.togglePanel': 'Mở/đóng bảng điều khiển',
   'help.speedUp': 'Nhanh hơn (mốc kế tiếp)',
   'help.speedDown': 'Chậm lại (mốc trước đó)',

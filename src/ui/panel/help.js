@@ -24,6 +24,12 @@ const SECTIONS = [
     ],
   },
   {
+    title: 'help.sectionScreens',
+    entries: [
+      [keyLabel(Keys.CAPTURE_SCREEN), 'help.captureScreen'],
+    ],
+  },
+  {
     title: 'help.sectionUi',
     entries: [
       [keyLabel(Keys.PANEL), 'help.togglePanel'],

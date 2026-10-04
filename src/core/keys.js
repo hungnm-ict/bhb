@@ -14,6 +14,7 @@ export const Keys = Object.freeze({
   PANEL: '`',
   RUN: 'r',
   CAPTURE: 'x',
+  CAPTURE_SCREEN: 's',
   SPEED_RESET: '0',
   SPEED_UP: '=',
   SPEED_UP_ALT: '+',

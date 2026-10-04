@@ -62,6 +62,7 @@ export default {
   'screens.title': 'Screens',
   'screens.empty': 'No screens yet. Capture one so the bot knows where it is.',
   'screens.capture': 'Capture a screen anchor',
+  'screens.armCapture': 'Capture mode: enables the S key',
   'screens.captureHint':
     'The panel steps aside; drag a box around something only this screen shows. Esc cancels.',
   'screens.addAnchor': 'Add another anchor',
@@ -160,6 +161,8 @@ export default {
   'help.sectionSpeed': 'Speed',
   'help.run': 'Start or stop whatever the Run tab is set to',
   'help.capture': 'Capture a step at the cursor',
+  'help.sectionScreens': 'Screens',
+  'help.captureScreen': 'Capture a screen anchor (drag a box)',
   'help.togglePanel': 'Open/close the control panel',
   'help.speedUp': 'Speed up (next stop)',
   'help.speedDown': 'Slow down (previous stop)',
