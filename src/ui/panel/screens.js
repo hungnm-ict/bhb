@@ -161,6 +161,38 @@ export function renderScreensTab(deps) {
       deps.refresh();
     });
 
+    // Which activity this screen means, for auto-switching the Run
+    // target. Blank is "no consequence": every screen before this field
+    // existed, and every screen the user never tags.
+    const triggerSelect = el('select', {
+      class: 'bhb-rule__gate',
+      title: t('screens.triggerHint'),
+    });
+    const triggerBlank = el('option', { text: t('screens.triggerUnset') });
+    triggerBlank.value = '';
+    triggerSelect.append(triggerBlank);
+    for (const activity of deps.getActivities ? deps.getActivities() : []) {
+      const option = el('option', { text: activity.name });
+      option.value = activity.id;
+      triggerSelect.append(option);
+    }
+    // A screen whose stored id no longer names an activity (it was
+    // deleted) still needs a place to sit in the control without
+    // crashing: a bare option carrying just that stale id does it.
+    if (
+      screen.triggerActivity &&
+      !triggerSelect.querySelector(`option[value="${screen.triggerActivity}"]`)
+    ) {
+      const stale = el('option', { text: screen.triggerActivity });
+      stale.value = screen.triggerActivity;
+      triggerSelect.append(stale);
+    }
+    triggerSelect.value = screen.triggerActivity || '';
+    triggerSelect.addEventListener('change', () => {
+      deps.screenEditor.setTriggerActivity(screen.id, triggerSelect.value || null);
+      deps.refresh();
+    });
+
     // A party screen names its own slot geometry, so a point captured on one
     // team mate's seat reads every seat the boss has, whichever one they are
     // sitting in today.
@@ -260,6 +292,7 @@ export function renderScreensTab(deps) {
         el('span', { class: 'bhb-note', text: `${t('screens.anchors')} ${screen.anchors.length}` }),
         ratio,
         el('span', { class: 'bhb-mono bhb-note', text: screen.minRatio.toFixed(2) }),
+        triggerSelect,
       ]),
       party,
     ]);

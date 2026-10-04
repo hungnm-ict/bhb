@@ -72,6 +72,8 @@ export default {
   'screens.anchors': 'Vùng',
   'screens.stopsTask': 'Hết tài nguyên — dừng hoạt động ở màn hình này',
   'screens.ratioHint': 'Tỉ lệ điểm mẫu đang khớp',
+  'screens.triggerHint': 'Khi màn hình này là thứ duy nhất đang hiện, ô Run target tự chuyển sang activity này. Không tự bấm Run.',
+  'screens.triggerUnset': '(không có)',
   'screens.isParty': 'Đây là màn hình party — mỗi hàng chứa một thành viên, không phải một nút cố định',
   'screens.bossHint': 'Chọn World Boss nào, để bot biết party có bao nhiêu ghế',
   'screens.bossUnset': 'Chọn World Boss…',
