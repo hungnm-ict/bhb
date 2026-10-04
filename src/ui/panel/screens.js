@@ -124,6 +124,23 @@ export function renderScreensTab(deps) {
     const add = el('button', { class: 'bhb-icon', title: t('screens.addAnchor'), text: '＋' });
     add.addEventListener('click', () => capture(screen.id));
 
+    const copy = el('button', { class: 'bhb-icon', title: t('screens.duplicate'), text: '⧉' });
+    copy.addEventListener('click', () => {
+      const made = deps.screenEditor.duplicate(screen.id);
+      deps.refresh();
+      if (made) {
+        const row = document.querySelector(`[data-screen-id="${CSS.escape(made.id)}"]`);
+        const field = row ? row.querySelector('.bhb-rule__name') : null;
+        if (row) {
+          row.scrollIntoView({ block: 'nearest' });
+        }
+        if (field instanceof HTMLInputElement) {
+          field.focus();
+          field.select();
+        }
+      }
+    });
+
     const up = el('button', { class: 'bhb-icon', title: t('steps.moveUp'), text: '▲' });
     up.addEventListener('click', () => {
       deps.screenEditor.move(screen.id, -1);
@@ -277,6 +294,7 @@ export function renderScreensTab(deps) {
           alertToggle,
           partyToggle,
           add,
+          copy,
           up,
           down,
           remove,

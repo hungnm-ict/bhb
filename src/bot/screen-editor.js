@@ -221,6 +221,35 @@ export function createScreenEditor(deps) {
     deps.persist();
   }
 
+  /**
+   * A second screen just like this one, a fresh id of its own.
+   *
+   * Every anchor travels, since a screen with none matches nothing: one
+   * capture, tuned afterward, is the point of copying at all, the same
+   * reasoning `step-editor.js`'s own `duplicate` already settled on.
+   */
+  function duplicate(screenId) {
+    const original = find(screenId);
+    if (!original) {
+      return null;
+    }
+
+    const screens = deps.getScreens();
+    const { id, ...rest } = original;
+    const copy = createScreen({
+      ...rest,
+      // Anchors of its own: tuning the copy must not touch the original's.
+      anchors: original.anchors.map((anchor) => ({
+        ...anchor,
+        samples: anchor.samples.map((sample) => ({ ...sample })),
+      })),
+      name: `${original.name || t('screen.defaultName', { n: screens.length + 1 })} (2)`.trim(),
+    });
+    screens.push(copy);
+    deps.persist();
+    return copy;
+  }
+
   function remove(screenId) {
     const screens = deps.getScreens();
     const index = screens.findIndex((screen) => screen.id === screenId);
@@ -282,6 +311,7 @@ export function createScreenEditor(deps) {
     setPitch,
     removeAnchor,
     remove,
+    duplicate,
     replaceAll,
     move,
     probe,

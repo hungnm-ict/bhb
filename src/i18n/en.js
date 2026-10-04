@@ -66,6 +66,7 @@ export default {
   'screens.captureHint':
     'The panel steps aside; drag a box around something only this screen shows. Esc cancels.',
   'screens.addAnchor': 'Add another anchor',
+  'screens.duplicate': 'Copy this screen, anchors and all',
   'screens.unnamed': '(unnamed)',
   'screens.clash': '{names} all match right now. The bot takes the first, so it thinks it is on “{winner}” — a step gated to any of the others will never come up. Capture something only one of them shows.',
   'screens.unknown': 'unknown',
