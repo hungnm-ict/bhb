@@ -95,7 +95,14 @@ export function createHud(deps) {
     // While steps are landing the message only repeats the badge. It is the
     // silence that is worth saying something about — and an amber frame says
     // it without taking a strip of the game with it.
-    const stuck = Boolean(engine.activeTask) && sinceClick > STUCK_AFTER_MS;
+    //
+    // Resting is a silence with a reason: Dungeon, Raid and the rest can sit
+    // through a fight for tens of seconds to a couple of minutes at a low
+    // tier, all of it one step's restSec working exactly as it was told. The
+    // 4s threshold below is tuned for a screen the bot is actually hunting
+    // across, not a battle it was asked to sit out.
+    const isResting = (engine.restingMs || 0) > 0;
+    const stuck = Boolean(engine.activeTask) && !isResting && sinceClick > STUCK_AFTER_MS;
 
     // Fading hides the mode badge and keeps only the dot, which is right for
     // an idle strip and wrong for a running one: which mode is running is the

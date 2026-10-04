@@ -65,6 +65,14 @@ describe('HUD', () => {
     expect(node.querySelector('.bhb-hud__msg')).toBeNull();
   });
 
+  it('stays calm while a step is resting out a battle on purpose', () => {
+    // Dungeon and Raid can sit through a fight for tens of seconds to a
+    // couple of minutes at a low tier, all of it inside one step's restSec —
+    // which is the bot working exactly as told, not stuck.
+    const node = hudWith(engine({ remainingMs: AUTO_STOP_TIMEOUT - 90_000, restingMs: 60_000 }));
+    expect(node.classList.contains('bhb-hud--stuck')).toBe(false);
+  });
+
   it('turns its frame amber once nothing has been clicked for a while', () => {
     const node = hudWith(engine({ remainingMs: AUTO_STOP_TIMEOUT - 10_000 }));
     expect(node.classList.contains('bhb-hud--stuck')).toBe(true);
