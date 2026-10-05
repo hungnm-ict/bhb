@@ -768,11 +768,13 @@ const CSS = `
 .bhb-screen__tune { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 0 8px 6px; }
 .bhb-screen__party { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 0 8px 6px; }
 .bhb-screen__party .bhb-rule__gate { flex: 1 1 128px; }
-.bhb-screen__anchors { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 8px 6px; }
 .bhb-screen__anchor { display: flex; align-items: center; background: var(--bhb-bg-soft); border-radius: 6px; }
 /* The ratio slider's flex:1 can otherwise squeeze this dropdown down to
    nothing in a narrow panel; wrapping keeps it a usable width instead. */
 .bhb-screen__tune .bhb-rule__gate { flex: 0 0 120px; }
+/* Same squeeze risk once a screen has several anchor chips sharing the row:
+   the slider needs a floor or it gives up all its width to them first. */
+.bhb-screen__tune .bhb-slider--thin { flex: 1 1 70px; min-width: 50px; }
 .bhb-slider--thin { flex: 1; height: 20px; }
 .bhb-slider--thin::-webkit-slider-runnable-track { height: 4px; }
 .bhb-slider--thin::-moz-range-track { height: 4px; }

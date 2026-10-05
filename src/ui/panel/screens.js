@@ -307,37 +307,31 @@ export function renderScreensTab(deps) {
         el('span', { class: 'bhb-note', text: `${t('screens.anchors')} ${screen.anchors.length}` }),
         ratio,
         el('span', { class: 'bhb-mono bhb-note', text: screen.minRatio.toFixed(2) }),
+        // One chip per anchor: the game moves on, so a single anchor going
+        // stale used to mean deleting it and capturing a fresh one at the
+        // end of the list — losing its place for no reason. Recapture
+        // overwrites it in place instead.
+        ...screen.anchors.map((_, anchorIndex) => {
+          const recaptureBtn = el('button', {
+            class: 'bhb-icon',
+            title: t('screens.recaptureAnchor', { n: anchorIndex + 1 }),
+            text: `↻${anchorIndex + 1}`,
+          });
+          recaptureBtn.addEventListener('click', () => capture(screen.id, anchorIndex));
+
+          const removeBtn = el('button', {
+            class: 'bhb-icon bhb-icon--danger',
+            title: t('screens.removeAnchor', { n: anchorIndex + 1 }),
+            text: '✕',
+          });
+          removeBtn.addEventListener('click', () => {
+            deps.screenEditor.removeAnchor(screen.id, anchorIndex);
+            deps.refresh();
+          });
+
+          return el('span', { class: 'bhb-screen__anchor' }, [recaptureBtn, removeBtn]);
+        }),
       ]),
-      // One chip per anchor: the game moves on, so a single anchor going
-      // stale used to mean deleting it and capturing a fresh one at the end
-      // of the list — losing its place for no reason. Recapture overwrites
-      // it in place instead.
-      screen.anchors.length
-        ? el(
-            'div',
-            { class: 'bhb-screen__anchors' },
-            screen.anchors.map((_, anchorIndex) => {
-              const recaptureBtn = el('button', {
-                class: 'bhb-icon',
-                title: t('screens.recaptureAnchor', { n: anchorIndex + 1 }),
-                text: `↻${anchorIndex + 1}`,
-              });
-              recaptureBtn.addEventListener('click', () => capture(screen.id, anchorIndex));
-
-              const removeBtn = el('button', {
-                class: 'bhb-icon bhb-icon--danger',
-                title: t('screens.removeAnchor', { n: anchorIndex + 1 }),
-                text: '✕',
-              });
-              removeBtn.addEventListener('click', () => {
-                deps.screenEditor.removeAnchor(screen.id, anchorIndex);
-                deps.refresh();
-              });
-
-              return el('span', { class: 'bhb-screen__anchor' }, [recaptureBtn, removeBtn]);
-            })
-          )
-        : null,
       party,
     ]);
     wrap.dataset.screenId = screen.id;
