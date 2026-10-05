@@ -46,10 +46,15 @@ export function renderScreensTab(deps) {
   // instead. Folded shut by default: a screen rarely needs this once its
   // anchors are set, and listing every one of them every tick is exactly
   // the kind of row that pushed the name field back into clipping.
-  function renderAnchorsFold(screen) {
+  //
+  // The toggle doubles as the threshold slider's own label: "Anchors (2)"
+  // right next to the slider it tunes reads as what it is, where a label
+  // plus a separate toggle row below it read as two different settings.
+  function renderAnchorsToggle(screen) {
     const isOpen = expandedAnchors.has(screen.id);
     const toggle = el('button', {
       class: 'bhb-note bhb-screen__anchortoggle',
+      title: t('screens.matchThreshold'),
       text: `${isOpen ? '▾' : '▸'} ${t('screens.anchors')} (${screen.anchors.length})`,
     });
     toggle.addEventListener('click', () => {
@@ -60,9 +65,13 @@ export function renderScreensTab(deps) {
       }
       deps.refresh();
     });
+    return toggle;
+  }
 
+  function renderAnchorsList(screen) {
+    const isOpen = expandedAnchors.has(screen.id);
     if (!isOpen || screen.anchors.length === 0) {
-      return toggle;
+      return null;
     }
 
     const rows = screen.anchors.map((_, anchorIndex) => {
@@ -99,7 +108,7 @@ export function renderScreensTab(deps) {
       return row;
     });
 
-    return el('div', { class: 'bhb-screen__anchorlist' }, [toggle, ...rows]);
+    return el('div', { class: 'bhb-screen__anchorlist' }, rows);
   }
 
   // Armed here rather than always live: a stray S press starts a drag
@@ -371,14 +380,14 @@ export function renderScreensTab(deps) {
         ]),
       ]),
       // One shared threshold for every anchor on the screen, not one per
-      // anchor — the label says so explicitly, so it never reads as a
-      // setting that belongs to whichever anchor happens to sit next to it.
+      // anchor. The toggle that doubles as its label is also the slider's
+      // only on-screen hint of what "Anchors (N)" is there for.
       el('div', { class: 'bhb-screen__tune' }, [
-        el('span', { class: 'bhb-note', text: t('screens.matchThreshold') }),
+        renderAnchorsToggle(screen),
         ratio,
         el('span', { class: 'bhb-mono bhb-note', text: screen.minRatio.toFixed(2) }),
       ]),
-      renderAnchorsFold(screen),
+      renderAnchorsList(screen),
       party,
     ]);
     wrap.dataset.screenId = screen.id;

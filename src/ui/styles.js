@@ -780,8 +780,9 @@ const CSS = `
 .bhb-screen__party .bhb-rule__gate { flex: 1 1 128px; }
 .bhb-screen__anchorlist { padding: 0 8px 6px; }
 .bhb-screen__anchortoggle {
-  display: block; width: 100%; padding: 2px 0;
+  flex: none; padding: 2px 0;
   background: none; border: 0; text-align: left; cursor: pointer;
+  white-space: nowrap;
 }
 .bhb-screen__anchortoggle:hover { color: var(--bhb-text); }
 .bhb-screen__anchorrow {
