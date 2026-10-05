@@ -761,14 +761,9 @@ const CSS = `
 .bhb-screen.is-active { border-color: var(--bhb-live); }
 .bhb-screen.is-stopper .bhb-rule__n { color: var(--bhb-danger); }
 .bhb-screen__now { color: var(--bhb-live); font-size: var(--bhb-fs-xs); }
-/* A rounded bar reads as "currently matching" without spending an icon's
-   worth of width the name field badly needs. */
-.bhb-screen { position: relative; padding-left: 13px; }
-.bhb-screen.is-matched { background: rgba(61, 220, 151, .05); }
-.bhb-screen.is-matched::before {
-  content: ''; position: absolute; left: 3px; top: 6px; bottom: 6px; width: 3px;
-  border-radius: 3px; background: var(--bhb-live);
-}
+.bhb-screen__state { width: 16px; text-align: center; color: var(--bhb-dim); font-size: 15px; font-weight: 700; }
+.bhb-screen__state.is-seen { color: var(--bhb-live); }
+.bhb-screen__state.is-unseen { color: var(--bhb-danger); }
 .bhb-screen__tune { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 0 8px 6px; }
 /* The ratio slider's flex:1 can otherwise squeeze this dropdown down to
    nothing in a narrow panel; wrapping keeps it a usable width instead. */
