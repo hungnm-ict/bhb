@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.42.3
+// @version      0.43.0
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @icon         data:image/png;base64,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
@@ -15,7 +15,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.42.3" : "dev";
+  var VERSION = true ? "0.43.0" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -28,7 +28,6 @@
   var INTERVAL_AUTO_STOP_CHECK = 5e3;
   var SCRIPT_PACE_LADDER = Object.freeze([300, 600, 1e3]);
   var IDLE_ADVANCE_MS = 12e3;
-  var AUTO_SWITCH_POLL_MS = 400;
   var BACKWARD_QUIET_MS = 2e3;
   var BACKWARD_STABLE_MS = 1500;
   var COUNT_POLL_MS = 80;
@@ -1345,12 +1344,6 @@
       listTop: 0,
       pitch: 0,
       listBh: 0,
-      /**
-       * The activity this Screen means, for auto-switching the Run target:
-       * see `src/core/autoswitch.js`. `null` is "no consequence", the same
-       * as every Screen before this field existed.
-       */
-      triggerActivity: null,
       ...overrides
     };
   }
@@ -2215,48 +2208,45 @@
     return { start: start2, stop, toggle, tick, checkIdle: checkAutoStop, getState, on: emitter.on, setMessage };
   }
 
-  // src/core/autoswitch.js
-  function createAutoSwitch(deps) {
-    const MISSES_TO_FORGET = 3;
-    let lastMatchedId = null;
-    let misses = 0;
-    function tick() {
-      const state = deps.getEngineState();
-      if (state.activeTask || (state.restingMs || 0) > 0) {
+  // src/core/click-switch.js
+  function handleClick(event, deps) {
+    if (!event.isTrusted) {
+      return;
+    }
+    const state = deps.getEngineState();
+    if (state.activeTask || (state.restingMs || 0) > 0) {
+      return;
+    }
+    const canvas = getCanvas();
+    if (!canvas || event.target !== canvas) {
+      return;
+    }
+    const point = clientToBuffer(canvas, event.clientX, event.clientY);
+    const buffer = getBufferSize(canvas);
+    for (const activity of deps.getActivities()) {
+      if (activity.clickZone && insideZone(scaleZone(activity.clickZone, buffer), point)) {
+        deps.setRunTarget(activity.id);
         return;
-      }
-      const target = getRenderTarget();
-      if (!target) {
-        return;
-      }
-      const activityIds = new Set(deps.getActivities().map((activity) => activity.id));
-      const candidates = deps.getScreens().filter((screen2) => screen2.triggerActivity && activityIds.has(screen2.triggerActivity));
-      const buffer = getBufferSize(target.canvas);
-      const scaleMode = deps.getScaleMode();
-      const matched = candidates.filter(
-        (screen2) => scoreScreen(target.gl, screen2, buffer, scaleMode).matched
-      );
-      if (matched.length !== 1) {
-        misses += 1;
-        if (misses >= MISSES_TO_FORGET) {
-          lastMatchedId = null;
-        }
-        return;
-      }
-      misses = 0;
-      const screen = matched[0];
-      if (screen.id === lastMatchedId) {
-        return;
-      }
-      lastMatchedId = screen.id;
-      if (deps.getRunTarget() !== screen.triggerActivity) {
-        deps.setRunTarget(screen.triggerActivity);
       }
     }
-    const timer = realSetInterval(tick, AUTO_SWITCH_POLL_MS);
+  }
+  function scaleZone(zone, buffer) {
+    if (!zone.bw || !zone.bh) {
+      return zone;
+    }
+    const sx = buffer.width / zone.bw;
+    const sy = buffer.height / zone.bh;
+    return { x: zone.x * sx, y: zone.y * sy, w: zone.w * sx, h: zone.h * sy };
+  }
+  function insideZone(zone, point) {
+    return point.x >= zone.x && point.x <= zone.x + zone.w && point.y >= zone.y && point.y <= zone.y + zone.h;
+  }
+  function createClickSwitch(deps) {
+    const onClick = (event) => handleClick(event, deps);
+    window.addEventListener("click", onClick, true);
     return {
       stop() {
-        realClearInterval(timer);
+        window.removeEventListener("click", onClick, true);
       }
     };
   }
@@ -3141,6 +3131,14 @@
     "steps.hints": "Cách chụp bước và chạy thử hoạt động",
     "steps.delete": "Xoá bước",
     "screens.title": "Màn hình",
+    "screens.exportAll": "Copy tất cả",
+    "screens.importAll": "Dán để thêm",
+    "screens.importNotAnArray": "không phải danh sách màn hình hợp lệ",
+    "screens.exportCopied": "Đã copy {n} màn hình",
+    "screens.exportCopyFailed": "Không copy được, tự chọn và Ctrl+C",
+    "screens.importFailed": "Dán lỗi",
+    "screens.importAdded": "Đã thêm {n} màn hình",
+    "screens.pasteByHand": "Dán JSON vào ô bên dưới",
     "screens.empty": "Chưa có màn hình nào. Bắt một cái để bot biết nó đang ở đâu.",
     "screens.capture": "Bắt vùng nhận diện",
     "screens.armCapture": "Bật chế độ bắt vùng, cho phép phím S",
@@ -3153,8 +3151,6 @@
     "screens.anchors": "Vùng",
     "screens.stopsTask": "Hết tài nguyên — dừng hoạt động ở màn hình này",
     "screens.ratioHint": "Tỉ lệ điểm mẫu đang khớp",
-    "screens.triggerHint": "Khi màn hình này là thứ duy nhất đang hiện, ô Run target tự chuyển sang activity này. Không tự bấm Run.",
-    "screens.triggerUnset": "(không có)",
     "screens.isParty": "Đây là màn hình party — mỗi hàng chứa một thành viên, không phải một nút cố định",
     "screens.bossHint": "Chọn World Boss nào, để bot biết party có bao nhiêu ghế",
     "screens.bossUnset": "Chọn World Boss…",
@@ -3162,6 +3158,8 @@
     "screens.pitchHint": "Khoảng cách giữa hai hàng, tính bằng pixel — chỉnh tới khi một chỗ đã bắt rơi đúng mọi hàng",
     "screen.defaultName": "Màn hình {n}",
     "queue.title": "Hàng đợi hoạt động",
+    "queue.clickZone": "Khoanh vùng icon: click tay vào đây sẽ tự chuyển Run target",
+    "queue.clickZoneSet": "Đã khoanh vùng — bấm để bỏ",
     "queue.start": "Chạy tất cả",
     "queue.stop": "Dừng",
     "queue.round": "vòng {n}",
@@ -3427,6 +3425,14 @@
     "steps.hints": "How capture and dry runs work",
     "steps.delete": "Delete",
     "screens.title": "Screens",
+    "screens.exportAll": "Copy all",
+    "screens.importAll": "Paste to add",
+    "screens.importNotAnArray": "not a valid list of screens",
+    "screens.exportCopied": "Copied {n} screen(s)",
+    "screens.exportCopyFailed": "Could not copy, select it and Ctrl+C by hand",
+    "screens.importFailed": "Could not import",
+    "screens.importAdded": "Added {n} screen(s)",
+    "screens.pasteByHand": "Paste JSON into the box below",
     "screens.empty": "No screens yet. Capture one so the bot knows where it is.",
     "screens.capture": "Capture a screen anchor",
     "screens.armCapture": "Capture mode: enables the S key",
@@ -3439,8 +3445,6 @@
     "screens.anchors": "Anchors",
     "screens.stopsTask": "Out of resources — stop the task here",
     "screens.ratioHint": "Share of samples matching right now",
-    "screens.triggerHint": "When this screen is the only one on show, the Run target switches to this activity. It never presses Run by itself.",
-    "screens.triggerUnset": "(none)",
     "screens.isParty": "This is a party list — its rows carry a team mate, not a fixed button",
     "screens.bossHint": "Which World Boss, so the bot knows how many seats the party has",
     "screens.bossUnset": "Pick a World Boss…",
@@ -3448,6 +3452,8 @@
     "screens.pitchHint": "Pixels between one row and the next — nudge until a captured seat lands on every row",
     "screen.defaultName": "Screen {n}",
     "queue.title": "Activity queue",
+    "queue.clickZone": "Mark its icon: a real click there switches the Run target",
+    "queue.clickZoneSet": "Zone set — click to clear it",
     "queue.start": "Run all activities",
     "queue.stop": "Stop",
     "queue.round": "round {n}",
@@ -4200,14 +4206,6 @@
       screen.bossId = bossId || null;
       deps.persist();
     }
-    function setTriggerActivity(screenId, activityId) {
-      const screen = find(screenId);
-      if (!screen) {
-        return;
-      }
-      screen.triggerActivity = activityId || null;
-      deps.persist();
-    }
     function captureListFrame(rect, screenId) {
       const screen = find(screenId);
       if (!screen) {
@@ -4279,6 +4277,21 @@
       screens.splice(0, screens.length, ...next);
       deps.persist();
     }
+    function exportAll() {
+      return JSON.stringify(deps.getScreens(), null, 2);
+    }
+    function importScreens(json) {
+      const parsed = JSON.parse(json);
+      if (!Array.isArray(parsed) || parsed.length === 0) {
+        throw new Error(t("screens.importNotAnArray"));
+      }
+      const screens = deps.getScreens();
+      for (const entry of parsed) {
+        screens.push(createScreen({ ...entry, id: createScreenId() }));
+      }
+      deps.persist();
+      return parsed.length;
+    }
     function move(screenId, delta) {
       const screens = deps.getScreens();
       const from = screens.findIndex((screen2) => screen2.id === screenId);
@@ -4306,13 +4319,14 @@
       setMinRatio,
       setIsParty,
       setBossId,
-      setTriggerActivity,
       captureListFrame,
       setPitch,
       removeAnchor,
       remove,
       duplicate,
       replaceAll,
+      exportAll,
+      importScreens,
       move,
       probe
     };
@@ -4326,6 +4340,33 @@
         return;
       }
       activity.enabled = enabled;
+      deps.persist();
+    }
+    function setClickZone(activityId, clientRect) {
+      const activity = deps.getActivities().find((entry) => entry.id === activityId);
+      if (!activity) {
+        return;
+      }
+      if (!clientRect) {
+        activity.clickZone = null;
+        deps.persist();
+        return;
+      }
+      const canvas = getCanvas();
+      if (!canvas) {
+        return;
+      }
+      const origin = clientToBuffer(canvas, clientRect.left, clientRect.top + clientRect.height);
+      const far = clientToBuffer(canvas, clientRect.left + clientRect.width, clientRect.top);
+      const buffer = getBufferSize(canvas);
+      activity.clickZone = {
+        x: origin.x,
+        y: origin.y,
+        w: Math.max(1, far.x - origin.x),
+        h: Math.max(1, far.y - origin.y),
+        bw: buffer.width,
+        bh: buffer.height
+      };
       deps.persist();
     }
     function move(activityId, delta) {
@@ -4344,7 +4385,7 @@
       activities.splice(0, activities.length, ...sortToDefaultOrder([...activities]));
       deps.persist();
     }
-    return { setEnabled, move, restoreOrder };
+    return { setEnabled, setClickZone, move, restoreOrder };
   }
 
   // src/bot/dry-run.js
@@ -6445,6 +6486,27 @@
       deps.store.armScreenCapture(!isScreenCaptureArmed);
       deps.refresh();
     });
+    const transferNote = el("p", { class: "bhb-note" });
+    const exportButton = el("button", { class: "bhb-btn bhb-btn--small", text: t("screens.exportAll") });
+    exportButton.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(deps.screenEditor.exportAll());
+        transferNote.textContent = t("screens.exportCopied", { n: screens.length });
+      } catch {
+        transferNote.textContent = t("screens.exportCopyFailed");
+      }
+    });
+    const importButton = el("button", { class: "bhb-btn bhb-btn--small", text: t("screens.importAll") });
+    importButton.addEventListener("click", async () => {
+      try {
+        const text = await navigator.clipboard.readText();
+        const added = deps.screenEditor.importScreens(text);
+        transferNote.textContent = t("screens.importAdded", { n: added });
+        deps.refresh();
+      } catch (error) {
+        transferNote.textContent = error instanceof DOMException ? t("screens.pasteByHand") : `${t("screens.importFailed")}: ${error.message}`;
+      }
+    });
     const head = el("div", { class: "bhb-field" }, [
       el("div", { class: "bhb-field__head" }, [
         el("span", { class: "bhb-label", text: `${t("screens.title")} · ${screens.length}` }),
@@ -6454,7 +6516,9 @@
         })
       ]),
       arm,
-      el("p", { class: "bhb-note", text: t("screens.captureHint") })
+      el("p", { class: "bhb-note", text: t("screens.captureHint") }),
+      el("div", { class: "bhb-field__head" }, [exportButton, importButton]),
+      transferNote
     ]);
     const matching = screens.filter((screen) => {
       const score = deps.screenEditor.probe(screen.id);
@@ -6545,28 +6609,6 @@
         deps.screenEditor.setMinRatio(screen.id, Number(ratio.value));
         deps.refresh();
       });
-      const triggerSelect = el("select", {
-        class: "bhb-rule__gate",
-        title: t("screens.triggerHint")
-      });
-      const triggerBlank = el("option", { text: t("screens.triggerUnset") });
-      triggerBlank.value = "";
-      triggerSelect.append(triggerBlank);
-      for (const activity of deps.getActivities ? deps.getActivities() : []) {
-        const option = el("option", { text: activity.name });
-        option.value = activity.id;
-        triggerSelect.append(option);
-      }
-      if (screen.triggerActivity && ![...triggerSelect.options].some((option) => option.value === screen.triggerActivity)) {
-        const stale = el("option", { text: screen.triggerActivity });
-        stale.value = screen.triggerActivity;
-        triggerSelect.append(stale);
-      }
-      triggerSelect.value = screen.triggerActivity || "";
-      triggerSelect.addEventListener("change", () => {
-        deps.screenEditor.setTriggerActivity(screen.id, triggerSelect.value || null);
-        deps.refresh();
-      });
       const partyToggle = el("button", {
         class: `bhb-icon ${screen.isParty ? "is-notify-on" : ""}`,
         title: t("screens.isParty"),
@@ -6655,8 +6697,7 @@
         el("div", { class: "bhb-screen__tune" }, [
           el("span", { class: "bhb-note", text: `${t("screens.anchors")} ${screen.anchors.length}` }),
           ratio,
-          el("span", { class: "bhb-mono bhb-note", text: screen.minRatio.toFixed(2) }),
-          triggerSelect
+          el("span", { class: "bhb-mono bhb-note", text: screen.minRatio.toFixed(2) })
         ]),
         party
       ]);
@@ -6703,6 +6744,27 @@
         deps.queueEditor.setEnabled(activity.id, !activity.enabled);
         deps.refresh();
       });
+      const zone = el("button", {
+        class: `bhb-icon ${activity.clickZone ? "is-on" : ""}`,
+        title: t(activity.clickZone ? "queue.clickZoneSet" : "queue.clickZone"),
+        text: "▣"
+      });
+      zone.addEventListener("click", () => {
+        if (activity.clickZone) {
+          deps.queueEditor.setClickZone(activity.id, null);
+          deps.refresh();
+          return;
+        }
+        deps.store.closePanel();
+        deps.refresh();
+        startDragSelect((rect) => {
+          if (rect) {
+            deps.queueEditor.setClickZone(activity.id, rect);
+          }
+          deps.store.openPanel();
+          deps.refresh();
+        });
+      });
       const up = el("button", { class: "bhb-icon", title: t("steps.moveUp"), text: "▲" });
       up.addEventListener("click", () => {
         deps.queueEditor.move(activity.id, -1);
@@ -6735,7 +6797,7 @@
           title: t("queue.stepCount"),
           text: String(count)
         }),
-        el("span", { class: "bhb-rule__actions" }, [run, toggle, up, down])
+        el("span", { class: "bhb-rule__actions" }, [run, toggle, zone, up, down])
       ]);
     });
     const restore = el("button", {
@@ -8165,13 +8227,10 @@
       report: engine.setMessage,
       getScaleMode: () => settings.scaleMode
     });
-    createAutoSwitch({
-      getScreens,
+    createClickSwitch({
       getActivities,
       getEngineState: engine.getState,
-      getRunTarget: () => settings.runTarget,
-      setRunTarget,
-      getScaleMode: () => settings.scaleMode
+      setRunTarget
     });
     const queueEditor = createQueueEditor({ getActivities, persist });
     const probeEditor = createProbeEditor({

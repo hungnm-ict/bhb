@@ -1,6 +1,7 @@
 import { el } from '../dom.js';
 import { t } from '../../i18n/index.js';
 import { stepsForActivity } from '../../bot/activity.js';
+import { startDragSelect } from '../dragselect.js';
 
 /**
  * The Run-All queue, as a section of the settings tab.
@@ -65,6 +66,29 @@ export function renderQueueSection(deps) {
       deps.refresh();
     });
 
+    const zone = el('button', {
+      class: `bhb-icon ${activity.clickZone ? 'is-on' : ''}`,
+      title: t(activity.clickZone ? 'queue.clickZoneSet' : 'queue.clickZone'),
+      text: '▣',
+    });
+    zone.addEventListener('click', () => {
+      if (activity.clickZone) {
+        deps.queueEditor.setClickZone(activity.id, null);
+        deps.refresh();
+        return;
+      }
+      // The panel covers the game, same reasoning Screens' own capture has.
+      deps.store.closePanel();
+      deps.refresh();
+      startDragSelect((rect) => {
+        if (rect) {
+          deps.queueEditor.setClickZone(activity.id, rect);
+        }
+        deps.store.openPanel();
+        deps.refresh();
+      });
+    });
+
     const up = el('button', { class: 'bhb-icon', title: t('steps.moveUp'), text: '▲' });
     up.addEventListener('click', () => {
       deps.queueEditor.move(activity.id, -1);
@@ -100,7 +124,7 @@ export function renderQueueSection(deps) {
         title: t('queue.stepCount'),
         text: String(count),
       }),
-      el('span', { class: 'bhb-rule__actions' }, [run, toggle, up, down]),
+      el('span', { class: 'bhb-rule__actions' }, [run, toggle, zone, up, down]),
     ]);
   });
 

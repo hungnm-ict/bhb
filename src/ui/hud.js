@@ -34,8 +34,8 @@ const STUCK_AFTER_MS = 4000;
  * @param {() => object} deps.getEngineState
  * @param {ReturnType<import('./store.js').createUiStore>} deps.store
  * @param {() => string | null} [deps.getRunTarget] so an idle strip can show
- *   an activity the screen-autoswitch poll just picked, same as if the user
- *   had picked it themselves
+ *   an activity the click-switch just picked, same as if the user had
+ *   picked it themselves
  * @param {() => { id: string }[]} [deps.getActivities]
  */
 /** The badge: the activity when there is one, else the mode being run. */
@@ -124,10 +124,10 @@ export function createHud(deps) {
     target.title = stuck ? engine.lastMessage || '' : '';
 
     // Stopped, the mode is a plan rather than a fact and would normally
-    // leave only the dot — except the screen-autoswitch poll runs even
-    // while idle, so a tagged screen on show right now is worth saying out
-    // loud, the same as if the user had picked it from the dropdown. It
-    // never starts anything by itself; this is only ever a label.
+    // leave only the dot — except a real click on a mapped icon can change
+    // it even while idle, so that is worth saying out loud, the same as if
+    // the user had picked it from the dropdown. It never starts anything by
+    // itself; this is only ever a label.
     const idleActivity =
       !running && deps.getRunTarget && deps.getActivities
         ? resolveRunTarget(deps.getRunTarget(), deps.getActivities()).activityId
