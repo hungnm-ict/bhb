@@ -121,9 +121,15 @@ export function renderScreensTab(deps) {
   const rows = screens.map((screen, index) => {
     const probe = deps.screenEditor.probe(screen.id);
 
-    const name = el('input', { class: 'bhb-rule__name' });
+    // The row has little width left for this once every icon button has
+    // taken its share, so a longer name gets clipped — the title attribute
+    // is what makes it readable on hover rather than only after clicking in.
+    const name = el('input', { class: 'bhb-rule__name', title: screen.name || '' });
     name.value = screen.name || '';
     name.placeholder = t('screens.unnamed');
+    name.addEventListener('input', () => {
+      name.title = name.value;
+    });
     name.addEventListener('change', () => {
       deps.screenEditor.rename(screen.id, name.value.trim());
       deps.refresh();
