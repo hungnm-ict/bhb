@@ -92,11 +92,15 @@ export function renderScreensTab(deps) {
     transferNote,
   ]);
 
+  // One probe per screen per render: it costs a `gl.readPixels`, and scoring
+  // the same frame against the same screen twice just doubles that for free.
+  const probes = new Map(screens.map((screen) => [screen.id, deps.screenEditor.probe(screen.id)]));
+
   // Two screens matching at once is the quietest way to break a step set: the
   // runner takes the first, and a step gated to the second simply never comes
   // up — which reads exactly like a step whose turn has not arrived.
   const matching = screens.filter((screen) => {
-    const score = deps.screenEditor.probe(screen.id);
+    const score = probes.get(screen.id);
     return Boolean(score && score.matched);
   });
   const clash =
@@ -119,7 +123,7 @@ export function renderScreensTab(deps) {
   }
 
   const rows = screens.map((screen, index) => {
-    const probe = deps.screenEditor.probe(screen.id);
+    const probe = probes.get(screen.id);
 
     // The title attribute is what makes a name readable on hover rather
     // than only after clicking in, once it is longer than the row is wide.

@@ -77,30 +77,29 @@ describe('profile export', () => {
 });
 
 describe('profile import', () => {
-  it('loads what is pasted straight into the box', () => {
+  it('loads what is on the clipboard', async () => {
     const importAll = vi.fn();
     const node = build({ importAll });
+    navigator.clipboard.readText.mockResolvedValue('{"profiles":[1]}');
 
-    const box = node.querySelector('textarea');
-    const paste = new Event('paste', { bubbles: true, cancelable: true });
-    paste.clipboardData = { getData: () => '{"profiles":[1]}' };
-    box.dispatchEvent(paste);
+    findButton(node, 'Nhập').click();
+    await Promise.resolve();
+    await Promise.resolve();
 
     expect(importAll).toHaveBeenCalledWith('{"profiles":[1]}');
   });
 
-  it('says what went wrong rather than overwriting the text with the error', () => {
+  it('says what went wrong rather than silently failing', async () => {
     const importAll = vi.fn(() => {
       throw new Error('not a BHB profile export');
     });
     const node = build({ importAll });
+    navigator.clipboard.readText.mockResolvedValue('rubbish');
 
-    const box = node.querySelector('textarea');
-    const paste = new Event('paste', { bubbles: true, cancelable: true });
-    paste.clipboardData = { getData: () => 'rubbish' };
-    box.dispatchEvent(paste);
+    findButton(node, 'Nhập').click();
+    await Promise.resolve();
+    await Promise.resolve();
 
-    expect(box.value, 'the text stays put so it can be fixed').toBe('rubbish');
     expect(node.textContent).toContain('not a BHB profile export');
   });
 });

@@ -136,9 +136,9 @@ export default {
   'settings.export': 'Export',
   'settings.import': 'Import',
   'settings.copied': 'Copied {n} profiles. Paste into the other window.',
-  'settings.copyByHand': 'Selected, but the clipboard refused — press Ctrl+C.',
+  'settings.copyByHand': 'The clipboard refused the copy. Allow clipboard access for this page and try again.',
   'settings.imported': 'Imported {n} profiles.',
-  'settings.pasteByHand': 'The clipboard refused. Paste into the box and it loads itself.',
+  'settings.pasteByHand': 'The clipboard refused the paste. Allow clipboard access for this page and try again.',
   'settings.importFailed': 'Import failed',
 
   'tasks.target': 'What Run starts',
