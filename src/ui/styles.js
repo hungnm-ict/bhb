@@ -237,6 +237,7 @@ const CSS = `
 }
 .bhb-note { margin: 0; color: var(--bhb-dim); font-size: var(--bhb-fs-sm); line-height: 1.5; }
 .bhb-note--warn { color: var(--bhb-warn); }
+.bhb-note--ok { color: var(--bhb-live); }
 .bhb-empty { margin: 0; padding: 18px 0; color: var(--bhb-dim); font-size: var(--bhb-fs-sm); text-align: center; }
 .bhb-field { display: flex; flex-direction: column; gap: 7px; }
 .bhb-field__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }

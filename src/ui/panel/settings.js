@@ -33,6 +33,11 @@ import { renderProbeSection } from './probes.js';
  */
 let transferBox = null;
 
+// Same reason as transferBox: the panel rebuilds every tick, so a message
+// set from a click handler needs somewhere to live past that rebuild.
+let transferNoteText = '';
+let transferNoteVariant = '';
+
 /**
  * The alert fields outlive their render too, for the same reason the transfer
  * box does: a webhook URL is long, and half of one is worth nothing.
@@ -357,9 +362,18 @@ export function renderSettingsTab(deps) {
     transferBox.spellcheck = false;
   }
   const transfer = transferBox;
-  transfer.placeholder = t('settings.transferHint');
 
-  const transferNote = el('p', { class: 'bhb-note' });
+  const transferNote = el('p', {
+    class: transferNoteVariant ? `bhb-note bhb-note--${transferNoteVariant}` : 'bhb-note',
+    text: transferNoteText,
+  });
+
+  function setTransferNote(text, variant) {
+    transferNoteText = text;
+    transferNoteVariant = variant || '';
+    transferNote.textContent = text;
+    transferNote.className = variant ? `bhb-note bhb-note--${variant}` : 'bhb-note';
+  }
 
   // Selecting a wall of JSON by hand is how half of it gets left behind, so
   // the button takes the clipboard and only falls back to a selection.
@@ -372,9 +386,9 @@ export function renderSettingsTab(deps) {
     transfer.select();
     try {
       await navigator.clipboard.writeText(transfer.value);
-      transferNote.textContent = t('settings.copied', { n: profiles.list().length });
+      setTransferNote(t('settings.copied', { n: profiles.list().length }), 'ok');
     } catch {
-      transferNote.textContent = t('settings.copyByHand');
+      setTransferNote(t('settings.copyByHand'));
     }
   });
 
@@ -382,10 +396,10 @@ export function renderSettingsTab(deps) {
     try {
       profiles.importAll(text);
       transfer.value = '';
-      transferNote.textContent = '';
+      setTransferNote(t('settings.imported', { n: profiles.list().length }), 'ok');
       deps.refresh();
     } catch (error) {
-      transferNote.textContent = `${t('settings.importFailed')}: ${error.message}`;
+      setTransferNote(`${t('settings.importFailed')}: ${error.message}`, 'warn');
     }
   }
 
@@ -401,7 +415,7 @@ export function renderSettingsTab(deps) {
         loadProfilesFrom(transfer.value);
         return;
       }
-      transferNote.textContent = t('settings.pasteByHand');
+      setTransferNote(t('settings.pasteByHand'));
       transfer.focus();
     }
   });

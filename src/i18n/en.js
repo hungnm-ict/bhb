@@ -133,11 +133,11 @@ export default {
   'settings.showScreens': 'Show the screens tab',
   'settings.language': 'Language',
   'settings.transfer': 'Export / import',
-  'settings.transferHint': 'Paste a profile export here, then press Import.',
   'settings.export': 'Export',
   'settings.import': 'Import',
   'settings.copied': 'Copied {n} profiles. Paste into the other window.',
   'settings.copyByHand': 'Selected, but the clipboard refused — press Ctrl+C.',
+  'settings.imported': 'Imported {n} profiles.',
   'settings.pasteByHand': 'The clipboard refused. Paste into the box and it loads itself.',
   'settings.importFailed': 'Import failed',
 
