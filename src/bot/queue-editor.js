@@ -1,6 +1,7 @@
 import { sortToDefaultOrder } from './activity.js';
 import { getCanvas } from '../core/canvas.js';
 import { clientToBuffer, getBufferSize } from '../core/coords.js';
+import { t } from '../i18n/index.js';
 
 /**
  * Enabling and reordering the Run-All queue.
@@ -88,5 +89,48 @@ export function createQueueEditor(deps) {
     deps.persist();
   }
 
-  return { setEnabled, setClickZone, move, restoreOrder };
+  /** Every activity's click zone, as JSON — moving them to another install. */
+  function exportZones() {
+    return JSON.stringify(
+      deps
+        .getActivities()
+        .filter((activity) => activity.clickZone)
+        .map((activity) => ({ id: activity.id, clickZone: activity.clickZone }))
+    );
+  }
+
+  /**
+   * Apply a batch of zones exported from another install.
+   *
+   * Matched by activity id, not position: `raid` and `pvp` are the same
+   * ids everywhere, so a zone drawn once on one install can set the same
+   * activity's zone on another without the icons even sitting at the
+   * same spot on each account's screen. An id this install has no
+   * activity for is skipped, not an error — a newer export may carry
+   * an activity this profile never added.
+   *
+   * @param {string} json as `exportZones` wrote it
+   * @returns {number} how many zones were applied
+   * @throws {Error} on anything that is not a JSON array of `{ id, clickZone }`
+   */
+  function importZones(json) {
+    const parsed = JSON.parse(json);
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      throw new Error(t('queue.importNotAnArray'));
+    }
+
+    const activities = deps.getActivities();
+    let applied = 0;
+    for (const entry of parsed) {
+      const activity = activities.find((candidate) => candidate.id === entry.id);
+      if (activity && entry.clickZone) {
+        activity.clickZone = entry.clickZone;
+        applied += 1;
+      }
+    }
+    deps.persist();
+    return applied;
+  }
+
+  return { setEnabled, setClickZone, exportZones, importZones, move, restoreOrder };
 }
