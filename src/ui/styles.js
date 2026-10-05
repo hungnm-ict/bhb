@@ -766,6 +766,8 @@ const CSS = `
 .bhb-screen__state.is-seen { color: var(--bhb-live); }
 .bhb-screen__state.is-unseen { color: var(--bhb-danger); }
 .bhb-screen__tune { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 0 8px 6px; }
+.bhb-screen__party { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 0 8px 6px; }
+.bhb-screen__party .bhb-rule__gate { flex: 1 1 128px; }
 /* The ratio slider's flex:1 can otherwise squeeze this dropdown down to
    nothing in a narrow panel; wrapping keeps it a usable width instead. */
 .bhb-screen__tune .bhb-rule__gate { flex: 0 0 120px; }
