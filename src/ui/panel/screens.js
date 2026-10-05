@@ -240,7 +240,7 @@ export function renderScreensTab(deps) {
           });
 
           const captureList = el('button', {
-            class: 'bhb-btn',
+            class: 'bhb-btn bhb-btn--small',
             text: t('screens.captureList'),
           });
           captureList.addEventListener('click', () => {
