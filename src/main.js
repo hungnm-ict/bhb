@@ -125,6 +125,7 @@ function bootstrap() {
     shouldRecoverFromHang: () => settings.watchdog,
     recoverFromHang: (task) => watchdog.recover(task, engine.getState().activity),
     recordRestMeasurement: (stepId, measurement) => stepEditor.recordAutoRest(stepId, measurement),
+    recordAvgRound: (activityId, measurement) => queueEditor.recordAvgRound(activityId, measurement),
   });
 
   const stepEditor = createStepEditor({

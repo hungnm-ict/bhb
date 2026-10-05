@@ -94,6 +94,38 @@ export function activityCode(activity) {
   return letters ? letters.slice(0, 3).toUpperCase() : '?';
 }
 
+/** How much of the newest round's length survives into the running estimate. */
+const ROUND_EMA_WEIGHT = 0.3;
+
+/**
+ * Fold one completed round into an activity's learned duration.
+ *
+ * Only a round that actually ran its course is worth folding in: one cut
+ * short because Run-All gave up and moved on idle says how long the bot
+ * waited, not how long the activity takes, so the caller only measures a
+ * round that ended because its resource ran out.
+ *
+ * @param {{ avgRoundObserved?: number, avgRoundSpeed?: number }} activity the
+ *   two fields this reads off the activity that was timed
+ * @param {number} elapsedSec this round's measured length
+ * @param {number} speed the game-speed multiplier running at the time
+ * @returns {{ avgRoundObserved: number, avgRoundSpeed: number } | null} null
+ *   for a round too short to mean anything, such as one started moments
+ *   before the resource ran out on the previous pass through the queue
+ */
+export function computeAvgRound(activity, elapsedSec, speed) {
+  if (elapsedSec < 1) {
+    return null;
+  }
+  // A round timed at one speed says nothing about another: start fresh
+  // rather than average two different things together.
+  const observed =
+    activity.avgRoundSpeed !== speed || !activity.avgRoundObserved
+      ? elapsedSec
+      : activity.avgRoundObserved * (1 - ROUND_EMA_WEIGHT) + elapsedSec * ROUND_EMA_WEIGHT;
+  return { avgRoundObserved: observed, avgRoundSpeed: speed };
+}
+
 /**
  * Put a profile's activities back in the order a session runs.
  *

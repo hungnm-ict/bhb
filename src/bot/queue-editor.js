@@ -22,6 +22,16 @@ export function createQueueEditor(deps) {
     deps.persist();
   }
 
+  function recordAvgRound(activityId, { avgRoundObserved, avgRoundSpeed }) {
+    const activity = deps.getActivities().find((entry) => entry.id === activityId);
+    if (!activity) {
+      return;
+    }
+    activity.avgRoundObserved = avgRoundObserved;
+    activity.avgRoundSpeed = avgRoundSpeed;
+    deps.persist();
+  }
+
   /**
    * Where this activity's own entry icon sits, for the click-switch to watch.
    *
@@ -132,5 +142,5 @@ export function createQueueEditor(deps) {
     return applied;
   }
 
-  return { setEnabled, setClickZone, exportZones, importZones, move, restoreOrder };
+  return { setEnabled, setClickZone, exportZones, importZones, move, restoreOrder, recordAvgRound };
 }
