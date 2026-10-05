@@ -79,6 +79,8 @@ export default {
   'screens.clash': '{names} all match right now. The bot takes the first, so it thinks it is on “{winner}” — a step gated to any of the others will never come up. Capture something only one of them shows.',
   'screens.unknown': 'unknown',
   'screens.anchors': 'Anchors',
+  'screens.anchorRow': 'Anchor {n}',
+  'screens.matchThreshold': 'Match threshold (shared by every anchor)',
   'screens.recaptureAnchor': 'Recapture anchor {n}',
   'screens.removeAnchor': 'Remove anchor {n}',
   'screens.stopsTask': 'Out of resources — stop the task here',

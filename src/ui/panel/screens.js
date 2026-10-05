@@ -4,6 +4,11 @@ import { startDragSelect } from '../dragselect.js';
 import { WORLD_BOSSES } from '../../bot/worldboss.js';
 import { Keys, keyLabel } from '../../core/keys.js';
 
+// Which screens have their anchor list open, by id. Module scope rather than
+// the store: it is a scratch UI toggle, not something worth persisting or
+// rebuilding the rest of the panel's state shape for.
+const expandedAnchors = new Set();
+
 /**
  * The screens tab.
  *
@@ -33,6 +38,68 @@ export function renderScreensTab(deps) {
       deps.store.openPanel();
       deps.refresh();
     });
+  }
+
+  // One chip per anchor: the game moves on, so a single anchor going stale
+  // used to mean deleting it and capturing a fresh one at the end of the
+  // list — losing its place for no reason. Recapture overwrites it in place
+  // instead. Folded shut by default: a screen rarely needs this once its
+  // anchors are set, and listing every one of them every tick is exactly
+  // the kind of row that pushed the name field back into clipping.
+  function renderAnchorsFold(screen) {
+    const isOpen = expandedAnchors.has(screen.id);
+    const toggle = el('button', {
+      class: 'bhb-note bhb-screen__anchortoggle',
+      text: `${isOpen ? '▾' : '▸'} ${t('screens.anchors')} (${screen.anchors.length})`,
+    });
+    toggle.addEventListener('click', () => {
+      if (isOpen) {
+        expandedAnchors.delete(screen.id);
+      } else {
+        expandedAnchors.add(screen.id);
+      }
+      deps.refresh();
+    });
+
+    if (!isOpen || screen.anchors.length === 0) {
+      return toggle;
+    }
+
+    const rows = screen.anchors.map((_, anchorIndex) => {
+      const recaptureBtn = el('button', {
+        class: 'bhb-icon',
+        title: t('screens.recaptureAnchor', { n: anchorIndex + 1 }),
+        text: '↻',
+      });
+      recaptureBtn.addEventListener('click', () => capture(screen.id, anchorIndex));
+
+      const removeBtn = el('button', {
+        class: 'bhb-icon bhb-icon--danger',
+        title: t('screens.removeAnchor', { n: anchorIndex + 1 }),
+        text: '✕',
+      });
+      removeBtn.addEventListener('click', () => {
+        deps.screenEditor.removeAnchor(screen.id, anchorIndex);
+        deps.store.hoverAnchor(null);
+        deps.refresh();
+      });
+
+      const row = el('div', { class: 'bhb-screen__anchorrow' }, [
+        el('span', { class: 'bhb-note', text: t('screens.anchorRow', { n: anchorIndex + 1 }) }),
+        el('span', { class: 'bhb-screen__anchoractions' }, [recaptureBtn, removeBtn]),
+      ]);
+      // Hovering outlines the actual rectangle this anchor reads, over the
+      // game — a colour fingerprint means nothing on its own otherwise.
+      row.addEventListener('mouseenter', () => {
+        deps.store.hoverAnchor({ screenId: screen.id, anchorIndex });
+      });
+      row.addEventListener('mouseleave', () => {
+        deps.store.hoverAnchor(null);
+      });
+      return row;
+    });
+
+    return el('div', { class: 'bhb-screen__anchorlist' }, [toggle, ...rows]);
   }
 
   // Armed here rather than always live: a stray S press starts a drag
@@ -303,35 +370,15 @@ export function renderScreensTab(deps) {
           remove,
         ]),
       ]),
+      // One shared threshold for every anchor on the screen, not one per
+      // anchor — the label says so explicitly, so it never reads as a
+      // setting that belongs to whichever anchor happens to sit next to it.
       el('div', { class: 'bhb-screen__tune' }, [
-        el('span', { class: 'bhb-note', text: `${t('screens.anchors')} ${screen.anchors.length}` }),
+        el('span', { class: 'bhb-note', text: t('screens.matchThreshold') }),
         ratio,
         el('span', { class: 'bhb-mono bhb-note', text: screen.minRatio.toFixed(2) }),
-        // One chip per anchor: the game moves on, so a single anchor going
-        // stale used to mean deleting it and capturing a fresh one at the
-        // end of the list — losing its place for no reason. Recapture
-        // overwrites it in place instead.
-        ...screen.anchors.map((_, anchorIndex) => {
-          const recaptureBtn = el('button', {
-            class: 'bhb-icon',
-            title: t('screens.recaptureAnchor', { n: anchorIndex + 1 }),
-            text: `↻${anchorIndex + 1}`,
-          });
-          recaptureBtn.addEventListener('click', () => capture(screen.id, anchorIndex));
-
-          const removeBtn = el('button', {
-            class: 'bhb-icon bhb-icon--danger',
-            title: t('screens.removeAnchor', { n: anchorIndex + 1 }),
-            text: '✕',
-          });
-          removeBtn.addEventListener('click', () => {
-            deps.screenEditor.removeAnchor(screen.id, anchorIndex);
-            deps.refresh();
-          });
-
-          return el('span', { class: 'bhb-screen__anchor' }, [recaptureBtn, removeBtn]);
-        }),
       ]),
+      renderAnchorsFold(screen),
       party,
     ]);
     wrap.dataset.screenId = screen.id;
