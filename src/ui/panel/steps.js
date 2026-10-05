@@ -370,9 +370,15 @@ export function renderStepsTab(deps) {
     const miss = state.dryRun && state.dryRun.misses ? state.dryRun.misses[step.id] : null;
     const legacy = point && isLegacyPoint(point);
 
-    const name = el('input', { class: 'bhb-rule__name' });
+    // The row has little width left for this once every icon button has
+    // taken its share, so a longer name gets clipped — the title attribute
+    // is what makes it readable on hover rather than only after clicking in.
+    const name = el('input', { class: 'bhb-rule__name', title: step.label || '' });
     name.value = step.label || '';
     name.placeholder = t('steps.unnamed');
+    name.addEventListener('input', () => {
+      name.title = name.value;
+    });
     name.addEventListener('change', () => {
       deps.stepEditor.rename(step.id, name.value.trim());
       deps.refresh();
