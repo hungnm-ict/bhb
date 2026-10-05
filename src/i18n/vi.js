@@ -136,9 +136,9 @@ export default {
   'settings.export': 'Xuất',
   'settings.import': 'Nhập',
   'settings.copied': 'Đã chép {n} hồ sơ. Dán sang cửa sổ kia.',
-  'settings.copyByHand': 'Đã bôi đen, nhưng clipboard bị chặn — bấm Ctrl+C.',
+  'settings.copyByHand': 'Clipboard từ chối chép. Cho phép quyền truy cập clipboard rồi thử lại.',
   'settings.imported': 'Đã nhập {n} hồ sơ.',
-  'settings.pasteByHand': 'Clipboard bị chặn. Dán vào ô bên dưới là nó tự nạp.',
+  'settings.pasteByHand': 'Clipboard từ chối dán. Cho phép quyền truy cập clipboard rồi thử lại.',
   'settings.importFailed': 'Nhập thất bại',
 
   'tasks.target': 'Chạy chế độ nào',

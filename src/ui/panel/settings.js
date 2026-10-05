@@ -12,8 +12,9 @@ import { renderProbeSection } from './probes.js';
 /**
  * Settings, and the first home for the profile list.
  *
- * Export and import go through a textarea: a file picker would need `@grant`,
- * and the clipboard is not reliable inside a userscript sandbox.
+ * Export and import go straight through the clipboard: a file picker would
+ * need `@grant`, and a textarea just duplicated what the clipboard already
+ * holds.
  *
  * @param {object} deps
  * @param {object} deps.profiles profile actions, see main.js
@@ -22,19 +23,8 @@ import { renderProbeSection } from './probes.js';
  * @param {() => number} deps.getReloadCount
  * @param {() => void} deps.refresh
  */
-/**
- * The import box outlives its render.
- *
- * The panel is rebuilt on every engine tick, and a textarea rebuilt under the
- * user is a pasted profile silently thrown away. Keeping the node itself keeps
- * both the text and the caret.
- *
- * @type {HTMLTextAreaElement | null}
- */
-let transferBox = null;
-
-// Same reason as transferBox: the panel rebuilds every tick, so a message
-// set from a click handler needs somewhere to live past that rebuild.
+// The panel rebuilds every engine tick, so a message set from a click
+// handler needs somewhere to live past that rebuild.
 let transferNoteText = '';
 let transferNoteVariant = '';
 
@@ -357,12 +347,6 @@ export function renderSettingsTab(deps) {
     return button;
   }
 
-  if (!transferBox) {
-    transferBox = el('textarea', { class: 'bhb-textarea' });
-    transferBox.spellcheck = false;
-  }
-  const transfer = transferBox;
-
   const transferNote = el('p', {
     class: transferNoteVariant ? `bhb-note bhb-note--${transferNoteVariant}` : 'bhb-note',
     text: transferNoteText,
@@ -375,27 +359,22 @@ export function renderSettingsTab(deps) {
     transferNote.className = variant ? `bhb-note bhb-note--${variant}` : 'bhb-note';
   }
 
-  // Selecting a wall of JSON by hand is how half of it gets left behind, so
-  // the button takes the clipboard and only falls back to a selection.
   const exportButton = el('button', {
     class: 'bhb-btn bhb-btn--small',
     text: t('settings.export'),
   });
   exportButton.addEventListener('click', async () => {
-    transfer.value = profiles.exportAll();
-    transfer.select();
     try {
-      await navigator.clipboard.writeText(transfer.value);
+      await navigator.clipboard.writeText(profiles.exportAll());
       setTransferNote(t('settings.copied', { n: profiles.list().length }), 'ok');
     } catch {
-      setTransferNote(t('settings.copyByHand'));
+      setTransferNote(t('settings.copyByHand'), 'warn');
     }
   });
 
   function loadProfilesFrom(text) {
     try {
       profiles.importAll(text);
-      transfer.value = '';
       setTransferNote(t('settings.imported', { n: profiles.list().length }), 'ok');
       deps.refresh();
     } catch (error) {
@@ -407,28 +386,10 @@ export function renderSettingsTab(deps) {
   importButton.addEventListener('click', async () => {
     try {
       const text = await navigator.clipboard.readText();
-      transfer.value = text;
       loadProfilesFrom(text);
     } catch {
-      // Clipboard reads can be refused; the box is still there to paste into.
-      if (transfer.value.trim()) {
-        loadProfilesFrom(transfer.value);
-        return;
-      }
-      setTransferNote(t('settings.pasteByHand'));
-      transfer.focus();
+      setTransferNote(t('settings.pasteByHand'), 'warn');
     }
-  });
-
-  // Pasting straight into the box counts as asking for it to be loaded.
-  transfer.addEventListener('paste', (event) => {
-    const text = event.clipboardData && event.clipboardData.getData('text');
-    if (!text) {
-      return;
-    }
-    event.preventDefault();
-    transfer.value = text;
-    loadProfilesFrom(text);
   });
 
   // The same switch as the task tab's: a settings page of dim little circles
@@ -593,7 +554,6 @@ export function renderSettingsTab(deps) {
 
     section(deps, 'transfer', 'settings.transfer', '', () =>
       el('div', { class: 'bhb-field' }, [
-        transfer,
         el('div', { class: 'bhb-btnrow' }, [exportButton, importButton]),
         transferNote,
       ])
