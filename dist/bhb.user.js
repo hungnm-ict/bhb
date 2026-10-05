@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.44.10
+// @version      0.44.11
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @icon         data:image/png;base64,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
@@ -15,7 +15,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.44.10" : "dev";
+  var VERSION = true ? "0.44.11" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -3149,6 +3149,8 @@
     "screens.clash": "{names} đang cùng khớp. Bot lấy cái đầu tiên nên nó cho rằng đang ở “{winner}” — bước nào khoá vào mấy cái còn lại sẽ không bao giờ tới lượt. Hãy chụp vào chỗ chỉ một màn hình mới có.",
     "screens.unknown": "chưa rõ",
     "screens.anchors": "Vùng",
+    "screens.anchorRow": "Vùng {n}",
+    "screens.matchThreshold": "Ngưỡng khớp (dùng chung cho mọi vùng)",
     "screens.recaptureAnchor": "Bắt lại vùng {n}",
     "screens.removeAnchor": "Xoá vùng {n}",
     "screens.stopsTask": "Hết tài nguyên — dừng hoạt động ở màn hình này",
@@ -3454,6 +3456,8 @@
     "screens.clash": "{names} all match right now. The bot takes the first, so it thinks it is on “{winner}” — a step gated to any of the others will never come up. Capture something only one of them shows.",
     "screens.unknown": "unknown",
     "screens.anchors": "Anchors",
+    "screens.anchorRow": "Anchor {n}",
+    "screens.matchThreshold": "Match threshold (shared by every anchor)",
     "screens.recaptureAnchor": "Recapture anchor {n}",
     "screens.removeAnchor": "Remove anchor {n}",
     "screens.stopsTask": "Out of resources — stop the task here",
@@ -4543,7 +4547,7 @@
 
   // src/ui/styles.js
   var CSS2 = `
-.bhb-hud, .bhb-panel, .bhb-markers, .bhb-probes, .bhb-flash, .bhb-drag, .bhb-size, .bhb-fpsbadge, .bhb-toast {
+.bhb-hud, .bhb-panel, .bhb-markers, .bhb-probes, .bhb-anchorhi, .bhb-flash, .bhb-drag, .bhb-size, .bhb-fpsbadge, .bhb-toast {
   --bhb-bg: #12141c;
   --bhb-bg-soft: #1a1d29;
   --bhb-line: rgba(255, 255, 255, .09);
@@ -5125,6 +5129,16 @@
 }
 
 
+/* --- Anchor highlight ---------------------------------------------------- */
+
+.bhb-anchorhi {
+  display: none;
+  position: fixed; pointer-events: none;
+  border: 2px solid var(--bhb-live); border-radius: 3px;
+  background: rgba(61, 220, 151, .12);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .5);
+}
+
 /* --- Probe layer -------------------------------------------------------- */
 
 .bhb-probes { inset: 0; pointer-events: none; }
@@ -5300,13 +5314,20 @@
 .bhb-screen__tune { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 0 8px 6px; }
 .bhb-screen__party { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 0 8px 6px; }
 .bhb-screen__party .bhb-rule__gate { flex: 1 1 128px; }
-.bhb-screen__anchor { display: flex; align-items: center; background: var(--bhb-bg-soft); border-radius: 6px; }
+.bhb-screen__anchorlist { padding: 0 8px 6px; }
+.bhb-screen__anchortoggle {
+  display: block; width: 100%; padding: 2px 0;
+  background: none; border: 0; text-align: left; cursor: pointer;
+}
+.bhb-screen__anchortoggle:hover { color: var(--bhb-text); }
+.bhb-screen__anchorrow {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 3px 0 3px 14px;
+}
+.bhb-screen__anchoractions { display: flex; gap: 1px; }
 /* The ratio slider's flex:1 can otherwise squeeze this dropdown down to
    nothing in a narrow panel; wrapping keeps it a usable width instead. */
 .bhb-screen__tune .bhb-rule__gate { flex: 0 0 120px; }
-/* Same squeeze risk once a screen has several anchor chips sharing the row:
-   the slider needs a floor or it gives up all its width to them first. */
-.bhb-screen__tune .bhb-slider--thin { flex: 1 1 70px; min-width: 50px; }
 .bhb-slider--thin { flex: 1; height: 20px; }
 .bhb-slider--thin::-webkit-slider-runnable-track { height: 4px; }
 .bhb-slider--thin::-moz-range-track { height: 4px; }
@@ -5449,6 +5470,13 @@
        * crossed a row made the whole list flicker.
        */
       previewStepId: null,
+      /**
+       * The anchor row under the cursor in the Screens tab, so its captured
+       * rectangle can be outlined over the game.
+       *
+       * @type {{ screenId: string, anchorIndex: number } | null}
+       */
+      hoveredAnchor: null,
       /** @type {string | null} activity id shown in the steps table; null is all */
       /**
        * Which activity the Steps tab is narrowed to. `null` is everything, and
@@ -5496,7 +5524,7 @@
       /** @type {object[]} newest first */
       log: Array.isArray(restoredLog) ? restoredLog.slice(0, LOG_LIMIT) : []
     };
-    const HIGHLIGHT_KEYS = /* @__PURE__ */ new Set(["selectedStepId", "hoveredStepId", "previewStepId"]);
+    const HIGHLIGHT_KEYS = /* @__PURE__ */ new Set(["selectedStepId", "hoveredStepId", "previewStepId", "hoveredAnchor"]);
     function emit() {
       emitter.emit("change", state);
     }
@@ -5523,10 +5551,10 @@
       subscribe: (handler) => emitter.on("change", handler),
       onHighlight: (handler) => emitter.on("highlight", handler),
       openPanel: () => patch({ panelOpen: true }),
-      closePanel: () => patch({ panelOpen: false, hoveredStepId: null, previewStepId: null }),
+      closePanel: () => patch({ panelOpen: false, hoveredStepId: null, previewStepId: null, hoveredAnchor: null }),
       // A preview never outlives the panel it faded, whichever way it was shut.
-      togglePanel: () => patch({ panelOpen: !state.panelOpen, hoveredStepId: null, previewStepId: null }),
-      setTab: (tab) => patch({ tab, panelOpen: true }),
+      togglePanel: () => patch({ panelOpen: !state.panelOpen, hoveredStepId: null, previewStepId: null, hoveredAnchor: null }),
+      setTab: (tab) => patch({ tab, panelOpen: true, hoveredAnchor: null }),
       setRuleFilter: (activityId) => patch({ stepFilter: activityId }),
       armCapture: (armed) => patch({ isCaptureArmed: armed }),
       armScreenCapture: (armed) => patch({ isScreenCaptureArmed: armed }),
@@ -5543,6 +5571,8 @@
       selectStep: (id) => patch({ selectedStepId: id }),
       hoverStep: (id) => patch({ hoveredStepId: id }),
       previewStep: (id) => patch({ previewStepId: id, hoveredStepId: id }),
+      /** @param {{ screenId: string, anchorIndex: number } | null} anchor */
+      hoverAnchor: (anchor) => patch({ hoveredAnchor: anchor }),
       /** Drop any reference to a step that no longer exists. */
       forgetStep(id) {
         patch({
@@ -6522,6 +6552,7 @@
   }
 
   // src/ui/panel/screens.js
+  var expandedAnchors = /* @__PURE__ */ new Set();
   function renderScreensTab(deps) {
     const screens = deps.getScreens();
     const active2 = deps.getEngineState().screen;
@@ -6535,6 +6566,54 @@
         deps.store.openPanel();
         deps.refresh();
       });
+    }
+    function renderAnchorsFold(screen) {
+      const isOpen = expandedAnchors.has(screen.id);
+      const toggle = el("button", {
+        class: "bhb-note bhb-screen__anchortoggle",
+        text: `${isOpen ? "▾" : "▸"} ${t("screens.anchors")} (${screen.anchors.length})`
+      });
+      toggle.addEventListener("click", () => {
+        if (isOpen) {
+          expandedAnchors.delete(screen.id);
+        } else {
+          expandedAnchors.add(screen.id);
+        }
+        deps.refresh();
+      });
+      if (!isOpen || screen.anchors.length === 0) {
+        return toggle;
+      }
+      const rows3 = screen.anchors.map((_, anchorIndex) => {
+        const recaptureBtn = el("button", {
+          class: "bhb-icon",
+          title: t("screens.recaptureAnchor", { n: anchorIndex + 1 }),
+          text: "↻"
+        });
+        recaptureBtn.addEventListener("click", () => capture(screen.id, anchorIndex));
+        const removeBtn = el("button", {
+          class: "bhb-icon bhb-icon--danger",
+          title: t("screens.removeAnchor", { n: anchorIndex + 1 }),
+          text: "✕"
+        });
+        removeBtn.addEventListener("click", () => {
+          deps.screenEditor.removeAnchor(screen.id, anchorIndex);
+          deps.store.hoverAnchor(null);
+          deps.refresh();
+        });
+        const row = el("div", { class: "bhb-screen__anchorrow" }, [
+          el("span", { class: "bhb-note", text: t("screens.anchorRow", { n: anchorIndex + 1 }) }),
+          el("span", { class: "bhb-screen__anchoractions" }, [recaptureBtn, removeBtn])
+        ]);
+        row.addEventListener("mouseenter", () => {
+          deps.store.hoverAnchor({ screenId: screen.id, anchorIndex });
+        });
+        row.addEventListener("mouseleave", () => {
+          deps.store.hoverAnchor(null);
+        });
+        return row;
+      });
+      return el("div", { class: "bhb-screen__anchorlist" }, [toggle, ...rows3]);
     }
     const isScreenCaptureArmed = deps.store.get().isScreenCaptureArmed;
     const arm = el("button", {
@@ -6749,33 +6828,15 @@
             remove
           ])
         ]),
+        // One shared threshold for every anchor on the screen, not one per
+        // anchor — the label says so explicitly, so it never reads as a
+        // setting that belongs to whichever anchor happens to sit next to it.
         el("div", { class: "bhb-screen__tune" }, [
-          el("span", { class: "bhb-note", text: `${t("screens.anchors")} ${screen.anchors.length}` }),
+          el("span", { class: "bhb-note", text: t("screens.matchThreshold") }),
           ratio,
-          el("span", { class: "bhb-mono bhb-note", text: screen.minRatio.toFixed(2) }),
-          // One chip per anchor: the game moves on, so a single anchor going
-          // stale used to mean deleting it and capturing a fresh one at the
-          // end of the list — losing its place for no reason. Recapture
-          // overwrites it in place instead.
-          ...screen.anchors.map((_, anchorIndex) => {
-            const recaptureBtn = el("button", {
-              class: "bhb-icon",
-              title: t("screens.recaptureAnchor", { n: anchorIndex + 1 }),
-              text: `↻${anchorIndex + 1}`
-            });
-            recaptureBtn.addEventListener("click", () => capture(screen.id, anchorIndex));
-            const removeBtn = el("button", {
-              class: "bhb-icon bhb-icon--danger",
-              title: t("screens.removeAnchor", { n: anchorIndex + 1 }),
-              text: "✕"
-            });
-            removeBtn.addEventListener("click", () => {
-              deps.screenEditor.removeAnchor(screen.id, anchorIndex);
-              deps.refresh();
-            });
-            return el("span", { class: "bhb-screen__anchor" }, [recaptureBtn, removeBtn]);
-          })
+          el("span", { class: "bhb-mono bhb-note", text: screen.minRatio.toFixed(2) })
         ]),
+        renderAnchorsFold(screen),
         party
       ]);
       wrap.dataset.screenId = screen.id;
@@ -8009,6 +8070,42 @@
     return { render };
   }
 
+  // src/ui/anchor-highlight.js
+  function createAnchorHighlight(deps) {
+    let box = null;
+    function ensureBox() {
+      if (!box) {
+        box = mount(el("div", { class: "bhb-anchorhi" }));
+      }
+      return box;
+    }
+    function render() {
+      const node = ensureBox();
+      const hovered = deps.store.get().hoveredAnchor;
+      const canvas = hovered && getCanvas();
+      const screen = hovered && deps.getScreens().find((candidate) => candidate.id === hovered.screenId);
+      const anchor = screen && screen.anchors[hovered.anchorIndex];
+      if (!anchor || !canvas) {
+        node.style.display = "none";
+        return;
+      }
+      const buffer = getBufferSize(canvas);
+      const mode = deps.getScaleMode();
+      const rect = canvas.getBoundingClientRect();
+      const stored = { bw: anchor.bw, bh: anchor.bh };
+      const bottomLeft = resolvePoint({ ...stored, x: anchor.x, y: anchor.y }, buffer, mode);
+      const topRight = resolvePoint({ ...stored, x: anchor.x + anchor.w, y: anchor.y + anchor.h }, buffer, mode);
+      const from = bufferToClient(canvas, bottomLeft.x, bottomLeft.y, rect);
+      const to = bufferToClient(canvas, topRight.x, topRight.y, rect);
+      node.style.display = "block";
+      node.style.left = `${Math.min(from.clientX, to.clientX)}px`;
+      node.style.top = `${Math.min(from.clientY, to.clientY)}px`;
+      node.style.width = `${Math.abs(to.clientX - from.clientX)}px`;
+      node.style.height = `${Math.abs(from.clientY - to.clientY)}px`;
+    }
+    return { render };
+  }
+
   // src/bot/probe-editor.js
   function createProbeEditor(deps) {
     trackCursor();
@@ -8354,6 +8451,7 @@
       panel.render();
       markers.render();
       probes.render();
+      anchorHighlight.render();
       sizeBadge.render();
       fpsBadge.render();
     };
@@ -8511,6 +8609,11 @@
       getScaleMode: () => settings.scaleMode,
       store
     });
+    const anchorHighlight = createAnchorHighlight({
+      getScreens,
+      getScaleMode: () => settings.scaleMode,
+      store
+    });
     const sizeBadge = createSizeBadge({ isVisible: () => settings.sizeBadge });
     const fpsBadge = createFpsBadge({ isVisible: () => settings.fpsBadge });
     function applyCanvasLock() {
@@ -8567,6 +8670,7 @@
     store.onHighlight(() => {
       panel.highlight();
       markers.highlight();
+      anchorHighlight.render();
     });
     onSpeedChange(() => {
       hud.render();

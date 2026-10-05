@@ -70,6 +70,7 @@ import { createPanel } from './ui/panel/index.js';
 import { describeEntry } from './ui/panel/log.js';
 import { createMarkerLayer } from './ui/markers.js';
 import { createProbeLayer } from './ui/probe-layer.js';
+import { createAnchorHighlight } from './ui/anchor-highlight.js';
 import { createProbeEditor } from './bot/probe-editor.js';
 import { createSizeBadge } from './ui/size-badge.js';
 import { createFpsBadge } from './ui/fps-badge.js';
@@ -209,6 +210,7 @@ function bootstrap() {
     panel.render();
     markers.render();
     probes.render();
+    anchorHighlight.render();
     sizeBadge.render();
     fpsBadge.render();
   };
@@ -394,6 +396,12 @@ function bootstrap() {
     store,
   });
 
+  const anchorHighlight = createAnchorHighlight({
+    getScreens,
+    getScaleMode: () => settings.scaleMode,
+    store,
+  });
+
   const sizeBadge = createSizeBadge({ isVisible: () => settings.sizeBadge });
   const fpsBadge = createFpsBadge({ isVisible: () => settings.fpsBadge });
 
@@ -474,6 +482,7 @@ function bootstrap() {
   store.onHighlight(() => {
     panel.highlight();
     markers.highlight();
+    anchorHighlight.render();
   });
   // Rebuilding the panel on every notch replaced the slider mid-drag, which is
   // what made dragging feel like it was fighting back.

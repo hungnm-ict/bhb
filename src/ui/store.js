@@ -69,6 +69,14 @@ export function createUiStore(restoredLog = []) {
      * crossed a row made the whole list flicker.
      */
     previewStepId: null,
+
+    /**
+     * The anchor row under the cursor in the Screens tab, so its captured
+     * rectangle can be outlined over the game.
+     *
+     * @type {{ screenId: string, anchorIndex: number } | null}
+     */
+    hoveredAnchor: null,
     /** @type {string | null} activity id shown in the steps table; null is all */
     /**
      * Which activity the Steps tab is narrowed to. `null` is everything, and
@@ -129,7 +137,7 @@ export function createUiStore(restoredLog = []) {
    * announced separately: rebuilding the panel on every mouseenter replaced
    * the row under the cursor twice a second and felt like lag.
    */
-  const HIGHLIGHT_KEYS = new Set(['selectedStepId', 'hoveredStepId', 'previewStepId']);
+  const HIGHLIGHT_KEYS = new Set(['selectedStepId', 'hoveredStepId', 'previewStepId', 'hoveredAnchor']);
 
   function emit() {
     emitter.emit('change', state);
@@ -161,10 +169,11 @@ export function createUiStore(restoredLog = []) {
     onHighlight: (handler) => emitter.on('highlight', handler),
 
     openPanel: () => patch({ panelOpen: true }),
-    closePanel: () => patch({ panelOpen: false, hoveredStepId: null, previewStepId: null }),
+    closePanel: () => patch({ panelOpen: false, hoveredStepId: null, previewStepId: null, hoveredAnchor: null }),
     // A preview never outlives the panel it faded, whichever way it was shut.
-    togglePanel: () => patch({ panelOpen: !state.panelOpen, hoveredStepId: null, previewStepId: null }),
-    setTab: (tab) => patch({ tab, panelOpen: true }),
+    togglePanel: () =>
+      patch({ panelOpen: !state.panelOpen, hoveredStepId: null, previewStepId: null, hoveredAnchor: null }),
+    setTab: (tab) => patch({ tab, panelOpen: true, hoveredAnchor: null }),
 
     setRuleFilter: (activityId) => patch({ stepFilter: activityId }),
 
@@ -188,6 +197,9 @@ export function createUiStore(restoredLog = []) {
     selectStep: (id) => patch({ selectedStepId: id }),
     hoverStep: (id) => patch({ hoveredStepId: id }),
     previewStep: (id) => patch({ previewStepId: id, hoveredStepId: id }),
+
+    /** @param {{ screenId: string, anchorIndex: number } | null} anchor */
+    hoverAnchor: (anchor) => patch({ hoveredAnchor: anchor }),
 
     /** Drop any reference to a step that no longer exists. */
     forgetStep(id) {

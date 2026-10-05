@@ -11,7 +11,7 @@ import { Z_TOP } from '../core/constants.js';
  * layer itself must not, or it would swallow every click meant for the game.
  */
 const CSS = `
-.bhb-hud, .bhb-panel, .bhb-markers, .bhb-probes, .bhb-flash, .bhb-drag, .bhb-size, .bhb-fpsbadge, .bhb-toast {
+.bhb-hud, .bhb-panel, .bhb-markers, .bhb-probes, .bhb-anchorhi, .bhb-flash, .bhb-drag, .bhb-size, .bhb-fpsbadge, .bhb-toast {
   --bhb-bg: #12141c;
   --bhb-bg-soft: #1a1d29;
   --bhb-line: rgba(255, 255, 255, .09);
@@ -593,6 +593,16 @@ const CSS = `
 }
 
 
+/* --- Anchor highlight ---------------------------------------------------- */
+
+.bhb-anchorhi {
+  display: none;
+  position: fixed; pointer-events: none;
+  border: 2px solid var(--bhb-live); border-radius: 3px;
+  background: rgba(61, 220, 151, .12);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .5);
+}
+
 /* --- Probe layer -------------------------------------------------------- */
 
 .bhb-probes { inset: 0; pointer-events: none; }
@@ -768,13 +778,20 @@ const CSS = `
 .bhb-screen__tune { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 0 8px 6px; }
 .bhb-screen__party { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 0 8px 6px; }
 .bhb-screen__party .bhb-rule__gate { flex: 1 1 128px; }
-.bhb-screen__anchor { display: flex; align-items: center; background: var(--bhb-bg-soft); border-radius: 6px; }
+.bhb-screen__anchorlist { padding: 0 8px 6px; }
+.bhb-screen__anchortoggle {
+  display: block; width: 100%; padding: 2px 0;
+  background: none; border: 0; text-align: left; cursor: pointer;
+}
+.bhb-screen__anchortoggle:hover { color: var(--bhb-text); }
+.bhb-screen__anchorrow {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 3px 0 3px 14px;
+}
+.bhb-screen__anchoractions { display: flex; gap: 1px; }
 /* The ratio slider's flex:1 can otherwise squeeze this dropdown down to
    nothing in a narrow panel; wrapping keeps it a usable width instead. */
 .bhb-screen__tune .bhb-rule__gate { flex: 0 0 120px; }
-/* Same squeeze risk once a screen has several anchor chips sharing the row:
-   the slider needs a floor or it gives up all its width to them first. */
-.bhb-screen__tune .bhb-slider--thin { flex: 1 1 70px; min-width: 50px; }
 .bhb-slider--thin { flex: 1; height: 20px; }
 .bhb-slider--thin::-webkit-slider-runnable-track { height: 4px; }
 .bhb-slider--thin::-moz-range-track { height: 4px; }

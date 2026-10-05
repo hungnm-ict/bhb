@@ -79,6 +79,8 @@ export default {
   'screens.clash': '{names} đang cùng khớp. Bot lấy cái đầu tiên nên nó cho rằng đang ở “{winner}” — bước nào khoá vào mấy cái còn lại sẽ không bao giờ tới lượt. Hãy chụp vào chỗ chỉ một màn hình mới có.',
   'screens.unknown': 'chưa rõ',
   'screens.anchors': 'Vùng',
+  'screens.anchorRow': 'Vùng {n}',
+  'screens.matchThreshold': 'Ngưỡng khớp (dùng chung cho mọi vùng)',
   'screens.recaptureAnchor': 'Bắt lại vùng {n}',
   'screens.removeAnchor': 'Xoá vùng {n}',
   'screens.stopsTask': 'Hết tài nguyên — dừng hoạt động ở màn hình này',
