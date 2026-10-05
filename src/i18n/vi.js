@@ -133,11 +133,11 @@ export default {
   'settings.showScreens': 'Hiện tab màn hình',
   'settings.language': 'Ngôn ngữ',
   'settings.transfer': 'Xuất / nhập',
-  'settings.transferHint': 'Dán nội dung hồ sơ đã xuất vào đây rồi bấm Nhập.',
   'settings.export': 'Xuất',
   'settings.import': 'Nhập',
   'settings.copied': 'Đã chép {n} hồ sơ. Dán sang cửa sổ kia.',
   'settings.copyByHand': 'Đã bôi đen, nhưng clipboard bị chặn — bấm Ctrl+C.',
+  'settings.imported': 'Đã nhập {n} hồ sơ.',
   'settings.pasteByHand': 'Clipboard bị chặn. Dán vào ô bên dưới là nó tự nạp.',
   'settings.importFailed': 'Nhập thất bại',
 
