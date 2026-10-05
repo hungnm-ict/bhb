@@ -8,8 +8,8 @@ import { Keys, keyLabel } from '../../core/keys.js';
  * The screens tab.
  *
  * `minRatio` is the one number here that cannot be guessed, so every screen
- * shows its live ✓/✗ and measured ratio while the bot runs: it is tuned by
- * watching it, not by arithmetic.
+ * shows a live match bar and measured ratio while the bot runs: it is tuned
+ * by watching it, not by arithmetic.
  *
  * @param {object} deps
  * @param {() => import('../../bot/screen.js').Screen[]} deps.getScreens
@@ -121,9 +121,8 @@ export function renderScreensTab(deps) {
   const rows = screens.map((screen, index) => {
     const probe = deps.screenEditor.probe(screen.id);
 
-    // The row has little width left for this once every icon button has
-    // taken its share, so a longer name gets clipped — the title attribute
-    // is what makes it readable on hover rather than only after clicking in.
+    // The title attribute is what makes a name readable on hover rather
+    // than only after clicking in, once it is longer than the row is wide.
     const name = el('input', { class: 'bhb-rule__name', title: screen.name || '' });
     name.value = screen.name || '';
     name.placeholder = t('screens.unnamed');
@@ -277,14 +276,13 @@ export function renderScreensTab(deps) {
     if (screen.stopsTask) {
       classes.push('is-stopper');
     }
+    if (probe && probe.matched) {
+      classes.push('is-matched');
+    }
 
     const wrap = el('div', { class: 'bhb-screen__wrap' }, [
       el('div', { class: classes.join(' ') }, [
         el('span', { class: 'bhb-rule__n', text: String(index + 1) }),
-        el('span', {
-          class: `bhb-screen__state ${probe && probe.matched ? 'is-seen' : ''}`,
-          text: probe ? (probe.matched ? '✓' : '✗') : '·',
-        }),
         name,
         el('span', {
           class: 'bhb-rule__coord bhb-mono',
