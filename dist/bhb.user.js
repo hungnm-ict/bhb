@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.44.8
+// @version      0.44.9
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @icon         data:image/png;base64,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
@@ -15,7 +15,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.44.8" : "dev";
+  var VERSION = true ? "0.44.9" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -3149,6 +3149,8 @@
     "screens.clash": "{names} đang cùng khớp. Bot lấy cái đầu tiên nên nó cho rằng đang ở “{winner}” — bước nào khoá vào mấy cái còn lại sẽ không bao giờ tới lượt. Hãy chụp vào chỗ chỉ một màn hình mới có.",
     "screens.unknown": "chưa rõ",
     "screens.anchors": "Vùng",
+    "screens.recaptureAnchor": "Bắt lại vùng {n}",
+    "screens.removeAnchor": "Xoá vùng {n}",
     "screens.stopsTask": "Hết tài nguyên — dừng hoạt động ở màn hình này",
     "screens.ratioHint": "Tỉ lệ điểm mẫu đang khớp",
     "screens.isParty": "Đây là màn hình party — mỗi hàng chứa một thành viên, không phải một nút cố định",
@@ -3253,6 +3255,7 @@
     "msg.noMousePosition": "chưa có vị trí chuột",
     "msg.outsideCanvas": "con trỏ ngoài canvas",
     "msg.anchorCaptured": "đã bắt vùng {n} cho {name}",
+    "msg.anchorRecaptured": "đã bắt lại vùng {n} cho {name}",
     "msg.stepCaptured": "đã bắt bước tại ({x}, {y}) — {hex}",
     "msg.stepUnstable": "đã bắt bước tại ({x}, {y}) — {hex}, nhưng màu ở đây đổi liên tục (icon nhấp nháy?) nên bước có thể trượt",
     "screens.notify": "Báo tin khi thấy màn hình này (đồ rơi hiếm, familiar xịn)",
@@ -3451,6 +3454,8 @@
     "screens.clash": "{names} all match right now. The bot takes the first, so it thinks it is on “{winner}” — a step gated to any of the others will never come up. Capture something only one of them shows.",
     "screens.unknown": "unknown",
     "screens.anchors": "Anchors",
+    "screens.recaptureAnchor": "Recapture anchor {n}",
+    "screens.removeAnchor": "Remove anchor {n}",
     "screens.stopsTask": "Out of resources — stop the task here",
     "screens.ratioHint": "Share of samples matching right now",
     "screens.isParty": "This is a party list — its rows carry a team mate, not a fixed button",
@@ -3555,6 +3560,7 @@
     "msg.noMousePosition": "no cursor position yet",
     "msg.outsideCanvas": "cursor is outside the canvas",
     "msg.anchorCaptured": "anchor {n} captured for {name}",
+    "msg.anchorRecaptured": "anchor {n} recaptured for {name}",
     "msg.stepCaptured": "captured a step at ({x}, {y}) — {hex}",
     "msg.stepUnstable": "captured a step at ({x}, {y}) — {hex}, but the colour here keeps changing (an animated icon?) so the step may miss",
     "screens.notify": "Send an alert when this screen appears (rare drop, legendary familiar)",
@@ -4130,7 +4136,7 @@
     function find(screenId) {
       return deps.getScreens().find((screen) => screen.id === screenId) || null;
     }
-    async function captureAnchor(rect, screenId = null) {
+    async function captureAnchor(rect, screenId = null, anchorIndex = null) {
       const target = getRenderTarget();
       if (!target) {
         deps.report(t("msg.noCanvas"));
@@ -4169,9 +4175,16 @@
         screen = createScreen({ name: t("screen.defaultName", { n: screens.length + 1 }) });
         screens.push(screen);
       }
-      screen.anchors.push(fingerprint);
+      const isReplacing = anchorIndex != null && anchorIndex >= 0 && anchorIndex < screen.anchors.length;
+      if (isReplacing) {
+        screen.anchors[anchorIndex] = fingerprint;
+      } else {
+        screen.anchors.push(fingerprint);
+      }
       deps.persist();
-      deps.report(t("msg.anchorCaptured", { name: screen.name, n: screen.anchors.length }));
+      deps.report(
+        isReplacing ? t("msg.anchorRecaptured", { name: screen.name, n: anchorIndex + 1 }) : t("msg.anchorCaptured", { name: screen.name, n: screen.anchors.length })
+      );
       return screen;
     }
     function rename(screenId, name) {
@@ -5287,6 +5300,8 @@
 .bhb-screen__tune { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 0 8px 6px; }
 .bhb-screen__party { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 0 8px 6px; }
 .bhb-screen__party .bhb-rule__gate { flex: 1 1 128px; }
+.bhb-screen__anchors { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 8px 6px; }
+.bhb-screen__anchor { display: flex; align-items: center; background: var(--bhb-bg-soft); border-radius: 6px; }
 /* The ratio slider's flex:1 can otherwise squeeze this dropdown down to
    nothing in a narrow panel; wrapping keeps it a usable width instead. */
 .bhb-screen__tune .bhb-rule__gate { flex: 0 0 120px; }
@@ -6508,12 +6523,12 @@
   function renderScreensTab(deps) {
     const screens = deps.getScreens();
     const active2 = deps.getEngineState().screen;
-    function capture(screenId) {
+    function capture(screenId, anchorIndex = null) {
       deps.store.closePanel();
       deps.refresh();
       startDragSelect(async (rect) => {
         if (rect) {
-          await deps.screenEditor.captureAnchor(rect, screenId);
+          await deps.screenEditor.captureAnchor(rect, screenId, anchorIndex);
         }
         deps.store.openPanel();
         deps.refresh();
@@ -6737,6 +6752,32 @@
           ratio,
           el("span", { class: "bhb-mono bhb-note", text: screen.minRatio.toFixed(2) })
         ]),
+        // One chip per anchor: the game moves on, so a single anchor going
+        // stale used to mean deleting it and capturing a fresh one at the end
+        // of the list — losing its place for no reason. Recapture overwrites
+        // it in place instead.
+        screen.anchors.length ? el(
+          "div",
+          { class: "bhb-screen__anchors" },
+          screen.anchors.map((_, anchorIndex) => {
+            const recaptureBtn = el("button", {
+              class: "bhb-icon",
+              title: t("screens.recaptureAnchor", { n: anchorIndex + 1 }),
+              text: `↻${anchorIndex + 1}`
+            });
+            recaptureBtn.addEventListener("click", () => capture(screen.id, anchorIndex));
+            const removeBtn = el("button", {
+              class: "bhb-icon bhb-icon--danger",
+              title: t("screens.removeAnchor", { n: anchorIndex + 1 }),
+              text: "✕"
+            });
+            removeBtn.addEventListener("click", () => {
+              deps.screenEditor.removeAnchor(screen.id, anchorIndex);
+              deps.refresh();
+            });
+            return el("span", { class: "bhb-screen__anchor" }, [recaptureBtn, removeBtn]);
+          })
+        ) : null,
         party
       ]);
       wrap.dataset.screenId = screen.id;

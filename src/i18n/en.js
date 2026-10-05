@@ -79,6 +79,8 @@ export default {
   'screens.clash': '{names} all match right now. The bot takes the first, so it thinks it is on “{winner}” — a step gated to any of the others will never come up. Capture something only one of them shows.',
   'screens.unknown': 'unknown',
   'screens.anchors': 'Anchors',
+  'screens.recaptureAnchor': 'Recapture anchor {n}',
+  'screens.removeAnchor': 'Remove anchor {n}',
   'screens.stopsTask': 'Out of resources — stop the task here',
   'screens.ratioHint': 'Share of samples matching right now',
   'screens.isParty': 'This is a party list — its rows carry a team mate, not a fixed button',
@@ -193,6 +195,7 @@ export default {
   'msg.noMousePosition': 'no cursor position yet',
   'msg.outsideCanvas': 'cursor is outside the canvas',
   'msg.anchorCaptured': 'anchor {n} captured for {name}',
+  'msg.anchorRecaptured': 'anchor {n} recaptured for {name}',
   'msg.stepCaptured': 'captured a step at ({x}, {y}) — {hex}',
   'msg.stepUnstable': 'captured a step at ({x}, {y}) — {hex}, but the colour here keeps changing (an animated icon?) so the step may miss',
 

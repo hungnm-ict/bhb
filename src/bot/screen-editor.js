@@ -46,9 +46,10 @@ export function createScreenEditor(deps) {
    *
    * @param {{ left: number, top: number, width: number, height: number }} rect
    * @param {string | null} screenId the screen to add it to; null makes a new one
+   * @param {number | null} [anchorIndex] replace this anchor instead of adding one
    * @returns {Promise<import('./screen.js').Screen | null>}
    */
-  async function captureAnchor(rect, screenId = null) {
+  async function captureAnchor(rect, screenId = null, anchorIndex = null) {
     const target = getRenderTarget();
     if (!target) {
       deps.report(t('msg.noCanvas'));
@@ -97,9 +98,18 @@ export function createScreenEditor(deps) {
       screens.push(screen);
     }
 
-    screen.anchors.push(fingerprint);
+    const isReplacing = anchorIndex != null && anchorIndex >= 0 && anchorIndex < screen.anchors.length;
+    if (isReplacing) {
+      screen.anchors[anchorIndex] = fingerprint;
+    } else {
+      screen.anchors.push(fingerprint);
+    }
     deps.persist();
-    deps.report(t('msg.anchorCaptured', { name: screen.name, n: screen.anchors.length }));
+    deps.report(
+      isReplacing
+        ? t('msg.anchorRecaptured', { name: screen.name, n: anchorIndex + 1 })
+        : t('msg.anchorCaptured', { name: screen.name, n: screen.anchors.length })
+    );
     return screen;
   }
 

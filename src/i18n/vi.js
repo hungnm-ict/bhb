@@ -79,6 +79,8 @@ export default {
   'screens.clash': '{names} đang cùng khớp. Bot lấy cái đầu tiên nên nó cho rằng đang ở “{winner}” — bước nào khoá vào mấy cái còn lại sẽ không bao giờ tới lượt. Hãy chụp vào chỗ chỉ một màn hình mới có.',
   'screens.unknown': 'chưa rõ',
   'screens.anchors': 'Vùng',
+  'screens.recaptureAnchor': 'Bắt lại vùng {n}',
+  'screens.removeAnchor': 'Xoá vùng {n}',
   'screens.stopsTask': 'Hết tài nguyên — dừng hoạt động ở màn hình này',
   'screens.ratioHint': 'Tỉ lệ điểm mẫu đang khớp',
   'screens.isParty': 'Đây là màn hình party — mỗi hàng chứa một thành viên, không phải một nút cố định',
@@ -193,6 +195,7 @@ export default {
   'msg.noMousePosition': 'chưa có vị trí chuột',
   'msg.outsideCanvas': 'con trỏ ngoài canvas',
   'msg.anchorCaptured': 'đã bắt vùng {n} cho {name}',
+  'msg.anchorRecaptured': 'đã bắt lại vùng {n} cho {name}',
   'msg.stepCaptured': 'đã bắt bước tại ({x}, {y}) — {hex}',
   'msg.stepUnstable': 'đã bắt bước tại ({x}, {y}) — {hex}, nhưng màu ở đây đổi liên tục (icon nhấp nháy?) nên bước có thể trượt',
 
