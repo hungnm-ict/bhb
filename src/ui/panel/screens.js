@@ -92,13 +92,40 @@ export function renderScreensTab(deps) {
     transferNote,
   ]);
 
+  // Each probe costs a `gl.readPixels`, which forces a GPU sync — fine for a
+  // handful of screens, but a long list scored every tick is what stutters.
+  // The row heights below are an estimate, not a measurement (the rows don't
+  // exist yet to measure), so the window is padded generously on both sides:
+  // a few extra rows probed for nothing costs far less than a stale icon on
+  // a row that was actually in view.
+  const ROW_HEIGHT_ESTIMATE = 70;
+  const VIEWPORT_PAD = 3 * ROW_HEIGHT_ESTIMATE;
+  const viewport = deps.screensViewport;
+  function isNearViewport(index) {
+    if (!viewport) {
+      return true;
+    }
+    const top = index * ROW_HEIGHT_ESTIMATE;
+    const bottom = top + ROW_HEIGHT_ESTIMATE;
+    return bottom >= viewport.scrollTop - VIEWPORT_PAD
+      && top <= viewport.scrollTop + viewport.clientHeight + VIEWPORT_PAD;
+  }
+
   // One probe per screen per render: it costs a `gl.readPixels`, and scoring
   // the same frame against the same screen twice just doubles that for free.
-  const probes = new Map(screens.map((screen) => [screen.id, deps.screenEditor.probe(screen.id)]));
+  // Screens scrolled well out of view skip it entirely (see isNearViewport).
+  const probes = new Map(
+    screens.map((screen, index) => [
+      screen.id,
+      isNearViewport(index) ? deps.screenEditor.probe(screen.id) : null,
+    ])
+  );
 
   // Two screens matching at once is the quietest way to break a step set: the
   // runner takes the first, and a step gated to the second simply never comes
-  // up — which reads exactly like a step whose turn has not arrived.
+  // up — which reads exactly like a step whose turn has not arrived. This is
+  // a live authoring aid, not the runner's own gating, so a clash involving a
+  // screen scrolled out of view just waits until it scrolls back near one.
   const matching = screens.filter((screen) => {
     const score = probes.get(screen.id);
     return Boolean(score && score.matched);

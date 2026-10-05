@@ -218,6 +218,15 @@ export function createPanel(deps) {
     const previousBody = target.querySelector('.bhb-panel__body');
     const keptScroll = previousBody && renderedTab === state.tab ? previousBody.scrollTop : 0;
 
+    // The screens tab scores every screen against the live frame with a
+    // `gl.readPixels`, which forces a GPU sync — with a long list that adds
+    // up every single tick. Handing it the same-tab scroll window lets it
+    // skip the rows currently scrolled out of view.
+    deps.screensViewport =
+      previousBody && renderedTab === state.tab
+        ? { scrollTop: previousBody.scrollTop, clientHeight: previousBody.clientHeight }
+        : null;
+
     const body = el('div', { class: 'bhb-panel__body' }, [renderBody(state.tab)]);
 
     const help = tabs.pop();
