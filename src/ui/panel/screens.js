@@ -22,13 +22,13 @@ export function renderScreensTab(deps) {
   const screens = deps.getScreens();
   const active = deps.getEngineState().screen;
 
-  function capture(screenId) {
+  function capture(screenId, anchorIndex = null) {
     // The panel covers the game, so it gets out of the way for the drag.
     deps.store.closePanel();
     deps.refresh();
     startDragSelect(async (rect) => {
       if (rect) {
-        await deps.screenEditor.captureAnchor(rect, screenId);
+        await deps.screenEditor.captureAnchor(rect, screenId, anchorIndex);
       }
       deps.store.openPanel();
       deps.refresh();
@@ -308,6 +308,36 @@ export function renderScreensTab(deps) {
         ratio,
         el('span', { class: 'bhb-mono bhb-note', text: screen.minRatio.toFixed(2) }),
       ]),
+      // One chip per anchor: the game moves on, so a single anchor going
+      // stale used to mean deleting it and capturing a fresh one at the end
+      // of the list — losing its place for no reason. Recapture overwrites
+      // it in place instead.
+      screen.anchors.length
+        ? el(
+            'div',
+            { class: 'bhb-screen__anchors' },
+            screen.anchors.map((_, anchorIndex) => {
+              const recaptureBtn = el('button', {
+                class: 'bhb-icon',
+                title: t('screens.recaptureAnchor', { n: anchorIndex + 1 }),
+                text: `↻${anchorIndex + 1}`,
+              });
+              recaptureBtn.addEventListener('click', () => capture(screen.id, anchorIndex));
+
+              const removeBtn = el('button', {
+                class: 'bhb-icon bhb-icon--danger',
+                title: t('screens.removeAnchor', { n: anchorIndex + 1 }),
+                text: '✕',
+              });
+              removeBtn.addEventListener('click', () => {
+                deps.screenEditor.removeAnchor(screen.id, anchorIndex);
+                deps.refresh();
+              });
+
+              return el('span', { class: 'bhb-screen__anchor' }, [recaptureBtn, removeBtn]);
+            })
+          )
+        : null,
       party,
     ]);
     wrap.dataset.screenId = screen.id;
