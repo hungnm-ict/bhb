@@ -8,8 +8,8 @@ import { Keys, keyLabel } from '../../core/keys.js';
  * The screens tab.
  *
  * `minRatio` is the one number here that cannot be guessed, so every screen
- * shows a live match bar and measured ratio while the bot runs: it is tuned
- * by watching it, not by arithmetic.
+ * shows its live ✓/✗ and measured ratio while the bot runs: it is tuned by
+ * watching it, not by arithmetic.
  *
  * @param {object} deps
  * @param {() => import('../../bot/screen.js').Screen[]} deps.getScreens
@@ -249,13 +249,14 @@ export function renderScreensTab(deps) {
     if (screen.stopsTask) {
       classes.push('is-stopper');
     }
-    if (probe && probe.matched) {
-      classes.push('is-matched');
-    }
 
     const wrap = el('div', { class: 'bhb-screen__wrap' }, [
       el('div', { class: classes.join(' ') }, [
         el('span', { class: 'bhb-rule__n', text: String(index + 1) }),
+        el('span', {
+          class: `bhb-screen__state ${probe ? (probe.matched ? 'is-seen' : 'is-unseen') : ''}`,
+          text: probe ? (probe.matched ? '✓' : '✗') : '·',
+        }),
         name,
         el('span', {
           class: 'bhb-rule__coord bhb-mono',
