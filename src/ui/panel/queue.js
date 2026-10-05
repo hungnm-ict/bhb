@@ -138,10 +138,40 @@ export function renderQueueSection(deps) {
     deps.refresh();
   });
 
+  const zoneTransferNote = el('p', { class: 'bhb-note' });
+
+  const exportZonesBtn = el('button', { class: 'bhb-btn bhb-btn--small', text: t('queue.exportZones') });
+  exportZonesBtn.addEventListener('click', async () => {
+    try {
+      const json = deps.queueEditor.exportZones();
+      await navigator.clipboard.writeText(json);
+      zoneTransferNote.textContent = t('queue.exportZonesCopied', {
+        n: JSON.parse(json).length,
+      });
+    } catch {
+      zoneTransferNote.textContent = t('queue.exportZonesCopyFailed');
+    }
+  });
+
+  const importZonesBtn = el('button', { class: 'bhb-btn bhb-btn--small', text: t('queue.importZones') });
+  importZonesBtn.addEventListener('click', async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      const applied = deps.queueEditor.importZones(text);
+      zoneTransferNote.textContent = t('queue.importZonesApplied', { n: applied });
+      deps.refresh();
+    } catch (error) {
+      zoneTransferNote.textContent = error instanceof DOMException
+        ? t('queue.importZonesPasteByHand')
+        : `${t('queue.importZonesFailed')}: ${error.message}`;
+    }
+  });
+
   return el('div', { class: 'bhb-field' }, [
     head,
     el('p', { class: 'bhb-note', text: t('queue.hint') }),
     el('div', { class: 'bhb-steps' }, rows),
-    el('div', { class: 'bhb-btnrow' }, [restore]),
+    el('div', { class: 'bhb-btnrow' }, [restore, exportZonesBtn, importZonesBtn]),
+    zoneTransferNote,
   ]);
 }
