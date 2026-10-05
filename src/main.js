@@ -35,7 +35,7 @@ import {
 } from './core/speed.js';
 import { installKeepAlive } from './core/keepalive.js';
 import { createEngine, TaskId, resolveRunTarget } from './core/engine.js';
-import { createAutoSwitch } from './core/autoswitch.js';
+import { createClickSwitch } from './core/click-switch.js';
 import { setClickObserver } from './core/input.js';
 import {
   loadProfiles,
@@ -161,13 +161,14 @@ function bootstrap() {
     getScaleMode: () => settings.scaleMode,
   });
 
-  createAutoSwitch({
-    getScreens,
+  // Reading the framebuffer on a poll to guess the Run target was the thing
+  // leaving some screens corrupted and the game noticeably laggier; a real
+  // click's own coordinates cost nothing to check, so that is now the only
+  // way this gets switched automatically.
+  createClickSwitch({
     getActivities,
     getEngineState: engine.getState,
-    getRunTarget: () => settings.runTarget,
     setRunTarget,
-    getScaleMode: () => settings.scaleMode,
   });
 
   const queueEditor = createQueueEditor({ getActivities, persist });

@@ -110,9 +110,9 @@ describe('HUD', () => {
   });
 
   it('shows the Run target as a badge while idle, if it names an activity', () => {
-    // The screen-autoswitch poll runs even while idle and quietly updates
-    // the Run target to match a tagged screen on show; the strip saying so
-    // is only ever a label, never a reason to start anything by itself.
+    // A real click on a mapped icon can quietly update the Run target even
+    // while idle; the strip saying so is only ever a label, never a reason
+    // to start anything by itself.
     const node = hudWith(
       engine({ activeTask: null, activity: null, remainingMs: 0 }),
       { runTarget: 'worldbossteam', activities: [{ id: 'worldbossteam', name: 'World Boss (team)' }] }

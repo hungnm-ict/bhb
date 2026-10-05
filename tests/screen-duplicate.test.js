@@ -22,7 +22,7 @@ describe('duplicate', () => {
     expect(screens[2].name).toBe('lobby (2)');
   });
 
-  it('copies every anchor, minRatio and the party/trigger configuration', () => {
+  it('copies every anchor, minRatio and the party configuration', () => {
     const screens = [
       createScreen({
         name: 'world boss',
@@ -34,7 +34,6 @@ describe('duplicate', () => {
         listBh: 520,
         notify: true,
         stopsTask: true,
-        triggerActivity: 'worldboss',
         anchors: [{ x: 1, y: 2, w: 3, h: 4, bw: 800, bh: 520, samples: [{ dx: 0.5, dy: 0.5, hex: '#ff0000' }] }],
       }),
     ];
@@ -51,7 +50,6 @@ describe('duplicate', () => {
     expect(copy.listBh).toBe(520);
     expect(copy.notify).toBe(true);
     expect(copy.stopsTask).toBe(true);
-    expect(copy.triggerActivity).toBe('worldboss');
     expect(copy.anchors).toEqual(screens[0].anchors);
   });
 

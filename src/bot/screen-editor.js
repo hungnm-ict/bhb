@@ -4,7 +4,7 @@ import { clientToBuffer, getBufferSize, isInsideCanvas } from '../core/coords.js
 import { dispatchMoveTo, resetHover } from '../core/input.js';
 import { realRequestAnimationFrame } from '../core/timers.js';
 import { trackCursor, getCursor } from '../core/cursor.js';
-import { createScreen, scoreScreen } from './screen.js';
+import { createScreen, createScreenId, scoreScreen } from './screen.js';
 import { slotsForBoss } from './worldboss.js';
 import { t } from '../i18n/index.js';
 
@@ -157,16 +157,6 @@ export function createScreenEditor(deps) {
     deps.persist();
   }
 
-  /** Which activity this Screen means for auto-switching, or none. */
-  function setTriggerActivity(screenId, activityId) {
-    const screen = find(screenId);
-    if (!screen) {
-      return;
-    }
-    screen.triggerActivity = activityId || null;
-    deps.persist();
-  }
-
   /**
    * Store the party list's geometry from one drag over it, top row to the
    * bottom of the last.
@@ -272,6 +262,36 @@ export function createScreenEditor(deps) {
     deps.persist();
   }
 
+  /** Every screen in this profile, as JSON — moving them to another account. */
+  function exportAll() {
+    return JSON.stringify(deps.getScreens(), null, 2);
+  }
+
+  /**
+   * Add a batch of screens exported from another profile or account.
+   *
+   * Appended, never replacing what's already there, and each lands with a
+   * fresh id — two profiles that both exported the same screen must not
+   * collide the moment one imports the other's.
+   *
+   * @param {string} json as `exportAll` wrote it: an array of screens
+   * @returns {number} how many were added
+   * @throws {Error} on anything that is not a JSON array of screens
+   */
+  function importScreens(json) {
+    const parsed = JSON.parse(json);
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      throw new Error(t('screens.importNotAnArray'));
+    }
+
+    const screens = deps.getScreens();
+    for (const entry of parsed) {
+      screens.push(createScreen({ ...entry, id: createScreenId() }));
+    }
+    deps.persist();
+    return parsed.length;
+  }
+
   /** Order is priority: the first screen whose anchors all match wins. */
   function move(screenId, delta) {
     const screens = deps.getScreens();
@@ -306,13 +326,14 @@ export function createScreenEditor(deps) {
     setMinRatio,
     setIsParty,
     setBossId,
-    setTriggerActivity,
     captureListFrame,
     setPitch,
     removeAnchor,
     remove,
     duplicate,
     replaceAll,
+    exportAll,
+    importScreens,
     move,
     probe,
   };

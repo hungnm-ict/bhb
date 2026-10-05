@@ -43,10 +43,6 @@ export const SCRIPT_PACE_LADDER = Object.freeze([300, 600, 1000]);
  */
 export const IDLE_ADVANCE_MS = 12000;
 
-/** How often the auto-switch poll checks the screen, in real ms. See
- *  `core/autoswitch.js`. Cheap enough that speed never needs to touch it. */
-export const AUTO_SWITCH_POLL_MS = 400;
-
 /**
  * How long after a click before the runner will consider that it is lost.
  *
