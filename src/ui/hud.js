@@ -141,7 +141,10 @@ export function createHud(deps) {
         ? activityCode(idleActivityInfo)
         : null;
 
-    const restSeconds = Math.round(engine.activityRestSeconds || 0);
+    // A restAuto step's learned fight length is the more precise number where
+    // one exists; every activity falls back to its own learned round length,
+    // which needs nothing captured by hand to start showing up.
+    const restSeconds = Math.round(engine.activityRestSeconds || engine.activityAvgRoundSeconds || 0);
 
     const parts = [
       el('span', { class: 'bhb-hud__dot' }),
@@ -161,9 +164,8 @@ export function createHud(deps) {
         class: `bhb-hud__speed ${speed > 1 ? 'is-boosted' : ''}`,
         text: `${formatSpeed(speed)}×`,
       }),
-      // The running activity's learned fight length, once one exists:
-      // nothing before the first measurement, so a step with no restAuto
-      // pair adds nothing here.
+      // The running activity's learned fight or round length, once one
+      // exists: nothing before the first measurement.
       restSeconds > 0
         ? el('span', { class: 'bhb-hud__rest', text: `~${restSeconds}s` })
         : null,

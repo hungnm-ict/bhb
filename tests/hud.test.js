@@ -143,4 +143,14 @@ describe('HUD', () => {
     const node = hudWith(engine({ activityRestSeconds: 42.7 }));
     expect(node.querySelector('.bhb-hud__rest')?.textContent).toBe('~43s');
   });
+
+  it('falls back to the learned round length for an activity with no restAuto step', () => {
+    const node = hudWith(engine({ activityRestSeconds: 0, activityAvgRoundSeconds: 70 }));
+    expect(node.querySelector('.bhb-hud__rest')?.textContent).toBe('~70s');
+  });
+
+  it('prefers the more precise fight length over the round length when both exist', () => {
+    const node = hudWith(engine({ activityRestSeconds: 42, activityAvgRoundSeconds: 70 }));
+    expect(node.querySelector('.bhb-hud__rest')?.textContent).toBe('~42s');
+  });
 });

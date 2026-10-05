@@ -21,7 +21,7 @@ import {
 } from '../bot/step.js';
 import { getSpeed, setSpeed, snapSpeed } from './speed.js';
 import { detectScreen, stepAllowedOn, slottingFor } from '../bot/screen.js';
-import { stepsForActivity, looseSteps } from '../bot/activity.js';
+import { stepsForActivity, looseSteps, computeAvgRound } from '../bot/activity.js';
 import { createEmitter } from './events.js';
 import {
   realNow,
@@ -118,6 +118,7 @@ export function createEngine(deps) {
     /** The running activity's learned fight length, in seconds; 0 if it
      *  has no `restAuto` step or nothing has been measured yet. */
     activityRestSeconds: 0,
+    activityAvgRoundSeconds: 0,
   };
 
   /** Activities already out of resources this round; cleared when it wraps. */
@@ -125,6 +126,8 @@ export function createEngine(deps) {
   let queueIndex = 0;
   /** When the current activity last did something; see `IDLE_ADVANCE_MS`. */
   let idleSince = 0;
+  /** When the current activity took its turn; see `advanceQueue`'s 'spent' case. */
+  let activityStartedAt = 0;
 
   /** Where the runner is in the current step list. See `runSequence`. */
   const cursor = { key: null, index: 0, missingSince: 0 };
@@ -278,6 +281,8 @@ export function createEngine(deps) {
     state.activityName = activity ? activity.name : null;
     const restAutoStep = restAutoStepFor(state.activity);
     state.activityRestSeconds = restAutoStep ? restAutoStep.restObserved || 0 : 0;
+    state.activityAvgRoundSeconds = activity ? Math.round(activity.avgRoundObserved || 0) : 0;
+    activityStartedAt = realNow();
   }
 
   /**
@@ -294,6 +299,14 @@ export function createEngine(deps) {
     const leaving = currentActivity();
     if (why === 'spent' && leaving) {
       spent.add(leaving.id);
+      // Only a round that ran its course says anything about how long the
+      // activity takes — one Run-All gave up on (`why === 'idle'`) says how
+      // long the bot waited, not how long a round is.
+      const elapsedSec = (realNow() - activityStartedAt) / 1000;
+      const measured = computeAvgRound(leaving, elapsedSec, getSpeed());
+      if (measured && deps.recordAvgRound) {
+        deps.recordAvgRound(leaving.id, measured);
+      }
     }
     // A timer still open on the activity being left was never closed by its
     // own endsTimer: the queue gave up on it, which proves nothing about
@@ -374,6 +387,7 @@ export function createEngine(deps) {
         ? Math.max(0, AUTO_STOP_TIMEOUT - (realNow() - state.lastActionAt))
         : 0,
       activityRestSeconds: state.activityRestSeconds,
+      activityAvgRoundSeconds: state.activityAvgRoundSeconds,
     };
   }
 
