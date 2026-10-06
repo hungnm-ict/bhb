@@ -154,6 +154,16 @@ function bootstrap() {
   function setRunTarget(target) {
     settings.runTarget = target;
     saveSettings(settings);
+
+    // Picking a target while a task is already running switches it live,
+    // the same as toggling Run off and back on against the new target.
+    const engineState = engine.getState();
+    if (engineState.activeTask) {
+      const { taskId, activityId } = resolveRunTarget(target, getActivities());
+      if (taskId !== engineState.activeTask || activityId !== engineState.activity) {
+        engine.start(taskId, activityId);
+      }
+    }
   }
 
   const screenEditor = createScreenEditor({

@@ -9,6 +9,11 @@ import { clientToBuffer, getBufferSize } from './coords.js';
  * own entry icons (Raid, PVP, ...). It costs nothing on an idle tick and
  * cannot corrupt a frame the way reading the framebuffer on a poll can.
  *
+ * This fires whether or not a task is running: clicking a mapped icon while
+ * the bot is mid-run switches the live target too, not just the next one.
+ * It still backs off during a rest, where the game itself is mid-transition
+ * and a click landing on the canvas is not a deliberate pick.
+ *
  * `isTrusted` is what tells a real click apart from the bot's own synthetic
  * pointer sequence, which lands on the same canvas: a script-constructed
  * event is never trusted, by spec, with no way to fake it.
@@ -30,7 +35,7 @@ export function handleClick(event, deps) {
   }
 
   const state = deps.getEngineState();
-  if (state.activeTask || (state.restingMs || 0) > 0) {
+  if ((state.restingMs || 0) > 0) {
     return;
   }
 

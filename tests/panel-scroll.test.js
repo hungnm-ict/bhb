@@ -94,7 +94,7 @@ describe('panel scroll', () => {
     panel.render();
     const firstBody = body();
 
-    firstBody.dispatchEvent(new Event('wheel', { bubbles: true }));
+    firstBody.dispatchEvent(new Event('scroll'));
     panel.render();
 
     expect(body(), 'same node, no rebuild mid-gesture').toBe(firstBody);
@@ -108,7 +108,7 @@ describe('panel scroll', () => {
       panel.render();
       const firstBody = body();
 
-      firstBody.dispatchEvent(new Event('wheel', { bubbles: true }));
+      firstBody.dispatchEvent(new Event('scroll'));
       panel.render();
       expect(body()).toBe(firstBody);
 
@@ -118,5 +118,23 @@ describe('panel scroll', () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  it('skips a timed rebuild while the scrollbar thumb is being dragged', () => {
+    // Dragging the scrollbar thumb never fires a wheel event, only `scroll` —
+    // a guard keyed on wheel alone let a drag get cut mid-gesture the same
+    // way, snapping the body back to its last known offset under the user's
+    // hand.
+    const { store, panel } = build();
+    store.openPanel();
+    panel.render();
+    const firstBody = body();
+
+    // `scroll` does not bubble; the guard relies on a capturing listener to
+    // still see it land on the body.
+    firstBody.dispatchEvent(new Event('scroll'));
+    panel.render();
+
+    expect(body(), 'same node, no rebuild mid-drag').toBe(firstBody);
   });
 });
