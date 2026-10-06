@@ -1,4 +1,4 @@
-# BHB <!--version-->v0.44.13<!--/version-->
+# BHB <!--version-->v0.44.14<!--/version-->
 
 > 🇬🇧 [English version](README.en.md) · [Nhật ký thay đổi](https://github.com/hungnm-ict/bhb/commits/master)
 

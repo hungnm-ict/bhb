@@ -95,10 +95,17 @@ export function createPanel(deps) {
    * gesture short mid-flight, which read as "can't scroll up" because
    * the next tick's carried-over offset then undid the little bit of
    * travel the cut-short gesture had managed. Skipping the rebuild for a
-   * short window after the last wheel movement lets a gesture finish.
+   * short window after the last scroll movement lets a gesture finish.
+   *
+   * `scroll` itself, not just `wheel`: dragging the scrollbar thumb never
+   * fires a wheel event, so a guard keyed on wheel alone let a drag get cut
+   * the same way, snapping back to the stale offset mid-drag. `scroll`
+   * doesn't bubble, but a capturing listener still sees it from any
+   * ancestor, which is what lets one listener on the panel root cover
+   * whichever `.bhb-panel__body` is current after a rebuild swaps it out.
    */
   const SCROLL_GUARD_MS = 400;
-  let lastWheelAt = 0;
+  let lastScrollAt = 0;
 
   function ensureNode() {
     if (!node) {
@@ -108,15 +115,15 @@ export function createPanel(deps) {
       // select afterwards — so the redraw the choice itself asked for was the
       // one getting skipped, and the table kept showing the old filter.
       node.addEventListener('change', () => render({ force: true }));
-      node.addEventListener('wheel', () => {
-        lastWheelAt = Date.now();
-      }, { passive: true });
+      node.addEventListener('scroll', () => {
+        lastScrollAt = Date.now();
+      }, { capture: true, passive: true });
     }
     return node;
   }
 
   function isScrolling() {
-    return Date.now() - lastWheelAt < SCROLL_GUARD_MS;
+    return Date.now() - lastScrollAt < SCROLL_GUARD_MS;
   }
 
   /**

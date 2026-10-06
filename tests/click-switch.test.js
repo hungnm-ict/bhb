@@ -3,7 +3,7 @@
  *
  * No pixel read involved at all: a trusted click's coordinates, checked
  * against a rectangle drawn by hand. Never fires for the bot's own
- * synthetic clicks, never while a task owns the Run target already.
+ * synthetic clicks, and backs off only while the game is resting.
  *
  * @vitest-environment jsdom
  */
@@ -103,10 +103,21 @@ describe('click-switch', () => {
     panelButton.remove();
   });
 
-  it('ignores every zone while a task is running', () => {
+  it('still switches the Run target on a zone click while a task is running', () => {
     const { deps, setRunTarget } = build({
       activities: [{ id: 'raid', name: 'Raid', clickZone: ZONE }],
       activeTask: 'runAll',
+    });
+
+    click(deps, { x: 120, y: 120 });
+
+    expect(setRunTarget).toHaveBeenCalledWith('raid');
+  });
+
+  it('ignores every zone while the game is resting', () => {
+    const { deps, setRunTarget } = build({
+      activities: [{ id: 'raid', name: 'Raid', clickZone: ZONE }],
+      restingMs: 500,
     });
 
     click(deps, { x: 120, y: 120 });
