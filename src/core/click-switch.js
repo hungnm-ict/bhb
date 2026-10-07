@@ -1,5 +1,6 @@
-import { getCanvas } from './canvas.js';
+import { getCanvas, getGl } from './canvas.js';
 import { clientToBuffer, getBufferSize } from './coords.js';
+import { detectScreen } from '../bot/screen.js';
 
 /**
  * Switch the Run target the moment a real click lands on a mapped icon.
@@ -23,11 +24,22 @@ import { clientToBuffer, getBufferSize } from './coords.js';
  * `addEventListener` at all. `handleClick` takes a plain object shaped like
  * the parts of an event this cares about instead.
  *
+ * A zone is drawn over an entry icon that only exists on the game's home
+ * screen (Raid, PVP, Boss, ...), but the click coordinates themselves mean
+ * nothing off that screen: a dungeon's own "next tier" arrow can sit on the
+ * exact pixels a zone was drawn on, and a bare coordinate check cannot tell
+ * the two apart. Any screen marked `isHome` gates this: once one exists, a
+ * zone only switches the Run target while that screen is the one actually on
+ * show. No screen marked `isHome` means no gate — unchanged for anyone who
+ * has not set one up.
+ *
  * @param {{ isTrusted: boolean, target: EventTarget, clientX: number, clientY: number }} event
  * @param {object} deps
  * @param {() => import('../bot/activity.js').Activity[]} deps.getActivities
  * @param {() => { restingMs: number, activeTask: string | null }} deps.getEngineState
  * @param {(target: string) => void} deps.setRunTarget
+ * @param {() => import('../bot/screen.js').Screen[]} [deps.getScreens]
+ * @param {() => string} [deps.getScaleMode]
  */
 export function handleClick(event, deps) {
   if (!event.isTrusted) {
@@ -46,6 +58,11 @@ export function handleClick(event, deps) {
     return;
   }
 
+  const screens = deps.getScreens ? deps.getScreens() : [];
+  if (screens.some((screen) => screen.isHome) && !isOnHomeScreen(canvas, screens, deps)) {
+    return;
+  }
+
   const point = clientToBuffer(canvas, event.clientX, event.clientY);
   const buffer = getBufferSize(canvas);
 
@@ -55,6 +72,16 @@ export function handleClick(event, deps) {
       return;
     }
   }
+}
+
+function isOnHomeScreen(canvas, screens, deps) {
+  const gl = getGl(canvas);
+  if (!gl) {
+    return false;
+  }
+  const mode = deps.getScaleMode ? deps.getScaleMode() : 'scale';
+  const screen = detectScreen(gl, screens, getBufferSize(canvas), mode);
+  return Boolean(screen && screen.isHome);
 }
 
 function scaleZone(zone, buffer) {

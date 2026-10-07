@@ -10,9 +10,15 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 let canvas;
+let detectedScreen;
 
 vi.mock('../src/core/canvas.js', () => ({
   getCanvas: () => canvas,
+  getGl: () => ({}),
+}));
+
+vi.mock('../src/bot/screen.js', () => ({
+  detectScreen: () => detectedScreen,
 }));
 
 const { handleClick } = await import('../src/core/click-switch.js');
@@ -20,12 +26,13 @@ const { handleClick } = await import('../src/core/click-switch.js');
 /** A zone captured at 800x600, covering buffer (100,100) to (140,140). */
 const ZONE = { x: 100, y: 100, w: 40, h: 40, bw: 800, bh: 600 };
 
-function build({ activities = [], restingMs = 0, activeTask = null }) {
+function build({ activities = [], restingMs = 0, activeTask = null, screens = [] }) {
   const setRunTarget = vi.fn();
   const deps = {
     getActivities: () => activities,
     getEngineState: () => ({ restingMs, activeTask }),
     setRunTarget,
+    getScreens: () => screens,
   };
   return { deps, setRunTarget };
 }
@@ -43,6 +50,7 @@ function click(deps, { x, y, trusted = true, target = canvas }) {
 }
 
 beforeEach(() => {
+  detectedScreen = null;
   canvas = document.createElement('canvas');
   canvas.width = 800;
   canvas.height = 600;
@@ -133,6 +141,44 @@ describe('click-switch', () => {
     click(deps, { x: 120, y: 120 });
 
     expect(setRunTarget).not.toHaveBeenCalled();
+  });
+
+  it('ignores a zone click off the home screen once one screen is marked home', () => {
+    const home = { id: 'home', name: 'Home', isHome: true };
+    detectedScreen = { id: 'dungeon-tier', name: 'Dungeon tier select', isHome: false };
+    const { deps, setRunTarget } = build({
+      activities: [{ id: 'expedition', name: 'Expedition', clickZone: ZONE }],
+      screens: [home],
+    });
+
+    click(deps, { x: 120, y: 120 });
+
+    expect(setRunTarget).not.toHaveBeenCalled();
+  });
+
+  it('still switches the Run target on the home screen once one is marked', () => {
+    const home = { id: 'home', name: 'Home', isHome: true };
+    detectedScreen = home;
+    const { deps, setRunTarget } = build({
+      activities: [{ id: 'expedition', name: 'Expedition', clickZone: ZONE }],
+      screens: [home],
+    });
+
+    click(deps, { x: 120, y: 120 });
+
+    expect(setRunTarget).toHaveBeenCalledWith('expedition');
+  });
+
+  it('switches the Run target with no home screen gate configured, even off any detected screen', () => {
+    detectedScreen = null;
+    const { deps, setRunTarget } = build({
+      activities: [{ id: 'expedition', name: 'Expedition', clickZone: ZONE }],
+      screens: [{ id: 'other', name: 'Other', isHome: false }],
+    });
+
+    click(deps, { x: 120, y: 120 });
+
+    expect(setRunTarget).toHaveBeenCalledWith('expedition');
   });
 
   it('scales the zone when the framebuffer has resized since it was drawn', () => {

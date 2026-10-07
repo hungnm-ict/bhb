@@ -158,6 +158,15 @@ export function createScreenEditor(deps) {
     deps.persist();
   }
 
+  function setIsHome(screenId, isHome) {
+    const screen = find(screenId);
+    if (!screen) {
+      return;
+    }
+    screen.isHome = Boolean(isHome);
+    deps.persist();
+  }
+
   function setBossId(screenId, bossId) {
     const screen = find(screenId);
     if (!screen) {
@@ -334,6 +343,7 @@ export function createScreenEditor(deps) {
     setStopsTask,
     setNotify,
     setMinRatio,
+    setIsHome,
     setIsParty,
     setBossId,
     captureListFrame,

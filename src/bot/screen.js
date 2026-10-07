@@ -23,6 +23,11 @@ import { DEFAULT_COLOR_TOLERANCE } from '../core/constants.js';
  * @property {number} tolerance
  * @property {boolean} stopsTask
  * @property {boolean} notify announce it to Discord/Telegram when it appears
+ * @property {boolean} isHome whether this screen is the one entry-icon zones
+ *   (Raid, PVP, Boss, ...) were drawn on — a zone click only switches the Run
+ *   target while this screen is the one actually on show, so a button that
+ *   happens to share the same pixels on a different screen (a dungeon's own
+ *   "next tier" arrow, say) cannot be misread as the zone drawn there
  * @property {boolean} isParty whether this screen shows a party list
  * @property {string | null} bossId which World Boss, which is what says how
  *   many seats the list has
@@ -45,6 +50,7 @@ export function createScreen(overrides = {}) {
     tolerance: DEFAULT_COLOR_TOLERANCE,
     stopsTask: false,
     notify: false,
+    isHome: false,
     isParty: false,
     bossId: null,
     listTop: 0,
