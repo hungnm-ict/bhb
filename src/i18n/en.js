@@ -85,6 +85,7 @@ export default {
   'screens.removeAnchor': 'Remove anchor {n}',
   'screens.stopsTask': 'Out of resources — stop the task here',
   'screens.ratioHint': 'Share of samples matching right now',
+  'screens.isHome': 'This is the home screen — entry-icon zone clicks only switch the Run target while this screen is on show',
   'screens.isParty': 'This is a party list — its rows carry a team mate, not a fixed button',
   'screens.bossHint': 'Which World Boss, so the bot knows how many seats the party has',
   'screens.bossUnset': 'Pick a World Boss…',

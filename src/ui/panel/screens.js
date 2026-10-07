@@ -298,6 +298,20 @@ export function renderScreensTab(deps) {
       deps.refresh();
     });
 
+    // A zone click only switches the Run target while this screen is the one
+    // actually on show, so marking the screen the entry icons live on is what
+    // keeps a same-pixel button on another screen (a dungeon's own "next
+    // tier" arrow, say) from being misread as one of those icons.
+    const homeToggle = el('button', {
+      class: `bhb-icon ${screen.isHome ? 'is-notify-on' : ''}`,
+      title: t('screens.isHome'),
+      text: '⌂',
+    });
+    homeToggle.addEventListener('click', () => {
+      deps.screenEditor.setIsHome(screen.id, !screen.isHome);
+      deps.refresh();
+    });
+
     const party = screen.isParty
       ? (() => {
           const bossSelect = el('select', { class: 'bhb-rule__gate', title: t('screens.bossHint') });
@@ -372,6 +386,7 @@ export function renderScreensTab(deps) {
         }),
         el('span', { class: 'bhb-rule__actions' }, [
           stops,
+          homeToggle,
           partyToggle,
           add,
           up,
