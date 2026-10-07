@@ -97,4 +97,18 @@ describe('panel redraw after a dropdown is used', () => {
       'an unprompted tick must not rebuild under an open list'
     ).toBe(before);
   });
+
+  it('closes even while a select from the panel still holds focus', () => {
+    const { panel, store } = build();
+    const select = filterSelect();
+    select.focus();
+
+    store.closePanel();
+    panel.render();
+
+    expect(
+      document.querySelector('.bhb-panel').style.display,
+      'a deliberate close must never be held open by the mid-edit guard'
+    ).toBe('none');
+  });
 });

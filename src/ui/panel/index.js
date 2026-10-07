@@ -161,6 +161,18 @@ export function createPanel(deps) {
     const target = ensureNode();
     const state = deps.store.get();
 
+    // Closing the panel is never an in-progress edit worth protecting: a
+    // capture flow closes the panel to get out of the way of a drag-select,
+    // and the dropdown/field it was just driven from can still hold focus
+    // at that moment. Checked first, so that guard can't keep a closed
+    // panel on screen.
+    if (!state.panelOpen) {
+      target.style.display = 'none';
+      target.replaceChildren();
+      renderedTab = null;
+      return;
+    }
+
     // Rebuilding under a held slider tore the drag apart, and rebuilding under
     // an open dropdown closed it before it could be read. Both own the input
     // the user is in the middle of giving, so the tick waits.
@@ -169,13 +181,6 @@ export function createPanel(deps) {
       renderedTab !== null &&
       (speedIsBeingDragged() || aDropdownIsOpen() || aFieldIsBeingUsed() || isScrolling())
     ) {
-      return;
-    }
-
-    if (!state.panelOpen) {
-      target.style.display = 'none';
-      target.replaceChildren();
-      renderedTab = null;
       return;
     }
     target.style.display = 'flex';
