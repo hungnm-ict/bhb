@@ -73,6 +73,13 @@ let packBox = null;
 let areHintsOpen = false;
 /** What this tab last wrote into the box, so a paste is never overwritten. */
 let packedValue = null;
+/**
+ * The transfer box stays out of the way as long as the Clipboard API is
+ * doing the copying and pasting for it; it only earns its space back once
+ * that API has actually refused, which is the one time a manual select or
+ * paste is the only way through.
+ */
+let isTransferVisible = false;
 
 /** True when a pack was captured on a different pinned size than this window. */
 function mismatch(packLock, windowLock) {
@@ -146,15 +153,6 @@ export function renderStepsTab(deps) {
     } else {
       deps.dryRunner.start();
     }
-    deps.refresh();
-  });
-
-  const pin = el('button', {
-    class: `bhb-btn ${state.areMarkersPinned ? 'is-busy' : ''}`,
-    text: t('steps.pinMarkers'),
-  });
-  pin.addEventListener('click', () => {
-    deps.store.pinMarkers(!state.areMarkersPinned);
     deps.refresh();
   });
 
@@ -262,6 +260,11 @@ export function renderStepsTab(deps) {
   }
   const transfer = packBox;
   transfer.placeholder = t('steps.transferHint');
+  // Hidden rather than left out of the tree: the paste listener below still
+  // needs a live node to fire on once the Clipboard API has actually
+  // refused, and a node that only existed sometimes couldn't keep that
+  // listener attached.
+  transfer.style.display = isTransferVisible ? '' : 'none';
 
   const lock = deps.getCanvasLock ? deps.getCanvasLock() : null;
   const packed = steps.length > 0 ? exportSteps(steps, lock, deps.getScreens()) : '';
@@ -289,6 +292,7 @@ export function renderStepsTab(deps) {
       packedValue = null;
       deps.refresh();
     } catch (error) {
+      isTransferVisible = true;
       note.textContent = `${t('steps.importFailed')}: ${error.message}`;
     }
   }
@@ -300,12 +304,15 @@ export function renderStepsTab(deps) {
     text: t('steps.export'),
   });
   exportButton.addEventListener('click', async () => {
-    transfer.select();
     try {
       await navigator.clipboard.writeText(transfer.value);
       note.textContent = t('steps.copied', { n: steps.length });
     } catch {
-      // Clipboard access can be refused; the text is selected either way.
+      // Clipboard access can be refused; show the box so a manual copy has
+      // something to select.
+      isTransferVisible = true;
+      deps.refresh();
+      transfer.select();
       note.textContent = t('steps.copyByHand');
     }
   });
@@ -320,6 +327,8 @@ export function renderStepsTab(deps) {
       transfer.value = text;
       load(text);
     } catch {
+      isTransferVisible = true;
+      deps.refresh();
       note.textContent = t('steps.pasteByHand');
       transfer.focus();
     }
@@ -342,9 +351,8 @@ export function renderStepsTab(deps) {
       hintToggle,
       filterSelect,
     ]),
-    el('div', { class: 'bhb-btnrow' }, [moveAll, cloneAll]),
     arm,
-    el('div', { class: 'bhb-btnrow' }, [dryRun, pin]),
+    el('div', { class: 'bhb-btnrow' }, [moveAll, cloneAll, dryRun]),
     el('div', { class: 'bhb-btnrow' }, [exportButton, importButton]),
     transfer,
     note,

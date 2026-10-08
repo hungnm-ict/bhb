@@ -183,6 +183,8 @@ function bootstrap() {
     setRunTarget,
     getScreens,
     getScaleMode: () => settings.scaleMode,
+    stopTask: engine.stop,
+    setSpeed,
   });
 
   const queueEditor = createQueueEditor({ getActivities, persist });
