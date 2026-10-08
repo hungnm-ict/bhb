@@ -1,18 +1,51 @@
 import { getRenderTarget } from '../core/canvas.js';
-import { captureFingerprint } from '../core/region.js';
+import { fingerprintFromRegion, readRegion, regionsDiffer } from '../core/region.js';
 import { clientToBuffer, getBufferSize, isInsideCanvas } from '../core/coords.js';
 import { dispatchMoveTo, resetHover } from '../core/input.js';
 import { realRequestAnimationFrame } from '../core/timers.js';
 import { trackCursor, getCursor } from '../core/cursor.js';
-import { createScreen, createScreenId, scoreScreen } from './screen.js';
+import { createScreen, createScreenId, scoreScreen, scoreAnchors } from './screen.js';
 import { slotsForBoss } from './worldboss.js';
 import { t } from '../i18n/index.js';
 
 /** Frames to let the game repaint after the synthetic pointer moves away. */
 const REPAINT_FRAMES = 2;
+/** Ceiling before giving up on a hover-exit animation that never settles. */
+const SETTLE_MAX_FRAMES = 20;
+/** Per-channel drift two reads of the same region still count as one frame. */
+const SETTLE_TOLERANCE = 4;
 
 function nextFrame() {
   return new Promise((resolve) => realRequestAnimationFrame(() => resolve()));
+}
+
+/**
+ * Read a region repeatedly until it stops changing, or give up.
+ *
+ * A fixed frame count only works if every button's hover-exit tween happens
+ * to finish within it — some run longer, and a capture mid-fade stores a
+ * colour the resting screen will never show again. Settling instead of
+ * counting frames is what `step-editor.js` already does for a single pixel;
+ * this is the same idea for a whole region.
+ *
+ * @param {WebGLRenderingContext} gl
+ * @param {{ x: number, y: number, w: number, h: number }} rect
+ * @returns {Promise<{ x: number, y: number, w: number, h: number, data: Uint8Array } | null>}
+ */
+async function readSettledRegion(gl, rect) {
+  let previous = null;
+  for (let frame = 0; frame < SETTLE_MAX_FRAMES; frame += 1) {
+    await nextFrame();
+    const region = readRegion(gl, rect.x, rect.y, rect.w, rect.h);
+    if (!region) {
+      return previous;
+    }
+    if (previous && frame + 1 >= REPAINT_FRAMES && !regionsDiffer(previous, region, SETTLE_TOLERANCE)) {
+      return region;
+    }
+    previous = region;
+  }
+  return previous;
 }
 
 /**
@@ -58,33 +91,33 @@ export function createScreenEditor(deps) {
 
     const { canvas, gl } = target;
 
-    const cursor = getCursor();
-    const isCursorOverGame = cursor && isInsideCanvas(canvas, cursor.clientX, cursor.clientY);
-    if (isCursorOverGame) {
-      resetHover(canvas);
-      for (let frame = 0; frame < REPAINT_FRAMES; frame += 1) {
-        await nextFrame();
-      }
-    }
-
     // Client space has its origin top-left, buffer space bottom-left, so the
     // rectangle's bottom edge is what becomes its origin.
     const origin = clientToBuffer(canvas, rect.left, rect.top + rect.height);
     const far = clientToBuffer(canvas, rect.left + rect.width, rect.top);
     const buffer = getBufferSize(canvas);
-
-    const fingerprint = captureFingerprint(gl, {
+    const bufferRect = {
       x: origin.x,
       y: origin.y,
       w: Math.max(1, far.x - origin.x),
       h: Math.max(1, far.y - origin.y),
       bw: buffer.width,
       bh: buffer.height,
-    });
+    };
 
+    const cursor = getCursor();
+    const isCursorOverGame = cursor && isInsideCanvas(canvas, cursor.clientX, cursor.clientY);
+
+    let region;
     if (isCursorOverGame) {
+      resetHover(canvas);
+      region = await readSettledRegion(gl, bufferRect);
       dispatchMoveTo(canvas, cursor.clientX, cursor.clientY);
+    } else {
+      region = readRegion(gl, bufferRect.x, bufferRect.y, bufferRect.w, bufferRect.h);
     }
+
+    const fingerprint = region ? fingerprintFromRegion(region, bufferRect) : null;
 
     if (!fingerprint) {
       deps.report(t('msg.noWebgl'));
@@ -337,11 +370,26 @@ export function createScreenEditor(deps) {
     return scoreScreen(target.gl, screen, getBufferSize(target.canvas), deps.getScaleMode());
   }
 
+  /**
+   * Which one anchor is the bad one, for the anchor list opened on a screen
+   * that will not match — the screen's own ✗ only ever says that it failed.
+   * @returns {{ matched: boolean, ratio: number }[]}
+   */
+  function probeAnchors(screenId) {
+    const screen = find(screenId);
+    const target = getRenderTarget();
+    if (!screen || !target) {
+      return [];
+    }
+    return scoreAnchors(target.gl, screen, getBufferSize(target.canvas), deps.getScaleMode());
+  }
+
   return {
     captureAnchor,
     rename,
     setStopsTask,
     setNotify,
+    probeAnchors,
     setMinRatio,
     setIsHome,
     setIsParty,

@@ -790,6 +790,8 @@ const CSS = `
   padding: 3px 0 3px 14px;
 }
 .bhb-screen__anchoractions { display: flex; gap: 1px; }
+.bhb-screen__anchorratio.is-seen { color: var(--bhb-live); }
+.bhb-screen__anchorratio.is-unseen { color: var(--bhb-danger); }
 /* The ratio slider's flex:1 can otherwise squeeze this dropdown down to
    nothing in a narrow panel; wrapping keeps it a usable width instead. */
 .bhb-screen__tune .bhb-rule__gate { flex: 0 0 120px; }
