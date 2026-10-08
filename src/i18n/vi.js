@@ -246,7 +246,6 @@ export default {
 
   'steps.dryRun': '▷ Chạy thử',
   'steps.dryRunStop': '■ Dừng chạy thử',
-  'steps.pinMarkers': 'Hiện hết dấu',
   'steps.dryRunHint': 'Chạy thử đi dọc danh sách và chấm điểm từng bước trên khung hình đang hiện — ✓ khớp, ✗ không khớp, ⊘ thuộc màn hình khác. Nó KHÔNG bấm gì vào game nên lúc nào cũng an toàn. Bình thường dấu chỉ hiện khi rê chuột lên một dòng.',
 
   'probe.title': 'Điểm kiểm tra độ phân giải',

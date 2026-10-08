@@ -60,7 +60,7 @@ describe('ui store', () => {
     expect(store.markersVisible()).toBe(false);
   });
 
-  it('shows one marker under the cursor, all of them when pinned', () => {
+  it('shows one marker under the cursor, none once it leaves', () => {
     const store = createUiStore();
     store.openPanel();
     store.setTab(Tab.STEPS);
@@ -71,10 +71,6 @@ describe('ui store', () => {
 
     store.hoverStep(null);
     expect(store.markersVisible()).toBe(false);
-
-    store.pinMarkers(true);
-    expect(store.markersVisible()).toBe(true);
-    expect(store.markerFilter(), 'no filter means every marker').toBe(null);
   });
 
   it('shows every marker during a dry run, whatever the cursor is on', () => {
@@ -94,7 +90,7 @@ describe('ui store', () => {
     const store = createUiStore();
     store.openPanel();
     store.setTab(Tab.STEPS);
-    store.pinMarkers(true);
+    store.hoverStep('abc');
 
     store.closePanel();
     expect(store.markersVisible()).toBe(false);

@@ -38,7 +38,15 @@ export const DEFAULT_ACTIVITIES = Object.freeze([
   { id: 'invasion', name: 'Invasion', enabled: true },
   { id: 'expedition', name: 'Expedition', enabled: true },
   { id: 'gvg', name: 'GVG', enabled: true },
+  // Not a farm activity: the safe/idle target a zone click lands on to get
+  // the bot out of the way (see HOME_ACTIVITY_ID in click-switch.js).
+  // Disabled by default so Run-All's rotation, which filters on `enabled`,
+  // never picks it as a turn.
+  { id: 'home', name: 'Home', enabled: false },
 ]);
+
+/** The sentinel Run target a "go home and stay put" zone click switches to. */
+export const HOME_ACTIVITY_ID = 'home';
 
 /** @returns {Activity[]} a fresh, mutable copy — the default list is frozen. */
 export function createDefaultActivities() {

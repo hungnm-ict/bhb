@@ -106,9 +106,6 @@ export function createUiStore(restoredLog = []) {
      */
     pendingPlaceStepId: null,
 
-    /** All markers at once; off by default, so the game stays readable. */
-    areMarkersPinned: false,
-
     /**
      * Whether the next capture makes a probe instead of a step.
      *
@@ -182,8 +179,6 @@ export function createUiStore(restoredLog = []) {
 
     awaitPlaceFor: (stepId) => patch({ pendingPlaceStepId: stepId }),
 
-    pinMarkers: (pinned) => patch({ areMarkersPinned: pinned }),
-
     awaitProbe: (awaiting) => patch({ isAwaitingProbe: awaiting }),
     pinProbes: (pinned) => patch({ areProbesPinned: pinned }),
 
@@ -229,15 +224,13 @@ export function createUiStore(restoredLog = []) {
     /**
      * Markers would swallow the game's clicks if they outlived the tab, and
      * drawing all of them all the time buried the game under numbers. They are
-     * shown on demand: pinned, during a dry run, or under the cursor.
+     * shown on demand: during a dry run, or under the cursor.
      */
     markersVisible() {
       if (!state.panelOpen || state.tab !== Tab.STEPS) {
         return false;
       }
-      return (
-        state.areMarkersPinned || state.dryRun !== null || state.hoveredStepId !== null
-      );
+      return state.dryRun !== null || state.hoveredStepId !== null;
     },
 
     /**
@@ -251,7 +244,7 @@ export function createUiStore(restoredLog = []) {
 
     /** Which steps the marker layer should draw, of the ones it could. */
     markerFilter() {
-      if (state.areMarkersPinned || state.dryRun !== null) {
+      if (state.dryRun !== null) {
         return null;
       }
       return state.hoveredStepId;

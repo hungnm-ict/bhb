@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BHB
 // @namespace    https://github.com/hungnm-ict/bhb
-// @version      0.44.16
+// @version      0.44.17
 // @description  Automation userscript for a casual Gacha + Pokemon-catching + Fashion game
 // @author       hungnm-ict
 // @icon         data:image/png;base64,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
@@ -15,7 +15,7 @@
 
 (() => {
   // src/core/constants.js
-  var VERSION = true ? "0.44.16" : "dev";
+  var VERSION = true ? "0.44.17" : "dev";
   var STORAGE_KEY_PROFILES = "bhb.profiles.v2";
   var STORAGE_KEY_SETTINGS = "bhb.settings.v2";
   var STORAGE_KEY_RESUME = "bhb.resume.v1";
@@ -1405,8 +1405,14 @@
     { id: "gauntlet", name: "Gauntlet", enabled: true },
     { id: "invasion", name: "Invasion", enabled: true },
     { id: "expedition", name: "Expedition", enabled: true },
-    { id: "gvg", name: "GVG", enabled: true }
+    { id: "gvg", name: "GVG", enabled: true },
+    // Not a farm activity: the safe/idle target a zone click lands on to get
+    // the bot out of the way (see HOME_ACTIVITY_ID in click-switch.js).
+    // Disabled by default so Run-All's rotation, which filters on `enabled`,
+    // never picks it as a turn.
+    { id: "home", name: "Home", enabled: false }
   ]);
+  var HOME_ACTIVITY_ID = "home";
   function createDefaultActivities() {
     return DEFAULT_ACTIVITIES.map((activity) => ({ ...activity }));
   }
@@ -2240,17 +2246,29 @@
     if (!canvas || event.target !== canvas) {
       return;
     }
-    const screens = deps.getScreens ? deps.getScreens() : [];
-    if (screens.some((screen) => screen.isHome) && !isOnHomeScreen(canvas, screens, deps)) {
-      return;
-    }
     const point = clientToBuffer(canvas, event.clientX, event.clientY);
     const buffer = getBufferSize(canvas);
+    const screens = deps.getScreens ? deps.getScreens() : [];
+    const homeGated = screens.some((screen) => screen.isHome);
+    let onHomeScreen;
     for (const activity of deps.getActivities()) {
-      if (activity.clickZone && insideZone(scaleZone(activity.clickZone, buffer), point)) {
-        deps.setRunTarget(activity.id);
-        return;
+      if (!activity.clickZone || !insideZone(scaleZone(activity.clickZone, buffer), point)) {
+        continue;
       }
+      if (activity.id !== HOME_ACTIVITY_ID && homeGated) {
+        if (onHomeScreen === void 0) {
+          onHomeScreen = isOnHomeScreen(canvas, screens, deps);
+        }
+        if (!onHomeScreen) {
+          continue;
+        }
+      }
+      if (activity.id === HOME_ACTIVITY_ID) {
+        deps.stopTask?.();
+        deps.setSpeed?.(1);
+      }
+      deps.setRunTarget(activity.id);
+      return;
     }
   }
   function isOnHomeScreen(canvas, screens, deps) {
@@ -3334,7 +3352,6 @@
     "msg.captureDisarmed": "phím X đang tắt — bật chế độ bắt bước ở tab Bước",
     "steps.dryRun": "▷ Chạy thử",
     "steps.dryRunStop": "■ Dừng chạy thử",
-    "steps.pinMarkers": "Hiện hết dấu",
     "steps.dryRunHint": "Chạy thử đi dọc danh sách và chấm điểm từng bước trên khung hình đang hiện — ✓ khớp, ✗ không khớp, ⊘ thuộc màn hình khác. Nó KHÔNG bấm gì vào game nên lúc nào cũng an toàn. Bình thường dấu chỉ hiện khi rê chuột lên một dòng.",
     "probe.title": "Điểm kiểm tra độ phân giải",
     "probe.defaultName": "Điểm {n}",
@@ -3642,7 +3659,6 @@
     "msg.captureDisarmed": "the X key is off — switch capture mode on in the Steps tab",
     "steps.dryRun": "▷ Dry run",
     "steps.dryRunStop": "■ Stop the dry run",
-    "steps.pinMarkers": "Show every marker",
     "steps.dryRunHint": "A dry run walks the list and scores each step against the frame on screen — ✓ matches, ✗ does not, ⊘ belongs to another screen. It clicks nothing, so it is safe at any time. Otherwise a marker appears only while you hover its row.",
     "probe.title": "Resolution probes",
     "probe.defaultName": "Probe {n}",
@@ -5556,8 +5572,6 @@
        * @type {string | null}
        */
       pendingPlaceStepId: null,
-      /** All markers at once; off by default, so the game stays readable. */
-      areMarkersPinned: false,
       /**
        * Whether the next capture makes a probe instead of a step.
        *
@@ -5612,7 +5626,6 @@
       armCapture: (armed) => patch({ isCaptureArmed: armed }),
       armScreenCapture: (armed) => patch({ isScreenCaptureArmed: armed }),
       awaitPlaceFor: (stepId) => patch({ pendingPlaceStepId: stepId }),
-      pinMarkers: (pinned) => patch({ areMarkersPinned: pinned }),
       awaitProbe: (awaiting) => patch({ isAwaitingProbe: awaiting }),
       pinProbes: (pinned) => patch({ areProbesPinned: pinned }),
       /** @param {{ index: number, scores: Record<string, string>,
@@ -5651,13 +5664,13 @@
       /**
        * Markers would swallow the game's clicks if they outlived the tab, and
        * drawing all of them all the time buried the game under numbers. They are
-       * shown on demand: pinned, during a dry run, or under the cursor.
+       * shown on demand: during a dry run, or under the cursor.
        */
       markersVisible() {
         if (!state.panelOpen || state.tab !== Tab.STEPS) {
           return false;
         }
-        return state.areMarkersPinned || state.dryRun !== null || state.hoveredStepId !== null;
+        return state.dryRun !== null || state.hoveredStepId !== null;
       },
       /**
        * Probes are shown while aiming at one, and while pinned. Unlike markers
@@ -5669,7 +5682,7 @@
       },
       /** Which steps the marker layer should draw, of the ones it could. */
       markerFilter() {
-        if (state.areMarkersPinned || state.dryRun !== null) {
+        if (state.dryRun !== null) {
           return null;
         }
         return state.hoveredStepId;
@@ -6031,6 +6044,7 @@
   var packBox = null;
   var areHintsOpen = false;
   var packedValue = null;
+  var isTransferVisible = false;
   function mismatch(packLock, windowLock) {
     if (!packLock || !windowLock) {
       return false;
@@ -6083,14 +6097,6 @@
       } else {
         deps.dryRunner.start();
       }
-      deps.refresh();
-    });
-    const pin = el("button", {
-      class: `bhb-btn ${state.areMarkersPinned ? "is-busy" : ""}`,
-      text: t("steps.pinMarkers")
-    });
-    pin.addEventListener("click", () => {
-      deps.store.pinMarkers(!state.areMarkersPinned);
       deps.refresh();
     });
     const hintToggle = el("button", {
@@ -6177,6 +6183,7 @@
     }
     const transfer = packBox;
     transfer.placeholder = t("steps.transferHint");
+    transfer.style.display = isTransferVisible ? "" : "none";
     const lock = deps.getCanvasLock ? deps.getCanvasLock() : null;
     const packed = steps.length > 0 ? exportSteps(steps, lock, deps.getScreens()) : "";
     if (transfer.value === packedValue || transfer.value === "") {
@@ -6197,6 +6204,7 @@
         packedValue = null;
         deps.refresh();
       } catch (error) {
+        isTransferVisible = true;
         note.textContent = `${t("steps.importFailed")}: ${error.message}`;
       }
     }
@@ -6206,11 +6214,13 @@
       text: t("steps.export")
     });
     exportButton.addEventListener("click", async () => {
-      transfer.select();
       try {
         await navigator.clipboard.writeText(transfer.value);
         note.textContent = t("steps.copied", { n: steps.length });
       } catch {
+        isTransferVisible = true;
+        deps.refresh();
+        transfer.select();
         note.textContent = t("steps.copyByHand");
       }
     });
@@ -6224,6 +6234,8 @@
         transfer.value = text;
         load(text);
       } catch {
+        isTransferVisible = true;
+        deps.refresh();
         note.textContent = t("steps.pasteByHand");
         transfer.focus();
       }
@@ -6243,9 +6255,8 @@
         hintToggle,
         filterSelect
       ]),
-      el("div", { class: "bhb-btnrow" }, [moveAll, cloneAll]),
       arm,
-      el("div", { class: "bhb-btnrow" }, [dryRun, pin]),
+      el("div", { class: "bhb-btnrow" }, [moveAll, cloneAll, dryRun]),
       el("div", { class: "bhb-btnrow" }, [exportButton, importButton]),
       transfer,
       note,
@@ -8492,7 +8503,9 @@
       getEngineState: engine.getState,
       setRunTarget,
       getScreens,
-      getScaleMode: () => settings.scaleMode
+      getScaleMode: () => settings.scaleMode,
+      stopTask: engine.stop,
+      setSpeed
     });
     const queueEditor = createQueueEditor({ getActivities, persist });
     const probeEditor = createProbeEditor({
