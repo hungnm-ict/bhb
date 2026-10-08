@@ -104,18 +104,16 @@ export function regionsDiffer(left, right, tolerance, changeRatio = DEFAULT_CHAN
 }
 
 /**
- * A rectangle, plus the colours of a grid of points inside it.
+ * The grid of sample colours a region reads down to, split out so a caller
+ * that already has its own `readRegion` reading (one that waited for the
+ * region to settle, say) never pays for a second `readPixels` just to turn
+ * it into a `Fingerprint`.
  *
- * @param {WebGLRenderingContext} gl
- * @param {{ x: number, y: number, w: number, h: number, bw?: number, bh?: number }} rect
- * @returns {Fingerprint | null}
+ * @param {{ x: number, y: number, w: number, h: number, data: Uint8Array }} region
+ * @param {{ bw?: number, bh?: number }} rect the buffer size the capture was taken at
+ * @returns {Fingerprint}
  */
-export function captureFingerprint(gl, rect) {
-  const region = readRegion(gl, rect.x, rect.y, rect.w, rect.h);
-  if (!region) {
-    return null;
-  }
-
+export function fingerprintFromRegion(region, rect) {
   const samples = [];
   for (let row = 0; row < GRID; row += 1) {
     for (let col = 0; col < GRID; col += 1) {
@@ -128,6 +126,21 @@ export function captureFingerprint(gl, rect) {
   }
 
   return { x: region.x, y: region.y, w: region.w, h: region.h, bw: rect.bw, bh: rect.bh, samples };
+}
+
+/**
+ * A rectangle, plus the colours of a grid of points inside it.
+ *
+ * @param {WebGLRenderingContext} gl
+ * @param {{ x: number, y: number, w: number, h: number, bw?: number, bh?: number }} rect
+ * @returns {Fingerprint | null}
+ */
+export function captureFingerprint(gl, rect) {
+  const region = readRegion(gl, rect.x, rect.y, rect.w, rect.h);
+  if (!region) {
+    return null;
+  }
+  return fingerprintFromRegion(region, rect);
 }
 
 /**

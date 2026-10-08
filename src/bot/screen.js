@@ -87,6 +87,22 @@ export function scoreScreen(gl, screen, buffer, mode) {
 }
 
 /**
+ * Score every anchor on its own, with no early exit — unlike `scoreScreen`,
+ * which stops at the first miss because all it owes the runner is a yes/no.
+ * This is for a human narrowing down which one anchor is the bad one.
+ *
+ * @returns {{ matched: boolean, ratio: number }[]} one entry per anchor, in order
+ */
+export function scoreAnchors(gl, screen, buffer, mode) {
+  if (!isScreenReady(screen)) {
+    return [];
+  }
+  return screen.anchors.map((anchor) =>
+    matchFingerprint(gl, anchor, buffer, mode, screen.tolerance, screen.minRatio)
+  );
+}
+
+/**
  * The party geometry a screen describes, or null when it describes none.
  *
  * Null is the answer for every screen that is not a party list, and it is

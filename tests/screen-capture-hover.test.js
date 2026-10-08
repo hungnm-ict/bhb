@@ -17,12 +17,30 @@ const canvas = {
 
 /** Lit while the synthetic pointer sits on the button, dark once it leaves. */
 let pointerOnButton = true;
+/** How many reads a still-fading hover-exit has left before it settles. */
+let fadeFramesLeft = 0;
+const FADE_TOTAL_FRAMES = 5;
 
 const gl = {
   RGBA: 0,
   UNSIGNED_BYTE: 0,
   readPixels(_x, _y, w, h, _format, _type, out) {
-    const [r, g, b] = pointerOnButton ? [203, 240, 103] : [10, 20, 30];
+    let r;
+    let g;
+    let b;
+    if (pointerOnButton) {
+      [r, g, b] = [203, 240, 103];
+    } else if (fadeFramesLeft > 0) {
+      // A genuine tween, not a two-step jump: each read still differs from
+      // the last, so a settle check cannot mistake mid-fade for arrived.
+      const t = fadeFramesLeft / FADE_TOTAL_FRAMES;
+      r = Math.round(10 + (203 - 10) * t);
+      g = Math.round(20 + (240 - 20) * t);
+      b = Math.round(30 + (103 - 30) * t);
+      fadeFramesLeft -= 1;
+    } else {
+      [r, g, b] = [10, 20, 30];
+    }
     for (let i = 0; i < w * h; i += 1) {
       out[i * 4] = r;
       out[i * 4 + 1] = g;
@@ -54,12 +72,22 @@ describe('screen editor capture: hover safety', () => {
     vi.resetModules();
     vi.clearAllMocks();
     pointerOnButton = true;
+    fadeFramesLeft = 0;
     screens = [];
     const { createScreenEditor } = await import('../src/bot/screen-editor.js');
     editor = createScreenEditor({ getScreens: () => screens, persist: () => {}, report: () => {} });
   });
 
   it('reads the resting colour when the cursor is parked over the drag', async () => {
+    window.dispatchEvent(new MouseEvent('mousemove', { clientX: 400, clientY: 260 }));
+
+    const screen = await editor.captureAnchor({ left: 390, top: 250, width: 20, height: 20 });
+
+    expect(screen.anchors[0].samples[0].hex).toBe('#0a141e');
+  });
+
+  it('waits out a hover-exit fade longer than a couple of frames', async () => {
+    fadeFramesLeft = FADE_TOTAL_FRAMES;
     window.dispatchEvent(new MouseEvent('mousemove', { clientX: 400, clientY: 260 }));
 
     const screen = await editor.captureAnchor({ left: 390, top: 250, width: 20, height: 20 });

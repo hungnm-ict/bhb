@@ -74,6 +74,11 @@ export function renderScreensTab(deps) {
       return null;
     }
 
+    // Costs one gl.readPixels per anchor, so it only runs for a list the user
+    // actually opened — `scoreScreen`'s own early exit can't tell a human
+    // which anchor is the bad one, which is exactly what this list is for.
+    const anchorScores = deps.screenEditor.probeAnchors(screen.id);
+
     const rows = screen.anchors.map((_, anchorIndex) => {
       const recaptureBtn = el('button', {
         class: 'bhb-icon',
@@ -93,8 +98,16 @@ export function renderScreensTab(deps) {
         deps.refresh();
       });
 
+      const score = anchorScores[anchorIndex];
+      const ratio = el('span', {
+        class: `bhb-mono bhb-note bhb-screen__anchorratio ${score && score.matched ? 'is-seen' : 'is-unseen'}`,
+        title: t('screens.ratioHint'),
+        text: score ? score.ratio.toFixed(2) : '—',
+      });
+
       const row = el('div', { class: 'bhb-screen__anchorrow' }, [
         el('span', { class: 'bhb-note', text: t('screens.anchorRow', { n: anchorIndex + 1 }) }),
+        ratio,
         el('span', { class: 'bhb-screen__anchoractions' }, [recaptureBtn, removeBtn]),
       ]);
       // Hovering outlines the actual rectangle this anchor reads, over the
