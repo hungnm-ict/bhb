@@ -1,5 +1,6 @@
 import { getRenderTarget } from '../core/canvas.js';
-import { fingerprintFromRegion, readRegion, regionsDiffer } from '../core/region.js';
+import { fingerprintFromRegion, readRegion, regionsDiffer, resolveRect, sampleRegion } from '../core/region.js';
+import { rgbToHex } from '../core/color.js';
 import { clientToBuffer, getBufferSize, isInsideCanvas } from '../core/coords.js';
 import { dispatchMoveTo, resetHover } from '../core/input.js';
 import { realRequestAnimationFrame } from '../core/timers.js';
@@ -384,8 +385,41 @@ export function createScreenEditor(deps) {
     return scoreAnchors(target.gl, screen, getBufferSize(target.canvas), deps.getScaleMode());
   }
 
+  /**
+   * Everything needed to tell a misplaced anchor from a miscoloured one, as
+   * JSON to paste into a bug report.
+   * @returns {string | null}
+   */
+  function diagnoseAnchor(screenId, anchorIndex) {
+    const screen = find(screenId);
+    const anchor = screen && screen.anchors[anchorIndex];
+    const target = getRenderTarget();
+    if (!anchor || !target) {
+      return null;
+    }
+    const { canvas, gl } = target;
+    const client = canvas.getBoundingClientRect();
+    const rect = resolveRect(anchor, getBufferSize(canvas), deps.getScaleMode());
+    const region = readRegion(gl, rect.x, rect.y, rect.w, rect.h);
+    return JSON.stringify({
+      mode: deps.getScaleMode(),
+      dpr: window.devicePixelRatio,
+      canvas: { width: canvas.width, height: canvas.height },
+      drawingBuffer: { width: gl.drawingBufferWidth, height: gl.drawingBufferHeight },
+      client: { left: client.left, top: client.top, width: client.width, height: client.height },
+      stored: { x: anchor.x, y: anchor.y, w: anchor.w, h: anchor.h, bw: anchor.bw, bh: anchor.bh },
+      resolved: rect,
+      tolerance: screen.tolerance,
+      samples: anchor.samples.map((sample) => ({
+        stored: sample.hex,
+        live: region ? rgbToHex(sampleRegion(region, sample.dx, sample.dy)) : null,
+      })),
+    });
+  }
+
   return {
     captureAnchor,
+    diagnoseAnchor,
     rename,
     setStopsTask,
     setNotify,

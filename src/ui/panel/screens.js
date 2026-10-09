@@ -104,6 +104,19 @@ export function renderScreensTab(deps) {
         title: t('screens.ratioHint'),
         text: score ? score.ratio.toFixed(2) : '—',
       });
+      ratio.addEventListener('click', async () => {
+        const report = deps.screenEditor.diagnoseAnchor(screen.id, anchorIndex);
+        if (!report) {
+          return;
+        }
+        try {
+          await navigator.clipboard.writeText(report);
+          transferNote.textContent = t('screens.diagnoseCopied');
+        } catch {
+          console.log('[BHB] anchor diagnosis', report);
+          transferNote.textContent = t('screens.diagnoseLogged');
+        }
+      });
 
       const row = el('div', { class: 'bhb-screen__anchorrow' }, [
         el('span', { class: 'bhb-note', text: t('screens.anchorRow', { n: anchorIndex + 1 }) }),
