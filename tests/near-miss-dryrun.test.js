@@ -2,7 +2,6 @@
  * A dry run's verdict says a step missed; the drift beside it says whether the
  * colour was a shade off or the point is somewhere else entirely.
  *
- * @vitest-environment jsdom
  */
 import { describe, it, expect } from 'vitest';
 import { scoreStepDetail } from '../src/bot/dry-run.js';

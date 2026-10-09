@@ -2,7 +2,6 @@
  * The step cursor. Order has to be real when the game cooperates, and has to
  * be abandoned when it does not.
  *
- * @vitest-environment jsdom
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 

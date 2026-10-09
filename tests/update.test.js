@@ -4,7 +4,6 @@
  * CDN serving the file holds a stale copy for minutes, which is long enough
  * to tell someone their new release does not exist.
  *
- * @vitest-environment jsdom
  */
 import { describe, it, expect, vi } from 'vitest';
 import { checkForUpdate, parseVersion, compareVersions, SCRIPT_URL } from '../src/core/update.js';

@@ -5,7 +5,6 @@
  * exactly the lag a party panel's Start button shows while nothing else on
  * screen is changing.
  *
- * @vitest-environment jsdom
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 

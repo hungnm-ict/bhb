@@ -5,7 +5,6 @@
  * a whole screen to express "the Play button went grey" is more work than the
  * fact deserves, so the step that clicks it can carry the meaning instead.
  *
- * @vitest-environment jsdom
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 

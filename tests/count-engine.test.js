@@ -6,7 +6,6 @@
  * change is one wave, an animation on its way to settling is none, and a
  * region that never moves does not hold the bot forever.
  *
- * @vitest-environment jsdom
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 

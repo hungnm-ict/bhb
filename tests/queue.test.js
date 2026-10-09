@@ -2,7 +2,6 @@
  * Run-All walks the queue. The interesting cases are all about when it gives
  * up on an activity and what happens when it comes back round.
  *
- * @vitest-environment jsdom
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
