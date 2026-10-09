@@ -1,6 +1,7 @@
 import { getCanvas, getGl } from './canvas.js';
 import { clientToBuffer, getBufferSize } from './coords.js';
 import { detectScreen } from '../bot/screen.js';
+import { resolveRect } from './region.js';
 import { HOME_ACTIVITY_ID } from '../bot/activity.js';
 
 /**
@@ -81,7 +82,7 @@ export function handleClick(event, deps) {
 
     if (activity.id !== HOME_ACTIVITY_ID && homeGated) {
       if (onHomeScreen === undefined) {
-        onHomeScreen = isOnHomeScreen(canvas, screens, deps);
+        onHomeScreen = isOnHomeScreen(canvas, screens, scaleZone(activity.clickZone, buffer), deps);
       }
       if (!onHomeScreen) {
         continue;
@@ -97,14 +98,43 @@ export function handleClick(event, deps) {
   }
 }
 
-function isOnHomeScreen(canvas, screens, deps) {
+function isOnHomeScreen(canvas, screens, zone, deps) {
   const gl = getGl(canvas);
   if (!gl) {
     return false;
   }
   const mode = deps.getScaleMode ? deps.getScaleMode() : 'scale';
-  const screen = detectScreen(gl, screens, getBufferSize(canvas), mode);
+  const buffer = getBufferSize(canvas);
+  const unhovered = screens.map((screen) => withoutHoveredAnchors(screen, zone, buffer, mode));
+  const screen = detectScreen(gl, unhovered, buffer, mode);
   return Boolean(screen && screen.isHome);
+}
+
+/**
+ * The real cursor sits on the icon being clicked, so an anchor drawn on that
+ * icon reads its hover-lit shade and would fail home every time. Judge home
+ * by its other anchors instead, unless that would leave none to judge by.
+ */
+function withoutHoveredAnchors(screen, zone, buffer, mode) {
+  if (!screen.isHome || !screen.anchors) {
+    return screen;
+  }
+  const anchors = screen.anchors.filter(
+    (anchor) => !rectsOverlap(resolveRect(anchor, buffer, mode), zone)
+  );
+  if (anchors.length === 0 || anchors.length === screen.anchors.length) {
+    return screen;
+  }
+  return { ...screen, anchors };
+}
+
+function rectsOverlap(left, right) {
+  return (
+    left.x < right.x + right.w &&
+    right.x < left.x + left.w &&
+    left.y < right.y + right.h &&
+    right.y < left.y + left.h
+  );
 }
 
 function scaleZone(zone, buffer) {
