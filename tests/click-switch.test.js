@@ -18,7 +18,8 @@ vi.mock('../src/core/canvas.js', () => ({
 }));
 
 vi.mock('../src/bot/screen.js', () => ({
-  detectScreen: () => detectedScreen,
+  detectScreen: (gl, screens) =>
+    typeof detectedScreen === 'function' ? detectedScreen(screens) : detectedScreen,
 }));
 
 const { handleClick } = await import('../src/core/click-switch.js');
@@ -159,6 +160,22 @@ describe('click-switch', () => {
   it('still switches the Run target on the home screen once one is marked', () => {
     const home = { id: 'home', name: 'Home', isHome: true };
     detectedScreen = home;
+    const { deps, setRunTarget } = build({
+      activities: [{ id: 'expedition', name: 'Expedition', clickZone: ZONE }],
+      screens: [home],
+    });
+
+    click(deps, { x: 120, y: 120 });
+
+    expect(setRunTarget).toHaveBeenCalledWith('expedition');
+  });
+
+  it('still recognises home when the anchor under the clicked icon is lit by the hover', () => {
+    const litIcon = { x: 110, y: 110, w: 20, h: 20, bw: 800, bh: 600, lit: true };
+    const topBar = { x: 0, y: 560, w: 800, h: 40, bw: 800, bh: 600 };
+    const home = { id: 'home', name: 'Home', isHome: true, anchors: [litIcon, topBar] };
+    detectedScreen = (screens) =>
+      screens.find((screen) => screen.anchors.every((anchor) => !anchor.lit)) || null;
     const { deps, setRunTarget } = build({
       activities: [{ id: 'expedition', name: 'Expedition', clickZone: ZONE }],
       screens: [home],
