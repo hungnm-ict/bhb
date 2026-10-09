@@ -2,7 +2,6 @@
  * A dry run answers "what would you do, and why not the rest" — so what is
  * pinned here is the verdict per step, and that nothing is ever clicked.
  *
- * @vitest-environment jsdom
  */
 import { describe, it, expect, vi } from 'vitest';
 

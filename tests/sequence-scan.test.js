@@ -6,7 +6,6 @@
  * at once. Going backward is proved by nothing but time, so it is made to
  * wait, and to hold still while it waits.
  *
- * @vitest-environment jsdom
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 

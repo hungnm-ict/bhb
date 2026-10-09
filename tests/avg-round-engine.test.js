@@ -4,7 +4,6 @@
  * (Run-All giving up rather than the resource running out) must not be
  * folded in — it says how long the bot waited, not how long a round takes.
  *
- * @vitest-environment jsdom
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { IDLE_ADVANCE_MS } from '../src/core/constants.js';
