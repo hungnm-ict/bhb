@@ -13,6 +13,7 @@ import { normaliseProbes } from './probe.js';
 import { normaliseLagWindows } from './lag.js';
 import { cloneStepsInto } from '../bot/step-pack.js';
 import { normaliseLockSize } from './canvas-lock.js';
+import { packTransfer, unpackTransfer } from './transfer.js';
 
 /**
  * Persistence for step profiles and settings.
@@ -410,9 +411,9 @@ export function saveSettings(settings) {
   return writeJson(STORAGE_KEY_SETTINGS, settings);
 }
 
-/** @param {ProfileState} state @returns {string} pretty JSON for sharing */
+/** @param {ProfileState} state @returns {string} packed text for sharing */
 export function exportProfiles(state) {
-  return JSON.stringify(state);
+  return packTransfer(state);
 }
 
 /**
@@ -421,7 +422,7 @@ export function exportProfiles(state) {
  * @throws {Error} when the text is not a usable profile export
  */
 export function importProfiles(json) {
-  const parsed = JSON.parse(json);
+  const parsed = unpackTransfer(json);
   const state = normaliseState(parsed);
   if (state.profiles.every((p) => p.steps.length === 0) && !parsed.profiles) {
     throw new Error('not a BHB profile export');

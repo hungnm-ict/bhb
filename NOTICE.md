@@ -29,6 +29,11 @@ coordinate system that makes rules resolution-independent, the profile storage
 and import/export, the rule model, the engine, the UI layer, the i18n layer,
 the build pipeline, and the test suite.
 
+## Bundled third-party code
+
+- [`fflate`](https://github.com/101arrowz/fflate) (MIT), compresses the text
+  that exports copy and imports read
+
 ## If you are the upstream author
 
 If you would prefer this project not exist in its current form, please open an

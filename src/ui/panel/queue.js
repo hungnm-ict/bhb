@@ -2,6 +2,7 @@ import { el } from '../dom.js';
 import { t } from '../../i18n/index.js';
 import { stepsForActivity } from '../../bot/activity.js';
 import { startDragSelect } from '../dragselect.js';
+import { unpackTransfer } from '../../core/transfer.js';
 
 /**
  * The Run-All queue, as a section of the settings tab.
@@ -146,7 +147,7 @@ export function renderQueueSection(deps) {
       const json = deps.queueEditor.exportZones();
       await navigator.clipboard.writeText(json);
       zoneTransferNote.textContent = t('queue.exportZonesCopied', {
-        n: JSON.parse(json).length,
+        n: unpackTransfer(json).length,
       });
     } catch {
       zoneTransferNote.textContent = t('queue.exportZonesCopyFailed');

@@ -11,6 +11,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { renderStepsTab } from '../src/ui/panel/steps.js';
 import { createUiStore } from '../src/ui/store.js';
 import { createStep } from '../src/bot/step.js';
+import { unpackTransfer } from '../src/core/transfer.js';
 
 const ACTIVITIES = [
   { id: 'raid', name: 'Raid', enabled: true },
@@ -51,7 +52,7 @@ beforeEach(() => {
 describe('the transfer box', () => {
   it('already holds the pack when the tab opens', () => {
     const { box } = build('raid');
-    const pack = JSON.parse(box.value);
+    const pack = unpackTransfer(box.value);
 
     expect(pack.kind).toBe('bhb.steps');
     expect(pack.steps.map((one) => one.label)).toEqual(['raid one']);
@@ -59,20 +60,20 @@ describe('the transfer box', () => {
 
   it('holds everything when no activity is filtered', () => {
     const { box } = build(null);
-    expect(JSON.parse(box.value).steps).toHaveLength(2);
+    expect(unpackTransfer(box.value).steps).toHaveLength(2);
   });
 
   it('carries the pinned size, so the far side can warn', () => {
     const { box } = build('raid');
-    expect(JSON.parse(box.value).lock).toEqual({ width: 640, height: 400 });
+    expect(unpackTransfer(box.value).lock).toEqual({ width: 640, height: 400 });
   });
 
   it('follows the filter when it changes', () => {
     const first = build('raid');
-    expect(JSON.parse(first.box.value).steps[0].label).toBe('raid one');
+    expect(unpackTransfer(first.box.value).steps[0].label).toBe('raid one');
 
     const second = build('dungeon');
-    expect(JSON.parse(second.box.value).steps[0].label).toBe('dun one');
+    expect(unpackTransfer(second.box.value).steps[0].label).toBe('dun one');
   });
 
   it('leaves the box empty when the filter shows nothing', () => {
@@ -105,6 +106,6 @@ describe('surviving the tick that rebuilds the tab', () => {
 
     const second = build('raid');
 
-    expect(JSON.parse(second.box.value).steps).toHaveLength(1);
+    expect(unpackTransfer(second.box.value).steps).toHaveLength(1);
   });
 });

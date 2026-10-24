@@ -1,5 +1,5 @@
 /**
- * Moving screens to another profile or account: export to JSON, import back.
+ * Moving screens to another profile or account: export packed text, import back.
  *
  * @vitest-environment jsdom
  */
@@ -13,7 +13,7 @@ function editorFor(screens) {
 
 describe('exportAll / importScreens', () => {
   it('imports an export into a different list with fresh ids, appended', () => {
-    const source = [createScreen({ name: 'lobby' })];
+    const source = [createScreen({ name: 'sảnh chờ' })];
     const json = editorFor(source).exportAll();
 
     const target = [createScreen({ name: 'already here' })];
@@ -21,8 +21,15 @@ describe('exportAll / importScreens', () => {
 
     expect(added).toBe(1);
     expect(target).toHaveLength(2);
-    expect(target[1].name).toBe('lobby');
+    expect(target[1].name).toBe('sảnh chờ');
     expect(target[1].id).not.toBe(source[0].id);
+  });
+
+  it('still imports the plain JSON older builds copied', () => {
+    const target = [];
+    const added = editorFor(target).importScreens(JSON.stringify([createScreen({ name: 'lobby' })]));
+    expect(added).toBe(1);
+    expect(target[0].name).toBe('lobby');
   });
 
   it('rejects anything that is not a JSON array of screens', () => {

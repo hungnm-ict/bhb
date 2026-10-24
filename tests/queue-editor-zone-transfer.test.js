@@ -4,6 +4,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import { createQueueEditor } from '../src/bot/queue-editor.js';
+import { unpackTransfer } from '../src/core/transfer.js';
 
 function editorFor(activities) {
   return createQueueEditor({ getActivities: () => activities, persist: () => {} });
@@ -20,7 +21,7 @@ describe('exportZones / importZones', () => {
 
     const json = editorFor(activities).exportZones();
 
-    expect(JSON.parse(json)).toEqual([{ id: 'raid', clickZone: ZONE }]);
+    expect(unpackTransfer(json)).toEqual([{ id: 'raid', clickZone: ZONE }]);
   });
 
   it('applies an export onto a different install by activity id', () => {

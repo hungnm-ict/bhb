@@ -8,6 +8,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import { exportSteps, importSteps, mergeSteps } from '../src/bot/step-pack.js';
+import { unpackTransfer } from '../src/core/transfer.js';
 import { createStep } from '../src/bot/step.js';
 
 const LOCK = { width: 640, height: 400 };
@@ -24,19 +25,19 @@ function step(label, activity, overrides = {}) {
 
 describe('exportSteps', () => {
   it('writes the steps it was given, and says what it is', () => {
-    const pack = JSON.parse(exportSteps([step('one', 'dungeon')], LOCK));
+    const pack = unpackTransfer(exportSteps([step('one', 'dungeon')], LOCK));
     expect(pack.kind).toBe('bhb.steps');
     expect(pack.steps).toHaveLength(1);
     expect(pack.steps[0].label).toBe('one');
   });
 
   it('records the canvas it was captured on', () => {
-    const pack = JSON.parse(exportSteps([step('one', 'dungeon')], LOCK));
+    const pack = unpackTransfer(exportSteps([step('one', 'dungeon')], LOCK));
     expect(pack.lock).toEqual(LOCK);
   });
 
   it('is happy with no lock, which is what an unpinned canvas gives', () => {
-    const pack = JSON.parse(exportSteps([step('one', 'dungeon')], null));
+    const pack = unpackTransfer(exportSteps([step('one', 'dungeon')], null));
     expect(pack.lock).toBeNull();
   });
 });

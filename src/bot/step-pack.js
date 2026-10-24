@@ -1,4 +1,5 @@
 import { createStepId } from './step.js';
+import { packTransfer, unpackTransfer } from '../core/transfer.js';
 
 /**
  * Carrying a set of steps between windows.
@@ -28,7 +29,7 @@ export function exportSteps(steps, lock, screens = []) {
   // the steps without them leaves every gate pointing at nothing on the far
   // side — and a gate matching no screen is silent, not loud.
   const wanted = new Set(steps.flatMap((step) => step.screens || []));
-  return JSON.stringify({
+  return packTransfer({
     kind: KIND,
     version: VERSION,
     lock: lock ? { width: lock.width, height: lock.height } : null,
@@ -43,7 +44,7 @@ export function exportSteps(steps, lock, screens = []) {
  * @throws {Error} when the text is not a step pack
  */
 export function importSteps(json) {
-  const parsed = JSON.parse(json);
+  const parsed = unpackTransfer(json);
   if (!parsed || parsed.kind !== KIND || !Array.isArray(parsed.steps)) {
     throw new Error('not a BHB step pack');
   }

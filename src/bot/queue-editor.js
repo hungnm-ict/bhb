@@ -2,6 +2,7 @@ import { sortToDefaultOrder } from './activity.js';
 import { getCanvas } from '../core/canvas.js';
 import { clientToBuffer, getBufferSize } from '../core/coords.js';
 import { t } from '../i18n/index.js';
+import { packTransfer, unpackTransfer } from '../core/transfer.js';
 
 /**
  * Enabling and reordering the Run-All queue.
@@ -99,9 +100,9 @@ export function createQueueEditor(deps) {
     deps.persist();
   }
 
-  /** Every activity's click zone, as JSON — moving them to another install. */
+  /** Every activity's click zone, packed, for moving them to another install. */
   function exportZones() {
-    return JSON.stringify(
+    return packTransfer(
       deps
         .getActivities()
         .filter((activity) => activity.clickZone)
@@ -124,7 +125,7 @@ export function createQueueEditor(deps) {
    * @throws {Error} on anything that is not a JSON array of `{ id, clickZone }`
    */
   function importZones(json) {
-    const parsed = JSON.parse(json);
+    const parsed = unpackTransfer(json);
     if (!Array.isArray(parsed) || parsed.length === 0) {
       throw new Error(t('queue.importNotAnArray'));
     }

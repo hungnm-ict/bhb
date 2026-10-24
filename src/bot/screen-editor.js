@@ -8,6 +8,7 @@ import { trackCursor, getCursor } from '../core/cursor.js';
 import { createScreen, createScreenId, scoreScreen, scoreAnchors } from './screen.js';
 import { slotsForBoss } from './worldboss.js';
 import { t } from '../i18n/index.js';
+import { packTransfer, unpackTransfer } from '../core/transfer.js';
 
 /** Frames to let the game repaint after the synthetic pointer moves away. */
 const REPAINT_FRAMES = 2;
@@ -315,9 +316,9 @@ export function createScreenEditor(deps) {
     deps.persist();
   }
 
-  /** Every screen in this profile, as JSON — moving them to another account. */
+  /** Every screen in this profile, packed, for moving them to another account. */
   function exportAll() {
-    return JSON.stringify(deps.getScreens());
+    return packTransfer(deps.getScreens());
   }
 
   /**
@@ -332,7 +333,7 @@ export function createScreenEditor(deps) {
    * @throws {Error} on anything that is not a JSON array of screens
    */
   function importScreens(json) {
-    const parsed = JSON.parse(json);
+    const parsed = unpackTransfer(json);
     if (!Array.isArray(parsed) || parsed.length === 0) {
       throw new Error(t('screens.importNotAnArray'));
     }
