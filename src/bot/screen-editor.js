@@ -317,7 +317,7 @@ export function createScreenEditor(deps) {
 
   /** Every screen in this profile, as JSON — moving them to another account. */
   function exportAll() {
-    return JSON.stringify(deps.getScreens(), null, 2);
+    return JSON.stringify(deps.getScreens());
   }
 
   /**

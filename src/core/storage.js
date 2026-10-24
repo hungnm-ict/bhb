@@ -412,7 +412,7 @@ export function saveSettings(settings) {
 
 /** @param {ProfileState} state @returns {string} pretty JSON for sharing */
 export function exportProfiles(state) {
-  return JSON.stringify(state, null, 2);
+  return JSON.stringify(state);
 }
 
 /**

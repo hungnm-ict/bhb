@@ -28,17 +28,13 @@ export function exportSteps(steps, lock, screens = []) {
   // the steps without them leaves every gate pointing at nothing on the far
   // side — and a gate matching no screen is silent, not loud.
   const wanted = new Set(steps.flatMap((step) => step.screens || []));
-  return JSON.stringify(
-    {
-      kind: KIND,
-      version: VERSION,
-      lock: lock ? { width: lock.width, height: lock.height } : null,
-      screens: (screens || []).filter((screen) => wanted.has(screen.id)),
-      steps,
-    },
-    null,
-    2
-  );
+  return JSON.stringify({
+    kind: KIND,
+    version: VERSION,
+    lock: lock ? { width: lock.width, height: lock.height } : null,
+    screens: (screens || []).filter((screen) => wanted.has(screen.id)),
+    steps,
+  });
 }
 
 /**
