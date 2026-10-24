@@ -209,4 +209,17 @@ describe('click-switch', () => {
 
     expect(setRunTarget).toHaveBeenCalledWith('raid');
   });
+
+  it('picks the enabled activity when several share one icon', () => {
+    const { deps, setRunTarget } = build({
+      activities: [
+        { id: 'invasion', name: 'Invasion', enabled: false, clickZone: ZONE },
+        { id: 'expedition', name: 'Expedition', enabled: true, clickZone: ZONE },
+      ],
+    });
+
+    click(deps, { x: 120, y: 120 });
+
+    expect(setRunTarget).toHaveBeenCalledWith('expedition');
+  });
 });

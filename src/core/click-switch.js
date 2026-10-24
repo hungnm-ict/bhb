@@ -74,6 +74,7 @@ export function handleClick(event, deps) {
   const screens = deps.getScreens ? deps.getScreens() : [];
   const homeGated = screens.some((screen) => screen.isHome);
   let onHomeScreen;
+  let fallback = null;
 
   for (const activity of deps.getActivities()) {
     if (!activity.clickZone || !insideZone(scaleZone(activity.clickZone, buffer), point)) {
@@ -89,13 +90,29 @@ export function handleClick(event, deps) {
       }
     }
 
-    if (activity.id === HOME_ACTIVITY_ID) {
-      deps.stopTask?.();
-      deps.setSpeed?.(1);
+    // One game icon can lead to several activities (PVP, Invasion and
+    // Expedition share one): the enabled one is the pick, not the first drawn.
+    // Home is disabled on purpose and still switches at once.
+    if (activity.enabled === false && activity.id !== HOME_ACTIVITY_ID) {
+      fallback ??= activity;
+      continue;
     }
-    deps.setRunTarget(activity.id);
+
+    switchTo(activity, deps);
     return;
   }
+
+  if (fallback) {
+    switchTo(fallback, deps);
+  }
+}
+
+function switchTo(activity, deps) {
+  if (activity.id === HOME_ACTIVITY_ID) {
+    deps.stopTask?.();
+    deps.setSpeed?.(1);
+  }
+  deps.setRunTarget(activity.id);
 }
 
 function isOnHomeScreen(canvas, screens, zone, deps) {
